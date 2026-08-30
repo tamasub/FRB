@@ -18,6 +18,50 @@ const plan = {
   responsibility_document: 'data/json/03_tests/responsibilities/responsibility_data_v0_2.json',
   guarantee_ids: ['grid_aggregate_g001', 'grid_aggregate_g002'],
   setup: { input_file: 'data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json' },
+  patterns: [
+    {
+      pattern_id: 'pattern_a',
+      generation_mode: 'AGGREGATE_SCALAR_CASE',
+      target_field: 'profit',
+      target_data_path: '$.aggregate_rows',
+      aggregate_operator: 'sum',
+      aggregate_scope: 'filtered',
+      expected_metric_set: 'VALUE_SOURCE_COUNT',
+      expected_def_type: 'ScalarExpectedDef',
+      generated_cases: [
+        {
+          case_id: 'case_a',
+          metric: 'value',
+          actual_path: '$.aggregates.profit.value',
+          expected: { value: 146 },
+          input_snapshot: [
+            { index: 0, row_id: 'agg_001', value: 100, selected: true },
+          ],
+        },
+      ],
+    },
+    {
+      pattern_id: 'pattern_b',
+      generation_mode: 'AGGREGATE_SCALAR_CASE',
+      target_field: 'units',
+      target_data_path: '$.aggregate_rows',
+      aggregate_operator: 'sum',
+      aggregate_scope: 'all',
+      expected_metric_set: 'VALUE',
+      expected_def_type: 'ScalarExpectedDef',
+      generated_cases: [
+        {
+          case_id: 'case_b',
+          metric: 'value',
+          actual_path: '$.aggregates.units.value',
+          expected: { value: 9 },
+          input_snapshot: [
+            { index: 0, row_id: 'agg_001', value: 10, selected: true },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 const observations = [
@@ -104,6 +148,8 @@ test('Diff evidence keeps flat checks, Guarantee grouping, and TestPattern summa
     ],
   );
   assert.equal(doc.test_pattern_results[0].checks[0].source, 'Grid Header profit.value');
+  assert.equal(doc.test_pattern_results[0].planned_pattern.generation_mode, 'AGGREGATE_SCALAR_CASE');
+  assert.equal(doc.test_pattern_results[0].planned_pattern.generated_cases[0].expected.value, 146);
 });
 
 test('Test Evidence Rule 10 declares responsibility-file physical unit and Guarantee logical unit', () => {
@@ -122,4 +168,61 @@ test('GRID_AGGREGATE Selenium runner writes Actual/Diff evidence before final fa
   assert.ok(writeIndex >= 0);
   assert.ok(finalFailIndex > writeIndex);
   assert.match(source, /guarantee_id: guaranteeId/);
+});
+
+test('Runner error is execution error, not a fake TestPattern Diff failure', () => {
+  const runnerObservation = {
+    guarantee_id: 'grid_aggregate_g001',
+    responsibility_cd: 'grid_aggregate',
+    test_pattern_id: '__runner__',
+    case_id: '__runner_error__',
+    metric: 'runner_error',
+    actual: { error_message: 'invalid session id' },
+    actual_display: 'invalid session id',
+    observed_at: '2026-08-30_13:14:27',
+    source: 'SeleniumTaste/responsibility_selenium_runner.js',
+    execution_phase: 'EDIT_MAIN_GRID',
+  };
+  const runnerCheck = {
+    check_id: 'grid_aggregate.__runner_error',
+    type: 'runnerError',
+    guarantee_id: 'grid_aggregate_g001',
+    responsibility_cd: 'grid_aggregate',
+    test_pattern_id: '__runner__',
+    case_id: '__runner_error__',
+    expected: 'no error',
+    actual: 'invalid session id',
+    pass: false,
+    metric: 'runner_error',
+    execution_phase: 'EDIT_MAIN_GRID',
+  };
+  const doc = evidence.buildDiffDocument({
+    plan,
+    checks: [runnerCheck],
+    observations: [runnerObservation],
+    observedAt: '2026-08-30_13:14:27',
+    runId: 'grid_aggregate_20260830_131427',
+    sourceRunner: 'runner.js',
+    actualFile: 'data/json/03_tests/responsibilities/results/grid_aggregate.actual.json',
+    diffFile: 'data/json/03_tests/responsibilities/results/grid_aggregate.diff.json',
+  });
+  assert.equal(doc.status, 'error');
+  assert.equal(doc.execution_status, 'error');
+  assert.equal(doc.execution_error_count, 1);
+  assert.equal(doc.test_pattern_total, 0);
+  assert.equal(doc.failCount, 0);
+  assert.equal(doc.failedCount, 0);
+  assert.equal(doc.test_pattern_results.length, 0);
+  assert.equal(doc.execution_errors[0].execution_phase, 'EDIT_MAIN_GRID');
+  assert.match(doc.summary, /Diff未評価/);
+});
+
+test('DATA_UPDATE_PERSIST Selenium runner records execution phase on runner error', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'SeleniumTaste/responsibility_selenium_runner.js'), 'utf8');
+  assert.match(source, /let executionPhase = 'INIT'/);
+  assert.match(source, /executionPhase = 'LOAD_INPUT'/);
+  assert.match(source, /executionPhase = 'EDIT_MAIN_GRID'/);
+  assert.match(source, /executionPhase = 'SAVE'/);
+  assert.match(source, /executionPhase = 'RELOAD'/);
+  assert.match(source, /runnerErrorEvidence\(plan, err, observedAt, executionPhase\)/);
 });

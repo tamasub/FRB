@@ -163,7 +163,8 @@ function renderCompactGrid(gd=gridDef()) {
       const td = document.createElement('td');
       if (f.type) td.classList.add(f.type);
       const value = getByPath(row, f.field);
-      td.textContent = formatValue(value, f);
+      // Numeric zero is meaningful data. Never let a formatter/falsy path collapse 0 into a blank cell.
+      td.textContent = value === 0 ? '0' : formatValue(value, f);
       if (f.grid?.display === 'json' || f.grid?.inlineJson === true || f.grid?.inline_json === true) {
         td.classList.add('grid-cell-inline-json');
         td.title = td.textContent;

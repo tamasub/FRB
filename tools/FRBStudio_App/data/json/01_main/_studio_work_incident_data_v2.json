@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T12:28:00+09:00",
+  "updated_at": "2026-08-30T13:05:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 239,
+  "items_count": 240,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -35860,6 +35860,182 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0252",
+      "phase": "v0.18.123-responsibility-result-evidence-cross-responsibility",
+      "title": "Responsibility Result Evidence事実Detail / Search・CSV・Persist横展開",
+      "incident_type": "feature_enhancement",
+      "category": "Responsibility Verification",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち / Search・CSV・Persist正式E2E実行待ち",
+      "verification_status": "JSON parse確認済み / JS構文PASS / 責務Plan 4種 READY / 全Static 409/409 PASS / 実機E2E未実行",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-08-30T13:05:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-08-30T13:05:00+09:00",
+      "updated_at": "2026-08-30T13:05:00+09:00",
+      "work_summary": "Result Evidence PreviewをGenerated Case Detailと同じ承認文脈へ揃え、①Input ②投入/操作 ③Expected ④Actual ⑤Diffを実行時保存Evidenceだけで表示する。GRID_AGGREGATEに加えSEARCH_FILTER / CSV_EXPORT / DATA_UPDATE_PERSISTも責務単位Actual/Diff出力へ横展開し、Diffのtest_pattern_results[]へ実行時planned_patternを保存する。",
+      "target_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "SeleniumTaste/responsibility_selenium_runner.js",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "wwwroot/js/components/responsibility/responsibility_diff_result_preview_component.js",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_result_evidence_cross_responsibility_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "SeleniumTaste/responsibility_evidence.js",
+        "SeleniumTaste/responsibility_selenium_runner.js",
+        "defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json",
+        "wwwroot/js/components/responsibility/responsibility_diff_result_preview_component.js",
+        "wwwroot/index.html",
+        "tests/qa/static/responsibility_result_evidence_cross_responsibility_static.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "context_def_draft": "# Result Evidence Fact Detail\n\n- 一覧はTestPattern単位の量的サマリ。\n- 詳細はGenerated Case Detailと同じ入力・投入・Expected文脈を保持し、その後ろへActual / Diffを接続する。\n- 詳細表示の前半は実行時に保存したplanned_patternを使用し、画面表示時にExpectedを再導出しない。\n- Actualは観測事実、DiffはExpectedとの比較結果として保存する。",
+      "objective": "テスト結果を、Expected/Actualの数値だけでなく「何を入力し、どう投入した結果か」まで追える形にし、人間がTestPattern単位で承認できるEvidenceへする。",
+      "background": "GRID_AGGREGATEのResult Evidence実機表示で、Expected/Actual/DiffだけではGenerated Case Detailにあった入力状況・集計投入条件が失われ、テスト結果として承認できないことが判明した。",
+      "scope": [
+        "Diff test_pattern_results[]へplanned_patternを保存",
+        "GRID_AGGREGATE Result Detailを①対象値 ②集計投入 ③Expected ④Actual ⑤Diffへ統一",
+        "SEARCH_FILTER Result Detailへ対象項目Input / 検索Criteria / Expected / Actual / Diffを表示",
+        "CSV_EXPORT Result Detailへ対象行 / CSV出力条件 / Expected / Actual / Diffを表示",
+        "DATA_UPDATE_PERSIST Result DetailへBefore / 操作 / Expected Diff / Actual / Diffを表示",
+        "SEARCH_FILTER / CSV_EXPORT / DATA_UPDATE_PERSIST Selenium Runnerへ責務単位Actual/Diff Evidence保存を追加",
+        "失敗時もEvidence保存後に最終FAIL判定"
+      ],
+      "out_of_scope": [
+        "GRID_COLUMN_BUILDのSelenium Evidence化",
+        "Diff Type Catalogの新設",
+        "実ブラウザでの全責務E2E実行",
+        "ExpectedをResult Viewで再導出すること"
+      ],
+      "fixed_name_policy": "results/<responsibility>.actual.json / .diff.jsonの浅い物理配置を維持する。",
+      "module_policy": "Execution Planが実行時文脈を持ち、Evidence Builderがplanned_patternを保存する。Result Componentは保存済みplanned_pattern / checksのみをProjectionし、正解を再計算しない。",
+      "expected_outputs": [
+        "Result Detailで①Input ②投入/操作 ③Expected ④Actual ⑤Diffが連続表示される",
+        "Search/CSV/Persist実行後にresults直下へActual/Diffが生成される",
+        "Diff一覧は引き続きTestPattern単位",
+        "保存checks[]のCheck粒度は維持",
+        "全Static 0 FAIL"
+      ],
+      "risk": "Search/CSV/Persistの正式Selenium E2EはWindows NativeShell/EdgeDriver環境が必要。StaticではEvidence生成経路と表示契約を保証し、実機観測はユーザー環境で確認する。",
+      "test_points": [
+        "responsibility_evidence.js / responsibility_selenium_runner.js / Result Component node --check",
+        "Search / CSV / Aggregate / Data Update PlanがExecution Ready",
+        "Cross Responsibility Evidence Static PASS",
+        "全Static 409/409 PASS"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-08-30T13:05:00+09:00",
+          "confirmation_type": "責務Plan",
+          "result": "PASS",
+          "detail": "SEARCH 13 Case / CSV 2 Case / Aggregate 9 Case / Persist 30 Mutation、全てExecution Ready YES"
+        },
+        {
+          "at": "2026-08-30T13:05:00+09:00",
+          "confirmation_type": "対象Static",
+          "result": "PASS",
+          "detail": "Evidence / Search / CSV / Aggregate関連 26/26 PASS + Cross Responsibility 3/3 PASS"
+        },
+        {
+          "at": "2026-08-30T13:05:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/*.test.mjs = 409/409 PASS / 0 FAIL"
+        }
+      ],
+      "user_request": "Generated Case Detailと同じ情報が最低限事実ベースで見えないとテスト結果として承認できない。①対象値の入力状況 ②集計へ投入 ③Expected Result ④Actual ⑤Diffにしたい。実機で良い感じになったので、続けて行けるところまで進めてほしい。",
+      "ai_response": "Result Evidenceへplanned_patternを保存し、Generated Case Detailの前半文脈を実行結果へ持ち込む。さらにSearch/CSV/Data Updateも責務単位Actual/Diff Evidence出力へ横展開する。",
+      "latest_user_comment": "いい感じ。続けていけるところまでいっちゃってぇーー。",
+      "latest_ai_response": "GRID_AGGREGATEの事実Detailを基準に、Search/CSV/Data UpdateのEvidence保存とResult表示を横展開。全Static409/409 PASS。正式E2Eは実機確認待ち。",
+      "context_refs": [
+        "studio_work_0250",
+        "studio_work_0251",
+        "constitution_31",
+        "decision_axis_responsibility_observability",
+        "decision_axis_human_readability_first"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "follow_0252_001",
+          "status": "ユーザー実機確認待ち",
+          "action": "GRID_AGGREGATE Result Detailで①〜⑤の連続表示を確認する。"
+        },
+        {
+          "action_id": "follow_0252_002",
+          "status": "PLANNED",
+          "action": "npm run test:responsibility:search / csv / data_update_persist系を実機実行し、各resultsファイルとResult Detailを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "at": "2026-08-30T12:45:00+09:00",
+          "speaker": "user",
+          "message": "Generated Case Detailと同じ情報が最低、事実ベースで見えないとテスト結果として承認できない。①対象値の入力状況 ②集計へ投入 ③Expected Result ④Actual ⑤Diff。"
+        },
+        {
+          "at": "2026-08-30T13:00:00+09:00",
+          "speaker": "user",
+          "message": "実機表示はいい感じ。続けていけるところまで進めてほしい。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0252_001",
+          "at": "2026-08-30T13:05:00+09:00",
+          "decision": "Result DetailはGenerated Case Detailと同じ実行前文脈を保持し、その後ろへActual / Diffを接続する。",
+          "reason": "ExpectedとActualだけでは、何を入力し何を実行したテストかを人間が承認できないため。",
+          "applied_axes": [
+            "責務の成果は外部から観測可能",
+            "人間の視認性を最優先"
+          ],
+          "conditions": "Responsibility Result Evidence",
+          "exceptions": "Runner Errorはplanned_pattern無しのGeneric表示",
+          "expected_behavior": "①Input ②投入/操作 ③Expected ④Actual ⑤Diffを同一Editorで追える。",
+          "acceptance_criteria": "Result Componentに責務別Fact Detail Rendererが存在する。",
+          "confirmation_level": "JS Static"
+        },
+        {
+          "decision_id": "dec_0252_002",
+          "at": "2026-08-30T13:05:00+09:00",
+          "decision": "実行時Execution PlanのTestPattern snapshotをplanned_patternとしてDiff Evidenceへ保存する。",
+          "reason": "Result画面でExpectedを再導出せず、実際に実行した前提・Input・Actionを事実として再現するため。",
+          "applied_axes": [
+            "正本一意性",
+            "Evidence優先"
+          ],
+          "conditions": "test_pattern_results[]",
+          "exceptions": "__runner__ error",
+          "expected_behavior": "Result Viewはplanned_pattern + checksからのみ表示する。",
+          "acceptance_criteria": "Diff TestPattern summaryにplanned_patternが保存される。",
+          "confirmation_level": "JSON/Static"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0252_001",
+          "at": "2026-08-30T13:05:00+09:00",
+          "change_type": "evidence_context_persisted",
+          "before": "Result EvidenceにはCheckと観測元だけがあり、Generated Case DetailのInput/Action文脈を復元できなかった。",
+          "after": "test_pattern_results[]へplanned_patternを保存し、実行時のInput/Action/Expected文脈を保持。",
+          "reason": "テスト結果を人間が承認可能にするため。"
+        },
+        {
+          "history_id": "chg_0252_002",
+          "at": "2026-08-30T13:05:00+09:00",
+          "change_type": "runner_evidence_expansion",
+          "before": "責務単位Actual/Diff Evidence出力はGRID_AGGREGATE Pilotのみ。",
+          "after": "SEARCH_FILTER / CSV_EXPORT / DATA_UPDATE_PERSISTにも同一の浅いresults Evidence保存を横展開。",
+          "reason": "責務横断でActual/Diffの契約を統一するため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -36375,7 +36551,7 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.121-responsibility-diff-testpattern-projection",
+  "work_revision": "v0.18.123-responsibility-result-evidence-cross-responsibility",
   "latest_planning_note": "studio_work_0251: Diff保存粒度はCheckのまま、人間向け一覧をTestPattern単位へ圧縮。Cases / Checks / Diffで量を見せ、Editorは保存済みEvidenceだけを事実ベース表示。",
   "view_def_candidates": [
     {

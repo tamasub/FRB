@@ -1,0 +1,125 @@
+{
+  "view_def": "qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+  "schema_version": "responsibility_actual_v0_2",
+  "document_type": "responsibility_actual",
+  "test_area": "responsibilities",
+  "artifact_kind": "actual",
+  "responsibility_cd": "csv_export",
+  "responsibility_name": "Grid CSV出力責務",
+  "run_id": "csv_export_20260830_131328",
+  "observed_at": "2026-08-30_13:13:28",
+  "guarantee_ids": [
+    "csv_export_g001"
+  ],
+  "source_responsibility_file": "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+  "source_input_file": "data/json/80_frb/frb_csv_export_test_data_v0_1.json",
+  "runner": "SeleniumTaste/responsibility_selenium_runner.js",
+  "observations": [
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_all_rows",
+      "case_id": "csv_export_all_rows_case",
+      "target_field": "CSV Download",
+      "metric": "field_names",
+      "actual": [
+        "row_id",
+        "title",
+        "score",
+        "note"
+      ],
+      "actual_display": "[\"row_id\",\"title\",\"score\",\"note\"]",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download field_names"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_all_rows",
+      "case_id": "csv_export_all_rows_case",
+      "target_field": "CSV Download",
+      "metric": "has_bom",
+      "actual": true,
+      "actual_display": "true",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download has_bom"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_all_rows",
+      "case_id": "csv_export_all_rows_case",
+      "target_field": "CSV Download",
+      "metric": "csv_text",
+      "actual": "﻿row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\ncsv_003,Gamma,30,Tail\r\n",
+      "actual_display": "﻿row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\ncsv_003,Gamma,30,Tail\r\n",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download csv_text"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_all_rows",
+      "case_id": "csv_export_all_rows_case",
+      "target_field": "CSV Download",
+      "metric": "csv_without_bom",
+      "actual": "row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\ncsv_003,Gamma,30,Tail\r\n",
+      "actual_display": "row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\ncsv_003,Gamma,30,Tail\r\n",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download csv_without_bom"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_filtered_rows",
+      "case_id": "csv_export_filtered_rows_case",
+      "target_field": "CSV Download",
+      "metric": "field_names",
+      "actual": [
+        "row_id",
+        "title",
+        "score",
+        "note"
+      ],
+      "actual_display": "[\"row_id\",\"title\",\"score\",\"note\"]",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download field_names"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_filtered_rows",
+      "case_id": "csv_export_filtered_rows_case",
+      "target_field": "CSV Download",
+      "metric": "has_bom",
+      "actual": true,
+      "actual_display": "true",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download has_bom"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_filtered_rows",
+      "case_id": "csv_export_filtered_rows_case",
+      "target_field": "CSV Download",
+      "metric": "csv_text",
+      "actual": "﻿row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\n",
+      "actual_display": "﻿row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\n",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download csv_text"
+    },
+    {
+      "guarantee_id": "csv_export_g001",
+      "responsibility_cd": "csv_export",
+      "test_pattern_id": "csv_export_filtered_rows",
+      "case_id": "csv_export_filtered_rows_case",
+      "target_field": "CSV Download",
+      "metric": "csv_without_bom",
+      "actual": "row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\n",
+      "actual_display": "row_id,title,score,note\r\ncsv_001,\"Alpha,One\",10,\"Line1\nLine2\"\r\ncsv_002,\"Quote \"\"Beta\"\"\",20,Plain\r\n",
+      "observed_at": "2026-08-30_13:13:28",
+      "source": "CSV Download csv_without_bom"
+    }
+  ]
+}

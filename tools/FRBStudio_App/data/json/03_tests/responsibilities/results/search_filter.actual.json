@@ -1,0 +1,593 @@
+{
+  "view_def": "qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json",
+  "schema_version": "responsibility_actual_v0_2",
+  "document_type": "responsibility_actual",
+  "test_area": "responsibilities",
+  "artifact_kind": "actual",
+  "responsibility_cd": "search_filter",
+  "responsibility_name": "検索条件評価責務",
+  "run_id": "search_filter_20260830_131221",
+  "observed_at": "2026-08-30_13:12:21",
+  "guarantee_ids": [
+    "search_filter_g001"
+  ],
+  "source_responsibility_file": "data/json/03_tests/responsibilities/responsibility_data_v0_2.json",
+  "source_input_file": "data/json/80_frb/frb_fft_search_test_data_v0_1.json",
+  "runner": "SeleniumTaste/responsibility_selenium_runner.js",
+  "observations": [
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_contains",
+      "case_id": "search_filter_string_sample_contains",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 3,
+      "actual_display": "3",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_contains",
+      "case_id": "search_filter_string_sample_contains",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        0,
+        2,
+        5
+      ],
+      "actual_display": "[0,2,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_contains",
+      "case_id": "search_filter_string_sample_contains",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_003",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_003\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_contains",
+      "case_id": "search_filter_string_sample_not_contains",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 3,
+      "actual_display": "3",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_contains",
+      "case_id": "search_filter_string_sample_not_contains",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        1,
+        3,
+        4
+      ],
+      "actual_display": "[1,3,4]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_contains",
+      "case_id": "search_filter_string_sample_not_contains",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_002",
+        "frb_search_20260829_004",
+        "frb_search_20260829_005"
+      ],
+      "actual_display": "[\"frb_search_20260829_002\",\"frb_search_20260829_004\",\"frb_search_20260829_005\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_equals",
+      "case_id": "search_filter_string_sample_equals",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 2,
+      "actual_display": "2",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_equals",
+      "case_id": "search_filter_string_sample_equals",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        0,
+        2
+      ],
+      "actual_display": "[0,2]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_equals",
+      "case_id": "search_filter_string_sample_equals",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_003"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_003\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_equals",
+      "case_id": "search_filter_string_sample_not_equals",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 4,
+      "actual_display": "4",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_equals",
+      "case_id": "search_filter_string_sample_not_equals",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "actual_display": "[1,3,4,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_equals",
+      "case_id": "search_filter_string_sample_not_equals",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_002",
+        "frb_search_20260829_004",
+        "frb_search_20260829_005",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_002\",\"frb_search_20260829_004\",\"frb_search_20260829_005\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_blank",
+      "case_id": "search_filter_string_sample_blank",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 1,
+      "actual_display": "1",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_blank",
+      "case_id": "search_filter_string_sample_blank",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        3
+      ],
+      "actual_display": "[3]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_blank",
+      "case_id": "search_filter_string_sample_blank",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_004"
+      ],
+      "actual_display": "[\"frb_search_20260829_004\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_blank",
+      "case_id": "search_filter_string_sample_not_blank",
+      "target_field": "note",
+      "metric": "match_count",
+      "actual": 5,
+      "actual_display": "5",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_blank",
+      "case_id": "search_filter_string_sample_not_blank",
+      "target_field": "note",
+      "metric": "indexes",
+      "actual": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "actual_display": "[0,1,2,4,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_string_not_blank",
+      "case_id": "search_filter_string_sample_not_blank",
+      "target_field": "note",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_002",
+        "frb_search_20260829_003",
+        "frb_search_20260829_005",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_002\",\"frb_search_20260829_003\",\"frb_search_20260829_005\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_between",
+      "case_id": "search_filter_number_sample_between",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 3,
+      "actual_display": "3",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_between",
+      "case_id": "search_filter_number_sample_between",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        1,
+        2,
+        3
+      ],
+      "actual_display": "[1,2,3]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_between",
+      "case_id": "search_filter_number_sample_between",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_002",
+        "frb_search_20260829_003",
+        "frb_search_20260829_004"
+      ],
+      "actual_display": "[\"frb_search_20260829_002\",\"frb_search_20260829_003\",\"frb_search_20260829_004\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_equals",
+      "case_id": "search_filter_number_sample_equals",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 2,
+      "actual_display": "2",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_equals",
+      "case_id": "search_filter_number_sample_equals",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        1,
+        2
+      ],
+      "actual_display": "[1,2]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_equals",
+      "case_id": "search_filter_number_sample_equals",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_002",
+        "frb_search_20260829_003"
+      ],
+      "actual_display": "[\"frb_search_20260829_002\",\"frb_search_20260829_003\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_equals",
+      "case_id": "search_filter_number_sample_not_equals",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 4,
+      "actual_display": "4",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_equals",
+      "case_id": "search_filter_number_sample_not_equals",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        0,
+        3,
+        4,
+        5
+      ],
+      "actual_display": "[0,3,4,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_equals",
+      "case_id": "search_filter_number_sample_not_equals",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_004",
+        "frb_search_20260829_005",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_004\",\"frb_search_20260829_005\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_gte",
+      "case_id": "search_filter_number_sample_gte",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 4,
+      "actual_display": "4",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_gte",
+      "case_id": "search_filter_number_sample_gte",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "actual_display": "[1,2,3,4]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_gte",
+      "case_id": "search_filter_number_sample_gte",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_002",
+        "frb_search_20260829_003",
+        "frb_search_20260829_004",
+        "frb_search_20260829_005"
+      ],
+      "actual_display": "[\"frb_search_20260829_002\",\"frb_search_20260829_003\",\"frb_search_20260829_004\",\"frb_search_20260829_005\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_lte",
+      "case_id": "search_filter_number_sample_lte",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 4,
+      "actual_display": "4",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_lte",
+      "case_id": "search_filter_number_sample_lte",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "actual_display": "[0,1,2,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_lte",
+      "case_id": "search_filter_number_sample_lte",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_002",
+        "frb_search_20260829_003",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_002\",\"frb_search_20260829_003\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_blank",
+      "case_id": "search_filter_number_sample_blank",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 0,
+      "actual_display": "0",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_blank",
+      "case_id": "search_filter_number_sample_blank",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [],
+      "actual_display": "[]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_blank",
+      "case_id": "search_filter_number_sample_blank",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [],
+      "actual_display": "[]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_blank",
+      "case_id": "search_filter_number_sample_not_blank",
+      "target_field": "amplitude_g",
+      "metric": "match_count",
+      "actual": 6,
+      "actual_display": "6",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_blank",
+      "case_id": "search_filter_number_sample_not_blank",
+      "target_field": "amplitude_g",
+      "metric": "indexes",
+      "actual": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "actual_display": "[0,1,2,3,4,5]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    },
+    {
+      "guarantee_id": "search_filter_g001",
+      "responsibility_cd": "search_filter",
+      "test_pattern_id": "search_filter_number_not_blank",
+      "case_id": "search_filter_number_sample_not_blank",
+      "target_field": "amplitude_g",
+      "metric": "row_ids",
+      "actual": [
+        "frb_search_20260829_001",
+        "frb_search_20260829_002",
+        "frb_search_20260829_003",
+        "frb_search_20260829_004",
+        "frb_search_20260829_005",
+        "frb_search_20260829_006"
+      ],
+      "actual_display": "[\"frb_search_20260829_001\",\"frb_search_20260829_002\",\"frb_search_20260829_003\",\"frb_search_20260829_004\",\"frb_search_20260829_005\",\"frb_search_20260829_006\"]",
+      "observed_at": "2026-08-30_13:12:21",
+      "source": "Grid Search Result"
+    }
+  ]
+}

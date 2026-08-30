@@ -463,7 +463,55 @@ async function resetSearchAfterCase(driver, baselineCount) {
   assertPass(true, 'RESET_AFTER_EACH');
 }
 
-async function executeSearchCase(driver, generatedCase) {
+function searchCaseEvidence(generatedCase, actual, observedAt) {
+  const expected = generatedCase?.expected ?? { row_ids: [], indexes: [], match_count: 0 };
+  const guaranteeId = String(generatedCase?.guarantee_id ?? '');
+  const testPatternId = String(generatedCase?.pattern_id ?? '');
+  const caseId = String(generatedCase?.case_id ?? '');
+  const source = 'Grid Search Result';
+  const specs = [
+    { metric: 'match_count', expected: Number(expected.match_count ?? 0), actual: Number(actual?.match_count ?? 0), pass: Number(actual?.match_count ?? 0) === Number(expected.match_count ?? 0) },
+    { metric: 'indexes', expected: expected.indexes ?? [], actual: actual?.indexes ?? [], pass: arraysEqual(actual?.indexes ?? [], expected.indexes ?? []) },
+    { metric: 'row_ids', expected: expected.row_ids ?? [], actual: actual?.row_ids ?? [], pass: arraysEqual(actual?.row_ids ?? [], expected.row_ids ?? []) },
+  ];
+
+  return {
+    observations: specs.map(item => ({
+      guarantee_id: guaranteeId,
+      responsibility_cd: 'search_filter',
+      test_pattern_id: testPatternId,
+      case_id: caseId,
+      target_field: String(generatedCase?.target_field ?? ''),
+      metric: item.metric,
+      actual: item.actual,
+      actual_display: typeof item.actual === 'string' ? item.actual : JSON.stringify(item.actual),
+      observed_at: observedAt,
+      source,
+    })),
+    checks: specs.map(item => ({
+      check_id: `${caseId}.${item.metric}`,
+      name: item.metric,
+      target: `${generatedCase?.target_field ?? ''}.${item.metric}`,
+      type: 'compareStrategy',
+      expected_def_type: 'StateExpectedDef',
+      expected_def_type_source: 'declared',
+      compare_strategy: item.metric === 'match_count' ? 'ValueEquals' : 'ArrayEquals',
+      responsibility_cd: 'search_filter',
+      test_pattern_id: testPatternId,
+      expected: typeof item.expected === 'string' ? item.expected : JSON.stringify(item.expected),
+      actual: typeof item.actual === 'string' ? item.actual : JSON.stringify(item.actual),
+      expected_raw: item.expected,
+      actual_raw: item.actual,
+      pass: item.pass === true,
+      message: item.pass === true ? 'OK' : `${item.metric} mismatch`,
+      guarantee_id: guaranteeId,
+      case_id: caseId,
+      metric: item.metric,
+    })),
+  };
+}
+
+async function executeSearchCase(driver, generatedCase, observedAt) {
   if (generatedCase?.ui_target?.mode !== 'MAIN_GRID') {
     throw new Error(`Search Selenium currently supports MAIN_GRID only: ${generatedCase?.case_id ?? ''} / ${generatedCase?.ui_target?.mode ?? ''}`);
   }
@@ -474,9 +522,58 @@ async function executeSearchCase(driver, generatedCase) {
   const expected = generatedCase?.expected ?? { row_ids: [], indexes: [], match_count: 0 };
   await waitForGridExactCount(driver, Number(expected.match_count ?? 0));
   const actual = await readSearchGridResult(driver);
-  assertPass(actual.match_count === expected.match_count, 'StateExpectedDef / Match Count', `Expected=${expected.match_count}, Actual=${actual.match_count}`);
-  assertPass(arraysEqual(actual.indexes, expected.indexes ?? []), 'StateExpectedDef / Indexes', `Expected=${JSON.stringify(expected.indexes)}, Actual=${JSON.stringify(actual.indexes)}`);
-  assertPass(arraysEqual(actual.row_ids, expected.row_ids ?? []), 'StateExpectedDef / Row IDs', `Expected=${JSON.stringify(expected.row_ids)}, Actual=${JSON.stringify(actual.row_ids)}`);
+  const evidence = searchCaseEvidence(generatedCase, actual, observedAt);
+  const SEARCH_RESULT_LABEL_MATCH_COUNT = 'StateExpectedDef / Match Count';
+  const SEARCH_RESULT_LABEL_INDEXES = 'StateExpectedDef / Indexes';
+  const SEARCH_RESULT_LABEL_ROW_IDS = 'StateExpectedDef / Row IDs';
+  const searchMetricLabel = {
+    match_count: SEARCH_RESULT_LABEL_MATCH_COUNT,
+    indexes: SEARCH_RESULT_LABEL_INDEXES,
+    row_ids: SEARCH_RESULT_LABEL_ROW_IDS,
+  };
+  for (const check of evidence.checks) {
+    console.log(`${searchMetricLabel[check.metric] ?? `StateExpectedDef / ${check.metric}`}: ${check.pass === true ? 'PASS' : 'FAIL'}`);
+    if (check.pass !== true) console.log(`  Expected=${JSON.stringify(check.expected_raw)}, Actual=${JSON.stringify(check.actual_raw)}`);
+  }
+  return evidence;
+}
+
+function runnerErrorEvidence(plan, err, observedAt, executionPhase='UNKNOWN') {
+  const guaranteeId = String(plan?.guarantee_ids?.[0] ?? 'UNASSIGNED');
+  const message = err?.message ?? String(err);
+  return {
+    observation: {
+      guarantee_id: guaranteeId,
+      responsibility_cd: String(plan?.responsibility_cd ?? ''),
+      test_pattern_id: '__runner__',
+      case_id: '__runner_error__',
+      target_field: '',
+      metric: 'runner_error',
+      actual: { error_name: err?.name ?? 'Error', error_message: message },
+      actual_display: message,
+      observed_at: observedAt,
+      source: 'SeleniumTaste/responsibility_selenium_runner.js',
+      execution_phase: executionPhase,
+    },
+    check: {
+      check_id: `${plan?.responsibility_cd ?? 'responsibility'}.__runner_error`,
+      name: 'runner_error',
+      target: String(plan?.responsibility_cd ?? ''),
+      type: 'runnerError',
+      guarantee_id: guaranteeId,
+      responsibility_cd: String(plan?.responsibility_cd ?? ''),
+      test_pattern_id: '__runner__',
+      case_id: '__runner_error__',
+      expected: 'no error',
+      actual: message,
+      expected_raw: 'no error',
+      actual_raw: message,
+      pass: false,
+      message,
+      metric: 'runner_error',
+      execution_phase: executionPhase,
+    },
+  };
 }
 
 async function runSearchResponsibilitySelenium(plan) {
@@ -485,7 +582,12 @@ async function runSearchResponsibilitySelenium(plan) {
   if (unsupported.length) throw new Error(`Unsupported Search UI targets: ${unsupported.map(item => `${item.case_id}:${item.ui_target?.mode}`).join(', ')}`);
   if (!(plan.search_cases ?? []).length) throw new Error('No Generated Search Cases.');
 
+  const observedAt = studioDateTimeJst();
+  const runId = studioRunId(plan.responsibility_cd);
+  const observations = [];
+  const checks = [];
   let driver = null;
+  let runError = null;
   try {
     driver = await createDriver();
     await sleep(2500);
@@ -494,15 +596,40 @@ async function runSearchResponsibilitySelenium(plan) {
     await waitForGridExactCount(driver, baselineCount);
 
     for (const generatedCase of plan.search_cases) {
-      await executeSearchCase(driver, generatedCase);
+      const evidence = await executeSearchCase(driver, generatedCase, observedAt);
+      observations.push(...evidence.observations);
+      checks.push(...evidence.checks);
       await resetSearchAfterCase(driver, baselineCount);
     }
-
-    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
-    return { plan, executed: true };
+  } catch (err) {
+    runError = err;
+    const evidence = runnerErrorEvidence(plan, err, observedAt);
+    observations.push(evidence.observation);
+    checks.push(evidence.check);
   } finally {
     if (driver) await driver.quit().catch(() => {});
   }
+
+  const evidence = writeResponsibilityEvidence({
+    appRoot: APP_ROOT,
+    plan,
+    observations,
+    checks,
+    observedAt,
+    runId,
+    sourceRunner: 'SeleniumTaste/responsibility_selenium_runner.js',
+  });
+  console.log(`Actual Evidence: ${evidence.paths.actual}`);
+  console.log(`Diff Evidence:   ${evidence.paths.diff}`);
+
+  if (runError) throw runError;
+  const failedChecks = checks.filter(check => check.pass !== true);
+  if (failedChecks.length) {
+    throw new Error(`SEARCH_FILTER diff failed: ${failedChecks.map(check => check.check_id).join(', ')}`);
+  }
+
+  console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+  return { plan, executed: true, evidence };
 }
 
 
@@ -618,7 +745,35 @@ function csvActualFromDownloadCapture(capture) {
   };
 }
 
-async function executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks) {
+function csvPatternEvidence(pattern, generatedCase, actual, checks, observedAt) {
+  const guaranteeId = String(generatedCase?.guarantee_id ?? pattern?.guarantee_id ?? '');
+  const testPatternId = String(pattern?.pattern_id ?? '');
+  const caseId = String(generatedCase?.case_id ?? '');
+  const enrichedChecks = checks.map(check => ({
+    ...check,
+    guarantee_id: guaranteeId,
+    responsibility_cd: 'csv_export',
+    test_pattern_id: testPatternId,
+    case_id: caseId,
+    metric: String(check?.name ?? ''),
+    target: `csv.${String(check?.name ?? '')}`,
+  }));
+  const observations = enrichedChecks.map(check => ({
+    guarantee_id: guaranteeId,
+    responsibility_cd: 'csv_export',
+    test_pattern_id: testPatternId,
+    case_id: caseId,
+    target_field: 'CSV Download',
+    metric: check.metric,
+    actual: Object.prototype.hasOwnProperty.call(check, 'actual_raw') ? check.actual_raw : actual?.[check.metric],
+    actual_display: check.actual,
+    observed_at: observedAt,
+    source: `CSV Download ${check.metric}`,
+  }));
+  return { observations, checks: enrichedChecks };
+}
+
+async function executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks, observedAt) {
   if (pattern?.ui_target?.mode !== 'MAIN_GRID') {
     throw new Error(`CSV Selenium currently supports MAIN_GRID only: ${pattern?.pattern_id ?? ''} / ${pattern?.ui_target?.mode ?? ''}`);
   }
@@ -644,19 +799,20 @@ async function executeCsvExportPattern(driver, pattern, baselineCount, buildExpe
     expected_def_type: generatedCase.expected_def_type,
     expected: generatedCase.expected,
   };
-  const checks = buildExpectedChecks(comparePattern, actual);
-  for (const check of checks) {
+  const rawChecks = buildExpectedChecks(comparePattern, actual);
+  const evidence = csvPatternEvidence(pattern, generatedCase, actual, rawChecks, observedAt);
+  for (const check of evidence.checks) {
     const label = `${generatedCase.expected_def_type} / Download ${check.name}`;
-    assertPass(
-      check.pass === true,
-      label,
-      `${check.message}; Expected=${JSON.stringify(check.expected_raw)}, Actual=${JSON.stringify(check.actual_raw)}`,
-    );
+    console.log(`${label}: ${check.pass === true ? 'PASS' : 'FAIL'}`);
+    if (check.pass !== true) {
+      console.log(`  ${check.message}; Expected=${JSON.stringify(check.expected_raw)}, Actual=${JSON.stringify(check.actual_raw)}`);
+    }
   }
 
   if (pattern?.ui_filter?.required) {
     await resetSearchAfterCase(driver, baselineCount);
   }
+  return evidence;
 }
 
 async function runCsvExportResponsibilitySelenium(plan) {
@@ -667,7 +823,12 @@ async function runCsvExportResponsibilitySelenium(plan) {
     throw new Error(`CSV Selenium currently supports MAIN_GRID only: ${unsupported.map(item => `${item.pattern_id}:${item.ui_target?.mode}`).join(', ')}`);
   }
 
+  const observedAt = studioDateTimeJst();
+  const runId = studioRunId(plan.responsibility_cd);
+  const observations = [];
+  const checks = [];
   let driver = null;
+  let runError = null;
   try {
     driver = await createDriver();
     await sleep(2500);
@@ -680,15 +841,41 @@ async function runCsvExportResponsibilitySelenium(plan) {
 
     const { buildExpectedChecks } = await loadExpectedCompareStrategies();
     for (const pattern of plan.patterns ?? []) {
-      await executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks);
+      const evidence = await executeCsvExportPattern(driver, pattern, baselineCount, buildExpectedChecks, observedAt);
+      observations.push(...evidence.observations);
+      checks.push(...evidence.checks);
     }
-
-    console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
-    return { plan, executed: true };
+  } catch (err) {
+    runError = err;
+    const evidence = runnerErrorEvidence(plan, err, observedAt);
+    observations.push(evidence.observation);
+    checks.push(evidence.check);
   } finally {
     if (driver) await driver.quit().catch(() => {});
   }
+
+  const evidence = writeResponsibilityEvidence({
+    appRoot: APP_ROOT,
+    plan,
+    observations,
+    checks,
+    observedAt,
+    runId,
+    sourceRunner: 'SeleniumTaste/responsibility_selenium_runner.js',
+  });
+  console.log(`Actual Evidence: ${evidence.paths.actual}`);
+  console.log(`Diff Evidence:   ${evidence.paths.diff}`);
+
+  if (runError) throw runError;
+  const failedChecks = checks.filter(check => check.pass !== true);
+  if (failedChecks.length) {
+    throw new Error(`CSV_EXPORT diff failed: ${failedChecks.map(check => check.check_id).join(', ')}`);
+  }
+
+  console.log(`Responsibility E2E: ${plan.responsibility_cd} ALL PASS`);
+  return { plan, executed: true, evidence };
 }
+
 
 async function loadExpectedCompareStrategies() {
   const modulePath = path.resolve(
@@ -915,6 +1102,143 @@ function createWorkingCopy(plan) {
   return { workingPath, dataName };
 }
 
+function dataUpdatePhysicalEvidence(plan, actualDocument, observedAt) {
+  const actualChanges = diffJson(plan.baseline_document, actualDocument);
+  const allExpectedPaths = new Set((plan.mutations ?? []).map(item => String(item?.actual_path ?? '')));
+  const observations = [];
+  const checks = [];
+
+  for (const pattern of plan.patterns ?? []) {
+    const guaranteeId = String(pattern?.guarantee_id ?? plan?.guarantee_ids?.[0] ?? 'UNASSIGNED');
+    const testPatternId = String(pattern?.pattern_id ?? '');
+    for (const mutation of pattern?.mutations ?? []) {
+      const actualValue = getByActualPath(actualDocument, mutation.actual_path);
+      const pass = Object.is(actualValue, mutation.after);
+      const caseId = `${testPatternId}_${mutation.field}`;
+      observations.push({
+        guarantee_id: guaranteeId,
+        responsibility_cd: 'data_update_persist',
+        test_pattern_id: testPatternId,
+        case_id: caseId,
+        target_field: String(mutation?.field ?? ''),
+        metric: String(mutation?.field ?? ''),
+        actual: actualValue,
+        actual_display: typeof actualValue === 'string' ? actualValue : JSON.stringify(actualValue),
+        observed_at: observedAt,
+        source: `Physical JSON ${mutation.actual_path}`,
+      });
+      checks.push({
+        check_id: `${caseId}.value`,
+        name: String(mutation?.field ?? ''),
+        target: String(mutation?.actual_path ?? ''),
+        type: 'compareStrategy',
+        expected_def_type: 'JsonDiffExpectedDef',
+        expected_def_type_source: 'declared',
+        compare_strategy: 'ValueEquals',
+        guarantee_id: guaranteeId,
+        responsibility_cd: 'data_update_persist',
+        test_pattern_id: testPatternId,
+        case_id: caseId,
+        metric: String(mutation?.field ?? ''),
+        expected: typeof mutation.after === 'string' ? mutation.after : JSON.stringify(mutation.after),
+        actual: typeof actualValue === 'string' ? actualValue : JSON.stringify(actualValue),
+        expected_raw: mutation.after,
+        actual_raw: actualValue,
+        pass,
+        message: pass ? 'OK' : `${mutation.actual_path} mismatch`,
+      });
+    }
+
+    const rowPrefix = `${String(pattern?.target_data_path ?? '')}[${Number(pattern?.row_index ?? 0)}]`;
+    // DATA_UPDATE_PERSIST currently executes the whole responsibility as one DOCUMENT batch
+    // (LOAD_ONCE -> SAVE_ONCE -> RELOAD_ONCE). Therefore changes intentionally produced by
+    // another TestPattern in the same plan are not unexpected for this row. Pattern-owned
+    // mutations are verified individually above; integrity here rejects only paths that were
+    // not planned by ANY TestPattern in this responsibility execution.
+    const extraChanges = actualChanges.filter(item => {
+      const actualPath = String(item?.path ?? '');
+      return actualPath.startsWith(rowPrefix) && !allExpectedPaths.has(actualPath);
+    });
+    const integrityCaseId = `${testPatternId}__unexpected_diff_count`;
+    observations.push({
+      guarantee_id: guaranteeId,
+      responsibility_cd: 'data_update_persist',
+      test_pattern_id: testPatternId,
+      case_id: integrityCaseId,
+      target_field: rowPrefix,
+      metric: 'unexpected_diff_count',
+      actual: extraChanges.length,
+      actual_display: String(extraChanges.length),
+      observed_at: observedAt,
+      source: `Physical JSON Diff ${rowPrefix}`,
+    });
+    checks.push({
+      check_id: `${integrityCaseId}.value`,
+      name: 'unexpected_diff_count',
+      target: rowPrefix,
+      type: 'compareStrategy',
+      expected_def_type: 'JsonDiffExpectedDef',
+      expected_def_type_source: 'declared',
+      compare_strategy: 'ValueEquals',
+      guarantee_id: guaranteeId,
+      responsibility_cd: 'data_update_persist',
+      test_pattern_id: testPatternId,
+      case_id: integrityCaseId,
+      metric: 'unexpected_diff_count',
+      expected: '0',
+      actual: String(extraChanges.length),
+      expected_raw: 0,
+      actual_raw: extraChanges.length,
+      pass: extraChanges.length === 0,
+      message: extraChanges.length === 0 ? 'OK' : `Unexpected Diff: ${extraChanges.map(item => item.path).join(', ')}`,
+    });
+  }
+
+  const globalExtra = actualChanges.filter(item => !allExpectedPaths.has(String(item?.path ?? '')));
+  const unexpectedAgainstExpected = diffJson(plan.expected.document, actualDocument);
+  const firstPattern = (plan.patterns ?? [])[0] ?? null;
+  if (firstPattern) {
+    const guaranteeId = String(firstPattern?.guarantee_id ?? plan?.guarantee_ids?.[0] ?? 'UNASSIGNED');
+    const testPatternId = String(firstPattern?.pattern_id ?? '');
+    const caseId = `${testPatternId}__document_unexpected_diff_count`;
+    observations.push({
+      guarantee_id: guaranteeId,
+      responsibility_cd: 'data_update_persist',
+      test_pattern_id: testPatternId,
+      case_id: caseId,
+      target_field: '$',
+      metric: 'document_unexpected_diff_count',
+      actual: unexpectedAgainstExpected.length,
+      actual_display: String(unexpectedAgainstExpected.length),
+      observed_at: observedAt,
+      source: 'Physical JSON vs Expected Document',
+    });
+    checks.push({
+      check_id: `${caseId}.value`,
+      name: 'document_unexpected_diff_count',
+      target: '$',
+      type: 'compareStrategy',
+      expected_def_type: 'JsonDiffExpectedDef',
+      expected_def_type_source: 'declared',
+      compare_strategy: 'ValueEquals',
+      guarantee_id: guaranteeId,
+      responsibility_cd: 'data_update_persist',
+      test_pattern_id: testPatternId,
+      case_id: caseId,
+      metric: 'document_unexpected_diff_count',
+      expected: '0',
+      actual: String(unexpectedAgainstExpected.length),
+      expected_raw: 0,
+      actual_raw: unexpectedAgainstExpected.length,
+      pass: unexpectedAgainstExpected.length === 0,
+      message: unexpectedAgainstExpected.length === 0
+        ? 'OK'
+        : `Expected Document Diff: ${unexpectedAgainstExpected.slice(0, 10).map(item => item.path).join(', ')}`,
+    });
+  }
+  return { observations, checks, actualChanges, globalExtra, unexpectedAgainstExpected };
+}
+
 function verifyPhysicalJson(plan, workingPath) {
   const actual = JSON.parse(fs.readFileSync(workingPath, 'utf8'));
   const unexpected = diffJson(plan.expected.document, actual);
@@ -931,7 +1255,9 @@ function verifyPhysicalJson(plan, workingPath) {
   const extra = [...actualPaths].filter((item) => !expectedPaths.has(item));
   assertPass(missing.length === 0 && extra.length === 0, 'JsonDiffExpectedDef / Expected Diff Paths', `Missing=${missing.join(', ')} Extra=${extra.join(', ')}`);
   assertPass(actualChanges.length === plan.mutations.length, 'JsonDiffExpectedDef / Expected Diff Count', `Expected=${plan.mutations.length}, Actual=${actualChanges.length}`);
+  return actual;
 }
+
 
 async function runResponsibilitySelenium({ responsibilityCd='data_update_persist', planOnly=false }={}) {
   const plan = buildResponsibilityExecutionPlan({ responsibilityCd });
@@ -950,14 +1276,24 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
   // Human approval is a hard execution gate. No NativeShell launch before this check.
   assertExecutionApproved(plan);
 
+  const observedAt = studioDateTimeJst();
+  const runId = studioRunId(plan.responsibility_cd);
+  const observations = [];
+  const checks = [];
   let working = null;
   let driver = null;
   let executionCompleted = false;
+  let runError = null;
+  let evidence = null;
+  let executionPhase = 'INIT';
   try {
+    executionPhase = 'CREATE_WORKING_COPY';
     working = createWorkingCopy(plan);
     console.log(`Working Copy: ${working.workingPath}`);
+    executionPhase = 'CREATE_DRIVER';
     driver = await createDriver();
     await sleep(2500);
+    executionPhase = 'LOAD_INPUT';
     await loadDataByName(driver, working.dataName);
 
     const mainGroups = groupPlanRows(plan, 'MAIN_GRID');
@@ -965,25 +1301,55 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
     const unsupported = (plan.patterns ?? []).filter((item) => !['MAIN_GRID', 'RELATED_GRID'].includes(item.ui_target?.mode));
     if (unsupported.length) throw new Error(`Unsupported UI targets: ${unsupported.map((item) => `${item.pattern_id}:${item.ui_target?.mode}`).join(', ')}`);
 
+    executionPhase = 'EDIT_MAIN_GRID';
     for (const group of mainGroups) {
       await editDetailRow(driver, group.row_index, group.mutations, 'Main');
     }
+    executionPhase = 'EDIT_RELATED_GRID';
     await editRelatedGroups(driver, relatedGroups);
 
+    executionPhase = 'SAVE';
     await saveOnce(driver);
+    executionPhase = 'RELOAD';
     await reloadOnce(driver);
 
+    executionPhase = 'VERIFY_MAIN_GRID';
     for (const group of mainGroups) {
       await verifyDetailRow(driver, group.row_index, group.mutations, 'Main');
     }
+    executionPhase = 'VERIFY_RELATED_GRID';
     await verifyRelatedGroups(driver, relatedGroups);
 
-    verifyPhysicalJson(plan, working.workingPath);
-    executionCompleted = true;
-    console.log(`Responsibility E2E: ${responsibilityCd} ALL PASS`);
-    return { plan, executed: true, workingPath: working.workingPath };
+    executionPhase = 'READ_PHYSICAL_JSON';
+    const actualDocument = JSON.parse(fs.readFileSync(working.workingPath, 'utf8'));
+    const physical = dataUpdatePhysicalEvidence(plan, actualDocument, observedAt);
+    observations.push(...physical.observations);
+    checks.push(...physical.checks);
+    executionCompleted = true; // provisional success; finally recalculates from collected Diff checks.
+
+  } catch (err) {
+    runError = err;
+    console.error(`Execution Phase: ${executionPhase}`);
+    const runnerEvidence = runnerErrorEvidence(plan, err, observedAt, executionPhase);
+    observations.push(runnerEvidence.observation);
+    checks.push(runnerEvidence.check);
   } finally {
     if (driver) await driver.quit().catch(() => {});
+
+    evidence = writeResponsibilityEvidence({
+      appRoot: APP_ROOT,
+      plan,
+      observations,
+      checks,
+      observedAt,
+      runId,
+      sourceRunner: 'SeleniumTaste/responsibility_selenium_runner.js',
+    });
+    console.log(`Actual Evidence: ${evidence.paths.actual}`);
+    console.log(`Diff Evidence:   ${evidence.paths.diff}`);
+
+    const failedChecks = checks.filter(check => check.pass !== true);
+    executionCompleted = !runError && failedChecks.length === 0;
     if (working && plan.setup.cleanup_policy === 'DELETE_AFTER_EXECUTION') {
       if (!executionCompleted) {
         console.warn(`Working Copy preserved for failure analysis: ${working.workingPath}`);
@@ -997,12 +1363,23 @@ async function runResponsibilitySelenium({ responsibilityCd='data_update_persist
       }
     }
   }
+
+  if (runError) throw runError;
+  const failedChecks = checks.filter(check => check.pass !== true);
+  if (failedChecks.length) {
+    throw new Error(`DATA_UPDATE_PERSIST diff failed: ${failedChecks.map(check => check.check_id).join(', ')}`);
+  }
+
+  console.log(`Responsibility E2E: ${responsibilityCd} ALL PASS`);
+  return { plan, executed: true, workingPath: working?.workingPath ?? '', evidence };
+
 }
 
 module.exports = {
   runResponsibilitySelenium,
   groupPlanRows,
   normalizeUiValue,
+  dataUpdatePhysicalEvidence,
   waitForGridStable,
   openGridRow,
   arraysEqual,

@@ -14,6 +14,9 @@
   "status": "pass",
   "resultLabel": "✅ PASS",
   "summary": "✅ TestPattern 5件 / Check 9件すべてPASSしました",
+  "test_pattern_total": 5,
+  "test_pattern_pass_count": 5,
+  "test_pattern_fail_count": 0,
   "total": 9,
   "passCount": 9,
   "failCount": 0,
@@ -40,6 +43,1346 @@
         "grid_aggregate_no_declaration_has_aggregates.value"
       ],
       "failedCheckIds": []
+    }
+  ],
+  "test_pattern_results": [
+    {
+      "result_label": "PASS",
+      "pass": true,
+      "status": "pass",
+      "responsibility_cd": "grid_aggregate",
+      "guarantee_id": "grid_aggregate_g001",
+      "guarantee_ids": [
+        "grid_aggregate_g001"
+      ],
+      "test_pattern_id": "grid_aggregate_sum_filtered",
+      "case_count": 2,
+      "check_count": 2,
+      "diff_count": 0,
+      "case_ids": [
+        "grid_aggregate_sum_filtered_value",
+        "grid_aggregate_sum_filtered_source_count"
+      ],
+      "check_ids": [
+        "grid_aggregate_sum_filtered_value.value",
+        "grid_aggregate_sum_filtered_source_count.value"
+      ],
+      "failed_check_ids": [],
+      "observed_at": "2026-08-30_12:14:27",
+      "sources": [
+        "Grid Header profit.value",
+        "Grid Header profit.source_count"
+      ],
+      "checks": [
+        {
+          "check_id": "grid_aggregate_sum_filtered_value.value",
+          "name": "value",
+          "target": "profit.value",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_sum_filtered",
+          "expected": "146",
+          "actual": "146",
+          "expected_raw": 146,
+          "actual_raw": 146,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_sum_filtered_value",
+          "metric": "value",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header profit.value",
+          "actual_display": "146"
+        },
+        {
+          "check_id": "grid_aggregate_sum_filtered_source_count.value",
+          "name": "value",
+          "target": "profit.source_count",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_sum_filtered",
+          "expected": "3",
+          "actual": "3",
+          "expected_raw": 3,
+          "actual_raw": 3,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_sum_filtered_source_count",
+          "metric": "source_count",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header profit.source_count",
+          "actual_display": "3"
+        }
+      ],
+      "planned_pattern": {
+        "pattern_id": "grid_aggregate_sum_filtered",
+        "pattern_cd": "GRID_AGGREGATE",
+        "pattern_role": "STANDARD",
+        "generation_mode": "AGGREGATE_SCALAR_CASE",
+        "target_data_path": "$.aggregate_rows",
+        "target_field": "profit",
+        "aggregate_operator": "sum",
+        "aggregate_scope": "filtered",
+        "expected_metric_set": "VALUE_SOURCE_COUNT",
+        "expected_def_type": "ScalarExpectedDef",
+        "guarantee_id": "grid_aggregate_g001",
+        "generated_cases": [
+          {
+            "case_id": "grid_aggregate_sum_filtered_value",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "profit",
+            "metric": "value",
+            "actual_path": "$.byField.profit.value",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 1680
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": "-1,534"
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": ""
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": false,
+                "value": "not-number"
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "filtered",
+              "label": "表示合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 146
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_sum_filtered",
+            "pattern_id": "grid_aggregate_sum_filtered",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          },
+          {
+            "case_id": "grid_aggregate_sum_filtered_source_count",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "profit",
+            "metric": "source_count",
+            "actual_path": "$.byField.profit.source_count",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 1680
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": "-1,534"
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": ""
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": false,
+                "value": "not-number"
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "filtered",
+              "label": "表示合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 3
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_sum_filtered",
+            "pattern_id": "grid_aggregate_sum_filtered",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          }
+        ],
+        "source": {
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "input_approval_status": "approved"
+        },
+        "ui_target": {
+          "mode": "MAIN_GRID",
+          "view_id": "frb_grid_aggregate_test_v0_1",
+          "section_id": "aggregate_rows",
+          "related_grid_id": ""
+        },
+        "runtime_input": {
+          "field": {
+            "field": "profit",
+            "caption": "Profit / filtered",
+            "type": "number",
+            "grid": {
+              "visible": true,
+              "width": 150,
+              "aggregate": {
+                "operator": "sum",
+                "scope": "filtered",
+                "label": "表示合計"
+              }
+            }
+          },
+          "current_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            },
+            {
+              "row_id": "agg_004",
+              "profit": "not-number",
+              "units": 40,
+              "comma_amount": 0,
+              "dirty_amount": null,
+              "plain_amount": 4
+            }
+          ],
+          "filtered_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            }
+          ]
+        }
+      },
+      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
+      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
+    },
+    {
+      "result_label": "PASS",
+      "pass": true,
+      "status": "pass",
+      "responsibility_cd": "grid_aggregate",
+      "guarantee_id": "grid_aggregate_g001",
+      "guarantee_ids": [
+        "grid_aggregate_g001"
+      ],
+      "test_pattern_id": "grid_aggregate_sum_all",
+      "case_count": 2,
+      "check_count": 2,
+      "diff_count": 0,
+      "case_ids": [
+        "grid_aggregate_sum_all_value",
+        "grid_aggregate_sum_all_source_count"
+      ],
+      "check_ids": [
+        "grid_aggregate_sum_all_value.value",
+        "grid_aggregate_sum_all_source_count.value"
+      ],
+      "failed_check_ids": [],
+      "observed_at": "2026-08-30_12:14:27",
+      "sources": [
+        "Grid Header units.value",
+        "Grid Header units.source_count"
+      ],
+      "checks": [
+        {
+          "check_id": "grid_aggregate_sum_all_value.value",
+          "name": "value",
+          "target": "units.value",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_sum_all",
+          "expected": "100",
+          "actual": "100",
+          "expected_raw": 100,
+          "actual_raw": 100,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_sum_all_value",
+          "metric": "value",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header units.value",
+          "actual_display": "100"
+        },
+        {
+          "check_id": "grid_aggregate_sum_all_source_count.value",
+          "name": "value",
+          "target": "units.source_count",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_sum_all",
+          "expected": "4",
+          "actual": "4",
+          "expected_raw": 4,
+          "actual_raw": 4,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_sum_all_source_count",
+          "metric": "source_count",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header units.source_count",
+          "actual_display": "4"
+        }
+      ],
+      "planned_pattern": {
+        "pattern_id": "grid_aggregate_sum_all",
+        "pattern_cd": "GRID_AGGREGATE",
+        "pattern_role": "STANDARD",
+        "generation_mode": "AGGREGATE_SCALAR_CASE",
+        "target_data_path": "$.aggregate_rows",
+        "target_field": "units",
+        "aggregate_operator": "sum",
+        "aggregate_scope": "all",
+        "expected_metric_set": "VALUE_SOURCE_COUNT",
+        "expected_def_type": "ScalarExpectedDef",
+        "guarantee_id": "grid_aggregate_g001",
+        "generated_cases": [
+          {
+            "case_id": "grid_aggregate_sum_all_value",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "units",
+            "metric": "value",
+            "actual_path": "$.byField.units.value",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": 20
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": 30
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": 40
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 100
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_sum_all",
+            "pattern_id": "grid_aggregate_sum_all",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          },
+          {
+            "case_id": "grid_aggregate_sum_all_source_count",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "units",
+            "metric": "source_count",
+            "actual_path": "$.byField.units.source_count",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": 20
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": 30
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": 40
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 4
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_sum_all",
+            "pattern_id": "grid_aggregate_sum_all",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          }
+        ],
+        "source": {
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "input_approval_status": "approved"
+        },
+        "ui_target": {
+          "mode": "MAIN_GRID",
+          "view_id": "frb_grid_aggregate_test_v0_1",
+          "section_id": "aggregate_rows",
+          "related_grid_id": ""
+        },
+        "runtime_input": {
+          "field": {
+            "field": "units",
+            "caption": "Units / all",
+            "type": "number",
+            "grid": {
+              "visible": true,
+              "width": 130,
+              "aggregate": {
+                "operator": "sum",
+                "scope": "all",
+                "label": "全件合計"
+              }
+            }
+          },
+          "current_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            },
+            {
+              "row_id": "agg_004",
+              "profit": "not-number",
+              "units": 40,
+              "comma_amount": 0,
+              "dirty_amount": null,
+              "plain_amount": 4
+            }
+          ],
+          "filtered_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            }
+          ]
+        }
+      },
+      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
+      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
+    },
+    {
+      "result_label": "PASS",
+      "pass": true,
+      "status": "pass",
+      "responsibility_cd": "grid_aggregate",
+      "guarantee_id": "grid_aggregate_g001",
+      "guarantee_ids": [
+        "grid_aggregate_g001"
+      ],
+      "test_pattern_id": "grid_aggregate_comma_numeric",
+      "case_count": 1,
+      "check_count": 1,
+      "diff_count": 0,
+      "case_ids": [
+        "grid_aggregate_comma_numeric_value"
+      ],
+      "check_ids": [
+        "grid_aggregate_comma_numeric_value.value"
+      ],
+      "failed_check_ids": [],
+      "observed_at": "2026-08-30_12:14:27",
+      "sources": [
+        "Grid Header comma_amount.value"
+      ],
+      "checks": [
+        {
+          "check_id": "grid_aggregate_comma_numeric_value.value",
+          "name": "value",
+          "target": "comma_amount.value",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_comma_numeric",
+          "expected": "1244.5",
+          "actual": "1244.5",
+          "expected_raw": 1244.5,
+          "actual_raw": 1244.5,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_comma_numeric_value",
+          "metric": "value",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header comma_amount.value",
+          "actual_display": "1244.5"
+        }
+      ],
+      "planned_pattern": {
+        "pattern_id": "grid_aggregate_comma_numeric",
+        "pattern_cd": "GRID_AGGREGATE",
+        "pattern_role": "STANDARD",
+        "generation_mode": "AGGREGATE_SCALAR_CASE",
+        "target_data_path": "$.aggregate_rows",
+        "target_field": "comma_amount",
+        "aggregate_operator": "sum",
+        "aggregate_scope": "all",
+        "expected_metric_set": "VALUE",
+        "expected_def_type": "ScalarExpectedDef",
+        "guarantee_id": "grid_aggregate_g001",
+        "generated_cases": [
+          {
+            "case_id": "grid_aggregate_comma_numeric_value",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "comma_amount",
+            "metric": "value",
+            "actual_path": "$.byField.comma_amount.value",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": "1,234.5"
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": 0
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": 0
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 1244.5
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_comma_numeric",
+            "pattern_id": "grid_aggregate_comma_numeric",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          }
+        ],
+        "source": {
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "input_approval_status": "approved"
+        },
+        "ui_target": {
+          "mode": "MAIN_GRID",
+          "view_id": "frb_grid_aggregate_test_v0_1",
+          "section_id": "aggregate_rows",
+          "related_grid_id": ""
+        },
+        "runtime_input": {
+          "field": {
+            "field": "comma_amount",
+            "caption": "Comma Numeric",
+            "type": "number",
+            "grid": {
+              "visible": true,
+              "width": 160,
+              "aggregate": {
+                "operator": "sum",
+                "scope": "all",
+                "label": "全件合計"
+              }
+            }
+          },
+          "current_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            },
+            {
+              "row_id": "agg_004",
+              "profit": "not-number",
+              "units": 40,
+              "comma_amount": 0,
+              "dirty_amount": null,
+              "plain_amount": 4
+            }
+          ],
+          "filtered_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            }
+          ]
+        }
+      },
+      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
+      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
+    },
+    {
+      "result_label": "PASS",
+      "pass": true,
+      "status": "pass",
+      "responsibility_cd": "grid_aggregate",
+      "guarantee_id": "grid_aggregate_g001",
+      "guarantee_ids": [
+        "grid_aggregate_g001"
+      ],
+      "test_pattern_id": "grid_aggregate_invalid_exclusion",
+      "case_count": 3,
+      "check_count": 3,
+      "diff_count": 0,
+      "case_ids": [
+        "grid_aggregate_invalid_exclusion_value",
+        "grid_aggregate_invalid_exclusion_valid_count",
+        "grid_aggregate_invalid_exclusion_ignored_count"
+      ],
+      "check_ids": [
+        "grid_aggregate_invalid_exclusion_value.value",
+        "grid_aggregate_invalid_exclusion_valid_count.value",
+        "grid_aggregate_invalid_exclusion_ignored_count.value"
+      ],
+      "failed_check_ids": [],
+      "observed_at": "2026-08-30_12:14:27",
+      "sources": [
+        "Grid Header dirty_amount.value",
+        "Grid Header dirty_amount.valid_count",
+        "Grid Header dirty_amount.ignored_count"
+      ],
+      "checks": [
+        {
+          "check_id": "grid_aggregate_invalid_exclusion_value.value",
+          "name": "value",
+          "target": "dirty_amount.value",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_invalid_exclusion",
+          "expected": "10",
+          "actual": "10",
+          "expected_raw": 10,
+          "actual_raw": 10,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_invalid_exclusion_value",
+          "metric": "value",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header dirty_amount.value",
+          "actual_display": "10"
+        },
+        {
+          "check_id": "grid_aggregate_invalid_exclusion_valid_count.value",
+          "name": "value",
+          "target": "dirty_amount.valid_count",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_invalid_exclusion",
+          "expected": "1",
+          "actual": "1",
+          "expected_raw": 1,
+          "actual_raw": 1,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_invalid_exclusion_valid_count",
+          "metric": "valid_count",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header dirty_amount.valid_count",
+          "actual_display": "1"
+        },
+        {
+          "check_id": "grid_aggregate_invalid_exclusion_ignored_count.value",
+          "name": "value",
+          "target": "dirty_amount.ignored_count",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_invalid_exclusion",
+          "expected": "3",
+          "actual": "3",
+          "expected_raw": 3,
+          "actual_raw": 3,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_invalid_exclusion_ignored_count",
+          "metric": "ignored_count",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header dirty_amount.ignored_count",
+          "actual_display": "3"
+        }
+      ],
+      "planned_pattern": {
+        "pattern_id": "grid_aggregate_invalid_exclusion",
+        "pattern_cd": "GRID_AGGREGATE",
+        "pattern_role": "STANDARD",
+        "generation_mode": "AGGREGATE_SCALAR_CASE",
+        "target_data_path": "$.aggregate_rows",
+        "target_field": "dirty_amount",
+        "aggregate_operator": "sum",
+        "aggregate_scope": "all",
+        "expected_metric_set": "VALUE_VALID_IGNORED",
+        "expected_def_type": "ScalarExpectedDef",
+        "guarantee_id": "grid_aggregate_g001",
+        "generated_cases": [
+          {
+            "case_id": "grid_aggregate_invalid_exclusion_value",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "dirty_amount",
+            "metric": "value",
+            "actual_path": "$.byField.dirty_amount.value",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": ""
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": "not-number"
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": null
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 10
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_invalid_exclusion",
+            "pattern_id": "grid_aggregate_invalid_exclusion",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          },
+          {
+            "case_id": "grid_aggregate_invalid_exclusion_valid_count",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "dirty_amount",
+            "metric": "valid_count",
+            "actual_path": "$.byField.dirty_amount.valid_count",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": ""
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": "not-number"
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": null
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 1
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_invalid_exclusion",
+            "pattern_id": "grid_aggregate_invalid_exclusion",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          },
+          {
+            "case_id": "grid_aggregate_invalid_exclusion_ignored_count",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "dirty_amount",
+            "metric": "ignored_count",
+            "actual_path": "$.byField.dirty_amount.ignored_count",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 10
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": ""
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": "not-number"
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": null
+              }
+            ],
+            "aggregate_declaration": {
+              "operator": "sum",
+              "scope": "all",
+              "label": "全件合計"
+            },
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": 3
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_invalid_exclusion",
+            "pattern_id": "grid_aggregate_invalid_exclusion",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          }
+        ],
+        "source": {
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "input_approval_status": "approved"
+        },
+        "ui_target": {
+          "mode": "MAIN_GRID",
+          "view_id": "frb_grid_aggregate_test_v0_1",
+          "section_id": "aggregate_rows",
+          "related_grid_id": ""
+        },
+        "runtime_input": {
+          "field": {
+            "field": "dirty_amount",
+            "caption": "Invalid Exclusion",
+            "type": "number",
+            "grid": {
+              "visible": true,
+              "width": 170,
+              "aggregate": {
+                "operator": "sum",
+                "scope": "all",
+                "label": "全件合計"
+              }
+            }
+          },
+          "current_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            },
+            {
+              "row_id": "agg_004",
+              "profit": "not-number",
+              "units": 40,
+              "comma_amount": 0,
+              "dirty_amount": null,
+              "plain_amount": 4
+            }
+          ],
+          "filtered_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            }
+          ]
+        }
+      },
+      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
+      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
+    },
+    {
+      "result_label": "PASS",
+      "pass": true,
+      "status": "pass",
+      "responsibility_cd": "grid_aggregate",
+      "guarantee_id": "grid_aggregate_g001",
+      "guarantee_ids": [
+        "grid_aggregate_g001"
+      ],
+      "test_pattern_id": "grid_aggregate_no_declaration",
+      "case_count": 1,
+      "check_count": 1,
+      "diff_count": 0,
+      "case_ids": [
+        "grid_aggregate_no_declaration_has_aggregates"
+      ],
+      "check_ids": [
+        "grid_aggregate_no_declaration_has_aggregates.value"
+      ],
+      "failed_check_ids": [],
+      "observed_at": "2026-08-30_12:14:27",
+      "sources": [
+        "Grid Header plain_amount.has_aggregates"
+      ],
+      "checks": [
+        {
+          "check_id": "grid_aggregate_no_declaration_has_aggregates.value",
+          "name": "value",
+          "target": "plain_amount.has_aggregates",
+          "type": "compareStrategy",
+          "expected_def_type": "ScalarExpectedDef",
+          "expected_def_type_source": "declared",
+          "compare_strategy": "ValueEquals",
+          "responsibility_cd": "grid_aggregate",
+          "test_pattern_id": "grid_aggregate_no_declaration",
+          "expected": "false",
+          "actual": "false",
+          "expected_raw": false,
+          "actual_raw": false,
+          "pass": true,
+          "message": "OK",
+          "guarantee_id": "grid_aggregate_g001",
+          "case_id": "grid_aggregate_no_declaration_has_aggregates",
+          "metric": "has_aggregates",
+          "observed_at": "2026-08-30_12:14:27",
+          "source": "Grid Header plain_amount.has_aggregates",
+          "actual_display": "false"
+        }
+      ],
+      "planned_pattern": {
+        "pattern_id": "grid_aggregate_no_declaration",
+        "pattern_cd": "GRID_AGGREGATE",
+        "pattern_role": "STANDARD",
+        "generation_mode": "AGGREGATE_SCALAR_CASE",
+        "target_data_path": "$.aggregate_rows",
+        "target_field": "plain_amount",
+        "aggregate_operator": "",
+        "aggregate_scope": "",
+        "expected_metric_set": "HAS_AGGREGATES",
+        "expected_def_type": "ScalarExpectedDef",
+        "guarantee_id": "grid_aggregate_g001",
+        "generated_cases": [
+          {
+            "case_id": "grid_aggregate_no_declaration_has_aggregates",
+            "target_data_path": "$.aggregate_rows",
+            "target_field": "plain_amount",
+            "metric": "has_aggregates",
+            "actual_path": "$.has_aggregates",
+            "input_snapshot": [
+              {
+                "index": 0,
+                "row_id": "agg_001",
+                "selected": true,
+                "value": 1
+              },
+              {
+                "index": 1,
+                "row_id": "agg_002",
+                "selected": true,
+                "value": 2
+              },
+              {
+                "index": 2,
+                "row_id": "agg_003",
+                "selected": true,
+                "value": 3
+              },
+              {
+                "index": 3,
+                "row_id": "agg_004",
+                "selected": true,
+                "value": 4
+              }
+            ],
+            "aggregate_declaration": null,
+            "filtered_row_indexes": [
+              0,
+              1,
+              2
+            ],
+            "expected_def_type": "ScalarExpectedDef",
+            "expected": {
+              "value": false
+            },
+            "guarantee_id": "grid_aggregate_g001",
+            "source_definition_id": "grid_aggregate_no_declaration",
+            "pattern_id": "grid_aggregate_no_declaration",
+            "pattern_cd": "GRID_AGGREGATE",
+            "pattern_role": "STANDARD"
+          }
+        ],
+        "source": {
+          "input_file": "data/json/80_frb/frb_grid_aggregate_test_data_v0_1.json",
+          "view_def_file": "defs/frb/frb_grid_aggregate_test_view_def_v0_1.json",
+          "input_approval_status": "approved"
+        },
+        "ui_target": {
+          "mode": "MAIN_GRID",
+          "view_id": "frb_grid_aggregate_test_v0_1",
+          "section_id": "aggregate_rows",
+          "related_grid_id": ""
+        },
+        "runtime_input": {
+          "field": {
+            "field": "plain_amount",
+            "caption": "No Aggregate",
+            "type": "number",
+            "grid": {
+              "visible": true,
+              "width": 150
+            }
+          },
+          "current_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            },
+            {
+              "row_id": "agg_004",
+              "profit": "not-number",
+              "units": 40,
+              "comma_amount": 0,
+              "dirty_amount": null,
+              "plain_amount": 4
+            }
+          ],
+          "filtered_rows": [
+            {
+              "row_id": "agg_001",
+              "profit": 1680,
+              "units": 10,
+              "comma_amount": "1,234.5",
+              "dirty_amount": 10,
+              "plain_amount": 1
+            },
+            {
+              "row_id": "agg_002",
+              "profit": "-1,534",
+              "units": 20,
+              "comma_amount": 10,
+              "dirty_amount": "",
+              "plain_amount": 2
+            },
+            {
+              "row_id": "agg_003",
+              "profit": "",
+              "units": 30,
+              "comma_amount": 0,
+              "dirty_amount": "not-number",
+              "plain_amount": 3
+            }
+          ]
+        }
+      },
+      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
+      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
+      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
     }
   ],
   "sourceFiles": {
@@ -229,375 +1572,6 @@
       "guarantee_id": "grid_aggregate_g001",
       "case_id": "grid_aggregate_no_declaration_has_aggregates",
       "metric": "has_aggregates"
-    }
-  ],
-  "test_pattern_total": 5,
-  "test_pattern_pass_count": 5,
-  "test_pattern_fail_count": 0,
-  "test_pattern_results": [
-    {
-      "result_label": "PASS",
-      "pass": true,
-      "status": "pass",
-      "guarantee_id": "grid_aggregate_g001",
-      "guarantee_ids": [
-        "grid_aggregate_g001"
-      ],
-      "test_pattern_id": "grid_aggregate_sum_filtered",
-      "case_count": 2,
-      "check_count": 2,
-      "diff_count": 0,
-      "case_ids": [
-        "grid_aggregate_sum_filtered_value",
-        "grid_aggregate_sum_filtered_source_count"
-      ],
-      "check_ids": [
-        "grid_aggregate_sum_filtered_value.value",
-        "grid_aggregate_sum_filtered_source_count.value"
-      ],
-      "failed_check_ids": [],
-      "observed_at": "2026-08-30_12:14:27",
-      "sources": [
-        "Grid Header profit.value",
-        "Grid Header profit.source_count"
-      ],
-      "checks": [
-        {
-          "check_id": "grid_aggregate_sum_filtered_value.value",
-          "name": "value",
-          "target": "profit.value",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_sum_filtered",
-          "expected": "146",
-          "actual": "146",
-          "expected_raw": 146,
-          "actual_raw": 146,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_sum_filtered_value",
-          "metric": "value",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header profit.value",
-          "actual_display": "146"
-        },
-        {
-          "check_id": "grid_aggregate_sum_filtered_source_count.value",
-          "name": "value",
-          "target": "profit.source_count",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_sum_filtered",
-          "expected": "3",
-          "actual": "3",
-          "expected_raw": 3,
-          "actual_raw": 3,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_sum_filtered_source_count",
-          "metric": "source_count",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header profit.source_count",
-          "actual_display": "3"
-        }
-      ],
-      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
-      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
-      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
-    },
-    {
-      "result_label": "PASS",
-      "pass": true,
-      "status": "pass",
-      "guarantee_id": "grid_aggregate_g001",
-      "guarantee_ids": [
-        "grid_aggregate_g001"
-      ],
-      "test_pattern_id": "grid_aggregate_sum_all",
-      "case_count": 2,
-      "check_count": 2,
-      "diff_count": 0,
-      "case_ids": [
-        "grid_aggregate_sum_all_value",
-        "grid_aggregate_sum_all_source_count"
-      ],
-      "check_ids": [
-        "grid_aggregate_sum_all_value.value",
-        "grid_aggregate_sum_all_source_count.value"
-      ],
-      "failed_check_ids": [],
-      "observed_at": "2026-08-30_12:14:27",
-      "sources": [
-        "Grid Header units.value",
-        "Grid Header units.source_count"
-      ],
-      "checks": [
-        {
-          "check_id": "grid_aggregate_sum_all_value.value",
-          "name": "value",
-          "target": "units.value",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_sum_all",
-          "expected": "100",
-          "actual": "100",
-          "expected_raw": 100,
-          "actual_raw": 100,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_sum_all_value",
-          "metric": "value",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header units.value",
-          "actual_display": "100"
-        },
-        {
-          "check_id": "grid_aggregate_sum_all_source_count.value",
-          "name": "value",
-          "target": "units.source_count",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_sum_all",
-          "expected": "4",
-          "actual": "4",
-          "expected_raw": 4,
-          "actual_raw": 4,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_sum_all_source_count",
-          "metric": "source_count",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header units.source_count",
-          "actual_display": "4"
-        }
-      ],
-      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
-      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
-      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
-    },
-    {
-      "result_label": "PASS",
-      "pass": true,
-      "status": "pass",
-      "guarantee_id": "grid_aggregate_g001",
-      "guarantee_ids": [
-        "grid_aggregate_g001"
-      ],
-      "test_pattern_id": "grid_aggregate_comma_numeric",
-      "case_count": 1,
-      "check_count": 1,
-      "diff_count": 0,
-      "case_ids": [
-        "grid_aggregate_comma_numeric_value"
-      ],
-      "check_ids": [
-        "grid_aggregate_comma_numeric_value.value"
-      ],
-      "failed_check_ids": [],
-      "observed_at": "2026-08-30_12:14:27",
-      "sources": [
-        "Grid Header comma_amount.value"
-      ],
-      "checks": [
-        {
-          "check_id": "grid_aggregate_comma_numeric_value.value",
-          "name": "value",
-          "target": "comma_amount.value",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_comma_numeric",
-          "expected": "1244.5",
-          "actual": "1244.5",
-          "expected_raw": 1244.5,
-          "actual_raw": 1244.5,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_comma_numeric_value",
-          "metric": "value",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header comma_amount.value",
-          "actual_display": "1244.5"
-        }
-      ],
-      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
-      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
-      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
-    },
-    {
-      "result_label": "PASS",
-      "pass": true,
-      "status": "pass",
-      "guarantee_id": "grid_aggregate_g001",
-      "guarantee_ids": [
-        "grid_aggregate_g001"
-      ],
-      "test_pattern_id": "grid_aggregate_invalid_exclusion",
-      "case_count": 3,
-      "check_count": 3,
-      "diff_count": 0,
-      "case_ids": [
-        "grid_aggregate_invalid_exclusion_value",
-        "grid_aggregate_invalid_exclusion_valid_count",
-        "grid_aggregate_invalid_exclusion_ignored_count"
-      ],
-      "check_ids": [
-        "grid_aggregate_invalid_exclusion_value.value",
-        "grid_aggregate_invalid_exclusion_valid_count.value",
-        "grid_aggregate_invalid_exclusion_ignored_count.value"
-      ],
-      "failed_check_ids": [],
-      "observed_at": "2026-08-30_12:14:27",
-      "sources": [
-        "Grid Header dirty_amount.value",
-        "Grid Header dirty_amount.valid_count",
-        "Grid Header dirty_amount.ignored_count"
-      ],
-      "checks": [
-        {
-          "check_id": "grid_aggregate_invalid_exclusion_value.value",
-          "name": "value",
-          "target": "dirty_amount.value",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_invalid_exclusion",
-          "expected": "10",
-          "actual": "10",
-          "expected_raw": 10,
-          "actual_raw": 10,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_invalid_exclusion_value",
-          "metric": "value",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header dirty_amount.value",
-          "actual_display": "10"
-        },
-        {
-          "check_id": "grid_aggregate_invalid_exclusion_valid_count.value",
-          "name": "value",
-          "target": "dirty_amount.valid_count",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_invalid_exclusion",
-          "expected": "1",
-          "actual": "1",
-          "expected_raw": 1,
-          "actual_raw": 1,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_invalid_exclusion_valid_count",
-          "metric": "valid_count",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header dirty_amount.valid_count",
-          "actual_display": "1"
-        },
-        {
-          "check_id": "grid_aggregate_invalid_exclusion_ignored_count.value",
-          "name": "value",
-          "target": "dirty_amount.ignored_count",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_invalid_exclusion",
-          "expected": "3",
-          "actual": "3",
-          "expected_raw": 3,
-          "actual_raw": 3,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_invalid_exclusion_ignored_count",
-          "metric": "ignored_count",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header dirty_amount.ignored_count",
-          "actual_display": "3"
-        }
-      ],
-      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
-      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
-      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
-    },
-    {
-      "result_label": "PASS",
-      "pass": true,
-      "status": "pass",
-      "guarantee_id": "grid_aggregate_g001",
-      "guarantee_ids": [
-        "grid_aggregate_g001"
-      ],
-      "test_pattern_id": "grid_aggregate_no_declaration",
-      "case_count": 1,
-      "check_count": 1,
-      "diff_count": 0,
-      "case_ids": [
-        "grid_aggregate_no_declaration_has_aggregates"
-      ],
-      "check_ids": [
-        "grid_aggregate_no_declaration_has_aggregates.value"
-      ],
-      "failed_check_ids": [],
-      "observed_at": "2026-08-30_12:14:27",
-      "sources": [
-        "Grid Header plain_amount.has_aggregates"
-      ],
-      "checks": [
-        {
-          "check_id": "grid_aggregate_no_declaration_has_aggregates.value",
-          "name": "value",
-          "target": "plain_amount.has_aggregates",
-          "type": "compareStrategy",
-          "expected_def_type": "ScalarExpectedDef",
-          "expected_def_type_source": "declared",
-          "compare_strategy": "ValueEquals",
-          "responsibility_cd": "grid_aggregate",
-          "test_pattern_id": "grid_aggregate_no_declaration",
-          "expected": "false",
-          "actual": "false",
-          "expected_raw": false,
-          "actual_raw": false,
-          "pass": true,
-          "message": "OK",
-          "guarantee_id": "grid_aggregate_g001",
-          "case_id": "grid_aggregate_no_declaration_has_aggregates",
-          "metric": "has_aggregates",
-          "observed_at": "2026-08-30_12:14:27",
-          "source": "Grid Header plain_amount.has_aggregates",
-          "actual_display": "false"
-        }
-      ],
-      "source_runner": "SeleniumTaste/responsibility_selenium_runner.js",
-      "actual_file": "data/json/03_tests/responsibilities/results/grid_aggregate.actual.json",
-      "diff_file": "data/json/03_tests/responsibilities/results/grid_aggregate.diff.json"
     }
   ]
 }

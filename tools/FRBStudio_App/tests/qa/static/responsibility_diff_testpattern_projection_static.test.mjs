@@ -53,6 +53,8 @@ test('Saved GRID_AGGREGATE Diff keeps raw checks but exposes 5 TestPattern summa
   assert.equal(diff.test_pattern_results[0].checks[0].expected_raw, 146);
   assert.equal(diff.test_pattern_results[0].checks[0].actual_raw, 146);
   assert.match(diff.test_pattern_results[0].checks[0].source, /Grid Header/);
+  assert.equal(diff.test_pattern_results[0].planned_pattern.generation_mode, 'AGGREGATE_SCALAR_CASE');
+  assert.equal(diff.test_pattern_results[0].planned_pattern.generated_cases[0].expected.value, 146);
 });
 
 test('Result Evidence Preview renders only persisted facts and is loaded by index', () => {
@@ -63,11 +65,22 @@ test('Result Evidence Preview renders only persisted facts and is loaded by inde
   const index = fs.readFileSync(path.join(ROOT, 'wwwroot/index.html'), 'utf8');
 
   assert.match(component, /EXECUTION EVIDENCE/);
-  assert.match(component, /② Expected Result/);
-  assert.match(component, /③ Actual Result/);
-  assert.match(component, /④ Diff \/ 判定/);
-  assert.match(component, /★ 観測Evidence \/ 事実根拠/);
+  assert.match(component, /① 対象値の入力状況/);
+  assert.match(component, /② 集計へ投入/);
+  assert.match(component, /③ Expected Result/);
+  assert.match(component, /④ Actual/);
+  assert.match(component, /⑤ Diff/);
   assert.match(component, /const checks = Array\.isArray\(row\.checks\)/);
   assert.doesNotMatch(component, /responsibility_test_preview_service/);
   assert.match(index, /responsibility_diff_result_preview_component\.js/);
+});
+
+test('Responsibility Diff summary exposes execution error separately from TestPattern results', () => {
+  const view = readJson('defs/qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json');
+  const summary = view.views?.[0]?.sections?.find(section => section.id === 'summary');
+  const fields = (summary?.fields ?? []).map(field => field.field);
+  assert.ok(fields.includes('execution_status'));
+  assert.ok(fields.includes('execution_error_count'));
+  assert.ok(fields.includes('firstExecutionError.execution_phase'));
+  assert.ok(fields.includes('firstExecutionError.actual'));
 });

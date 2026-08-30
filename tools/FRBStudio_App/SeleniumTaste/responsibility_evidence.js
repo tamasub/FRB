@@ -81,11 +81,17 @@ function groupDiffByGuarantee(checks=[]) {
   });
 }
 
-function groupDiffByTestPattern(checks=[], observations=[]) {
+function groupDiffByTestPattern(checks=[], observations=[], patterns=[]) {
   const observationMap = new Map();
   for (const observation of observations ?? []) {
     const key = `${String(observation?.test_pattern_id ?? '')}\u0000${String(observation?.case_id ?? '')}\u0000${String(observation?.metric ?? '')}`;
     observationMap.set(key, observation);
+  }
+
+  const patternMap = new Map();
+  for (const pattern of patterns ?? []) {
+    const patternId = String(pattern?.pattern_id ?? pattern?.test_pattern_id ?? '').trim();
+    if (patternId) patternMap.set(patternId, JSON.parse(JSON.stringify(pattern)));
   }
 
   const groups = new Map();
@@ -109,11 +115,13 @@ function groupDiffByTestPattern(checks=[], observations=[]) {
         actual_display: observation?.actual_display ?? '',
       };
     });
+    const plannedPattern = patternMap.get(test_pattern_id) ?? null;
 
     return {
       result_label: failed.length ? 'FAIL' : 'PASS',
       pass: failed.length === 0,
       status: failed.length ? 'fail' : 'pass',
+      responsibility_cd: String(items[0]?.responsibility_cd ?? ''),
       guarantee_id: guaranteeIds.length === 1 ? guaranteeIds[0] : guaranteeIds.join(', '),
       guarantee_ids: guaranteeIds,
       test_pattern_id,
@@ -126,15 +134,17 @@ function groupDiffByTestPattern(checks=[], observations=[]) {
       observed_at: evidenceChecks.map(item => item.observed_at).find(Boolean) ?? '',
       sources: [...new Set(evidenceChecks.map(item => item.source).filter(Boolean))],
       checks: evidenceChecks,
+      planned_pattern: plannedPattern,
     };
   });
 }
 
 function buildActualDocument({ plan, observations=[], observedAt, runId, sourceRunner }) {
   const responsibilityCd = normalizeResponsibilityCd(plan?.responsibility_cd);
+  const executionErrors = observations.filter(item => item?.metric === 'runner_error');
   return {
     view_def: 'qa/tests/responsibilities/responsibility_expected_actual_view_def_v0_1.json',
-    schema_version: 'responsibility_actual_v0_2',
+    schema_version: 'responsibility_actual_v0_3',
     document_type: 'responsibility_actual',
     test_area: 'responsibilities',
     artifact_kind: 'actual',
@@ -142,6 +152,8 @@ function buildActualDocument({ plan, observations=[], observedAt, runId, sourceR
     responsibility_name: String(plan?.responsibility_name ?? ''),
     run_id: runId,
     observed_at: observedAt,
+    execution_status: executionErrors.length ? 'error' : 'completed',
+    execution_error_count: executionErrors.length,
     guarantee_ids: Array.from(plan?.guarantee_ids ?? []),
     source_responsibility_file: String(plan?.responsibility_document ?? ''),
     source_input_file: String(plan?.setup?.input_file ?? ''),
@@ -152,12 +164,15 @@ function buildActualDocument({ plan, observations=[], observedAt, runId, sourceR
 
 function buildDiffDocument({ plan, checks=[], observations=[], observedAt, runId, sourceRunner, actualFile, diffFile }) {
   const responsibilityCd = normalizeResponsibilityCd(plan?.responsibility_cd);
-  const failedChecks = checks.filter(check => check?.pass !== true);
+  const executionErrors = checks.filter(check => check?.type === 'runnerError');
+  const diffChecks = checks.filter(check => check?.type !== 'runnerError');
+  const failedChecks = diffChecks.filter(check => check?.pass !== true);
   const firstFailure = failedChecks[0] ?? null;
-  const status = failedChecks.length ? 'fail' : 'pass';
-  const resultLabel = failedChecks.length ? '🚨 FAIL' : '✅ PASS';
-  const guaranteeResults = groupDiffByGuarantee(checks);
-  const testPatternResults = groupDiffByTestPattern(checks, observations);
+  const firstExecutionError = executionErrors[0] ?? null;
+  const status = executionErrors.length ? 'error' : (failedChecks.length ? 'fail' : 'pass');
+  const resultLabel = executionErrors.length ? '⚠️ EXECUTION ERROR' : (failedChecks.length ? '🚨 FAIL' : '✅ PASS');
+  const guaranteeResults = groupDiffByGuarantee(diffChecks);
+  const testPatternResults = groupDiffByTestPattern(diffChecks, observations, plan?.patterns ?? []);
   const failedTestPatterns = testPatternResults.filter(item => item?.pass !== true);
   return {
     view_def: 'qa/tests/responsibilities/responsibility_expected_diff_view_def_v0_1.json',
@@ -172,16 +187,22 @@ function buildDiffDocument({ plan, checks=[], observations=[], observedAt, runId
     responsibility_name: String(plan?.responsibility_name ?? ''),
     run_id: runId,
     generated_at: observedAt,
+    execution_status: executionErrors.length ? 'error' : 'completed',
+    execution_error_count: executionErrors.length,
+    execution_error_ids: executionErrors.map(check => check?.check_id).filter(Boolean),
+    firstExecutionError,
     status,
     resultLabel,
-    summary: failedChecks.length
-      ? `🚨 TestPattern ${failedTestPatterns.length}/${testPatternResults.length}件で差分を検出 / Check ${failedChecks.length}/${checks.length}件FAIL`
-      : `✅ TestPattern ${testPatternResults.length}件 / Check ${checks.length}件すべてPASSしました`,
+    summary: executionErrors.length
+      ? `⚠️ Runner実行エラー ${executionErrors.length}件 / Diff未評価 / phase=${firstExecutionError?.execution_phase ?? 'UNKNOWN'}`
+      : failedChecks.length
+        ? `🚨 TestPattern ${failedTestPatterns.length}/${testPatternResults.length}件で差分を検出 / Check ${failedChecks.length}/${diffChecks.length}件FAIL`
+        : `✅ TestPattern ${testPatternResults.length}件 / Check ${diffChecks.length}件すべてPASSしました`,
     test_pattern_total: testPatternResults.length,
     test_pattern_pass_count: testPatternResults.length - failedTestPatterns.length,
     test_pattern_fail_count: failedTestPatterns.length,
-    total: checks.length,
-    passCount: checks.length - failedChecks.length,
+    total: diffChecks.length,
+    passCount: diffChecks.length - failedChecks.length,
     failCount: failedChecks.length,
     failedCount: failedChecks.length,
     failedCheckIds: failedChecks.map(check => check?.check_id).filter(Boolean),
@@ -200,6 +221,7 @@ function buildDiffDocument({ plan, checks=[], observations=[], observedAt, runId
       diffFile,
       runner: sourceRunner,
     },
+    execution_errors: executionErrors,
     checks,
   };
 }
