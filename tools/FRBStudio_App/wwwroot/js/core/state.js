@@ -66,3 +66,28 @@ let studioOverlayLoadPromise = null;
 
 const $ = (id) => document.getElementById(id);
 
+// v0.18.127-json-object-unsaved-guard-fix:
+// JSON Object Studioの未保存保護はCore責務。
+// 以前の差分でindex.htmlへのscript追加だけに依存していたため、既存HTML差分やcache状態で
+// Runtimeが起動しない可能性があった。Core State初期化時にRuntime scriptを明示起動する。
+// json_unsaved_guard.js自身は二重読込を抑止するので、index.html側に既存scriptタグが残っていても安全。
+(function ensureJsonObjectUnsavedGuardRuntime(){
+  if (window.__frbJsonObjectUnsavedGuardLoaderInstalled) return;
+  window.__frbJsonObjectUnsavedGuardLoaderInstalled = true;
+
+  // 旧v0.18.126 patchがindex.htmlに残っていてBrowser cacheから旧scriptが返っても、
+  // 旧Runtimeを起動させない。v0.18.127は別sentinelで起動する。
+  window.__frbJsonUnsavedGuardInstalled = true;
+
+  const src = 'js/runtime/json_unsaved_guard.js?v=json-unsaved-guard-018127-fix';
+  const already = Array.from(document.scripts || []).some(script =>
+    String(script.src || '').includes('/js/runtime/json_unsaved_guard.js')
+  );
+  if (already) return;
+
+  const script = document.createElement('script');
+  script.src = src;
+  script.async = false;
+  script.dataset.frbJsonUnsavedGuard = 'core';
+  document.head.appendChild(script);
+})();

@@ -227,7 +227,8 @@
                 "file_io",
                 "fixtures",
                 "fixed_name",
-                "standard_fields"
+                "standard_fields",
+                "test_code_generation"
               ],
               "grid": {
                 "visible": true,

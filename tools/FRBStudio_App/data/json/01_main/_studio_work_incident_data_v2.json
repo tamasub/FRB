@@ -37000,6 +37000,168 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0259",
+      "phase": "generated-test-code-intermediate-artifact",
+      "title": "生成テストコード中間生成物化 / 汎用Test Runner信頼境界見直し",
+      "incident_type": "refactoring",
+      "category": "test_code_generation",
+      "priority": "high",
+      "status": "構想",
+      "follow_up_status": "UNASSESSED",
+      "verification_status": "未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-01T18:24:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "責務定義・TestPattern・Concrete Input・Concrete Expectedから、実際に実行するテストコードをテキストとして生成し、その生成コードを既存の標準テスト基盤で実行する方式へ移行する。Generated Test CodeはSource of Truthではなく、承認済みテスト定義から再生成可能な中間生成物として扱う。背景には、AIの高い共通化能力で構築した汎用Test Runnerを、人間側で十分に品質保証することが困難であり、Runner内部へテストの知恵と判定責務を集約しすぎると、共通バグによるFalse PASSが多数のテストへ伝播するという信頼境界上の問題がある。\n\nxx",
+      "target_files": "SeleniumTaste配下のResponsibility Test関連コード、ResponsibilityDef / PatternDef / ExpectedDef関連JSON、Generated Test Code出力先、新規Test Code Generator候補",
+      "actual_updated_files": "",
+      "objective": "Responsibility / Guarantee / TestPattern / Concrete Input / Concrete Expectedから、具体的なテストコードを機械生成できる構造を確立する。生成されたテストコードには、実際に何を入力し、何を操作し、何を取得し、何と比較するのかが明示的に現れるようにする。これにより、複雑な汎用Test Runner内部へテストの意味や判定知識を隠さず、承認済み定義から実行までの変換過程を人間とAIの双方が観測可能にする。",
+      "background": "これまでの責務定義駆動テストでは、ViewDef、項目定義、ResponsibilityDef、TestPattern、ExpectedDef、Input生成ルール等を構造化し、AIの高い共通化能力を利用して汎用Test Runnerによる自動実行を進めてきた。この方式は、テストケースごとの手書きコードを減らし、TestPatternやExpectedを定義から機械導出できる点で大きな効果があった。一方で、設計を進めるうちに『汎用Test Runnerそのものは別途十分に品質保証できる』ことが暗黙の前提になっていることが判明した。ユーザーから、自身の能力ではAIが高度に共通化した汎用Test Runnerを十分に品質保証できない可能性が指摘された。もしAIが生成したアプリケーションを、AIが生成した複雑なRunnerが検証し、人間がPASSという結果だけを承認する構造になると、Runner側に誤りがあった場合でも大量のTest Caseが一斉にFalse PASSする可能性がある。共通化によってテストコード量を減らす一方で、信頼を汎用Runner一箇所へ集中させていたことになる。さらに振り返ると、当初のAI承認駆動開発では『Generated Test Codeは中間生成物であり、承認済みのStructured Intentを実行環境へ投影したもの』という発想が存在していた。しかしDefinition Test RunnerやResponsibility Runnerの汎用化が進む中で、Generated Test Codeという層がRunner内部へ吸収され、いつの間にか見えなくなっていた。今回、この失われた中間生成物層を意図的に復活させる方向へ設計を修正する。",
+      "scope": "Responsibility / Guarantee / TestPattern / Concrete Input / Concrete Expectedから実行可能なテストコードを生成する契約を整理する。Generated Test Codeは再生成可能・破棄可能な中間生成物として扱う。生成コードにはresponsibility_id / guarantee_id / test_pattern_id / case_id等の追跡情報を保持する。生成コード上に実際の入力、UI操作、Actual取得、Expectedとの比較が読める形で現れるようにする。Expectedは事前に承認・確定された定義から取得し、Test Code Generator自身がExpectedの意味を新たに判断しない。まず既存の代表責務を1件選び、現行Responsibility Runner方式からGenerated Test Code方式へのPoCを行う。生成コードをNode.js / Selenium等の既存標準テスト基盤で実行し、Actual / Diff / Resultへ接続する。定義変更時のGenerated Test Code失効・再生成ルールも整理する。",
+      "out_of_scope": "現行の汎用Responsibility Runnerを直ちに全面廃止すること。全責務・全TestPatternを一括して生成コード方式へ移行すること。node:test、Selenium、Playwright等の外部テストフレームワークそのものをFRB側で独自に品質保証すること。Generated Test Codeを新たなSource of Truthとして人間が直接保守すること。AIがInput、Expected、Test Codeを自由生成し、そのまま同一経路で自己採点する構造。今回の段階で最終的なGeneratorアーキテクチャを固定すること。",
+      "fixed_name_policy": "Test Code Generatorおよび実行基盤に、特定のresponsibility_id、test_pattern_id、画面項目名等を固定実装しない。責務固有の知識はResponsibilityDef / PatternDef / ExpectedDef / Input Rule側へ保持する。Generator側は承認済み定義を対象実行環境の操作・assert表現へ変換する責務に限定する。",
+      "module_policy": "当面は既存のNode.js + SeleniumTaste環境を第一候補としてPoCする。ただしGenerated Test Code自体は実行環境固有の中間生成物とし、将来的にはNode/Selenium以外のTest FrameworkへGeneratorまたはAdapterを差し替え可能な構造を検討する。",
+      "expected_outputs": "Generated Test Codeの正式な位置づけを定義した設計メモ。Responsibility / Guarantee / TestPattern / Concrete Input / Concrete ExpectedからGenerated Test Codeまでの生成契約。少なくとも1責務分のGenerated Test Code PoC。生成コードと元定義を結ぶTrace情報。Generated Test Codeの保存・破棄・再生成・失効ルール。既存標準テスト基盤で生成コードを実行しActual / Diff / Resultへ接続した実行例。現行汎用Runnerへ残す責務とGenerated Test Codeへ露出させる責務の境界整理。",
+      "risk": "Test Code GeneratorへExpected導出や責務固有判断まで持たせると、汎用Test Runnerのブラックボックス問題をGeneratorへ移しただけになる。AIがInput、Expected、Generated Test Codeを同一の自由生成境界で作ると、誤った前提同士が自己整合してFalse PASSする可能性がある。Generated Test Codeを人間が直接修正し始めると、責務定義とテストコードの二重正本化が起きる。Generatorのテンプレートや分岐が肥大化すると、新しい巨大汎用Runnerを作るのと同じ問題が再発する。生成コードを毎回すべて人間レビューする運用にすると承認負荷が再び増大するため、通常は上位定義を主承認対象とし、Generated Test Codeは必要時に確認する観測窓として扱う必要がある。",
+      "test_points": "同じ承認済み定義から同じGenerated Test Codeが再生成できること。Generated Test Codeを削除しても元定義から復元できること。Concrete InputまたはExpected変更時に旧Generated Test Codeが失効または再生成対象になること。GeneratorがExpected値を暗黙に補完しないこと。生成コード本文から何を入力し、何を操作し、何を取得し、何と比較しているか確認できること。生成コードから元のresponsibility_id / guarantee_id / test_pattern_id / case_idへ遡れること。意図的にExpectedを変更すると生成されたassertも対応して変更されること。現行RunnerとGenerated Test Code方式で同一Test Caseを実行し、操作内容・Actual・Diffを比較できること。Generated Test Codeを直接修正しなくても運用できること。",
+      "verification_log": "",
+      "context_def_draft": "本作業では、AI承認駆動開発におけるテスト実行方式の信頼境界を見直す。これまでResponsibilityDef、TestPattern、Input、Expectedを構造化し、それらを汎用Test Runnerへ渡して実行する方向で共通化を進めてきた。しかし、この方式は汎用Runner自身が十分に品質保証されていることを暗黙の前提としている。AIによって高度に共通化されたRunnerを人間が十分に理解・保証できない場合、Runner自身の誤りが大量のTest Caseへ共通伝播する。そこで、承認済みの構造化定義から具体的なテストコードを生成し、そのコードを既存の標準テスト基盤で実行する方式を再検討する。Generated Test Codeは正本ではなく、定義が実際に何へ変換されたかを観測できる再生成可能な中間生成物とする。",
+      "user_request": "AI承認駆動開発の前提として、AIの驚異的な共通化能力で作った汎用Test Runnerを別途品質保証する構造になっているが、自分の能力ではその汎用Test Runner自体を十分に品質保証できない可能性に気づいた。そのため、テストコードをテキスト生成し、生成したテストコードを実行するシナリオへ転換する必要があるかもしれない。もともとGenerated Test Codeは中間生成物という話をしていたはずだが、汎用Runner化を進める中でいつの間にかその層がなくなっている。近々実施する作業項目としてテストコード生成を登録し、なぜこの話になったのかもしっかり残しておきたい。",
+      "ai_response": "",
+      "latest_user_comment": "将来構想というか近々やる作業項目として、テストコード生成についてインシデント登録する。なぜそういう話になったかもしっかり残しておく。",
+      "latest_ai_response": "",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0259_001",
+          "status": "NOT_STARTED",
+          "action": "Generated Test Codeの正式契約を整理する。Source of Truth、中間生成物、失効条件、Trace項目を定義する。"
+        },
+        {
+          "action_id": "followup_0259_002",
+          "status": "NOT_STARTED",
+          "action": "既存の代表責務を1件選び、Node.js + SeleniumによるGenerated Test Code PoCを作成する。"
+        },
+        {
+          "action_id": "followup_0259_003",
+          "status": "NOT_STARTED",
+          "action": "現行Responsibility Runner方式とGenerated Test Code方式の信頼境界・品質保証対象を比較する。"
+        },
+        {
+          "action_id": "followup_0259_004",
+          "status": "NOT_STARTED",
+          "action": "Test Code GeneratorがExpectedを判断せず、承認済みExpectedを機械変換するだけとする制約をルール化するか検討する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0259_001",
+          "at": "2026-08-31",
+          "speaker": "user",
+          "topic": "AI承認駆動開発の欠陥候補",
+          "message": "AI承認駆動開発の欠陥を見つけてしまったかもしれん(笑)"
+        },
+        {
+          "history_id": "disc_0259_002",
+          "at": "2026-08-31",
+          "speaker": "user",
+          "topic": "汎用Test Runnerの品質保証限界",
+          "message": "AIが驚異的な共通化能力で作った汎用テストランナーを別途品質保証する前提でパターン化と自動化を進めてきたが、たぶん自分の能力では汎用テストランナーそのものの品質保証ができない。"
+        },
+        {
+          "history_id": "disc_0259_003",
+          "at": "2026-08-31",
+          "speaker": "assistant",
+          "topic": "信頼集中問題",
+          "message": "共通化によってコード量を減らした代わりに、汎用Test Runnerという一点へ巨大な信頼を集中させている。Runnerに誤りがあれば大量のPASSがまとめてFalse PASSになる可能性があり、承認基盤の信頼境界設計が必要と整理した。"
+        },
+        {
+          "history_id": "disc_0259_004",
+          "at": "2026-08-31",
+          "speaker": "user",
+          "topic": "Generated Test Code方式への転換",
+          "message": "テストコードをテキスト生成して、生成したテストコードを実行するシナリオに転換しないといけないって話かもしれない。"
+        },
+        {
+          "history_id": "disc_0259_005",
+          "at": "2026-08-31",
+          "speaker": "user",
+          "topic": "中間生成物構想の再発見",
+          "message": "もともと生成コードは中間生成物という話をしていたと思うけど、いつのまにかなくなっている。"
+        },
+        {
+          "history_id": "disc_0259_006",
+          "at": "2026-08-31",
+          "speaker": "assistant",
+          "topic": "Generated Test Code層消失の整理",
+          "message": "当初は定義→Generated Test Code→実行という構造だったが、Definition Test RunnerやResponsibility Runnerを高度に汎用化する過程でGenerated Test Code層がRunner内部へ吸収された。Generated Test Codeを、定義と実行の間をブラックボックス化しないための可視化された中間生成物として復活させる方向を整理した。"
+        },
+        {
+          "history_id": "disc_0259_007",
+          "at": "2026-08-31",
+          "speaker": "user",
+          "topic": "作業項目化",
+          "message": "将来構想というより近々やる作業項目として、テストコード生成についてインシデント登録する。なぜそういう話になったかもしっかり残しておく。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0259_001",
+          "at": "2026-08-31",
+          "decision": "複雑な汎用Test Runnerを唯一の信頼できるテスト判定基盤として扱わない方向で見直す。",
+          "reason": "Runner自身を人間が十分に品質保証できない場合、共通バグによるFalse PASSが多数のTest Caseへ一括伝播するため。"
+        },
+        {
+          "decision_id": "dec_0259_002",
+          "at": "2026-08-31",
+          "decision": "Generated Test Codeを、承認済みテスト定義から再生成可能な中間生成物として復活させる方向で検討する。",
+          "reason": "定義と実行の間に、実際に何を操作し何をassertするのかをテキストとして露出させ、ブラックボックスを減らすため。"
+        },
+        {
+          "decision_id": "dec_0259_003",
+          "at": "2026-08-31",
+          "decision": "Generated Test CodeはSource of Truthにしない。",
+          "reason": "テストコードを人間が直接保守すると、Responsibility / TestPattern / Expected等の構造化定義との二重正本化が発生するため。"
+        },
+        {
+          "decision_id": "dec_0259_004",
+          "at": "2026-08-31",
+          "decision": "Test Code GeneratorはExpectedの意味判断や補完を行わず、承認済みExpectedを実行環境のassertへ機械変換する責務に限定する。",
+          "reason": "Expected生成とTest Code生成を同じ自由生成境界へ置くと、誤ったExpectedと誤ったTest Codeが自己整合してPASSするリスクがあるため。"
+        },
+        {
+          "decision_id": "dec_0259_005",
+          "at": "2026-08-31",
+          "decision": "Generated Test Codeは通常時の主承認対象ではなく、必要時に確認できる可視化された実行契約として扱う。",
+          "reason": "全生成コードを毎回人間がレビューすると承認負荷が戻るため。主承認対象は上位の構造化定義とし、Generated Test Codeは変換結果の観測窓として利用する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0259_001",
+          "at": "2026-09-01",
+          "change_type": "incident_registered",
+          "before": "Responsibility / TestPattern / Input / Expectedを汎用Test Runnerが直接解釈・実行する方式を中心に検討していた。",
+          "after": "承認済み定義からGenerated Test Codeを生成し、そのコードを標準テスト基盤で実行する方式を近々の検討・実装対象として登録した。",
+          "reason": "汎用Test Runnerそのものを人間が十分に品質保証できない可能性が判明し、承認基盤の信頼集中とブラックボックス化を減らす必要が生じたため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0259_001",
+          "at": "2026-08-31",
+          "title": "Generated Test Code層が汎用Runnerの中へ消えた",
+          "failure": "当初はGenerated Test Codeを中間生成物として扱う構想があったが、Definition Driven TestingやResponsibility Driven Testingの共通化が順調に進んだことで、TestPatternやExpectedを汎用Runnerへ直接渡して実行する方式へ徐々に寄り、生成コードという可視化された中間層が設計上から薄れていった。",
+          "cause": "AIによる共通化能力が高く、汎用Runnerへ責務を集約するほど実装量が減って便利に見えたため、Runner自身を誰がどのように品質保証するのかという信頼境界の検討が後回しになった。",
+          "lesson": "共通化は品質保証対象の数を減らすが、同時に信頼を一箇所へ集中させる。共通部品を人間が十分に保証できない場合、実行内容を再生成可能なテキストへ露出し、承認済み定義から実行までの変換過程を観測可能にする必要がある。",
+          "note": "『全部Runnerに食わせたらええやん』が成立しすぎた結果、元々あったGenerated Test Codeという大切な中間生成物を自分たちで消していた可能性がある（笑）。"
+        }
+      ],
+      "created_at": "2026-09-01T18:24:00+09:00",
+      "updated_at": "2026-09-01T18:24:00+09:00"
     }
   ],
   "review_notes": [
