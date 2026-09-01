@@ -713,7 +713,7 @@
             },
             {
               "field": "test_setup",
-              "caption": "Test Input / 実行設定（初期CLOSE）",
+              "caption": "Test Input / 実行設定",
               "type": "objectArray",
               "grid": {
                 "visible": false
@@ -896,7 +896,7 @@
             },
             {
               "field": "test_pattern_definitions",
-              "caption": "TestPattern生成定義（初期CLOSE）",
+              "caption": "TestPattern生成定義",
               "type": "objectArray",
               "grid": {
                 "visible": false
