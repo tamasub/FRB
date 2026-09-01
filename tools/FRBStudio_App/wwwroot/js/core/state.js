@@ -91,3 +91,24 @@ const $ = (id) => document.getElementById(id);
   script.dataset.frbJsonUnsavedGuard = 'core';
   document.head.appendChild(script);
 })();
+
+// v0.18.130-responsibility-pattern-def-trace:
+// Responsibility PreviewのGenerated TestPatternへ生成元Pattern Def IDを明示する。
+// 本体責務のTrace契約でありOverlayには置かない。
+(function ensureResponsibilityPatternDefTraceRuntime(){
+  if (window.__frbResponsibilityPatternDefTraceLoaderInstalled) return;
+  window.__frbResponsibilityPatternDefTraceLoaderInstalled = true;
+
+  const src = 'js/services/responsibility/responsibility_pattern_def_trace.js?v=responsibility-pattern-def-trace-018130';
+  const already = Array.from(document.scripts || []).some(script =>
+    String(script.src || '').includes('/js/services/responsibility/responsibility_pattern_def_trace.js')
+  );
+  if (already) return;
+
+  const script = document.createElement('script');
+  script.src = src;
+  script.async = false;
+  script.dataset.frbResponsibilityPatternDefTrace = 'core';
+  document.head.appendChild(script);
+})();
+

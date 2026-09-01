@@ -7,7 +7,7 @@
   "status": "draft",
   "phase": "responsibility-definition-driven-test-v0_2-responsibility-evidence-pilot",
   "created_at": "2026-07-19",
-  "updated_at": "2026-08-30T21:49:00+09:00",
+  "updated_at": "2026-09-01T19:30:00+09:00",
   "purpose": "Studioくんの責務を検証可能な保証として管理し、Responsibility / Guarantee / TestPattern / Expectedを人間が承認する検証意図の正本として、そこからGenerated Input / Action / Actual / Diffを機械導出できる責務マスターへ育てる。",
   "policy": {
     "definition": "責務は、何をするかではなく、どの条件で何を保証するかを書く。",
@@ -15,7 +15,7 @@
     "compression": "1KSのコードを1KS分説明するのではなく、そのコードが担う保証を数個の検証可能な約束へ圧縮する。",
     "how_boundary": "責務を読めばTestPatternとExpectedを導出できるが、クラス構成・メソッド構成・処理順序・アルゴリズム・技術方式は一つに決まらない状態を保つ。",
     "guarantee_contract": "Guarantee IDは責務レベルの保証単位とし、1つのGuarantee IDがN個のTestPatternを所有する。各TestPatternは必ず単一のguarantee_idへ所属し、1 TestPatternを複数Guaranteeへ紐付ける多対多関係は作らない。",
-    "test_pattern_relation_example": "項目定義のValidation Type → N TestPatternsと同様に、責務定義ではGuarantee ID → N TestPatternsとする。責務配下test_pattern_definitions[]は単一のguarantee_idを参照し、Generated TestPatternもその所属を継承する。",
+    "test_pattern_relation_example": "責務定義では Responsibility → Guarantee → Pattern Def → Generated TestPattern の生成鎖を明示する。Guarantee ID → N Pattern Def / Pattern Def → N TestPatternsを許容するが、各Pattern Defは単一guarantee_idへ所属し、各Generated TestPatternは単一pattern_def_idを保持する。",
     "observability": "承認責務は、その成立結果を責務境界の外側から観測可能とする。単独でActualを取得できない内部処理は、原則として独立した承認責務にせず、観測可能な成果まで含む上位責務へ統合する。",
     "test_definition": "TestPatternの具体Inputを正本として保持しない。Expected First対象では、TestPatternから初期Expected / Expected Diffを導出し、人間が確認・必要なら変更したExpectedを検証意図として扱う。Generated Input / Actionは、その承認済みExpectedから逆算する派生物とする。",
     "generated_artifact": "Generated TestPattern / 初期Expected / Generated Input / Generated Actionは責務定義から機械導出するVirtual Dataとし、原則として正本JSONへ重複保存しない。ただし、人間がExpected / Expected Diffを変更・承認した場合、その値は当該実行の検証意図として優先し、既存のGenerated Input / Actionを失効させて再生成する。",
@@ -39,7 +39,8 @@
     "guarantee_approval_unit": "Guarantee IDはテスト観点やExpected条件の数ではなく、人間が独立して承認・不承認を判断する単位で分割する。TestPatternやExpected条件は細分化してよいが、Expected Structureの違いだけを理由にGuarantee IDを分割しない。",
     "structural_expected_definition": "期待値構造 = Pattern Defだけでは不足している「結果側のテスト条件」を補うもの",
     "structural_expected_minimality": "Pattern Defですでに決まっている条件をStructural Expectedへ重複保持しない。具体値・具体JSON Path・Before/After・Concrete Expectedは後段で導出し、結果世界を成立させるために不足する条件だけをPattern Defへ保持する。",
-    "structural_expected_grouping": "1つのGuaranteeを複数のExpected Structureで証明してよい。Responsibility Definitionが正本である移行期間中は、各Pattern Defにstructure_id単位のStructural Expected具体条件を保持する。"
+    "structural_expected_grouping": "1つのGuaranteeを複数のExpected Structureで証明してよい。Responsibility Definitionが正本である移行期間中は、各Pattern Defにstructure_id単位のStructural Expected具体条件を保持する。",
+    "pattern_def_trace_contract": "Pattern DefはGenerated TestPatternの生成元定義とする。1つのPattern DefからN個のGenerated TestPatternを生成してよいが、各Generated TestPatternは生成元pattern_def_idを単一値で必須保持する。pattern_def_idは生成Trace用の補助情報であり、TestPatternの意味を主表示とする。Generated TestPattern PreviewではPattern Def IDを最終列へ表示する。"
   },
   "responsibilities": [
     {
@@ -126,7 +127,7 @@
       ],
       "test_pattern_definitions": [
         {
-          "pattern_def_id": "search_filter_string_sample",
+          "pattern_def_id": "search_filter_string",
           "pattern_cd": "SEARCH_FILTER",
           "pattern_role": "STANDARD",
           "generation_mode": "SEARCH_OPERATOR_MATRIX",
@@ -205,7 +206,7 @@
           "notes": "String代表Field。空文字を含むFixtureを使い、text_standardの全Operatorを機械展開する。"
         },
         {
-          "pattern_def_id": "search_filter_number_sample",
+          "pattern_def_id": "search_filter_number",
           "pattern_cd": "SEARCH_FILTER",
           "pattern_role": "STANDARD",
           "generation_mode": "SEARCH_OPERATOR_MATRIX",
@@ -303,14 +304,15 @@
       "approval_status": "draft",
       "enabled": true,
       "purpose": "ViewDefのfields定義から、Grid表示に利用する列配列を確定する。",
-      "summary": "grid.visible=false を除外し、ViewDef上の列順を維持したGrid列配列を返す。",
+      "summary": "ViewDefのfields定義から表示可否・includeField方針に従ってGrid列を生成し、入力順を維持しつつ入力fieldsを変更せず、安全な列配列を返す。",
       "source_file": "wwwroot/js/responsibilities/grid_column_builder.js",
       "interface_name": "GridColumnBuilder.build",
       "in_scope": [
         "grid.visibleの解釈",
         "表示列の抽出",
         "列順の維持",
-        "呼出側includeField方針の適用"
+        "呼出側includeField方針の適用",
+        "入力fields定義の非破壊"
       ],
       "out_of_scope": [
         "DOM描画",
@@ -326,50 +328,14 @@
         {
           "guarantee_id": "grid_column_build_g001",
           "guarantee_type": "rule",
-          "condition": "fieldsにgrid.visible=falseの項目が含まれる場合",
-          "guarantee": "当該項目をGrid列へ含めない。",
-          "observable_result": "返却列のfield一覧に非表示項目が存在しない。",
+          "condition": "ViewDefのfields定義からGrid列を生成する場合",
+          "guarantee": "表示可否および呼出側の採用方針に従ってGrid列を生成し、入力順を維持し、入力fieldsを変更せず、対象が存在しない場合も安全な列配列を返す。",
+          "observable_result": "生成されたGrid列が採用条件・入力順・非破壊条件を満たし、対象なしの場合は空配列となる。",
           "priority": "high",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_column_build_g002",
-          "guarantee_type": "state",
-          "condition": "表示対象フィールドが複数ある場合",
-          "guarantee": "返却列の順序はViewDef fieldsの順序を維持する。",
-          "observable_result": "返却field一覧が入力順と一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_column_build_g003",
-          "guarantee_type": "rule",
-          "condition": "fieldsが未指定または空配列の場合",
-          "guarantee": "例外で停止せず空配列を返す。",
-          "observable_result": "返却値が空配列である。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_column_build_g004",
-          "guarantee_type": "interface",
-          "condition": "includeField方針が呼出側から指定された場合",
-          "guarantee": "指定された方針による列採用結果を返す。",
-          "observable_result": "includeFieldの判定結果と返却列が一致する。",
-          "priority": "medium",
-          "enabled": true
-        },
-        {
-          "guarantee_id": "grid_column_build_g005",
-          "guarantee_type": "no_side_effect",
-          "condition": "Grid列を生成した場合",
-          "guarantee": "入力されたfields定義を変更しない。",
-          "observable_result": "処理前後のfieldsが同一である。",
-          "priority": "medium",
           "enabled": true
         }
       ],
-      "notes": "Grid列生成5保証をTest Input / Pattern Defとして責務JSON上に明示。旧JSON駆動テスト2件だけに依存せず、Generated Previewから保証→Pattern Def→TestPatternを追跡できる。",
+      "notes": "Grid列生成責務は人間の独立承認単位としてgrid_column_build_g001の1 Guaranteeへ統合する。visible_fields / order_preserve / empty_safe / include_policy / no_side_effect の5 TestPatternで同一Guaranteeを検証する。Guarantee統合はTestPattern統合を意味せず、Generated Previewから1 Guarantee → 5 Pattern Def → 5 Generated TestPatternを追跡する。",
       "test_setup": [
         {
           "setup_id": "grid_column_build_setup_001",
@@ -388,7 +354,7 @@
           "working_copy_policy": "NONE",
           "working_copy_directory": "",
           "cleanup_policy": "NONE",
-          "notes": "GridColumnBuilderの5保証をFixture fieldsから機械導出する。現フェーズではGenerated Previewまでを責務定義側の正本として復元し、正式Runner接続は次段階とする。"
+          "notes": "GridColumnBuilderの1保証を5つのTestPattern / Fixture観点から機械検証する。現フェーズではGenerated Previewまでを責務定義側の正本として維持し、正式Runner接続は次段階とする。"
         }
       ],
       "test_pattern_definitions": [
@@ -426,7 +392,7 @@
           "fixture_id": "grid_column_order_preserve",
           "include_policy": "GRID_VISIBLE",
           "expected_def_type": "StateExpectedDef",
-          "guarantee_id": "grid_column_build_g002",
+          "guarantee_id": "grid_column_build_g001",
           "enabled": true,
           "notes": "採用されたFieldの順序がFixture fields順のまま維持されることを確認する。",
           "structural_expected": [
@@ -450,7 +416,7 @@
           "fixture_id": "grid_column_empty_safe",
           "include_policy": "GRID_VISIBLE",
           "expected_def_type": "ErrorExpectedDef",
-          "guarantee_id": "grid_column_build_g003",
+          "guarantee_id": "grid_column_build_g001",
           "enabled": true,
           "notes": "fields未指定/空を空配列として安全に扱う。",
           "structural_expected": [
@@ -475,7 +441,7 @@
             "score"
           ],
           "expected_def_type": "RuleExpectedDef",
-          "guarantee_id": "grid_column_build_g004",
+          "guarantee_id": "grid_column_build_g001",
           "enabled": true,
           "notes": "呼出側includeField相当の採用方針を明示し、allowlist結果を期待する。",
           "structural_expected": [
@@ -500,7 +466,7 @@
           "include_policy": "GRID_VISIBLE",
           "expected_input_unchanged": true,
           "expected_def_type": "StateExpectedDef",
-          "guarantee_id": "grid_column_build_g005",
+          "guarantee_id": "grid_column_build_g001",
           "enabled": true,
           "notes": "列生成前後で入力fields定義が変化しないことを期待する。"
         }

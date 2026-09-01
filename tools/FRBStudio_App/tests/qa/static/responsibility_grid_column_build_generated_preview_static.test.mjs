@@ -18,21 +18,17 @@ function loadServiceSandbox() {
   return sandbox;
 }
 
-test('GRID_COLUMN_BUILD restores Test Input and 5 Pattern Defs, one for each Guarantee', () => {
+test('GRID_COLUMN_BUILD keeps 5 Pattern Defs under one human approval Guarantee', () => {
   const document = readJson('data/json/03_tests/responsibilities/responsibility_data_v0_2.json');
   const responsibility = document.responsibilities.find(item => item.responsibility_cd === 'grid_column_build');
   assert.ok(responsibility);
+  assert.equal(responsibility.guarantees.length, 1);
+  assert.equal(responsibility.guarantees[0].guarantee_id, 'grid_column_build_g001');
   assert.equal(responsibility.test_setup.length, 1);
   assert.equal(responsibility.test_pattern_definitions.length, 5);
   assert.deepEqual(
-    responsibility.test_pattern_definitions.map(item => item.guarantee_id),
-    [
-      'grid_column_build_g001',
-      'grid_column_build_g002',
-      'grid_column_build_g003',
-      'grid_column_build_g004',
-      'grid_column_build_g005',
-    ],
+    [...new Set(responsibility.test_pattern_definitions.map(item => item.guarantee_id))],
+    ['grid_column_build_g001'],
   );
   assert.ok(responsibility.test_pattern_definitions.every(item => item.generation_mode === 'GRID_COLUMN_BUILD_CASE'));
 });
