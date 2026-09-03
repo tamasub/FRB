@@ -212,7 +212,7 @@ test('basic-info header visibility follows the same edit.visible contract shown 
 
   assert.match(fieldControls, /function isFieldVisibleInDetail\(field, row=null\)[\s\S]*field\?\.edit\?\.visible === false/);
   assert.match(fieldControls, /function renderHeader\(\)[\s\S]*isFieldVisibleInDetail\(field, sourceData\)/);
-  assert.match(index, /js\/renderers\/field_controls\.js\?v=standard-search-ui-01867/);
+  assert.match(index, /js\/renderers\/field_controls\.js\?v=empty-primary-section-hide-01878/);
 });
 
 test('F12 detail commit preserves canonical row identity so the visible Grid receives edits immediately', () => {

@@ -1015,6 +1015,7 @@ function isFieldVisibleInDetail(field, row=null) {
 function renderHeader() {
   const def = headerDef();
   if (!def) return;
+  const section = $('headerSection');
   $('headerCaption').textContent = def.caption ?? 'Header';
   const form = $('headerForm');
   form.innerHTML = '';
@@ -1025,10 +1026,12 @@ function renderHeader() {
     .forEach(field => {
       form.appendChild(createInput(field, getByPath(sourceData, (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field), 'header'));
     });
-  $('headerSection').classList.remove('hidden');
-  // v0.15.5.2: Main Context is Data-side information. Show it as a header panel,
-  // not as the main Grid. The ViewDef only declares data_path/display contract.
-  if (typeof renderMainContextHeaderPanel === 'function') renderMainContextHeaderPanel($('headerSection'));
+  // v0.18.78-empty-primary-section-hide:
+  // 基本情報の対象Fieldが0件なら、空カードを表示しない。
+  // Main Contextが実際に描画される場合は、それ自体が意味のあるHeader内容なので表示を維持する。
+  if (typeof renderMainContextHeaderPanel === 'function') renderMainContextHeaderPanel(section);
+  const hasHeaderContent = form.childElementCount > 0 || Boolean(section.querySelector('#mainContextHeaderPanel'));
+  section.classList.toggle('hidden', !hasHeaderContent);
 }
 
 function renderSearch() {
@@ -1065,8 +1068,12 @@ function renderSearch() {
     renderStudioPluginSearchFilters(form, { gd, viewDef, sourceData, currentRows });
   }
 
-  $('searchSection').classList.remove('hidden');
-  if (typeof refreshStudioSearchPatternSelect === 'function') refreshStudioSearchPatternSelect();
+  // v0.18.78-empty-primary-section-hide:
+  // Canonical Grid / Pluginの検索対象Fieldが0件なら、全文検索だけの空検索カードも含めて枠ごと隠す。
+  const searchSection = $('searchSection');
+  const hasSearchTargets = form.childElementCount > 0;
+  searchSection.classList.toggle('hidden', !hasSearchTargets);
+  if (hasSearchTargets && typeof refreshStudioSearchPatternSelect === 'function') refreshStudioSearchPatternSelect();
 }
 
 

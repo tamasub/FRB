@@ -26,7 +26,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": false
               },
               "search": {
@@ -57,7 +57,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": false
               },
               "search": {
@@ -92,7 +92,7 @@
                 "readonly": false
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -134,7 +134,7 @@
                 "readonly": false
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -150,7 +150,7 @@
                 "readonly": false
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -166,9 +166,9 @@
                 "readonly": false
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "equals",
-                "initialValue": true,
+                "initialValue": "true",
                 "applyOnLoad": true
               }
             },
@@ -186,7 +186,7 @@
                 "height": 80
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
