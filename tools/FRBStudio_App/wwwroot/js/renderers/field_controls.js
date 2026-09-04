@@ -986,7 +986,20 @@ function isChildArrayField(field) {
 }
 
 function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=null) {
-  if (field.type === 'chat') return createChatInput(field, row ?? {}, gd ?? gridDef(), prefix);
+  // v0.18.134 Live View Design FULL follow-up:
+  // chat is also a Field and must honor the canonical Field.width contract.
+  // createChatInput used to return early here, bypassing the common width resolver,
+  // so width:"FULL" was visible in ViewDef but stayed at the legacy/natural width.
+  if (field.type === 'chat') {
+    const chatWrap = createChatInput(field, row ?? {}, gd ?? gridDef(), prefix);
+    const widthSection = typeof studioFieldWidthSectionForContext === 'function'
+      ? studioFieldWidthSectionForContext(prefix, gd)
+      : null;
+    if (typeof studioApplyFieldContainerWidth === 'function') {
+      studioApplyFieldContainerWidth(chatWrap, field, prefix, widthSection);
+    }
+    return chatWrap;
+  }
 
   const readonly = readonlyOverride || field.readonly || field.edit?.readonly;
   const wrap = document.createElement('div');

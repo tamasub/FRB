@@ -93,7 +93,7 @@
               "search": {
                 "visible": false
               },
-              "width": 217
+              "width": 200
             },
             {
               "field": "artifact_kind",
@@ -107,8 +107,7 @@
                 "other"
               ],
               "grid": {
-                "visible": true,
-                "width": 100
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -119,7 +118,8 @@
                 "operator": "equals",
                 "initialValue": "diff",
                 "applyOnLoad": true
-              }
+              },
+              "width": 148
             },
             {
               "field": "category",
@@ -135,7 +135,7 @@
               "search": {
                 "visible": false
               },
-              "width": 257
+              "width": 211
             },
             {
               "field": "path",
@@ -151,7 +151,7 @@
               "search": {
                 "visible": false
               },
-              "width": 487
+              "width": 505
             },
             {
               "field": "enabled",
@@ -187,7 +187,7 @@
               "search": {
                 "visible": false
               },
-              "width": 331
+              "width": 340
             },
             {
               "field": "link_id",
@@ -203,7 +203,7 @@
               "search": {
                 "visible": false
               },
-              "width": 184
+              "width": 155
             }
           ]
         }

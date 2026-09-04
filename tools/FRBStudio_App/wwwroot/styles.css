@@ -4222,10 +4222,11 @@ button.viewdef-maintenance-button:disabled {
 
 
 
-/* ===== v0.18.132 Live View Design / Field.width =====
+/* ===== v0.18.133 Live View Design / Field.width + FULL =====
    Field.width is a common visual width for data display/editing.
+   Numeric values are px widths; FULL consumes the available row width.
    Search controls stay compact at Studio standard width.
-   Runtime does not stretch a lone Field to the full Section width. */
+   Runtime does not stretch a lone Field to the full Section width unless FULL is explicit. */
 :root {
   --studio-standard-field-width: 220px;
 }
@@ -4257,6 +4258,14 @@ button.viewdef-maintenance-button:disabled {
   width: var(--studio-standard-field-width);
   max-width: 100%;
   min-width: 0;
+}
+
+/* Explicit FULL is a Field intent, not an automatic stretch rule. */
+#headerSection #headerForm.form-grid > .field.studio-field-width-full,
+#detailDialog #detailForm.detail-grid > .field.studio-field-width-full {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Search is operation UI: Field.width never stretches search controls. */
@@ -4315,6 +4324,28 @@ button.viewdef-maintenance-button:disabled {
 
 .grid-column-resize-handle:hover {
   border-right-color: rgba(79, 70, 229, .9);
+}
+
+
+
+/* Live View Design: show the current px width next to the pointer while resizing. */
+.studio-field-width-tip {
+  position: fixed;
+  z-index: 10050;
+  pointer-events: none;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: rgba(31, 41, 55, .92);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .22);
+  white-space: nowrap;
+}
+
+.studio-field-width-tip.hidden {
+  display: none;
 }
 
 body.studio-field-width-resizing,

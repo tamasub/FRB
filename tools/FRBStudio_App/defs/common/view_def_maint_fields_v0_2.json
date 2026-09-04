@@ -191,23 +191,19 @@
             },
             {
               "field": "width",
-              "caption": "項目幅",
-              "type": "number",
+              "caption": "項目幅(px/FULL)",
+              "type": "text",
               "grid": {
                 "visible": true,
-                "width": 85
+                "width": 120
               },
               "edit": {
                 "visible": true,
                 "readonly": false,
-                "step": "1"
+                "placeholder": "80-1200 または FULL"
               },
               "search": {
                 "visible": false
-              },
-              "validation": {
-                "minimum": 80,
-                "maximum": 1200
               }
             },
             {

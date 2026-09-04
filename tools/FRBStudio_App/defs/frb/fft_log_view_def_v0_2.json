@@ -64,7 +64,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 90,
                 "format": "#.000000"
               },
               "edit": {
@@ -77,7 +76,8 @@
                 "operator": "gte"
               },
               "format": "#.000000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 172
             },
             {
               "field": "peakAHz",
@@ -85,7 +85,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 100,
                 "format": "#.000"
               },
               "edit": {
@@ -98,7 +97,8 @@
                 "operator": "gte"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 113
             },
             {
               "field": "fluxA",
@@ -106,7 +106,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 100,
                 "format": "#.000000"
               },
               "edit": {
@@ -119,7 +118,8 @@
                 "operator": "gte"
               },
               "format": "#.000000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 108
             },
             {
               "field": "peakMoveA",
@@ -127,7 +127,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 120,
                 "format": "#.000"
               },
               "edit": {
@@ -140,7 +139,8 @@
                 "operator": "gte"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 95
             },
             {
               "field": "inputHz",
@@ -148,7 +148,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 100,
                 "format": "#.000"
               },
               "edit": {
@@ -161,7 +160,8 @@
                 "operator": "gte"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 90
             },
             {
               "field": "phase2State",
@@ -234,7 +234,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 90,
                 "format": "#.000"
               },
               "edit": {
@@ -243,7 +242,8 @@
                 "step": "0.001"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 105
             },
             {
               "field": "bandA.b1",
@@ -251,7 +251,6 @@
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 90,
                 "format": "#.000"
               },
               "edit": {
@@ -260,7 +259,8 @@
                 "step": "0.001"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 101
             },
             {
               "field": "bandA.b2",
@@ -268,7 +268,6 @@
               "type": "number",
               "grid": {
                 "visible": false,
-                "width": 90,
                 "format": "#.000"
               },
               "edit": {
@@ -277,7 +276,8 @@
                 "step": "0.001"
               },
               "format": "#.000",
-              "defaultValue": 0
+              "defaultValue": 0,
+              "width": 161
             },
             {
               "field": "topPeaksA",

@@ -1,10 +1,12 @@
-// v0.18.132-live-view-design-field-width
+// v0.18.136-live-view-design-editor-tip-top-layer-fix
 // Live View Design: Field.width is the canonical visual width for data display/editing.
-// Search controls stay at Studio standard width. Grid legacy grid.width remains read-compatible.
+// Field.width accepts a numeric px value or FULL. Search controls stay at Studio standard width.
+// Grid legacy grid.width remains read-compatible.
 
 const STUDIO_STANDARD_FIELD_WIDTH_PX = 220;
 const STUDIO_MIN_FIELD_WIDTH_PX = 80;
 const STUDIO_MAX_FIELD_WIDTH_PX = 1200;
+const STUDIO_FIELD_WIDTH_FULL = 'FULL';
 
 let studioFieldWidthDrafts = new Map();
 
@@ -15,9 +17,23 @@ function studioNormalizeFieldWidth(value) {
   return Math.max(STUDIO_MIN_FIELD_WIDTH_PX, Math.min(STUDIO_MAX_FIELD_WIDTH_PX, Math.round(n)));
 }
 
+function studioNormalizeFieldWidthValue(value) {
+  if (typeof value === 'string' && value.trim().toUpperCase() === STUDIO_FIELD_WIDTH_FULL) {
+    return STUDIO_FIELD_WIDTH_FULL;
+  }
+  return studioNormalizeFieldWidth(value);
+}
+
+function studioFieldWidthIsFull(value) {
+  return studioNormalizeFieldWidthValue(value) === STUDIO_FIELD_WIDTH_FULL;
+}
+
 function studioFieldTypeUsesFixedControlWidth(field) {
   const type = String(field?.type ?? '').trim().toLowerCase();
-  return ['select', 'boolean', 'checkbox', 'radio'].includes(type);
+  // Combo/select keeps the Studio standard width by default, but an explicit
+  // Field.width (or a Live View Design draft) may resize it just like text fields.
+  // Boolean/checkbox/radio remain compact fixed operation controls.
+  return ['boolean', 'checkbox', 'radio'].includes(type);
 }
 
 function studioFieldWidthKey(section, fieldName) {
@@ -64,7 +80,8 @@ function studioResolvedFieldWidth(field, context='detail', section=null) {
   const draft = studioDraftFieldWidth(field, section);
   if (draft) return draft;
 
-  const canonical = studioNormalizeFieldWidth(field?.width);
+  const canonical = studioNormalizeFieldWidthValue(field?.width);
+  if (canonical === STUDIO_FIELD_WIDTH_FULL) return STUDIO_FIELD_WIDTH_FULL;
   if (canonical) return canonical;
 
   // Backward compatibility:
@@ -83,11 +100,15 @@ function studioResolvedFieldWidth(field, context='detail', section=null) {
 function studioApplyFieldContainerWidth(wrap, field, context='detail', section=null) {
   if (!wrap || !field) return null;
   const width = studioResolvedFieldWidth(field, context, section);
-  wrap.style.width = `${width}px`;
-  wrap.style.flex = `0 0 ${width}px`;
+  const full = width === STUDIO_FIELD_WIDTH_FULL;
+
+  wrap.classList.toggle('studio-field-width-full', full);
+  wrap.style.width = full ? '100%' : `${width}px`;
+  wrap.style.flex = full ? '1 0 100%' : `0 0 ${width}px`;
   wrap.style.maxWidth = '100%';
   wrap.style.boxSizing = 'border-box';
   wrap.dataset.studioFieldWidth = String(width);
+  wrap.dataset.studioFieldWidthMode = full ? STUDIO_FIELD_WIDTH_FULL : 'FIXED';
   return width;
 }
 
@@ -280,10 +301,54 @@ function studioInstallFieldWidthSaveButtons() {
   studioRefreshFieldWidthSaveButtons();
 }
 
+
+let studioFieldWidthTip = null;
+
+function studioFieldWidthTipHost(sourceElement=null) {
+  // A modal <dialog> is rendered in the browser Top Layer.
+  // A Tip appended to document.body can therefore sit *behind* the open Detail dialog
+  // even with a very large z-index. Keep the Tip in the same Top Layer when the
+  // resize source lives inside a modal dialog.
+  const source = sourceElement instanceof Element ? sourceElement : null;
+  const dialog = source?.closest?.('dialog[open]');
+  if (dialog) return dialog;
+  return document.body;
+}
+
+function studioEnsureFieldWidthTip(sourceElement=null) {
+  const host = studioFieldWidthTipHost(sourceElement);
+  if (!studioFieldWidthTip?.isConnected) {
+    const tip = document.createElement('div');
+    tip.className = 'studio-field-width-tip hidden';
+    tip.setAttribute('role', 'status');
+    tip.setAttribute('aria-live', 'polite');
+    studioFieldWidthTip = tip;
+  }
+  if (studioFieldWidthTip.parentElement !== host) {
+    host.appendChild(studioFieldWidthTip);
+  }
+  return studioFieldWidthTip;
+}
+
+function studioShowFieldWidthTip(width, clientX, clientY, sourceElement=null) {
+  const normalized = studioNormalizeFieldWidth(width);
+  if (!normalized) return;
+  const tip = studioEnsureFieldWidthTip(sourceElement);
+  tip.textContent = `${normalized}px`;
+  tip.style.left = `${Math.round(clientX) + 14}px`;
+  tip.style.top = `${Math.round(clientY) + 14}px`;
+  tip.classList.remove('hidden');
+}
+
+function studioHideFieldWidthTip() {
+  if (!studioFieldWidthTip) return;
+  studioFieldWidthTip.classList.add('hidden');
+}
+
 function studioInstallFieldResizeHandle(wrap, field, context='detail', section=null) {
   if (!wrap || !field || !section) return;
   if (context === 'search' || studioFieldTypeUsesFixedControlWidth(field)) return;
-  if (!['text', 'textarea', 'number', 'date', 'datetime'].includes(String(field.type ?? 'text'))) return;
+  if (!['text', 'textarea', 'number', 'date', 'datetime', 'select'].includes(String(field.type ?? 'text'))) return;
   if (wrap.querySelector(':scope > .studio-field-resize-handle')) return;
 
   wrap.classList.add('studio-live-width-field');
@@ -303,19 +368,30 @@ function studioInstallFieldResizeHandle(wrap, field, context='detail', section=n
     const startX = event.clientX;
     const startWidth = wrap.getBoundingClientRect().width;
     document.body.classList.add('studio-field-width-resizing');
+    studioShowFieldWidthTip(startWidth, event.clientX, event.clientY, wrap);
 
+    let moved = false;
     const onMove = moveEvent => {
-      const width = studioNormalizeFieldWidth(startWidth + (moveEvent.clientX - startX));
+      const delta = moveEvent.clientX - startX;
+      if (Math.abs(delta) < 1) return;
+      moved = true;
+      const width = studioNormalizeFieldWidth(startWidth + delta);
       if (!width) return;
+      // Direct resize is an explicit choice to leave FULL and use a concrete px width.
+      wrap.classList.remove('studio-field-width-full');
       wrap.style.width = `${width}px`;
-      wrap.style.flexBasis = `${width}px`;
+      wrap.style.flex = `0 0 ${width}px`;
       wrap.dataset.studioFieldWidth = String(width);
+      wrap.dataset.studioFieldWidthMode = 'FIXED';
+      studioShowFieldWidthTip(width, moveEvent.clientX, moveEvent.clientY, wrap);
     };
 
     const onUp = upEvent => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       document.body.classList.remove('studio-field-width-resizing');
+      studioHideFieldWidthTip();
+      if (!moved) return;
       const width = studioNormalizeFieldWidth(startWidth + (upEvent.clientX - startX));
       if (!width) return;
       studioSetLiveFieldWidth(field, width, section, `${context}.resize`);
@@ -339,10 +415,19 @@ function studioInstallGridColumnResizeHandle(th, field, section, table, col, vis
   th.appendChild(handle);
 
   const recalcTableWidth = () => {
-    const widths = [...table.querySelectorAll('col')].map(item => studioNormalizeFieldWidth(item.style.width) ?? STUDIO_STANDARD_FIELD_WIDTH_PX);
-    const total = widths.reduce((sum, width) => sum + width, 0);
-    table.style.width = `${total}px`;
-    table.style.minWidth = `${total}px`;
+    const cols = [...table.querySelectorAll('col')];
+    const fullCount = cols.filter(item => item.dataset.studioFieldWidthMode === STUDIO_FIELD_WIDTH_FULL).length;
+    const fixedTotal = cols.reduce((sum, item) => {
+      if (item.dataset.studioFieldWidthMode === STUDIO_FIELD_WIDTH_FULL) return sum;
+      return sum + (studioNormalizeFieldWidth(item.style.width) ?? STUDIO_STANDARD_FIELD_WIDTH_PX);
+    }, 0);
+    if (fullCount > 0) {
+      table.style.width = '100%';
+      table.style.minWidth = `${fixedTotal + (fullCount * STUDIO_STANDARD_FIELD_WIDTH_PX)}px`;
+      return;
+    }
+    table.style.width = `${fixedTotal}px`;
+    table.style.minWidth = `${fixedTotal}px`;
   };
 
   handle.addEventListener('click', event => {
@@ -358,24 +443,37 @@ function studioInstallGridColumnResizeHandle(th, field, section, table, col, vis
     const startX = event.clientX;
     const startWidth = th.getBoundingClientRect().width;
     document.body.classList.add('studio-field-width-resizing');
+    studioShowFieldWidthTip(startWidth, event.clientX, event.clientY, th);
 
+    let moved = false;
     const onMove = moveEvent => {
-      const width = studioNormalizeFieldWidth(startWidth + (moveEvent.clientX - startX));
+      const delta = moveEvent.clientX - startX;
+      if (Math.abs(delta) < 1) return;
+      moved = true;
+      const width = studioNormalizeFieldWidth(startWidth + delta);
       if (!width) return;
+      // Dragging a FULL column intentionally converts that live draft to a fixed px width.
+      col.dataset.studioFieldWidthMode = 'FIXED';
       col.style.width = `${width}px`;
       th.style.width = `${width}px`;
+      th.style.maxWidth = `${width}px`;
       recalcTableWidth();
+      studioShowFieldWidthTip(width, moveEvent.clientX, moveEvent.clientY, th);
     };
 
     const onUp = upEvent => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       document.body.classList.remove('studio-field-width-resizing');
+      studioHideFieldWidthTip();
 
+      if (!moved) return;
       const width = studioNormalizeFieldWidth(startWidth + (upEvent.clientX - startX));
       if (!width) return;
+      col.dataset.studioFieldWidthMode = 'FIXED';
       col.style.width = `${width}px`;
       th.style.width = `${width}px`;
+      th.style.maxWidth = `${width}px`;
       studioSetLiveFieldWidth(field, width, section, 'grid.resize');
       recalcTableWidth();
     };

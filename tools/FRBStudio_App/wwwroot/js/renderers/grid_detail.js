@@ -179,15 +179,25 @@ function renderCompactGrid(gd=gridDef()) {
       ? studioResolvedFieldWidth(field, 'grid', gd)
       : (field?.grid?.width || 220)
   ));
-  const totalWidth = resolvedWidths.reduce((sum, width) => sum + Number(width || 0), 0);
+  const fullToken = typeof STUDIO_FIELD_WIDTH_FULL !== 'undefined' ? STUDIO_FIELD_WIDTH_FULL : 'FULL';
+  const standardWidth = typeof STUDIO_STANDARD_FIELD_WIDTH_PX !== 'undefined' ? STUDIO_STANDARD_FIELD_WIDTH_PX : 220;
+  const fullCount = resolvedWidths.filter(width => width === fullToken).length;
+  const fixedTotalWidth = resolvedWidths.reduce((sum, width) => (
+    width === fullToken ? sum : sum + Number(width || 0)
+  ), 0);
+  const minimumTableWidth = fixedTotalWidth + (fullCount * standardWidth);
+
   table.style.tableLayout = 'fixed';
-  table.style.width = `${totalWidth}px`;
-  table.style.minWidth = `${totalWidth}px`;
+  table.style.width = fullCount > 0 ? '100%' : `${fixedTotalWidth}px`;
+  table.style.minWidth = `${fullCount > 0 ? minimumTableWidth : fixedTotalWidth}px`;
 
   const colgroup = document.createElement('colgroup');
   visibleFields.forEach((field, index) => {
     const col = document.createElement('col');
-    col.style.width = `${resolvedWidths[index]}px`;
+    const width = resolvedWidths[index];
+    const full = width === fullToken;
+    if (!full) col.style.width = `${width}px`;
+    col.dataset.studioFieldWidthMode = full ? fullToken : 'FIXED';
     col.dataset.field = String(field.field ?? '');
     colgroup.appendChild(col);
   });
@@ -200,8 +210,13 @@ function renderCompactGrid(gd=gridDef()) {
     const th = document.createElement('th');
     th.classList.add('sortable');
     th.title = 'クリックでソート';
-    th.style.width = `${resolvedWidths[fieldIndex]}px`;
-    th.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
+    if (resolvedWidths[fieldIndex] !== fullToken) {
+      th.style.width = `${resolvedWidths[fieldIndex]}px`;
+      th.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
+    } else {
+      th.classList.add('studio-grid-width-full');
+      th.dataset.studioFieldWidthMode = fullToken;
+    }
     const label = document.createElement('span');
     label.textContent = f.caption ?? f.field;
     th.appendChild(label);
@@ -261,8 +276,13 @@ function renderCompactGrid(gd=gridDef()) {
         td.title = td.textContent;
       }
       applyGridCellEmphasis(td, f, row, value);
-      td.style.width = `${resolvedWidths[fieldIndex]}px`;
-      td.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
+      if (resolvedWidths[fieldIndex] !== fullToken) {
+        td.style.width = `${resolvedWidths[fieldIndex]}px`;
+        td.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
+      } else {
+        td.classList.add('studio-grid-width-full');
+        td.dataset.studioFieldWidthMode = fullToken;
+      }
       tr.appendChild(td);
     });
     tbody.appendChild(tr);

@@ -131,6 +131,25 @@
     const field = clone(row ?? {});
     delete field[SECTION_REF_FIELD];
     delete field[KEY_FIELD];
+
+    // v0.18.133 Field.width accepts either numeric px or the explicit FULL mode.
+    // The maintenance control is text so humans can enter FULL; normalize numeric text
+    // back to a JSON number and remove blank width instead of persisting an empty string.
+    if (Object.prototype.hasOwnProperty.call(field, 'width')) {
+      const rawWidth = field.width;
+      const text = String(rawWidth ?? '').trim();
+      if (!text) {
+        delete field.width;
+      } else if (text.toUpperCase() === 'FULL') {
+        field.width = 'FULL';
+      } else {
+        const numeric = Number(text);
+        if (!Number.isFinite(numeric) || numeric <= 0) {
+          throw new Error(`ViewDef項目幅は正の数値またはFULLを指定してください: ${text}`);
+        }
+        field.width = numeric;
+      }
+    }
     return field;
   }
 

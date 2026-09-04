@@ -26,7 +26,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 339
             },
             {
               "field": "target",
@@ -81,7 +82,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 104
             },
             {
               "field": "updated_at",
@@ -92,7 +94,8 @@
               },
               "edit": {
                 "visible": true
-              }
+              },
+              "width": 186
             },
             {
               "field": "owner",
@@ -143,7 +146,7 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "width": 124
+              "width": 219
             },
             {
               "field": "phase",
@@ -352,8 +355,7 @@
                 "not_required"
               ],
               "grid": {
-                "visible": true,
-                "width": 105
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -362,7 +364,8 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "display_note": "v0.16.3: 未完了作業に投入したContextDef素案の状態。"
+              "display_note": "v0.16.3: 未完了作業に投入したContextDef素案の状態。",
+              "width": 219
             },
             {
               "field": "context_def_updated_at",
@@ -408,7 +411,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 200
             },
             {
               "field": "__work_summary_cards",
@@ -589,7 +593,8 @@
               "layout": {
                 "placement": "detailBody",
                 "order": 120
-              }
+              },
+              "width": "FULL"
             },
             {
               "field": "work_summary",

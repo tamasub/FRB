@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-09-04T21:17:00+09:00",
+  "updated_at": "2026-09-04T22:34:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 248,
+  "items_count": 250,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -37172,7 +37172,7 @@
       "priority": "high",
       "status": "確認中",
       "follow_up_status": "ユーザー実機確認待ち",
-      "verification_status": "静的確認済み / NativeShell実機未確認",
+      "verification_status": "NativeShell実機で直接リサイズUI確認済み / ViewDef保存・再読込の全観点は継続確認",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-09-04T21:17:00+09:00",
       "owner": "tamasub",
@@ -37193,7 +37193,7 @@
       "context_def_draft": "StudioくんのViewDefは一方向の画面生成定義に留めない。実行中に実データを見て生じた『狭い』『広い』という視覚的違和感を、その場の直接操作で調整し、明示保存によってViewDefへ戻す。Run ModeとDesign Modeを分離せず、通常利用の画面そのものを軽量なViewDef編集面として利用する。V1では最も単純で観測しやすいField.widthから開始する。",
       "user_request": "Fieldそのものに幅を持たせ、未指定なら標準幅、指定ありならBasic Info / Grid / Editorで共通利用したい。検索指示は全項目標準幅でよく、1項目しかなくても画面いっぱいに伸ばしたくない。実データを見ながらGrid列やテキストボックスを直接リサイズし、変更時だけ現れる保存ボタンからViewDefへ反映したい。普通のDesign ModeとRun Modeを分けるのではなく、実行状態のままデザインを変えられるLive View Designを絶対入れたい。インシデント登録も行う。",
       "ai_response": "Field.widthを正本とするLive View Design V1として、幅解決、標準幅、Search固定幅、Grid/Header/Detailの直接Resize、一時Draft、明示保存、Legacy grid.width移行を分離責務で実装する。",
-      "latest_user_comment": "じゃぁーーいけるところまでいってちょうだい！！インシデント登録お願いねっ！！よろしく",
+      "latest_user_comment": "Live View Designの直接リサイズがNativeShell実機で自由自在に動作することを確認。さらに説明系Fieldを明示的に全幅表示するFULLモードを追加したい。",
       "latest_ai_response": "Live View Design V1を実装し、静的テストと既存回帰比較を実施。NativeShell実機確認待ち。",
       "context_refs": [],
       "follow_up_actions": [
@@ -37281,6 +37281,13 @@
           "speaker": "user",
           "topic": "実装依頼",
           "message": "いけるところまで実装し、インシデント登録する。"
+        },
+        {
+          "history_id": "disc_0260_010",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実機UI確認",
+          "message": "詳細画面で項目幅を自由自在に変更できることを確認。実行状態のまま画面デザインを変更できるLive View Designの体験が成立した。"
         }
       ],
       "decision_log": [
@@ -37359,7 +37366,303 @@
         }
       ],
       "created_at": "2026-09-04T21:17:00+09:00",
-      "updated_at": "2026-09-04T21:17:00+09:00"
+      "updated_at": "2026-09-04T21:53:00+09:00"
+    },
+    {
+      "work_item_id": "studio_work_0261",
+      "phase": "live-view-design-field-width-full-mode",
+      "title": "Live View Design / Field.width FULLモード",
+      "incident_type": "enhancement",
+      "category": "viewdef_live_design",
+      "priority": "high",
+      "status": "完了",
+      "follow_up_status": "追加改善はstudio_work_0262へ分離",
+      "verification_status": "ユーザーNativeShell実機確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-04T21:53:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "Field.widthの数値px指定に加え、明示的な `\"FULL\"` モードを追加する。FULLは自動stretchではなくField側のレイアウト意図として扱い、Basic Info / Header / Detailでは利用可能な行幅いっぱい、Gridでは固定幅列以外の残り幅を使う列として描画する。Searchは従来通りField.widthを無視してStudio標準幅を維持する。FULL Fieldを直接ドラッグした場合は、その操作をFULL解除の意思とみなし数値pxのLive Draftへ切り替える。",
+      "target_files": "data/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json\ndefs/common/view_def_maint_fields_v0_2.json\ntests/qa/static/live_view_design_field_width_static.test.mjs\nwwwroot/index.html\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/live_view_design.js\nwwwroot/js/services/viewdef_maintenance_projection.js\nwwwroot/styles.css",
+      "actual_updated_files": "data/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json\ndefs/common/view_def_maint_fields_v0_2.json\ntests/qa/static/live_view_design_field_width_static.test.mjs\nwwwroot/index.html\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/live_view_design.js\nwwwroot/js/services/viewdef_maintenance_projection.js\nwwwroot/styles.css",
+      "objective": "説明文・対象ファイル・長文メモ等、固定pxではなく現在の画面幅に追随して広く表示したいFieldを、Field Type依存の隠れルールではなくViewDefの明示意図としてFULL指定できるようにする。",
+      "background": "Live View Design V1の実機確認中、作業概要や対象ファイルのような説明系Fieldは標準幅や固定pxよりも常に利用可能幅を使わせたいケースがあることが見えた。textarea等を常時FULLにする案もあったが、Field Typeで自動FULLにすると隠れた描画規則になり用途を狭めるため、`field.width: \"FULL\"` を明示指定する方式を採用する。",
+      "scope": "Field.width Schemaを数値pxまたはFULLのunionにする。Header/Basic Info/DetailのFULL Fieldは1行幅を利用する。GridのFULL Fieldは固定幅列を維持しつつ残り幅を受け持つ。複数FULL列はブラウザtable layoutで残り幅を分配する。SearchはFULLを無視して標準幅を維持する。ViewDefメンテの項目幅をpx/FULL入力に対応し、数値文字列は保存時にnumberへ正規化、FULLは大文字へ正規化、空欄はwidth削除とする。FULL Fieldを直接Resizeした場合は数値Draftへ切り替える。",
+      "out_of_scope": "AUTO文字数幅、自動最適幅推定、MIN/MAX/FR等の追加モード、FULLをLive View Design上の専用ボタンで切替えるUI、Combo候補Popupの挙動変更、SearchのFULL化、列順・高さ・visible等のLive View Design拡張。",
+      "fixed_name_policy": "FULLは業務Field名に依存しないStudio標準ViewDef幅モードとして扱う。RuntimeはField typeではなくfield.width値と描画contextから解決する。Search例外もField名ではなくcontextで解決する。",
+      "module_policy": "FULL判定とField幅解決はlive_view_design.jsへ集約し、Header/Detail Rendererは共通適用関数を利用する。Grid RendererはFULL列のtable layoutだけを担当し、ViewDef物理保存責務は持たない。",
+      "expected_outputs": "Field.width FULL Schema契約、Header/Detail全幅描画、Grid残幅描画、Search標準幅維持、ViewDefメンテpx/FULL入力、保存時型正規化、FULLから直接Resize時の数値Draft化、静的回帰テスト、インシデント判断ログ。",
+      "risk": "HTML tableの固定列合計がコンテナ幅を超える場合はFULL列も最低標準幅を必要とするため横スクロールが発生する。複数FULL列の厳密な分配幅はブラウザtable layoutに依存する。FULL FieldのResizeは意図的に固定pxへ切り替わるため、その意味がUI上で十分伝わるか実機確認が必要。ViewDefメンテをtext control化するため数値文字列をnumberへ正規化しないとSchema上の型が崩れる。",
+      "test_points": "field.width=\"FULL\" のHeader/Detail Fieldが行幅いっぱいに表示されること。FULL Fieldが1件でも自動ではなく明示指定時だけ全幅になること。SearchはFULL Fieldでも220px標準幅のままであること。Gridで1つまたは複数FULL列が固定列以外の残り幅を利用すること。固定幅合計が大きい場合に横スクロール可能なminimum widthを維持すること。FULL Fieldをドラッグすると数値Draftへ切り替わり項目幅保存ボタンが出ること。ViewDefメンテでFULLを入力して保存でき、数値入力はJSON numberとして保持されること。既存numeric width/grid.width互換に回帰がないこと。",
+      "verification_log": "初回実機確認で chat Field の width:\"FULL\" が効かない不具合を確認。原因は createInput() の chat 分岐が createChatInput() を即returnし、共通 studioApplyFieldContainerWidth() を通っていなかったこと。v0.18.134 follow-upで chatもField.width共通解決へ通すよう修正。node --check: field_controls.js 成功。専用 static test `live_view_design_field_width_static.test.mjs` は 10/10 PASS。全static suiteは 456 tests / 453 PASS / 3 FAIL。残る3件（App Settings設定値不一致、field_group_type_resolver実行環境、Studio Resource Links浅いPath契約）は前回/Baselineと同一。今回追加FAILなし。NativeShellでchat FULLの再確認待ち。\n- 2026-09-04 22:25 JST: ユーザー提供スクリーンショットで chat Field の width:\"FULL\" がDetail行全幅で描画されることを実機確認。FULL不具合修正は完了扱い。",
+      "context_def_draft": "Field.widthは「何pxか」だけでなく「このFieldへ利用可能幅を与える」というレイアウト意図も表現する。FULLは型から暗黙導出せずViewDefで明示し、未指定Fieldを勝手に全幅へ伸ばさない原則を維持する。Searchは操作UIのためこの意図を受けず標準幅を守る。",
+      "user_request": "赤丸部分のような説明系項目は全幅を使いたい。常にフル幅と決め打ちするより、`FULL` モードを指定することで明示的にフル表示できた方が用途が広がる。FULLモードをサポートしてほしい。",
+      "ai_response": "Field.widthを number | \"FULL\" に拡張し、Header/Detailは全行幅、Gridは残り幅、Searchは標準幅というContext別契約で実装する。ViewDefメンテとLive Resizeの型遷移も含めて対応する。",
+      "latest_user_comment": "ViewDefメンテで chat Field に width=FULL を設定したが、Detail上では全幅にならないことを実機確認。",
+      "latest_ai_response": "chat Fieldを含むFULL表示はユーザーNativeShell実機で確認完了。追加要望（Resize中px Tip / Combo幅変更）は責務を分けてstudio_work_0262へ登録する。",
+      "context_refs": [
+        "studio_work_0260"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0261_001",
+          "status": "DONE",
+          "action": "NativeShell実機でHeader/Detail（chat含む）FULL、Grid FULL、Search標準幅、FULL→数値Resizeを再確認する。"
+        },
+        {
+          "action_id": "followup_0261_002",
+          "status": "NOT_STARTED",
+          "action": "FULL切替をLive View Designから直接行う専用UIが必要か、実利用後に判断する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0261_001",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "FULL必要性",
+          "message": "作業概要や対象ファイルのような項目は常にフル幅でもよいが、FULLモードを明示指定できる方が使い道が広がる。"
+        },
+        {
+          "history_id": "disc_0261_002",
+          "at": "2026-09-04",
+          "speaker": "assistant",
+          "topic": "FULL契約",
+          "message": "width未指定=標準幅、数値=固定px、FULL=利用可能幅という3状態にし、SearchはFULLを無視する案を提示。"
+        },
+        {
+          "history_id": "disc_0261_003",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "FULLモードサポートを依頼。"
+        },
+        {
+          "history_id": "disc_0261_004",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実機不具合",
+          "message": "ViewDef上はwidth=FULLになっているが、作業概要/方針のchat FieldがDetailで全幅にならないことを確認。"
+        },
+        {
+          "history_id": "disc_0261_005",
+          "at": "2026-09-04",
+          "speaker": "assistant",
+          "topic": "原因特定・修正",
+          "message": "chat型だけcreateInput()で早期returnしており、Field.width共通Resolverを迂回していた。chatにもstudioApplyFieldContainerWidth()を適用するよう修正した。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0261_001",
+          "at": "2026-09-04",
+          "decision": "Field.widthはnumberまたは文字列FULLを許容する。",
+          "reason": "固定サイズとレイアウト意図を同じField幅契約の中で明示的に表現するため。"
+        },
+        {
+          "decision_id": "dec_0261_002",
+          "at": "2026-09-04",
+          "decision": "FULLをtextarea等のField Typeから自動導出しない。",
+          "reason": "説明系以外にも使える汎用機能とし、隠れたRenderer規則を増やさないため。"
+        },
+        {
+          "decision_id": "dec_0261_003",
+          "at": "2026-09-04",
+          "decision": "SearchはFULL指定を無視してStudio標準幅を維持する。",
+          "reason": "検索は値を読む領域ではなく条件指定の操作UIという既存契約を守るため。"
+        },
+        {
+          "decision_id": "dec_0261_004",
+          "at": "2026-09-04",
+          "decision": "FULL Fieldを直接ドラッグResizeした場合は数値px Draftへ切り替える。",
+          "reason": "直接Resizeは利用可能幅追随より具体的な固定幅を選んだ人間の明示操作と解釈できるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0261_001",
+          "at": "2026-09-04",
+          "change_type": "viewdef_contract",
+          "before": "field.widthは数値pxのみ。",
+          "after": "field.widthは数値pxまたはFULLを許容。",
+          "reason": "可変全幅Fieldを明示的に表現するため。"
+        },
+        {
+          "history_id": "chg_0261_002",
+          "at": "2026-09-04",
+          "change_type": "runtime_layout",
+          "before": "Header/Detail/Gridは数値または標準幅のみ。",
+          "after": "Header/DetailはFULLで行全幅、GridはFULL列が残り幅を利用。",
+          "reason": "画面幅へ追随する表示意図を実現するため。"
+        },
+        {
+          "history_id": "chg_0261_003",
+          "at": "2026-09-04",
+          "change_type": "maintenance_projection",
+          "before": "ViewDefメンテの項目幅はnumber入力。",
+          "after": "px/FULL入力を許容し、保存時にnumber/FULLへ型正規化。",
+          "reason": "ViewDefメンテ画面からFULLを安全に設定するため。"
+        },
+        {
+          "history_id": "chg_0261_004",
+          "at": "2026-09-04",
+          "change_type": "runtime_bugfix",
+          "before": "chat FieldはcreateInput()からcreateChatInput()を即returnしていたため、field.width/FULL共通幅適用を通らなかった。",
+          "after": "chat Fieldもcreate後にstudioApplyFieldContainerWidth()へ通し、数値width/FULLを通常Fieldと同じ契約で描画する。",
+          "reason": "Field TypeによらずField.widthを共通視覚幅の正本とする契約を守るため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0261_001",
+          "at": "2026-09-04",
+          "title": "FULL契約は入ったがchatだけ共通幅Resolverを通っていなかった",
+          "failure": "ViewDefメンテではchat Fieldへwidth=FULLを正しく保存できたが、Detail実画面では従来幅のままになった。",
+          "cause": "createInput() が chat 型だけ createChatInput() を即returnする既存専用経路を持ち、通常Fieldの後段に追加した studioApplyFieldContainerWidth() を通過していなかった。",
+          "lesson": "共通Field契約を追加するときはField Type別の早期return・専用Renderer経路を洗い出し、共通責務を迂回していないかをテストする。Schema/設定保存の成功だけでは描画契約の成立を保証しない。",
+          "note": "ユーザーのNativeShell実機確認で発見。chat専用回帰テストを追加した。"
+        }
+      ],
+      "created_at": "2026-09-04T21:53:00+09:00",
+      "updated_at": "2026-09-04T22:25:00+09:00"
+    },
+    {
+      "work_item_id": "studio_work_0262",
+      "phase": "live-view-design-width-tip-combo-resize",
+      "title": "Live View Design / リサイズ幅Tip・Combo幅変更",
+      "incident_type": "enhancement",
+      "category": "viewdef_live_design",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "静的確認済み / NativeShell実機未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-04T22:25:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "- Field幅をドラッグ変更している最中、現在の実幅(px)をポインタ近傍へリアルタイムTip表示する。\n- Combo(select)もLive View Designの直接幅変更対象へ追加する。\n- Comboはwidth未指定時は従来通りStudio標準幅、明示field.widthまたはLive Draftがある場合だけその幅を利用する。\n- SearchはField Typeに関係なくStudio標準幅固定の既存契約を維持する。",
+      "target_files": "wwwroot/js/runtime/live_view_design.js\nwwwroot/styles.css\nwwwroot/index.html\ntests/qa/static/live_view_design_field_width_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "wwwroot/js/runtime/live_view_design.js\nwwwroot/styles.css\nwwwroot/index.html\ntests/qa/static/live_view_design_field_width_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "Live View Designの直接Resize操作時に、数値を試行錯誤せず視覚操作だけで幅を決められる体験を強化する。また、text/textareaだけでなくComboも実データを見ながら同じField.width契約で調整可能にする。",
+      "background": "FULLモードのNativeShell実機確認が完了し、実行画面を触りながらViewDefを育てる操作が成立した。次の実利用上の違和感として、ドラッグ中の現在pxが分からないことと、Comboだけ直接Resize対象外であることが観測された。",
+      "scope": "- Header/Detail Field ResizeとGrid列Resizeの両方で、ドラッグ開始から終了まで現在幅をpx Tip表示する。\n- Tipはポインタ近傍へ追随し、Resize終了時に非表示にする。\n- selectをHeader/Detailの直接Resize対象へ追加する。\n- selectは未指定時220px標準幅、field.width数値/FULL/Live Draftがある場合は共通Field幅Resolverを利用する。\n- Searchのselectは従来通り220px固定とし、直接Resize対象にしない。",
+      "out_of_scope": "- Combo候補Popup自体の幅制御。\n- checkbox/radio/booleanの直接Resize。\n- Tipから数値を直接入力する機能。\n- 縦方向Resize、高さ保存、列順・visible等のLive View Design拡張。",
+      "fixed_name_policy": "Field名固定は追加しない。Resize Tipは共通Live View Design責務としてField名非依存で実装し、Combo判定は既存Field type=selectを利用する。",
+      "module_policy": "幅解決・Draft・Resize・Tip表示はlive_view_design.jsへ集約する。Rendererへ個別Field名分岐を追加しない。Search例外は既存context契約を維持する。",
+      "expected_outputs": "- Field/Grid Resize中のリアルタイムpx Tip。\n- Combo/selectのHeader/Detail直接Resize。\n- Comboの標準幅既定値維持。\n- Search標準幅固定維持。\n- ViewDefへのfield.width明示保存。\n- 静的回帰テストとインシデント記録。",
+      "risk": "- Native selectの候補Popup幅はブラウザ/WebView2依存であり、本対応はCombo本体幅だけを対象とする。\n- Tipが操作対象を覆う可能性があるためポインタからオフセットしてpointer-events:noneとする。\n- FULL指定Comboを直接Resizeした場合は既存契約どおり固定px Draftへ切り替わる。",
+      "test_points": "- Header/Detailのtext/textarea/selectでResize開始時にpx Tipが表示され、mousemoveごとに値と位置が更新される。\n- mouseupでTipが消える。\n- Grid列Resizeでも同じTipが表示される。\n- selectはwidth未指定なら220px、field.width数値なら指定幅、FULLなら利用可能幅、直接Resize後は数値Draftになる。\n- Search selectはfield.widthに関係なく220px固定。\n- 項目幅保存後にfield.widthへ永続化される。\n- 既存FULL/Grid幅/検索幅に回帰がない。",
+      "verification_log": "- node --check wwwroot/js/runtime/live_view_design.js: PASS。\n- 専用static test live_view_design_field_width_static.test.mjs: 12/12 PASS。\n- 全static suite: 458 tests / 455 PASS / 3 FAIL。\n- 残る3 FAILはBaselineと同一（App Settings設定値不一致、field_group_type_resolver実行環境、Studio Resource Links shallow path契約）。今回追加FAILなし。\n- NativeShellのドラッグ操作感とCombo Resizeはユーザー実機確認待ち。\n- v0.18.136 follow-up: Editor Tip非表示の原因をHTML dialog Top Layerとbody上Tipのレイヤー差と特定。\n- Tip HostをResize元Elementから解決し、dialog[open]内のEditorなら同じdialogへTipをmountするよう修正。\n- 専用static test: 13/13 PASS（Dialog Top Layer回帰を追加）。\n- 全static suite: 459 tests / 456 PASS / 3 FAIL。残る3 FAILは従来と同一で今回追加FAILなし。\n- NativeShell実機でEditor Tip表示はユーザー確認待ち。",
+      "context_def_draft": "Live View Designでは、人間が実データを見ながら直接行った視覚調整をViewDefへ戻す。幅の直接操作中は現在値を即時フィードバックし、Field Type間で不必要な操作差を作らない。ただしSearchは操作UIとしてField.widthから独立する。",
+      "user_request": "OK！！次ぃ～！！\n①幅を変更している最中は、リアルタイムの幅をTips的に表示お願いします。\n②ついでにコンボボックスの幅も変更できるようにしたい！！\nよろしくぅーーー！！",
+      "ai_response": "Resize中の現在pxを共通TipとしてField/Grid両経路へ追加し、Combo(select)をHeader/Detailの直接Resize対象へ追加する。Comboは未指定時の標準幅とSearch標準幅契約を維持し、明示field.width/Live Draftだけを反映する。",
+      "latest_user_comment": "GridではResize中の幅Tipがリアルタイム表示されるが、Editorでは表示されない。Editor側でも表示できるよう修正希望。",
+      "latest_ai_response": "原因はEditorがmodal <dialog>のTop Layer内にある一方、幅Tipをdocument.bodyへ生成していたため、z-indexを上げてもDialogの背面に隠れていたこと。Resize元Fieldがdialog内ならTipを同じopen dialogへ再配置するよう修正。Gridは従来どおりbody側。専用static 13/13 PASS、全static 456/459 PASSで追加FAILなし。NativeShell実機確認待ち。",
+      "context_refs": [
+        "studio_work_0260",
+        "studio_work_0261"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0262_001",
+          "status": "IN_PROGRESS",
+          "action": "NativeShell実機でEditor/Grid両方のResize Tip追随、Combo直接Resize、保存後のfield.width反映、Search標準幅維持を確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0262_001",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "OK！！次ぃ～！！\n①幅を変更している最中は、リアルタイムの幅をTips的に表示お願いします。\n②ついでにコンボボックスの幅も変更できるようにしたい！！\nよろしくぅーーー！！"
+        },
+        {
+          "history_id": "disc_0262_002",
+          "at": "2026-09-04",
+          "speaker": "assistant",
+          "topic": "実装結果",
+          "message": "Resize中px TipをField/Grid共通で追加し、Combo(select)も標準幅を既定としたまま明示width/Live Resizeへ対応。Search標準幅契約は維持した。"
+        },
+        {
+          "history_id": "disc_0262_003",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実機不具合",
+          "message": "グリッドは、幅がリアルタイム表示されるけど、Editorは表示されないねぇ～。どうにかできる？"
+        },
+        {
+          "history_id": "disc_0262_004",
+          "at": "2026-09-04",
+          "speaker": "assistant",
+          "topic": "原因特定・修正",
+          "message": "Editorはmodal dialogのTop Layer内なのにTipをdocument.bodyへ生成していたため背面に隠れていた。Resize元がdialog内ならTipを同じdialogへmountするよう修正し、Gridはbody hostを維持する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0262_001",
+          "at": "2026-09-04",
+          "decision": "Resize中の幅表示はDOM共通Tipを1つだけ生成してField/Grid両方から再利用する。",
+          "reason": "表示責務を重複実装せず、同じ操作フィードバックを一貫させるため。"
+        },
+        {
+          "decision_id": "dec_0262_002",
+          "at": "2026-09-04",
+          "decision": "Combo/selectは「常に固定幅」から「未指定時は標準幅、明示幅は適用」へ変更する。",
+          "reason": "通常はコンパクトな既定値が適切だが、実データを見た人間が必要と判断した場合のField.width指定を禁止する理由がなくなったため。"
+        },
+        {
+          "decision_id": "dec_0262_003",
+          "at": "2026-09-04",
+          "decision": "Search selectは今回もfield.widthを無視してStudio標準幅を維持する。",
+          "reason": "Searchはデータ表示ではなく検索条件指定の操作UIという既存責務を守るため。"
+        },
+        {
+          "decision_id": "dec_0262_004",
+          "at": "2026-09-04",
+          "decision": "Resize Tipのmount先は固定document.bodyではなく、Resize元Elementがopen dialog内ならそのdialog、そうでなければdocument.bodyとする。",
+          "reason": "HTML modal dialogはTop Layerに描画され、body上の要素はz-index値だけではdialog前面へ出せないため。Field/Gridで同じTip責務を維持しつつ描画レイヤーだけContextに合わせる。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0262_001",
+          "at": "2026-09-04",
+          "change_type": "live_feedback",
+          "before": "Resize中は見た目の幅だけ変わり、現在px値は確認できなかった。",
+          "after": "Field/Grid Resize中にポインタ近傍へ現在pxをリアルタイムTip表示する。",
+          "reason": "実行画面だけで視覚的に幅決定できるよう、操作中の数値フィードバックを与えるため。"
+        },
+        {
+          "history_id": "chg_0262_002",
+          "at": "2026-09-04",
+          "change_type": "field_type_support",
+          "before": "selectはHeader/Detailで標準幅固定かつ直接Resize対象外だった。",
+          "after": "selectは未指定時標準幅を維持し、field.width/Live Draft適用とHeader/Detail直接Resizeを許可する。",
+          "reason": "Comboも他の表示Fieldと同じLive View Design体験へ参加させるため。"
+        },
+        {
+          "history_id": "chg_0262_003",
+          "at": "2026-09-04",
+          "change_type": "bug_fix",
+          "before": "Resize Tipは常にdocument.bodyへappendしていたため、Gridでは見えるがmodal Detail EditorではTop Layerの背面に隠れていた。",
+          "after": "Resize元Elementから最寄りのdialog[open]を解決し、Editorでは同じdialog Top LayerへTipをmount。Grid等dialog外ではbodyへmountする。",
+          "reason": "Editor/Gridの両方で同一のリアルタイム幅Tipを確実に視認できるようにするため。"
+        }
+      ],
+      "created_at": "2026-09-04T22:25:00+09:00",
+      "updated_at": "2026-09-04T22:34:00+09:00",
+      "failure_stories": [
+        {
+          "failure_id": "failure_0262_001",
+          "at": "2026-09-04",
+          "failure": "GridのResize Tipは表示されたが、Detail EditorのResize Tipは表示されなかった。",
+          "cause": "共通Tip DOMをdocument.bodyへ固定配置した。modal <dialog>はブラウザTop Layerに描画されるため、Tipのz-index=10050でもdialogより前面に出なかった。",
+          "lesson": "modal dialog上へ共通Overlay/Tipを出す場合、単純なz-index競争ではなくTop Layer境界を考慮し、操作元と同じdialogへmountする。",
+          "note": "ユーザーのNativeShell実機確認で発見。Dialog Top Layer専用の静的回帰テストを追加。"
+        }
+      ]
     }
   ],
   "review_notes": [
