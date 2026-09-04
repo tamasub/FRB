@@ -480,7 +480,7 @@
       "verification_status": "未確認",
       "approval_decision": "未承認",
       "summary": "基本形ではsearch.visibleだけを宣言し、標準検索OperatorはField type / Validation Typeから導出する。",
-      "body": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
+      "body": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"width\": 220,\n  \"grid\": { \"visible\": true },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n`width` はField共通の視覚幅(px)であり、Basic Info / Grid / Detail Editorで共有する。未指定時はStudio標準幅を使う。Searchは操作UIのため`width`を参照せず常に標準幅とする。既存`grid.width`はLegacy互換として読取可能だが、新規・改定ViewDefでは`width`を正本とする。\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
       "ceremony_phrase": "このルールをレビューし、採用可否を判断する。",
       "user_comment": "",
       "ai_response": "",
@@ -498,7 +498,7 @@
           "history_id": "chg_viewdef_rule_05_v01864_search_default_001",
           "at": "2026-08-16T14:50:00+09:00",
           "before": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true, \"operator\": \"contains\" }\n}\n```",
-          "after": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"grid\": { \"visible\": true, \"width\": 220 },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
+          "after": "基本形:\n\n```json\n{\n  \"field\": \"title\",\n  \"caption\": \"タイトル\",\n  \"type\": \"text\",\n  \"width\": 220,\n  \"grid\": { \"visible\": true },\n  \"edit\": { \"visible\": true },\n  \"search\": { \"visible\": true }\n}\n```\n\n`width` はField共通の視覚幅(px)であり、Basic Info / Grid / Detail Editorで共有する。未指定時はStudio標準幅を使う。Searchは操作UIのため`width`を参照せず常に標準幅とする。既存`grid.width`はLegacy互換として読取可能だが、新規・改定ViewDefでは`width`を正本とする。\n\n検索Operatorは原則としてField type / Validation Typeから標準導出する。標準Operatorを使う場合は `search.operator` を書かない。特殊な検索契約だけ `operator_set` / `operators` / `operator` でOverrideする。検索語彙の正本は `data/json/config/search_operator_registry_v0_1.json` とする。",
           "reason": "標準検索OperatorをViewDefへ毎回重複記述せず、Field type / Validation Typeから導出する設計へ変更したため。意味変更のため人間再承認対象へ戻す。",
           "related_work_item_id": "studio_work_0186"
         }

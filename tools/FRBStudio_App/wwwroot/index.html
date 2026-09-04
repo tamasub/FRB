@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121" />
+  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018132" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -335,6 +335,7 @@
           <button id="addRowBtn" class="primary-button small" disabled>新規</button>
           <button id="deleteRowBtn" class="ghost-button small danger" disabled>削除</button>
           <button id="gridCsvExportBtn" class="ghost-button small" disabled title="現在Gridに表示されている行・列をCSV出力">CSV出力</button>
+          <button id="saveFieldWidthsBtn" class="primary-button small hidden" type="button" disabled title="変更した項目幅をViewDefへ保存">項目幅を保存</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -379,6 +380,7 @@
         <div class="detail-navigation-actions">
           <button id="prevDetailBtn" type="button" class="ghost-button" title="F7">前へ(F7)</button>
           <button id="nextDetailBtn" type="button" class="ghost-button" title="F8">次へ(F8)</button>
+          <button id="saveDetailFieldWidthsBtn" type="button" class="primary-button hidden" disabled title="変更した項目幅をViewDefへ保存">項目幅を保存</button>
           <button id="applyDetailBtn" class="primary-button" value="default" title="F12">反映(F12)</button>
           <button class="ghost-button" value="cancel">閉じる</button>
         </div>
@@ -434,23 +436,24 @@
   <script src="js/virtualData/virtual_data_registry.js?v=action-execute-006"></script>
   <script src="js/virtualData/relation_builders.js?v=action-execute-006"></script>
   <script src="js/virtualData/expected_builders.js?v=action-execute-006"></script>
-  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878"></script>
+  <script src="js/runtime/live_view_design.js?v=live-view-design-field-width-018132"></script>
+  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878&live=018132"></script>
   <script src="js/responsibilities/grid_column_builder.js?v=responsibility-refactor-0187"></script>
   <script src="js/services/search_capability_resolver.js?v=standard-search-capability-01865"></script>
   <script src="js/services/search_ui_controller.js?v=standard-search-ui-01867"></script>
   <script src="js/responsibilities/search_filter.js?v=standard-search-ui-01867"></script>
   <script src="js/responsibilities/csv_exporter.js?v=responsibility-refactor-0187"></script>
   <script src="js/responsibilities/grid_aggregator.js?v=grid-numeric-aggregate-01820"></script>
-  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831&resource=018124"></script>
+  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831&resource=018124&live=018132"></script>
   <script src="js/ui/section_group_navigation.js?v=section-group-navigation-01873"></script>
   <script src="js/markdown/markdown_registry.js?v=markdown-export-mode-0186"></script>
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
   <script src="js/runtime/detail_subgrid_edit.js?v=subgrid-preview-f12-disabled-018108"></script>
-  <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831"></script>
+  <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831&live=018132"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
-  <script src="js/runtime/load_runtime.js?v=viewdef-search-initial-018125"></script>
+  <script src="js/runtime/load_runtime.js?v=viewdef-search-initial-018125&live=018132"></script>
   <script src="js/actions/action_registry.js?v=01887-test-run-post-json-api-fix&resource=018124"></script>
   <script src="js/runtime/related_grid_view.js?v=related-grid-inline-view-id-01834b"></script>
   <script src="js/core/plugin_host.js?v=native-overlay-runtime-01894"></script>

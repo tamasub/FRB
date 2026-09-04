@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "342b634c76f5f800",
+        "id": "8c297656532af487",
         "type": "tabs",
         "children": [
           {
-            "id": "cd032dfc067ef1b2",
+            "id": "9516bc1ca4c956aa",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "グラフビュー"
+              "icon": "lucide-file",
+              "title": "新規タブ"
             }
           }
         ]
@@ -181,7 +181,7 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "cd032dfc067ef1b2",
+  "active": "9516bc1ca4c956aa",
   "lastOpenFiles": [
     "FRBStudio_App20260816_193253.zip",
     "FRBStudio_App20260816_192016.zip",

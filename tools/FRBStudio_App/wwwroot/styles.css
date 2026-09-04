@@ -4220,3 +4220,115 @@ button.viewdef-maintenance-button:disabled {
   font-weight: 950;
 }
 
+
+
+/* ===== v0.18.132 Live View Design / Field.width =====
+   Field.width is a common visual width for data display/editing.
+   Search controls stay compact at Studio standard width.
+   Runtime does not stretch a lone Field to the full Section width. */
+:root {
+  --studio-standard-field-width: 220px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+#headerSection #headerForm.form-grid,
+#searchSection #searchForm.search-grid,
+#detailDialog #detailForm.detail-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+#detailDialog #detailForm.detail-grid {
+  align-items: flex-start;
+}
+
+#headerSection #headerForm.form-grid > .field,
+#searchSection #searchForm.search-grid > .field,
+#detailDialog #detailForm.detail-grid > .field {
+  flex: 0 0 var(--studio-standard-field-width);
+  width: var(--studio-standard-field-width);
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Search is operation UI: Field.width never stretches search controls. */
+#searchSection #searchForm.search-grid > .field,
+#searchSection #searchForm.search-grid > .standard-search-field {
+  flex: 0 0 var(--studio-standard-field-width) !important;
+  width: var(--studio-standard-field-width) !important;
+  max-width: min(var(--studio-standard-field-width), 100%) !important;
+}
+
+/* FieldSet remains a full-row semantic block even though Detail uses flex layout. */
+#detailDialog #detailForm.detail-grid > .detail-fieldset {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Live horizontal resize handles are intentionally subtle until hover. */
+.studio-live-width-field {
+  position: relative;
+}
+
+.studio-field-resize-handle {
+  position: absolute;
+  top: 17px;
+  right: -4px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 4;
+  opacity: 0;
+  border-right: 2px solid rgba(99, 102, 241, .38);
+  transition: opacity .12s ease, border-color .12s ease;
+}
+
+.studio-live-width-field:hover > .studio-field-resize-handle,
+.studio-field-resize-handle:hover {
+  opacity: 1;
+  border-color: rgba(79, 70, 229, .88);
+}
+
+.grid-column-header-row th.studio-live-width-column {
+  position: sticky;
+}
+
+.grid-column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 8;
+  border-right: 2px solid transparent;
+}
+
+.grid-column-resize-handle:hover {
+  border-right-color: rgba(79, 70, 229, .9);
+}
+
+body.studio-field-width-resizing,
+body.studio-field-width-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+#saveFieldWidthsBtn:not(.hidden),
+#saveDetailFieldWidthsBtn:not(.hidden) {
+  animation: studio-live-width-save-in .14s ease-out;
+}
+
+@keyframes studio-live-width-save-in {
+  from { opacity: 0; transform: translateY(-2px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -1,24 +1,24 @@
 {
   "main": {
-    "id": "454a0f9b774e18eb",
+    "id": "fdddf9bf4cfac87c",
     "type": "split",
     "children": [
       {
-        "id": "a91607945b71cf56",
+        "id": "1a43feb7f103a137",
         "type": "tabs",
         "children": [
           {
-            "id": "cdb65b8ee1882e3a",
+            "id": "b0d4af7ab2437612",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+                "file": "sources/AI協働033_責務棚卸しPhase1.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "400KS人月仮説と承認単位のシフト"
+              "title": "AI協働033_責務棚卸しPhase1"
             }
           }
         ]
@@ -27,15 +27,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "2677202193178083",
+    "id": "c1f66f8546d7039d",
     "type": "split",
     "children": [
       {
-        "id": "a4474989d61acc31",
+        "id": "e20e98771b2128ce",
         "type": "tabs",
         "children": [
           {
-            "id": "69f6ac229016834c",
+            "id": "2fd384256c4f3ede",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -50,7 +50,7 @@
             }
           },
           {
-            "id": "26772714bb2e63cc",
+            "id": "5fae035b4c2785bc",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -67,11 +67,14 @@
             }
           },
           {
-            "id": "91048fdfb36a8391",
+            "id": "a449f2551b4f9bc5",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
-              "state": {},
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
               "icon": "lucide-bookmark",
               "title": "ブックマーク"
             }
@@ -83,19 +86,20 @@
     "width": 300
   },
   "right": {
-    "id": "6e6a7add4646855a",
+    "id": "4fa8704846b0037b",
     "type": "split",
     "children": [
       {
-        "id": "d3808541b4d400ea",
+        "id": "bb7b0b8da39db7be",
         "type": "tabs",
         "children": [
           {
-            "id": "ee1d89c775f44235",
+            "id": "39989165e1ccda36",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
+                "file": "sources/AI協働033_責務棚卸しPhase1.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -109,11 +113,12 @@
             }
           },
           {
-            "id": "048014a68408d53b",
+            "id": "b552758539bf2a70",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "sources/AI協働033_責務棚卸しPhase1.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -122,7 +127,7 @@
             }
           },
           {
-            "id": "e26c6ffddf40f401",
+            "id": "bf3290ebd611a1c9",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -137,7 +142,7 @@
             }
           },
           {
-            "id": "89c7f4e831d7a686",
+            "id": "80f7515801fbbeb5",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -151,12 +156,12 @@
             }
           },
           {
-            "id": "7fc65aee1bc2a126",
+            "id": "408ad13d81feed79",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+                "file": "sources/AI協働033_責務棚卸しPhase1.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -165,12 +170,12 @@
               "title": "アウトライン"
             }
           }
-        ],
-        "currentTab": 4
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,45 +188,8 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "cdb65b8ee1882e3a",
+  "active": "b0d4af7ab2437612",
   "lastOpenFiles": [
-    "tools/FRBStudio_App/FRBStudio_App20260904_215306.zip",
-    "tools/FRBStudio_App/wwwroot/js/runtime/live_view_design.js",
-    "tools/FRBStudio_App/tests/qa/static/live_view_design_field_width_static.test.mjs",
-    "tools/FRBStudio_App/FRBStudio_App20260904_212301.zip",
-    "ObsidianVault/wiki/hot.md",
-    "ObsidianVault/wiki/overview.md",
-    "ObsidianVault/wiki/log.md",
-    "ObsidianVault/wiki/index.md",
-    "ObsidianVault/wiki/concepts/AI経営効果の開示到達度モデル.md",
-    "ObsidianVault/wiki/sources/AI協働034_日本企業AI利益事例.md",
-    "ObsidianVault/wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
-    "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
-    "ObsidianVault/wiki/concepts/再構築可能性という品質指標.md",
-    "ObsidianVault/wiki/concepts/Approval_Engineeringと構造化された意図.md",
-    "ObsidianVault/wiki/concepts/Loop_Engineeringと正しさの外部化.md",
-    "ObsidianVault/wiki/sources/AI協働036_Expected_Diff方式.md",
-    "ObsidianVault/wiki/sources/AI協働035_構造化された意図とApprovalEngineering.md",
-    "ObsidianVault/wiki/sources/AI協働034_責務Behavior_Pilot_Phase2.md",
-    "ObsidianVault/wiki/sources/AI協働033_責務棚卸しPhase1.md",
-    "ObsidianVault/wiki/sources/AI協働032_ループEngineeringと正しさの外部化.md",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.a0dbbb64257b",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.3a180b55f6e4",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.d88e9cdca839",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.e11ed3cd20f8",
-    "tools/FRBStudio_App/FRBStudio_App20260904_201059.zip",
-    "ObsidianVault/wiki.zip",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md",
-    "ObsidianVault/wiki/concepts",
-    "ObsidianVault/wiki/sources/AI協働031_責務定義とテスト設計.md",
-    "2026-08-15.md",
-    "無題のファイル 1.canvas",
-    "2026-08-05.md",
-    "無題のファイル.canvas",
-    "FRB_Blog/AI協働016_RAG_ベクトル検索_戦略的設計パターン.md",
-    "articles/invisible-visualization-structuring-culture.md",
-    "tools/FRBStudio/wwwroot/README.md",
-    "tools/FRBStudio/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md",
-    "tools/FRBStudio_App/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md"
+    "concepts/責務定義駆動テスト設計.md"
   ]
 }

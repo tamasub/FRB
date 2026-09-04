@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-08-30T21:59:00+09:00",
+  "updated_at": "2026-09-04T21:17:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 246,
+  "items_count": 248,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -37162,6 +37162,204 @@
       ],
       "created_at": "2026-09-01T18:24:00+09:00",
       "updated_at": "2026-09-01T18:24:00+09:00"
+    },
+    {
+      "work_item_id": "studio_work_0260",
+      "phase": "live-view-design-field-width-v1",
+      "title": "Live View Design V1 / Field.width共通幅・実行中直接リサイズ",
+      "incident_type": "enhancement",
+      "category": "viewdef_live_design",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "ユーザー実機確認待ち",
+      "verification_status": "静的確認済み / NativeShell実機未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-04T21:17:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "ViewDefの幅をGrid専用属性として扱うのではなく、Fieldそのものの共通視覚幅 `field.width` として定義する。Basic Info / Grid / Detail Editorは同じField幅を共有し、検索指示は操作UIとして常にStudio標準幅で描画する。さらにRun ModeとDesign Modeを分離せず、実データを表示した実行画面上でGrid列またはHeader/Detailの入力欄を直接ドラッグして幅を調整し、変更が発生した時だけ現れる「項目幅を保存」からViewDefへ明示反映するLive View Design V1を実装する。既存 `grid.width` は互換読取を残し、Live View Designで保存したFieldから `field.width` へ段階移行する。",
+      "target_files": "data/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndefs/common/view_def_maint_fields_v0_2.json\ntests/qa/static/live_view_design_field_width_static.test.mjs\nwwwroot/index.html\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/live_view_design.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/styles.css",
+      "actual_updated_files": "data/json/00_rules/frb_view_def_schema_v0_9.json\ndata/json/00_rules/frb_viewdef_generation_rules_data_v0_1.json\ndata/json/01_main/_studio_work_incident_data_v2.json\ndefs/common/view_def_maint_fields_v0_2.json\ntests/qa/static/live_view_design_field_width_static.test.mjs\nwwwroot/index.html\nwwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/live_view_design.js\nwwwroot/js/runtime/load_runtime.js\nwwwroot/styles.css",
+      "objective": "実データを見たときに初めて分かる『この項目は狭い／広すぎる』という人間の視覚判断を、その場の直接操作からViewDefへ戻せるようにする。Field幅の正本を一つにし、画面ごとのwidth設定増殖を避けながら、検索欄の1項目がSection全幅へ伸びる問題も共通ルールで解消する。",
+      "background": "当初、Studio Resource Links画面の検索項目「種別」が1項目だけのためSection全幅へ伸びていたことから幅指定を検討した。最初は search.width のような描画場所別属性も候補になったが、相談を進める中で、やりたいことは『Grid幅』『Editor幅』を別々に持つことではなく、`field: note` のようなField自身に、人間が値を読みやすい共通幅を持たせることだと整理された。一方、検索欄は値を読む場所ではなく検索条件を入力する操作UIなので、Field幅を反映せず標準幅で成立する。さらに、実データを表示して初めて適切な幅が分かるという従来の不満から、実行状態のまま画面を直接リサイズしViewDefへ反映するLive View Designという方向へ発展した。",
+      "scope": "ViewDef SchemaへField直下のwidthを追加する。Basic Info / Grid / Detail EditorでField.widthを共通利用する。width未指定時はStudio標準幅を使い、Fieldが1件だけでもSection全幅へ自動伸長させない。SearchはField.widthを無視して常に標準幅とする。既存grid.widthはLegacy互換として読み込む。text/textareaは移行支援としてHeader/Detailでも既存grid.widthを幅候補として利用する。Grid列ヘッダーへドラッグ用Resize Handleを追加する。Header/Detailのtext/textarea/number/date/datetimeへ横Resize Handleを追加する。変更幅は一時Draftとして保持し自動保存しない。幅変更時だけ「項目幅を保存」を表示し、押下時に対象ViewDefのField.widthへ保存する。Live View Designで保存されたFieldの旧grid.widthは削除し正本を一本化する。新しいData/ViewDefロード時には未保存幅Draftを破棄する。",
+      "out_of_scope": "選択肢文字列に合わせたCombo本体の自動伸長。Combo候補Popupの既存ブラウザ挙動変更。値の文字数から自動的に最適幅を決定すること。列順、表示/非表示、Group移動、高さ等をLive View Designで編集すること。Overlay等の読取専用ViewDefへの直接保存。ViewDef inheritanceで親から継承されたFieldを子へ自動materializeして保存すること。既存全ViewDefのgrid.widthを一括変換すること。",
+      "fixed_name_policy": "Runtimeへ業務DataのField名を固定しない。Live View DesignはViewDefの `field` / section id / dataPath を使って対象を解決する。`width` はStudio標準ViewDef契約としてSchemaに定義する。SearchやCombo等の描画Context差はField名ではなくField type / rendering contextで解決する。",
+      "module_policy": "幅解決・Draft管理・直接リサイズ・ViewDef保存を `wwwroot/js/runtime/live_view_design.js` へ分離し、Rendererは共通関数を呼ぶだけにする。今後、列順・高さ・visible等へLive View Designを拡張する場合も、RendererへViewDef物理保存責務を直接持ち込まない。",
+      "expected_outputs": "Field.width Schema契約。ViewDefメンテ画面の「項目幅」。検索標準幅固定。Basic Info / Grid / Detailの共通幅描画。Grid列直接Resize。Header/Detail入力欄直接Resize。幅変更時のみ表示される「項目幅を保存」。ViewDefへの明示保存とLegacy grid.width段階移行。静的回帰テスト。インシデント判断ログ。",
+      "risk": "HTML tableの列幅、入力Controlのborder/padding、font差によって同じpxでも体感幅が完全一致しない可能性がある。既存grid.widthをHeader/Detailへ移行fallbackするtext/textareaでは、過去にGridだけを意図して狭く設定したFieldがEditorでも狭く見える可能性がある。ViewDefがextends等で親Fieldを継承しており、物理子ViewDefに対象Fieldが存在しない場合は保存先を解決できずエラーとなる。NativeShell実機でマウスドラッグ、Dialog top-layer、保存後再描画を確認する必要がある。",
+      "test_points": "検索対象Fieldが1件だけでも標準幅で止まりSection全幅へ伸びないこと。Field.width指定ありのtext/textareaがBasic Info / Grid / Detailで同程度の幅になること。Field.width未指定時に標準幅で描画されること。既存grid.widthだけのtext/textareaが互換表示されること。select/booleanの操作Controlは標準幅を維持すること。Grid列Resize後に保存ボタンが現れ、保存前はViewDefファイルを書き換えないこと。保存するとField.widthへ反映され旧grid.widthが削除されること。Detail入力欄Resizeでも同じField.width Draftを保存できること。別Data/ViewDefロード時に未保存Draftが破棄されること。既存ViewDefメンテ・検索・Grid・保存責務に回帰がないこと。",
+      "verification_log": "node --check: live_view_design.js / field_controls.js / grid_detail.js / load_runtime.js 成功。node --test tests/qa/static/live_view_design_field_width_static.test.mjs: 7/7 PASS。全static suiteは変更後 453 tests / 450 PASS / 3 FAIL。Baseline資材は 446 tests / 440 PASS / 6 FAILで、今回のIncident登録により既存Incident整合系FAIL 3件が解消した。残るFAIL 3件（App Settings設定値不一致、field_group_type_resolver実行環境、Studio Resource Links浅いPath契約）はBaselineにも存在し、今回追加FAILなし。NativeShell実機操作は未確認。",
+      "context_def_draft": "StudioくんのViewDefは一方向の画面生成定義に留めない。実行中に実データを見て生じた『狭い』『広い』という視覚的違和感を、その場の直接操作で調整し、明示保存によってViewDefへ戻す。Run ModeとDesign Modeを分離せず、通常利用の画面そのものを軽量なViewDef編集面として利用する。V1では最も単純で観測しやすいField.widthから開始する。",
+      "user_request": "Fieldそのものに幅を持たせ、未指定なら標準幅、指定ありならBasic Info / Grid / Editorで共通利用したい。検索指示は全項目標準幅でよく、1項目しかなくても画面いっぱいに伸ばしたくない。実データを見ながらGrid列やテキストボックスを直接リサイズし、変更時だけ現れる保存ボタンからViewDefへ反映したい。普通のDesign ModeとRun Modeを分けるのではなく、実行状態のままデザインを変えられるLive View Designを絶対入れたい。インシデント登録も行う。",
+      "ai_response": "Field.widthを正本とするLive View Design V1として、幅解決、標準幅、Search固定幅、Grid/Header/Detailの直接Resize、一時Draft、明示保存、Legacy grid.width移行を分離責務で実装する。",
+      "latest_user_comment": "じゃぁーーいけるところまでいってちょうだい！！インシデント登録お願いねっ！！よろしく",
+      "latest_ai_response": "Live View Design V1を実装し、静的テストと既存回帰比較を実施。NativeShell実機確認待ち。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0260_001",
+          "status": "IN_PROGRESS",
+          "action": "NativeShell実機で検索標準幅、Grid列Resize、Detail入力欄Resize、項目幅保存、再読込後のViewDef反映を確認する。"
+        },
+        {
+          "action_id": "followup_0260_002",
+          "status": "NOT_STARTED",
+          "action": "同じfield.widthがGrid / Basic Info / Detailで同程度の情報量に見えるようTypography / padding / box-sizingの体感差を実機で確認し必要なら標準化する。"
+        },
+        {
+          "action_id": "followup_0260_003",
+          "status": "NOT_STARTED",
+          "action": "Live View Designの次候補として列順、表示/非表示、高さを同じDraft→明示保存責務で扱えるか検討する。"
+        },
+        {
+          "action_id": "followup_0260_004",
+          "status": "NOT_STARTED",
+          "action": "extends等で継承Fieldを直接編集する場合の保存先契約（子へmaterializeするか親へ誘導するか）を整理する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0260_001",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "Field幅を正本にする",
+          "message": "幅はfieldの属性として持ちたい。幅指定なしなら標準幅、指定ありならメイン画面、Grid、詳細画面で同じ幅を使いたい。"
+        },
+        {
+          "history_id": "disc_0260_002",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "検索は標準幅",
+          "message": "テキストやtextareaは詳細では長くしたい場合があるが、検索指示や一覧では長さが不要。少なくとも検索指示はすべて均一標準幅で成立する。"
+        },
+        {
+          "history_id": "disc_0260_003",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "Comboの標準幅",
+          "message": "Comboは本体を標準幅に固定したい。長い候補はPopup側で読めればよい。実際、現在のComboがすでにその希望動作になっていることを確認した。"
+        },
+        {
+          "history_id": "disc_0260_004",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "Grid直接調整からViewDefへ",
+          "message": "Gridで直接列幅を変更したらViewDefへ保存したい。列幅変更時だけ浮き出てくる保存ボタンなら自然。"
+        },
+        {
+          "history_id": "disc_0260_005",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "Grid専用幅ではない",
+          "message": "Gridで変えた幅は詳細画面でも普通に変えたい。grid.widthではなくfield自身のwidthを編集していると考えたい。"
+        },
+        {
+          "history_id": "disc_0260_006",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "入力欄の直接Resize",
+          "message": "Gridだけでなくテキストボックス自体も動的に幅変更できるなら絶対入れたい。実データを見ながら画面デザインを変更したい。"
+        },
+        {
+          "history_id": "disc_0260_007",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "Live View Design",
+          "message": "普通は実行状態とデザインモードが分かれているが、実行状態でありながらデザインを変えられるシステムにしたい。デザインはデータを表示してみながらいつも変えたいと思っていたが、できなくて諦めていた。"
+        },
+        {
+          "history_id": "disc_0260_008",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "標準幅の意味",
+          "message": "標準幅を持たせるとは、1つの項目しかなくても画面いっぱいに広がらず一定幅で止まるという意味。"
+        },
+        {
+          "history_id": "disc_0260_009",
+          "at": "2026-09-04",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "いけるところまで実装し、インシデント登録する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0260_001",
+          "at": "2026-09-04",
+          "decision": "幅の正本は描画Context別のsearch.width / edit.width / grid.widthではなくField直下のwidthとする。",
+          "reason": "人間が決めたいのは画面別のCSS値ではなく、そのFieldを読む・編集するための共通視覚幅だから。"
+        },
+        {
+          "decision_id": "dec_0260_002",
+          "at": "2026-09-04",
+          "decision": "SearchはField.widthを参照せず常にStudio標準幅とする。",
+          "reason": "検索欄は値を読むための表示領域ではなく条件指定の操作UIであり、長文Fieldでも大きな入力幅を必要としないため。"
+        },
+        {
+          "decision_id": "dec_0260_003",
+          "at": "2026-09-04",
+          "decision": "幅未指定FieldをSection残幅へstretchさせず、Studio標準幅で止める。",
+          "reason": "1項目しかない検索や基本情報が画面いっぱいへ不自然に広がることを防ぎ、項目幅とSection幅を分離するため。"
+        },
+        {
+          "decision_id": "dec_0260_004",
+          "at": "2026-09-04",
+          "decision": "幅ドラッグ変更は即ViewDef保存せず、一時Draftとして保持し明示保存ボタンを表示する。",
+          "reason": "一時的に見やすく広げただけの操作と定義変更を分離し、人間の保存意思を介在させるため。"
+        },
+        {
+          "decision_id": "dec_0260_005",
+          "at": "2026-09-04",
+          "decision": "Live View Designで幅保存したFieldはfield.widthへ書き、既存grid.widthを削除する。",
+          "reason": "同一Fieldに複数のwidth正本を残さず、触ったFieldから段階的に新契約へ移行するため。"
+        },
+        {
+          "decision_id": "dec_0260_006",
+          "at": "2026-09-04",
+          "decision": "Run ModeとDesign Modeを完全分離せず、実行画面上の直接操作をViewDef編集入力として利用する。",
+          "reason": "適切なUI幅は実データを表示して初めて判断できることが多く、設計画面と実行画面の往復を減らすため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0260_001",
+          "at": "2026-09-04",
+          "change_type": "viewdef_contract",
+          "before": "Grid列幅は主にgrid.widthで管理し、Header/Detail横幅はGridレイアウトの伸縮に依存。",
+          "after": "Field直下widthを共通視覚幅としてSchema化し、Legacy grid.widthは互換読取へ位置づけた。",
+          "reason": "Field幅の正本を1つにするため。"
+        },
+        {
+          "history_id": "chg_0260_002",
+          "at": "2026-09-04",
+          "change_type": "runtime_layout",
+          "before": "Search / Header / Detailのform-gridはauto-fit + 1frで、Field数が少ないと残幅へ伸長した。",
+          "after": "Search / Header / Detailを固定幅ベースのwrap layoutへ変更し、Field未指定時は220px標準幅で止める。",
+          "reason": "Section幅とField幅を分離するため。"
+        },
+        {
+          "history_id": "chg_0260_003",
+          "at": "2026-09-04",
+          "change_type": "live_view_design",
+          "before": "ViewDefの幅調整はJSONの数値を編集して再描画する必要があった。",
+          "after": "Grid列およびHeader/Detail入力欄を実行画面上で直接Resizeし、Dirty時のみ出る項目幅保存からViewDefへ反映できるようにした。",
+          "reason": "実データを見ながら人間の視覚判断をそのままViewDefへ戻すため。"
+        }
+      ],
+      "failure_stories": [
+        {
+          "failure_id": "failure_0260_001",
+          "at": "2026-09-04",
+          "title": "検索欄の幅だけ直そうとして設計の本体を見失いかけた",
+          "failure": "最初は検索欄の横伸びを個別のsearch.widthで解消する方向へ先に実装しかけたが、ユーザーが本当に欲しかったのは検索専用幅ではなくField自身の共通幅と、実データを見ながらそれを調整する仕組みだった。",
+          "cause": "画面上に見えている局所症状『検索Comboが横いっぱい』を直接修正対象と捉え、Field幅・操作UI幅・ViewDef編集体験の責務を相談前に分離しなかった。",
+          "lesson": "UIの数値属性を増やす前に、その値がFieldの性質なのか描画Contextの性質なのかを確認する。特にユーザーが『見ながら変えたい』場合、設定値より直接操作→構造化定義へのFeedback Loopが本体になる可能性がある。",
+          "note": "先走ってsearch.widthを作ったことで、逆に『それじゃない。Fieldそのものの幅や（笑）』が鮮明になり、Live View Designへ発展した。"
+        }
+      ],
+      "created_at": "2026-09-04T21:17:00+09:00",
+      "updated_at": "2026-09-04T21:17:00+09:00"
     }
   ],
   "review_notes": [

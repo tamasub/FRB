@@ -538,6 +538,11 @@
         "readonly": {
           "type": "boolean"
         },
+        "width": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Field共通の視覚幅(px)。Basic Info / Grid / Detail Editorの表示・編集幅に利用する。Searchは操作UIのため本値を参照せずStudio標準幅を使う。Live View Designで保存された幅の正本。"
+        },
         "options": {
           "type": "array",
           "items": {
@@ -699,7 +704,8 @@
         },
         "width": {
           "type": "number",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Legacy Grid-only width. v0.18.132以降の新規幅保存はField.widthを正本とし、既存ViewDef互換の読取のみ維持する。"
         },
         "format": {
           "type": "string"

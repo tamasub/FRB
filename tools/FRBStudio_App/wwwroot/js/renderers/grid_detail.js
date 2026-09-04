@@ -173,13 +173,35 @@ function renderCompactGrid(gd=gridDef()) {
   table.className = '';
   table.innerHTML = '';
   const visibleFields = tableGridVisibleFields(gd);
+
+  const resolvedWidths = visibleFields.map(field => (
+    typeof studioResolvedFieldWidth === 'function'
+      ? studioResolvedFieldWidth(field, 'grid', gd)
+      : (field?.grid?.width || 220)
+  ));
+  const totalWidth = resolvedWidths.reduce((sum, width) => sum + Number(width || 0), 0);
+  table.style.tableLayout = 'fixed';
+  table.style.width = `${totalWidth}px`;
+  table.style.minWidth = `${totalWidth}px`;
+
+  const colgroup = document.createElement('colgroup');
+  visibleFields.forEach((field, index) => {
+    const col = document.createElement('col');
+    col.style.width = `${resolvedWidths[index]}px`;
+    col.dataset.field = String(field.field ?? '');
+    colgroup.appendChild(col);
+  });
+  table.appendChild(colgroup);
+
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
   trh.className = 'grid-column-header-row';
-  visibleFields.forEach(f => {
+  visibleFields.forEach((f, fieldIndex) => {
     const th = document.createElement('th');
     th.classList.add('sortable');
     th.title = 'クリックでソート';
+    th.style.width = `${resolvedWidths[fieldIndex]}px`;
+    th.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
     const label = document.createElement('span');
     label.textContent = f.caption ?? f.field;
     th.appendChild(label);
@@ -188,12 +210,24 @@ function renderCompactGrid(gd=gridDef()) {
     mark.textContent = sortState.field === f.field ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
     th.appendChild(mark);
     th.addEventListener('click', () => cycleSort(f.field));
-    if (f.grid?.width) th.style.width = f.grid.width + 'px';
+
+    if (typeof studioInstallGridColumnResizeHandle === 'function') {
+      studioInstallGridColumnResizeHandle(
+        th,
+        f,
+        gd,
+        table,
+        colgroup.children[fieldIndex],
+        visibleFields
+      );
+    }
+
     trh.appendChild(th);
   });
   thead.appendChild(trh);
   renderGridAggregateRow(thead, visibleFields);
   table.appendChild(thead);
+
   const tbody = document.createElement('tbody');
   filteredRows.forEach(({row, index}) => {
     const tr = document.createElement('tr');
@@ -210,7 +244,8 @@ function renderCompactGrid(gd=gridDef()) {
       renderGrid();
       showRowContextMenu(e.clientX, e.clientY, index);
     });
-    visibleFields.forEach(f => {
+
+    visibleFields.forEach((f, fieldIndex) => {
       const td = document.createElement('td');
       if (f.type) td.classList.add(f.type);
       const value = getByPath(row, f.field);
@@ -226,14 +261,14 @@ function renderCompactGrid(gd=gridDef()) {
         td.title = td.textContent;
       }
       applyGridCellEmphasis(td, f, row, value);
-      if (f.grid?.width) td.style.maxWidth = f.grid.width + 'px';
+      td.style.width = `${resolvedWidths[fieldIndex]}px`;
+      td.style.maxWidth = `${resolvedWidths[fieldIndex]}px`;
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
 }
-
 function documentGridConfig(gd) {
   return {
     ...(gd?.document ?? {}),

@@ -1,0 +1,286 @@
+{
+  "schema": "claude-obsidian.claim-ledger.v1",
+  "generated_at": "2026-09-04T13:00:00Z",
+  "claims": {
+    "clm-behavior-type-decomposition": {
+      "text": "UIやツール画面の「責務」は単一のバリデーション型ではなく、FILTER・SCOPED・SELECTION_REQUIRED・STATE_TRANSITIONのような複数のBehavior Type(振る舞い型)の合成として捉えることができ、各Behavior Typeに標準TestPattern集合(略語)を紐づけることで、JSON StudioのValidation Type→TestPattern生成と同じ構造を責務定義駆動テストに継承できる。",
+      "location": {
+        "path": "wiki/concepts/責務定義駆動テスト設計.md",
+        "anchor": "Behavior Type / TestPattern Familyの例（会話内で挙げられた仮候補）"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-0226b70807cd8a784b15",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "AIとの設計ブレインストーミングで提案された仮説。まだ実装/横断検証はされていない。"
+    },
+    "clm-reset-state-transition": {
+      "text": "画面の「初期状態に戻す」責務はSTATE_TRANSITION→RESTORE_TO_BASELINEという汎用型として捉え、reset_scope/preserveを持つstate_contractを画面ごとに定義すれば、BASE/ONE/MULTI/KEEP/REPEAT/SCOPEという標準TestPatternと汎用Runner(Fixture→Action→Target State Contract比較)を複数画面で共有できる。",
+      "location": {
+        "path": "wiki/concepts/責務定義駆動テスト設計.md",
+        "anchor": "RESETのState Transition化"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-0226b70807cd8a784b15",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "AIとの設計ブレインストーミングで提案された仮説。まだ実装/横断検証はされていない。"
+    },
+    "clm-approval-unit-shift": {
+      "text": "Behavior Type・標準TestPattern・Expected生成規則を人間が一度承認し資産化できれば、AI駆動開発における人間のレビュー対象を「生成コード量(KS)」から「新規責務・新規Behavior Type・標準外TestPattern・Expectedとの差分といった新規判断の数」へ移せる可能性があり、これが「400KS/人月」という仮説を支える構造になり得る。",
+      "location": {
+        "path": "wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+        "anchor": "承認単位のシフト"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "low",
+      "evidence": [
+        {
+          "source_id": "src-0226b70807cd8a784b15",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "会話内での定性的な整理であり、定量的な裏付け(実測データ等)はまだない、より投機的な仮説。"
+    },
+    "clm-behavior-pattern-caution": {
+      "text": "Guaranteeの動詞(「除外する」「維持する」「変更しない」等)が複数責務で一致していても、対象・条件・保証・観測結果・Expected生成方法が異なる場合は、安易に同じBehavior Patternへ共通化してはならない。",
+      "location": {
+        "path": "wiki/concepts/責務定義駆動テスト設計.md",
+        "anchor": "実践: FRB責務棚卸し Phase1/2 Pilot (2026-08)"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-925051dee60d4648daa9",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "FRBStudio_Appの実責務25Guaranteeを横断比較した実践から得られた安全弁。「除外」候補は実際にこの理由で共通化を保留された。"
+    },
+    "clm-loop-correctness-external": {
+      "text": "Loop Engineering(Skill/Hooks/Subagent/Auto Modeでエージェントの実行循環を作る思想)と、AI承認駆動開発(判断軸・制約・責務・Expectedをループの外側に置く思想)は競合せず、前者が「実行循環」を、後者が「正しさの循環」を担う形で合成できる。",
+      "location": {
+        "path": "wiki/concepts/Loop_Engineeringと正しさの外部化.md",
+        "anchor": "正しさをループの外側に置く"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-9770773650939e8df3d9",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "外部知見(Claude Code関連のXスレッド解説)を自分たちの理論へ接続した際の整理。"
+    },
+    "clm-code-as-view": {
+      "text": "コードは、意図(判断軸・制約・責務・保証等)を現在の実行環境へ投影したViewであり、実装言語は投影先に過ぎない。構造化された意図さえ残れば、コードが古くなっても別の実行環境へ再投影できる。",
+      "location": {
+        "path": "wiki/concepts/Approval_Engineeringと構造化された意図.md",
+        "anchor": "コードはViewである"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-5c3ec9aa6ecf44f46d33",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "Approval Engineering理論の中心的な比喩的主張。実証されたものではなく、設計思想として提示されている。"
+    },
+    "clm-approval-engineering-def": {
+      "text": "Approval Engineeringとは、ソフトウェアを再生成可能なほど十分に人間の意図を構造化し、その構造化された意図のうち人間にしか決められない部分だけを承認対象にする工学である。",
+      "location": {
+        "path": "wiki/concepts/Approval_Engineeringと構造化された意図.md",
+        "anchor": "Approval Engineeringの定義（会話内での発展形）"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-5c3ec9aa6ecf44f46d33",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "この会話内で発展させられた定義。他文脈での検証はまだない。"
+    },
+    "clm-type-hierarchy-distillation": {
+      "text": "Type(値の型)を一枚のラベルではなく階層として扱い、項目辞書から繰り返しパターンを発見して徐々に上位Typeへ昇格させることで、個別項目ごとの重複判断を圧縮できる。",
+      "location": {
+        "path": "wiki/concepts/Approval_Engineeringと構造化された意図.md",
+        "anchor": "Type階層と項目辞書によるProject Type育成"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-5c3ec9aa6ecf44f46d33",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "[[責務定義駆動テスト設計]]のBehavior Type Catalog育成と同型の主張。値の型への適用はこの会話が初出。"
+    },
+    "clm-reconstruction-quality-metric": {
+      "text": "元のプログラムを見ずに、構造化された意図データだけから新しいプログラムを再構築し、同じ入力に対して同じ外部振る舞いになるなら、その意図データは元プログラムの本質的な意図を十分に保持していたとみなせる(再構築可能性=構造化された意図の品質指標)。",
+      "location": {
+        "path": "wiki/concepts/再構築可能性という品質指標.md",
+        "anchor": "基本構造"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "low",
+      "evidence": [
+        {
+          "source_id": "src-5c3ec9aa6ecf44f46d33",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "会話内で明示的に「まだ仮説段階」とされている。FRBStudio_Appでの実験はこの時点で行われていない。"
+    },
+    "clm-legacy-intent-extraction": {
+      "text": "レガシーマイグレーションの本当の完了条件は、旧コードを見ずに構造化された意図だけから再構築したプログラムが、Legacy Actual / New Actual / Approved Expectedの三者比較で一致することであり、単なるコードの書き換えではない。",
+      "location": {
+        "path": "wiki/concepts/再構築可能性という品質指標.md",
+        "anchor": "レガシーマイグレーションへの接続"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "low",
+      "evidence": [
+        {
+          "source_id": "src-5c3ec9aa6ecf44f46d33",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "理論段階の主張。実際のレガシーシステムへの適用事例はまだない。"
+    },
+    "clm-expected-diff-shared-tool": {
+      "text": "Expected DiffはInputと仮Expected Outputから品質保証済みのDiff Toolが機械生成する差分出力であり、Expected側とActual側で同じDiff Toolを共通の観測器として使うことで、差分生成方法そのものの承認を個別テストから外せる。",
+      "location": {
+        "path": "wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
+        "anchor": "基本定義"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-be3ed2d1482d701b042c",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "v0.1〜v0.4まで版を重ねた設計。まだ実装・運用実績はない(Draft)。"
+    },
+    "clm-verification-world-simplification": {
+      "text": "複雑なAPPをそのまま検証するのではなく、前提条件でInput空間を分割し、各条件下では単純で決定論的な検証世界(Verification Rule)として保証する方が、品質保証コストを抑えつつAPPと独立した検証経路を持てる。",
+      "location": {
+        "path": "wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
+        "anchor": "上位原理: APPとは独立した「単純化された、信頼できる検証世界」"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-be3ed2d1482d701b042c",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "Claudeレビューにより前提条件の網羅性・排他性が未解決論点として指摘されている(v0.4時点)。"
+    },
+    "clm-guarantee-inheritance": {
+      "text": "UT等の下位レベルで十分に品質保証済みのGuaranteeは、CTや上位レベルのテストで毎回再検証するのではなく、前提条件・Interface契約・Versionが現在も有効であることを確認した上で継承し、上位では結合によって新しく生じるリスクだけを検証すべきである。",
+      "location": {
+        "path": "wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
+        "anchor": "保証継承原則"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "source_id": "src-be3ed2d1482d701b042c",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "Assume-Guarantee/Compositional Verificationに近い考え方として提示されている。保証継承の機械的な再判定方法は未解決(v0.4時点の論点)。"
+    },
+    "clm-ai-profit-trace-gap": {
+      "text": "日本の大手企業のAI導入効果開示は、利用者数・ユースケース数・作業時間削減率までは公開が進む一方、人件費換算・処理量増加・売上増加・営業利益増加という下流の因果になるほど急激に開示が途切れる、という非対称な構造がある。",
+      "location": {
+        "path": "wiki/concepts/AI経営効果の開示到達度モデル.md",
+        "anchor": "「途中で線が切れる」構造"
+      },
+      "risk": "normal",
+      "assessment": "provisional",
+      "confidence": "low",
+      "evidence": [
+        {
+          "source_id": "src-413d3ef164b5f0614be9",
+          "relation": "supports",
+          "locator": null
+        }
+      ],
+      "reviewed_at": null,
+      "supersedes": null,
+      "notes": "個別企業の数値は会話内の二次情報(報道・プレスリリース)に基づき、本Vaultで一次検証していない。ここでの主張は測定フレームワークの一般的傾向についてであり、個社の実績を保証するものではない。"
+    }
+  }
+}

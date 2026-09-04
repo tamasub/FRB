@@ -79,7 +79,6 @@
               "type": "text",
               "grid": {
                 "visible": true,
-                "width": 250,
                 "action": {
                   "action": "OpenStudioJson",
                   "sourceField": "path",
@@ -88,12 +87,13 @@
                 }
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": false
               },
               "search": {
                 "visible": false
-              }
+              },
+              "width": 217
             },
             {
               "field": "artifact_kind",
@@ -126,8 +126,7 @@
               "caption": "Category",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 180
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -135,15 +134,15 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "width": 257
             },
             {
               "field": "path",
               "caption": "JSON Path",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 580
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -151,7 +150,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "width": 487
             },
             {
               "field": "enabled",
@@ -177,8 +177,7 @@
               "caption": "備考",
               "type": "textarea",
               "grid": {
-                "visible": false,
-                "width": 360
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -187,7 +186,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "width": 331
             },
             {
               "field": "link_id",
@@ -202,7 +202,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "width": 184
             }
           ]
         }

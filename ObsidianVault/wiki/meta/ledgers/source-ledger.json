@@ -1,0 +1,268 @@
+{
+  "schema": "claude-obsidian.source-ledger.v1",
+  "generated_at": "2026-09-04T13:00:00Z",
+  "sources": {
+    "src-0226b70807cd8a784b15": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働031_責務定義とテスト設計_20260818_204902.md"
+      },
+      "content_kind": "conversation",
+      "title": "AI協働031 責務定義とテスト設計",
+      "authority": "primary",
+      "content_sha256": "f053de6e21b9e0d912d403ad5c196c8596f1af426834c049cbcfed4d6b919f4f",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働031_責務定義とテスト設計.md",
+        "wiki/concepts/責務定義駆動テスト設計.md",
+        "wiki/concepts/400KS人月仮説と承認単位のシフト.md"
+      ],
+      "supersedes": null
+    },
+    "src-9770773650939e8df3d9": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働032_ループ_Claude Code責任者のBorisが「もうエージェント（AIの作業役）に指示は出してない」.md"
+      },
+      "content_kind": "conversation",
+      "title": "AI協働032 ループ・Claude Code責任者Borisの発言から",
+      "authority": "primary",
+      "content_sha256": "88a75d2db6e26ea7e16a1b43c03e5df603e828ec7e52e8488c75cb8102b3ec41",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働032_ループEngineeringと正しさの外部化.md",
+        "wiki/concepts/Loop_Engineeringと正しさの外部化.md"
+      ],
+      "supersedes": null
+    },
+    "src-ccdb98b7c27f6a3a72f5": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_4.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働033 責務棚卸しPhase1 (v0.4)",
+      "authority": "primary",
+      "content_sha256": "b0a8fb748702261c20506c707abb9f52af7cbb7c3faeaea7f2862c0757a12c50",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働033_責務棚卸しPhase1.md",
+        "wiki/concepts/責務定義駆動テスト設計.md"
+      ],
+      "supersedes": "src-a6e5e3f57a3dc6a2b5d8"
+    },
+    "src-2af4861c3c140341cccc": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_1.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働033 責務棚卸しPhase1 (v0.1, superseded)",
+      "authority": "primary",
+      "content_sha256": "26c5c7bb8fce88f2ce71c4b7a5de5440ab9c3097303a8be636f589797013a7cc",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": null
+    },
+    "src-29a61543723d7c898614": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_2.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働033 責務棚卸しPhase1 (v0.2, superseded)",
+      "authority": "primary",
+      "content_sha256": "a3eada034e2b392181a4c2adead2b64a5dd78d135ec7677335933425fdf662e3",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": "src-2af4861c3c140341cccc"
+    },
+    "src-a6e5e3f57a3dc6a2b5d8": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_3.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働033 責務棚卸しPhase1 (v0.3, superseded)",
+      "authority": "primary",
+      "content_sha256": "40cc5d5ed6b5110eef87852627803aa1b18df7ca4270cac88835546ed34a4bc5",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": "src-29a61543723d7c898614"
+    },
+    "src-e9ab63a5966d79fb66fd": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_3.md.review.json"
+      },
+      "content_kind": "other",
+      "title": "AI協働033 v0.3 レビューJSON (superseded)",
+      "authority": "primary",
+      "content_sha256": "710445b406e2e68301c51549625e34659ac45c4a076f717240f9068de88f8081",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": null
+    },
+    "src-39075d691ed3abd38191": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_1.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働034 責務Behavior Pilot Phase2 (v0.1, superseded)",
+      "authority": "primary",
+      "content_sha256": "ad57a6ab3b73e2a60863d8c9f6864297974e1060fedd3680434511a54d782317",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": null
+    },
+    "src-5e677cb9fd5926e34544": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_1.md.review.json"
+      },
+      "content_kind": "other",
+      "title": "AI協働034 v0.1 レビューJSON (superseded)",
+      "authority": "primary",
+      "content_sha256": "01d0658bf9d72c3ed0703d18159eb20d12177853bfbe68dafc24a56b0da18ec7",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": null
+    },
+    "src-925051dee60d4648daa9": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働034_FRB_Responsibility_Behavior_Pilot_Phase2_v0_2.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働034 責務Behavior Pilot Phase2 (v0.2)",
+      "authority": "primary",
+      "content_sha256": "2f9def38686fbe06f6bf7907ac14ec6e144945e280300ce73fef40b2f71f6a52",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働034_責務Behavior_Pilot_Phase2.md",
+        "wiki/concepts/責務定義駆動テスト設計.md",
+        "wiki/concepts/Expected_Diff方式と検証世界の設計原則.md"
+      ],
+      "supersedes": "src-39075d691ed3abd38191"
+    },
+    "src-413d3ef164b5f0614be9": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働034_調査_日本企業AI利益事例20260819_212011.md"
+      },
+      "content_kind": "conversation",
+      "title": "AI協働034 日本企業AI利益事例",
+      "authority": "primary",
+      "content_sha256": "8e4bd5a91bc1546552a5ef06e2b9163dc459a4e34784b52015bcdb97861afb8a",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "unreviewed",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働034_日本企業AI利益事例.md",
+        "wiki/concepts/AI経営効果の開示到達度モデル.md"
+      ],
+      "supersedes": null
+    },
+    "src-5c3ec9aa6ecf44f46d33": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働035_構造化された意図とApprovalEngineering_チャット要約_20260820.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働035 構造化された意図とApproval Engineering",
+      "authority": "primary",
+      "content_sha256": "03aaef2d7425b1d91829ee5244edce4a07b4de708ba7cc7318ef6c9255ad7aef",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働035_構造化された意図とApprovalEngineering.md",
+        "wiki/concepts/Approval_Engineeringと構造化された意図.md",
+        "wiki/concepts/再構築可能性という品質指標.md"
+      ],
+      "supersedes": null
+    },
+    "src-dc683931804bf1720807": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働036_Expected_Diff_Method_v0_3.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働036 Expected Diff Method (v0.3, superseded)",
+      "authority": "primary",
+      "content_sha256": "95a122763355030087668870c23268d95b782a485c4d66998efb2c7c2f85ffb9",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "superseded",
+      "independence_key": null,
+      "pages": [],
+      "supersedes": null
+    },
+    "src-be3ed2d1482d701b042c": {
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/AI協働036_Expected_Diff_Method_v0_4.md"
+      },
+      "content_kind": "document",
+      "title": "AI協働036 Expected Diff Method (v0.4)",
+      "authority": "primary",
+      "content_sha256": "3bd7c6bcff4a8b145c289b50ee793f0c4e82d825a4b8c22cb186926054cd137e",
+      "ingested_at": "2026-09-04",
+      "retrieved_at": "2026-09-04",
+      "refresh_due": "2027-09-04",
+      "review_status": "active",
+      "independence_key": null,
+      "pages": [
+        "wiki/sources/AI協働036_Expected_Diff方式.md",
+        "wiki/concepts/Expected_Diff方式と検証世界の設計原則.md"
+      ],
+      "supersedes": "src-dc683931804bf1720807"
+    }
+  }
+}

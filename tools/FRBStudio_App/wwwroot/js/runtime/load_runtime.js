@@ -14,6 +14,7 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
+  if (typeof studioResetLiveFieldWidths === 'function') studioResetLiveFieldWidths();
   if (typeof initializeSectionGroupNavigation === 'function') {
     initializeSectionGroupNavigation(defObj);
   }

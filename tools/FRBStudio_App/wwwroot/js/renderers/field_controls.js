@@ -1002,6 +1002,19 @@ function createInput(field, value, prefix, readonlyOverride=false, row=null, gd=
   input.dataset.prefix = prefix;
   if (readonly) input.disabled = true;
   wrap.appendChild(input);
+
+  // v0.18.132 Live View Design:
+  // Field.width is the common visual width for Header / Grid Detail.
+  // Search is intentionally compact and always uses Studio standard width.
+  const widthSection = typeof studioFieldWidthSectionForContext === 'function'
+    ? studioFieldWidthSectionForContext(prefix, gd)
+    : null;
+  if (typeof studioApplyFieldContainerWidth === 'function') {
+    studioApplyFieldContainerWidth(wrap, field, prefix, widthSection);
+  }
+  if (typeof studioInstallFieldResizeHandle === 'function') {
+    studioInstallFieldResizeHandle(wrap, field, prefix, widthSection);
+  }
   return wrap;
 }
 

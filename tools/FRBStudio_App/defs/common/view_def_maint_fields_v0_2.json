@@ -190,20 +190,41 @@
               "defaultValue": false
             },
             {
-              "field": "grid.width",
-              "caption": "列幅",
+              "field": "width",
+              "caption": "項目幅",
               "type": "number",
               "grid": {
                 "visible": true,
-                "width": 80
+                "width": 85
               },
               "edit": {
                 "visible": true,
                 "readonly": false,
+                "step": "1"
+              },
+              "search": {
+                "visible": false
+              },
+              "validation": {
+                "minimum": 80,
+                "maximum": 1200
+              }
+            },
+            {
+              "field": "grid.width",
+              "caption": "旧Grid列幅",
+              "type": "number",
+              "grid": {
+                "visible": false,
+                "width": 80
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true,
                 "step": "0.001"
               },
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "gte"
               },
               "format": "#.000",

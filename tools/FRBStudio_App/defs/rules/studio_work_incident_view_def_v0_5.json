@@ -37,7 +37,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -50,7 +50,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               }
             },
@@ -133,8 +133,7 @@
               "type": "text",
               "readonly": false,
               "grid": {
-                "visible": true,
-                "width": 140
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -143,15 +142,15 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 124
             },
             {
               "field": "phase",
               "caption": "Phase",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 180
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -159,15 +158,15 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 315
             },
             {
               "field": "title",
               "caption": "タイトル",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 280
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -175,7 +174,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 493
             },
             {
               "field": "incident_type",
