@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-09-04T22:34:00+09:00",
+  "updated_at": "2026-09-05T10:45:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 250,
+  "items_count": 251,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -37661,6 +37661,182 @@
           "cause": "共通Tip DOMをdocument.bodyへ固定配置した。modal <dialog>はブラウザTop Layerに描画されるため、Tipのz-index=10050でもdialogより前面に出なかった。",
           "lesson": "modal dialog上へ共通Overlay/Tipを出す場合、単純なz-index競争ではなくTop Layer境界を考慮し、操作元と同じdialogへmountする。",
           "note": "ユーザーのNativeShell実機確認で発見。Dialog Top Layer専用の静的回帰テストを追加。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0263",
+      "phase": "readable-textarea-markdown-preview",
+      "title": "Readable Textarea / textareaをMarkdown Reading View化",
+      "incident_type": "enhancement",
+      "category": "editor_readability",
+      "priority": "medium",
+      "status": "確認中",
+      "follow_up_status": "基本情報拡張 / ユーザー実機確認待ち",
+      "verification_status": "Detail実機確認済み / Header静的確認済み",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-05T10:55:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "work_summary": "Detail Editorで実機確認できたReadable Textareaを、メイン画面のHeader / 基本情報textareaにも拡張する。type=textareaはDetail/Headerでは通常時Markdown Reading View、focus/click時だけMarkdown原文Editor、blur時にReading Viewへ戻る。Search textareaは検索入力用途を優先して従来textareaを維持する。HeaderのMarkdownプレビューを保存時にinnerTextへ崩さず、元Markdown原文をそのまま回収するため、共通getControlValueとapplyHeaderEditsもReadable Textarea対応する。",
+      "target_files": "wwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/styles.css\ndefs/common/studio_resource_links_view_def_v0_1.json\ntests/qa/static/readable_textarea_markdown_preview_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "wwwroot/js/renderers/field_controls.js\nwwwroot/js/renderers/grid_detail.js\nwwwroot/js/runtime/detail_save.js\nwwwroot/styles.css\ndefs/common/studio_resource_links_view_def_v0_1.json\ntests/qa/static/readable_textarea_markdown_preview_static.test.mjs\ndata/json/01_main/_studio_work_incident_data_v2.json",
+      "objective": "Studioくんの長文Fieldを『編集する場所』より先に『読む場所』として成立させ、備考・背景・判断理由・Expected説明等の認知負荷を下げる。必要な瞬間だけ編集UIへ切り替わることで、通常画面の情報密度を整理する。",
+      "background": "Studio Resource Linksの備考noteをchat型へ変更すると、通常文字列がchat Rendererの期待構造と合わず本文が見えなくなった。代案としてmarkdown-editor型を追加する話から、そもそもtextarea自体を通常時Markdown表示・編集時だけ原文Editorにすれば、新Typeを増やさず長文Field全体へ同じ読みやすさを適用できるという方向へ整理された。さらに明示的な『クリックで編集』表示も不要で、CSS差分だけで編集可能性をひっそり示す方針となった。",
+      "scope": "Detail EditorおよびHeader / 基本情報のtype=textareaを、ViewDefのmarkdown指定なしでもMarkdown Reading Viewとして描画する。クリックまたはTab focusで原文編集モードへ入り、blurでMarkdown表示へ戻る。Dataは文字列のまま保持する。Headerは既存applyHeaderEdits lifecycleを維持し、プレビュー時はdata-raw-value、編集中は原文innerTextを回収することでMarkdown記号を欠落させない。markdown:false / edit.markdown:false / display.markdown:false等の明示無効化で従来textareaを利用できる。Searchは検索入力用途を優先して従来textareaのまま維持する。Reading Viewでは説明バッジを出さず、左アクセント・hover・編集時focus表現だけを使う。",
+      "out_of_scope": "chat Renderer自体のstring fallback追加。新Field Type markdown-editorの追加。Search textareaのReading View化。Markdown WYSIWYG編集。クリック位置とMarkdown原文位置を厳密対応させるcaret mapping。SubGrid textareaの表示方式変更。",
+      "fixed_name_policy": "Field名固定は追加しない。Readable Textareaはtype=textareaと描画context=detail/headerだけで決定する。Header保存もdata-field/data-prefix/data-markdown-displayという共通UI契約で回収し、purpose/scope等の個別Field名分岐は追加しない。",
+      "module_policy": "既存FieldControlRegistryのtextarea factoryとMarkdown表示/blur機構を再利用し、新Rendererを増やさない。Default Markdown判定とopt-out契約はfield_controls.jsへ集約する。Header保存は既存applyHeaderEditsへReadable Textareaコントロールを追加し、共通getControlValueでraw Markdownを回収する。",
+      "expected_outputs": "Detail/Header textareaのMarkdown Reading View標準化。クリック/focus即編集、blur即プレビュー。説明バッジなし。普通のtextareaとの差を静かに示すCSS。markdown:falseによる従来textarea opt-out。Header保存時のMarkdown原文保持。Search textareaは従来入力UI維持。静的回帰テスト。",
+      "risk": "既存textarea文字列の先頭に#/-/>等のMarkdown記号がある場合、Detail/Header通常表示ではMarkdownとして解釈される。文字どおり表示したいFieldはmarkdown:falseでopt-outする必要がある。HeaderプレビューHTMLからinnerTextを取得するとMarkdown記号が失われるため、保存値はdata-raw-valueを正本として回収する必要がある。編集中のまま保存された場合だけ現在の原文innerTextを回収する。NativeShell実機でHeaderのfocus/blur/保存後再読込を確認する。",
+      "test_points": "ViewDef markdown指定なしのDetail/Header textareaがMarkdown表示になること。クリック/focusで原文編集へ入ること。blurでMarkdown表示へ戻ること。Header blurがDetail rowへ誤同期しないこと。Header保存時に**bold**や箇条書き記号など元Markdown原文が欠落しないこと。編集中のまま保存しても最新原文を回収できること。『クリックで編集』等のバッジが出ないこと。markdown:falseで従来textareaへ戻せること。Search textareaは従来挙動を維持すること。",
+      "verification_log": "- ユーザーNativeShell実機確認: Detail Readable Textareaの表示は『いい感じ』を確認。\n- node --check field_controls.js / grid_detail.js / detail_save.js: PASS。\n- 専用static test readable_textarea_markdown_preview_static.test.mjs: 4/4 PASS。\n- 全static suite: 463 tests / 460 PASS / 3 FAIL。\n- 残る3 FAIL（App Settings max_total_text_bytes既存不一致、field_group_type_resolver実行環境、Studio Resource Links shallow path件数契約）は前回Baselineと同系統の既存FAILで、今回追加FAILなし。\n- Header / 基本情報のMarkdown表示、focus/blur、保存後再読込はユーザー実機確認待ち。",
+      "context_def_draft": "Studioくんの長文Fieldは、編集可能であることを常時強調する必要はない。DetailとHeader / 基本情報のtextareaは通常時、人間が読むためのMarkdown Reading Viewとして整形し、編集意図が発生した瞬間だけEditorへ変化させる。Searchは入力が主責務なので従来textareaを維持する。Dataは文字列のまま、ViewだけをReading / Editingの2状態へ切り替える。Read First / Edit When Neededを長文textareaの標準体験とする。",
+      "user_request": "type=chatではなくmarkdown-editorが欲しい気もするが、もっと言えばtextarea全部が、普段はMarkdownとして読めて、カーソルを置いたらEditorになってくれるのが一番うれしい。『クリックで編集』の表示も不要で、普通のtextareaではないことをCSSで少しだけひっそりアピールしたい。チャレンジしてほしい。",
+      "ai_response": "新Type追加ではなく既存textareaをReadable Textareaへ昇格させる。DetailではMarkdown Reading Viewを既定化し、focus/clickで原文編集、blurでプレビューへ戻す。説明バッジは消し、薄い左アクセントとhoverだけで編集可能性を示す。明示markdown:falseは従来textareaへのescape hatchとして残す。",
+      "latest_user_comment": "Detail側はいい感じになっている。メイン画面の基本情報も同じReadable Textareaへ対応してほしい。",
+      "latest_ai_response": "Detailで実機確認されたReadable TextareaをHeader / 基本情報へ拡張。Header保存時にMarkdown表示HTMLのinnerTextではなく元Markdown原文を保持する共通回収契約も追加し、Search textareaは従来入力UIのまま維持する。",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0263_001",
+          "status": "COMPLETED",
+          "action": "NativeShell実機でDetail textareaのMarkdown表示、hover、click/focus編集、blur復帰を確認する。ユーザー確認: いい感じ。"
+        },
+        {
+          "action_id": "followup_0263_002",
+          "status": "NOT_STARTED",
+          "action": "実利用でMarkdownとして解釈したくないtextareaを洗い出し、必要なFieldだけmarkdown:falseをViewDefへ明示する。"
+        },
+        {
+          "action_id": "followup_0263_003",
+          "status": "IN_PROGRESS",
+          "action": "NativeShell実機でHeader / 基本情報textareaのMarkdown表示、focus編集、blur復帰、保存後再読込でMarkdown原文が保持されることを確認する。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0263_001",
+          "at": "2026-09-05",
+          "speaker": "user",
+          "topic": "chat型の代替",
+          "message": "type=chatへ変えると文字が表示されない。希望としてはtype=markdown-editorが欲しい。"
+        },
+        {
+          "history_id": "disc_0263_002",
+          "at": "2026-09-05",
+          "speaker": "user",
+          "topic": "textarea標準化",
+          "message": "クリックで編集等の表示はいらない。カーソルを置いたらEditorになればよく、もっと言えばtextarea全部がそうなるのが一番うれしい。"
+        },
+        {
+          "history_id": "disc_0263_003",
+          "at": "2026-09-05",
+          "speaker": "user",
+          "topic": "静かなUIサイン",
+          "message": "CSSは普通のテキストエリアではないぞ、ということを少しだけデザインを変えてひっそりアピールできればよい。"
+        },
+        {
+          "history_id": "disc_0263_004",
+          "at": "2026-09-05",
+          "speaker": "assistant",
+          "topic": "実装方針",
+          "message": "新typeを増やさずDetail textareaをRead First / Edit When Neededへ昇格。通常Markdown、focus/click原文、blur preview、明示バッジなし、薄いCSS差分、markdown:false opt-outで実装。"
+        },
+        {
+          "history_id": "disc_0263_005",
+          "at": "2026-09-05",
+          "speaker": "user",
+          "topic": "Detail実機確認",
+          "message": "いい感じになってるでぇーーー！！笑"
+        },
+        {
+          "history_id": "disc_0263_006",
+          "at": "2026-09-05",
+          "speaker": "user",
+          "topic": "基本情報への拡張",
+          "message": "メイン画面の基本情報も対応お願いしまーーす。"
+        },
+        {
+          "history_id": "disc_0263_007",
+          "at": "2026-09-05",
+          "speaker": "assistant",
+          "topic": "Header拡張方針",
+          "message": "Readable TextareaをHeader / 基本情報へ拡張し、Searchは従来textareaを維持する。Header保存ではMarkdownプレビューのinnerTextではなくraw Markdownを回収する。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0263_001",
+          "at": "2026-09-05",
+          "decision": "markdown-editorという新Field Typeは追加せず、Detail textareaの標準表示をReadable Textareaへ変更する。",
+          "reason": "長文Field全体へ同じ体験を適用でき、Field Type増殖と個別ViewDef設定を避けられるため。"
+        },
+        {
+          "decision_id": "dec_0263_002",
+          "at": "2026-09-05",
+          "decision": "通常時はMarkdown Reading View、focus/click時は原文編集、blur時はReading Viewへ戻す。",
+          "reason": "Studioくんでは長文Fieldを編集する時間より読む時間が長く、常時textarea表示より認知負荷を下げられるため。"
+        },
+        {
+          "decision_id": "dec_0263_003",
+          "at": "2026-09-05",
+          "decision": "『クリックで編集』『Markdown原文を編集中』等の説明UIは表示しない。",
+          "reason": "操作説明を画面情報として増やさず、触れば分かるUIと薄い視覚サインだけで成立させるため。"
+        },
+        {
+          "decision_id": "dec_0263_004",
+          "at": "2026-09-05",
+          "decision": "markdown:false等の明示指定を従来textareaへのopt-out契約として残す。",
+          "reason": "既存textareaの中にはMarkdown記号を文字どおり表示したいケースもあり、全体標準化にescape hatchが必要なため。"
+        },
+        {
+          "decision_id": "dec_0263_005",
+          "at": "2026-09-05",
+          "decision": "Readable Textareaの標準対象をDetailだけでなくHeader / 基本情報のtextareaまで拡張し、Searchは対象外とする。",
+          "reason": "基本情報も長文を読む時間が長くDetailと同じRead First体験が有効だが、Searchは入力操作が主責務だから。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0263_001",
+          "at": "2026-09-05",
+          "change_type": "editor_rendering",
+          "before": "Detail textareaはViewDefでmarkdownを明示したFieldだけMarkdown Previewとなり、それ以外は常時textareaだった。",
+          "after": "Detail textareaはmarkdown指定なしでもMarkdown Reading Viewを既定とし、focus/click時だけ原文編集へ切り替える。",
+          "reason": "Read First / Edit When Neededを長文Fieldの標準体験にするため。"
+        },
+        {
+          "history_id": "chg_0263_002",
+          "at": "2026-09-05",
+          "change_type": "ui_hint",
+          "before": "Markdown Previewに『クリックで編集』『Markdown原文を編集中』の明示ラベルを表示していた。",
+          "after": "明示ラベルをなくし、左端アクセント・hover・editing focusだけで静かに状態差を示す。",
+          "reason": "読み物としての静けさを保ち、UI説明自体の認知負荷を減らすため。"
+        },
+        {
+          "history_id": "chg_0263_003",
+          "at": "2026-09-05",
+          "change_type": "viewdef",
+          "before": "Studio Resource Linksのnoteは試行的にtype=chatへ変更され、通常文字列が表示されなかった。",
+          "after": "noteをtype=textareaへ戻し、Readable Textarea共通機能でMarkdown表示・編集する。",
+          "reason": "備考は会話構造ではなく長文文字列であり、共通textarea責務で扱う方がData/View分離として自然なため。"
+        },
+        {
+          "history_id": "chg_0263_004",
+          "at": "2026-09-05",
+          "change_type": "header_rendering",
+          "before": "Header / 基本情報のtextareaは常時通常textareaとして表示していた。",
+          "after": "Header / 基本情報のtextareaも通常時Markdown Reading View、focus/click時だけ原文Editorとして表示する。",
+          "reason": "Detailで実機確認されたRead First / Edit When Needed体験を基本情報にも統一するため。"
+        },
+        {
+          "history_id": "chg_0263_005",
+          "at": "2026-09-05",
+          "change_type": "header_save_integrity",
+          "before": "applyHeaderEditsはinput/select/textareaだけを回収し、Markdown Reading Viewのdivを保存対象にできなかった。",
+          "after": "HeaderのReadable Textareaも回収し、preview時はdata-raw-value、editing時は原文innerTextを取得してMarkdown記号を保持する。",
+          "reason": "見た目のMarkdown HTMLからinnerTextを保存すると原文記号が欠落するため。"
         }
       ]
     }

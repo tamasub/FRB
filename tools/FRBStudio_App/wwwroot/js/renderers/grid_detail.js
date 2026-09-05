@@ -1123,6 +1123,16 @@ function detailEditableControls() {
 }
 
 function getControlValue(el) {
+  // Readable Textarea keeps the canonical Markdown source in data-raw-value while
+  // preview mode renders HTML. Returning innerText from the preview would strip
+  // Markdown markers (e.g. **bold**, list prefixes), so use the raw source instead.
+  if (el?.dataset?.markdownDisplay === 'true') {
+    if (el.dataset.editMode === 'raw' || el.getAttribute('contenteditable') === 'true') {
+      if (typeof markdownPreviewRawValue === 'function') return markdownPreviewRawValue(el);
+      return String(el.innerText ?? '').replace(/\u00a0/g, ' ').replace(/\n+$/g, '');
+    }
+    return el.dataset.rawValue ?? '';
+  }
   if (el.hasAttribute('contenteditable')) return el.innerText ?? '';
   if (el instanceof HTMLSelectElement && el.multiple) {
     return [...el.selectedOptions].map(option => option.value).filter(value => value !== '');

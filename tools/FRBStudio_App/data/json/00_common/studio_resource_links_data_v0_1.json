@@ -40,7 +40,7 @@
       "artifact_kind": "diff",
       "path": "data/json/03_tests/responsibilities/results/csv_export.diff.json",
       "enabled": true,
-      "note": "CSV出力責務 Diff Evidence"
+      "note": "- CSV出力責務 Diff Evidence"
     },
     {
       "link_id": "grid_aggregate_actual",

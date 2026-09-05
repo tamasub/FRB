@@ -100,51 +100,51 @@
               "caption": "目的",
               "type": "textarea",
               "grid": {
-                "visible": false,
-                "width": 420
+                "visible": false
               },
               "edit": {
                 "visible": true,
-                "height": 120
+                "height": 60
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 551
             },
             {
               "field": "scope_policy",
               "caption": "Scope Policy",
               "type": "textarea",
               "grid": {
-                "visible": false,
-                "width": 420
+                "visible": false
               },
               "edit": {
                 "visible": true,
-                "height": 120
+                "height": 60
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 584
             },
             {
               "field": "catalog_policy.test_design_intent",
               "caption": "テスト設計意図",
               "type": "textarea",
               "grid": {
-                "visible": false,
-                "width": 420
+                "visible": false
               },
               "edit": {
                 "visible": true,
-                "height": 100
+                "height": 60
               },
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 550
             },
             {
               "field": "updated_at",

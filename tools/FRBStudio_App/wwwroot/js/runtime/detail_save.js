@@ -414,7 +414,9 @@ function applyDetail(e) {
 function applyHeaderEdits() {
   const def = headerDef();
   if (def) {
-    [...$('headerForm').querySelectorAll('input, select, textarea')].forEach(inp => {
+    [...$('headerForm').querySelectorAll(
+      'input[data-field], select[data-field], textarea[data-field], [data-markdown-display="true"][data-field]'
+    )].forEach(inp => {
       const field = def.fields.find(f => f.field === inp.dataset.field);
       if (!field || field.edit?.readonly || field.readonly || inp.disabled) return;
       const fullPath = (def.dataPath === '$' ? '$.' : def.dataPath + '.') + field.field;

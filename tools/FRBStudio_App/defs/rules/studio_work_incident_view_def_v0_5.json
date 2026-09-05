@@ -70,7 +70,7 @@
               "edit": {
                 "visible": true
               },
-              "width": 90
+              "width": 122
             },
             {
               "field": "created_at",
@@ -84,7 +84,7 @@
                 "visible": true,
                 "readonly": true
               },
-              "width": 104
+              "width": 84
             },
             {
               "field": "updated_at",
@@ -200,8 +200,7 @@
                 "architecture_audit"
               ],
               "grid": {
-                "visible": true,
-                "width": 120
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -209,7 +208,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 125
             },
             {
               "field": "category",
@@ -235,8 +235,7 @@
                 "test_code_generation"
               ],
               "grid": {
-                "visible": true,
-                "width": 130
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -244,7 +243,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 164
             },
             {
               "field": "priority",
@@ -256,8 +256,7 @@
                 "low"
               ],
               "grid": {
-                "visible": true,
-                "width": 90
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -265,7 +264,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 139
             },
             {
               "field": "status",
@@ -281,8 +281,7 @@
                 "中止"
               ],
               "grid": {
-                "visible": true,
-                "width": 110
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -291,7 +290,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 400
             },
             {
               "field": "follow_up_status",
@@ -308,8 +308,7 @@
               ],
               "defaultValue": "UNASSESSED",
               "grid": {
-                "visible": true,
-                "width": 150
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -319,7 +318,8 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "display_note": "follow_up_actionsの検索用代表状態。既存項目の要否未評価はUNASSESSED。個別action更新時は集約規則に従って同期する。"
+              "display_note": "follow_up_actionsの検索用代表状態。既存項目の要否未評価はUNASSESSED。個別action更新時は集約規則に従って同期する。",
+              "width": 154
             },
             {
               "field": "verification_status",
@@ -373,8 +373,7 @@
               "caption": "文脈更新日",
               "type": "datetime",
               "grid": {
-                "visible": false,
-                "width": 120
+                "visible": false
               },
               "edit": {
                 "visible": true
@@ -382,7 +381,8 @@
               "search": {
                 "visible": false
               },
-              "display_note": "ContextDef素案を最後に更新した日。"
+              "display_note": "ContextDef素案を最後に更新した日。",
+              "width": 185
             },
             {
               "field": "owner",
@@ -397,7 +397,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 80
             },
             {
               "field": "ai_owner",
@@ -413,7 +414,7 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "width": 200
+              "width": 90
             },
             {
               "field": "__work_summary_cards",

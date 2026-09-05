@@ -603,6 +603,10 @@ function markdownPreviewRawValue(el) {
 }
 
 function syncMarkdownRawToRow(el, rawValue) {
+  // Readable Textarea is also used in Header / 基本情報. Header values follow the
+  // existing applyHeaderEdits lifecycle, so blur must not accidentally write them
+  // into the currently opened Detail row.
+  if (String(el?.dataset?.prefix ?? '') !== 'detail') return;
   const fieldName = el?.dataset?.field;
   if (!fieldName) return;
   const row = currentDetailRow();
@@ -851,8 +855,29 @@ function createSelectControlElement({ field, value }) {
   return input;
 }
 
+function markdownConfigExplicitlyDisabled(cfg) {
+  if (cfg === false) return true;
+  if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) return false;
+  if (cfg.enabled === false || cfg.markdown === false || cfg.inline === false) return true;
+  if (cfg.inline && typeof cfg.inline === 'object' && cfg.inline.enabled === false) return true;
+  return false;
+}
+
 function fieldMarkdownConfig(field) {
-  return normalizeChatMarkdownConfig(field?.markdown, field?.edit?.markdown, field?.display?.markdown);
+  const configs = [field?.markdown, field?.edit?.markdown, field?.display?.markdown];
+  const result = normalizeChatMarkdownConfig(...configs);
+
+  // v0.18.137-readable-textarea:
+  // Detail Editor の textarea は「読む時間の方が長い」前提で、ViewDef側に
+  // Markdown指定がなくても既定で Markdown Reading View を使う。
+  // 既存データは文字列のまま保持し、markdown:false / enabled:false を
+  // 明示したFieldだけ従来textareaへ戻せるようにする。
+  if (configs.some(markdownConfigExplicitlyDisabled)) {
+    result.enabled = false;
+  } else if (field?.type === 'textarea') {
+    result.enabled = true;
+  }
+  return result;
 }
 
 function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
@@ -875,8 +900,10 @@ function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
     return box;
   }
 
-  box.title = 'クリックするとMarkdown原文を編集できます';
+  // 表示上の説明バッジは出さない。通常時のごく薄いCSS差分だけで
+  // 「普通のtextareaではない」ことを伝え、focus/clickで即編集へ入る。
   box.classList.add('markdown-editable-display');
+  box.tabIndex = 0;
 
   const enterRawEditMode = () => {
     if (box.dataset.editMode === 'raw') return;
@@ -905,6 +932,9 @@ function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
     enterRawEditMode();
   });
 
+  // Tab移動などでFieldへfocusが入った場合も、その場で編集モードへ切り替える。
+  box.addEventListener('focus', () => enterRawEditMode());
+
   installMarkdownBlurPreview(box, mdCfg, {
     displayClass: 'markdown-editable-display'
   });
@@ -922,11 +952,13 @@ function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
 
 function createTextareaControlElement({ field, value, prefix, readonly }) {
   const mdCfg = fieldMarkdownConfig(field);
-  // v0.10-markdown-preview-display-mode:
-  // 詳細表示では、ViewDefでMarkdownを許可したtextareaをプレビュー表示する。
-  // 保存値はMarkdown原文のまま保持し、クリック時だけ原文編集に切り替える。
-  // 検索・ヘッダーでは従来どおり通常textareaを使う。
-  if (prefix === 'detail' && mdCfg.enabled) {
+  // v0.18.137-readable-textarea:
+  // Detail Editor の textarea は既定で Reading View。通常時はMarkdownとして読み、
+  // focus/clickした瞬間だけ原文Editorへ切り替え、blurでReading Viewへ戻す。
+  // DetailとHeader / 基本情報はReading用途が多いためReadable Textareaを共通利用する。
+  // Searchは入力用途を優先して従来textareaのまま。
+  // markdown:false / edit.markdown:false 等を明示すれば従来textareaを選べる。
+  if ((prefix === 'detail' || prefix === 'header') && mdCfg.enabled) {
     return createMarkdownTextareaDisplayElement({ field, value, readonly });
   }
 

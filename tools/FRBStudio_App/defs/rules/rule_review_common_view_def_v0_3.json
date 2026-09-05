@@ -47,7 +47,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 220
             },
             {
               "field": "target",
@@ -60,7 +61,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 447
             },
             {
               "field": "domain",
@@ -86,7 +88,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 366
             },
             {
               "field": "document_type",
@@ -121,7 +124,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 155
             },
             {
               "field": "source_document",
@@ -319,9 +323,9 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 80
+                "height": 60
               }
             },
             {
@@ -333,9 +337,9 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 90
+                "height": 60
               },
               "markdown": {
                 "export": false
@@ -350,9 +354,9 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true,
-                "height": 120
+                "height": 60
               },
               "markdown": {
                 "export": false
@@ -367,8 +371,8 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
-                "height": 420
+                "visible": false,
+                "height": 60
               },
               "markdown": {
                 "export": false
@@ -389,8 +393,7 @@
               "type": "number",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 60
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -399,7 +402,8 @@
               "search": {
                 "visible": true,
                 "operator": "gte"
-              }
+              },
+              "width": 80
             },
             {
               "field": "rule_id",
@@ -407,8 +411,7 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 170
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -417,7 +420,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 115
             },
             {
               "field": "section_no",
@@ -425,8 +429,7 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 80
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -435,7 +438,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 80
             },
             {
               "field": "parent_rule_id",
@@ -488,8 +492,7 @@
                 "未分類"
               ],
               "grid": {
-                "visible": true,
-                "width": 130
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -497,7 +500,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 239
             },
             {
               "field": "title",
@@ -525,8 +529,7 @@
                 "low"
               ],
               "grid": {
-                "visible": true,
-                "width": 90
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -534,7 +537,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 80
             },
             {
               "field": "verification_status",
