@@ -69,7 +69,8 @@
               },
               "edit": {
                 "visible": true
-              }
+              },
+              "width": 90
             },
             {
               "field": "created_at",
@@ -95,7 +96,7 @@
               "edit": {
                 "visible": true
               },
-              "width": 186
+              "width": 190
             },
             {
               "field": "owner",
@@ -146,7 +147,7 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "width": 219
+              "width": 125
             },
             {
               "field": "phase",
@@ -365,7 +366,7 @@
                 "operator": "equals"
               },
               "display_note": "v0.16.3: 未完了作業に投入したContextDef素案の状態。",
-              "width": 219
+              "width": 95
             },
             {
               "field": "context_def_updated_at",
@@ -974,7 +975,8 @@
                 "placement": "detailFooter",
                 "order": 800
               },
-              "display_note": "送信欄の入力はedit.input.userFieldへ保存し、messages定義位置ではなく末尾へ表示する。Markdownリンク/画像記法を許可し、表示モードではMarkdownプレビューする。"
+              "display_note": "送信欄の入力はedit.input.userFieldへ保存し、messages定義位置ではなく末尾へ表示する。Markdownリンク/画像記法を許可し、表示モードではMarkdownプレビューする。",
+              "width": "FULL"
             },
             {
               "field": "user_request",
@@ -1343,7 +1345,6 @@
               "type": "datetime",
               "grid": {
                 "visible": true,
-                "width": 130,
                 "format": ""
               },
               "edit": {
@@ -1363,19 +1364,20 @@
                 "required": false
               },
               "format": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "width": 195
             },
             {
               "field": "updated_at",
               "caption": "更新日",
               "type": "datetime",
               "grid": {
-                "visible": false,
-                "width": 130
+                "visible": false
               },
               "edit": {
                 "visible": true
-              }
+              },
+              "width": 196
             }
           ],
           "markdown": {

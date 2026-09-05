@@ -9,6 +9,9 @@ tags:
   - index
 ---
 
+ゼロから作るObsidian Vaultの教科書
+https://x.com/obsidianstudio9/status/2071468283979853893?s=20
+
 # Wiki Index
 
 This catalog is updated by completed knowledge operations.

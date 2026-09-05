@@ -93,7 +93,7 @@
               "search": {
                 "visible": false
               },
-              "width": 200
+              "width": 223
             },
             {
               "field": "artifact_kind",
@@ -119,7 +119,7 @@
                 "initialValue": "diff",
                 "applyOnLoad": true
               },
-              "width": 148
+              "width": 116
             },
             {
               "field": "category",

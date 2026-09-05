@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "a91607945b71cf56",
+        "id": "a6f03974e670a2fe",
         "type": "tabs",
         "children": [
           {
-            "id": "cdb65b8ee1882e3a",
+            "id": "79006b4ac334ccd1",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+                "file": "ObsidianVault/wiki/index.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "400KS人月仮説と承認単位のシフト"
+              "title": "index"
             }
           }
         ]
@@ -55,7 +55,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "tag:ai-driven-development",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -156,7 +156,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+                "file": "ObsidianVault/wiki/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -183,8 +183,10 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "cdb65b8ee1882e3a",
+  "active": "79006b4ac334ccd1",
   "lastOpenFiles": [
+    "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
+    "ObsidianVault/wiki/index.md",
     "tools/FRBStudio_App/FRBStudio_App20260904_223154.zip",
     "tools/FRBStudio_App/FRBStudio_App20260904_222218.zip",
     "tools/FRBStudio_App/FRBStudio_App20260904_221247.zip",
@@ -195,11 +197,9 @@
     "ObsidianVault/wiki/hot.md",
     "ObsidianVault/wiki/overview.md",
     "ObsidianVault/wiki/log.md",
-    "ObsidianVault/wiki/index.md",
     "ObsidianVault/wiki/concepts/AI経営効果の開示到達度モデル.md",
     "ObsidianVault/wiki/sources/AI協働034_日本企業AI利益事例.md",
     "ObsidianVault/wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
-    "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
     "ObsidianVault/wiki/concepts/再構築可能性という品質指標.md",
     "ObsidianVault/wiki/concepts/Approval_Engineeringと構造化された意図.md",
     "ObsidianVault/wiki/concepts/Loop_Engineeringと正しさの外部化.md",
@@ -211,7 +211,6 @@
     "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.a0dbbb64257b",
     "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.3a180b55f6e4",
     "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.d88e9cdca839",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md.tmp.17936.e11ed3cd20f8",
     "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md",
     "ObsidianVault/wiki/sources/AI協働031_責務定義とテスト設計.md",
     "2026-08-15.md",
