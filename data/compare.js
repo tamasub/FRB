@@ -4,8 +4,9 @@
   const $ = (id) => document.getElementById(id);
 
   const state = {
-    left:  { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
-    right: { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
+    reference: { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
+    left:      { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
+    right:     { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
     bandScale: '80000',
   };
 
@@ -120,6 +121,7 @@
   }
 
   function setupFileInputs() {
+    $('referenceFile')?.addEventListener('change', e => readFile('reference', e.target.files?.[0]));
     $('leftFile')?.addEventListener('change', e => readFile('left', e.target.files?.[0]));
     $('rightFile')?.addEventListener('change', e => readFile('right', e.target.files?.[0]));
     $('bandScale')?.addEventListener('change', e => {
@@ -323,6 +325,7 @@
         rawMax = Math.max(
           rawMax,
           Number(p.peakAEnergy) || 0,
+          Number(p.inputResponseMagnitudeA) || 0,
           Number(p.melodyAmp) || 0,
           Number(p.melodyCandidateAmp) || 0
         );
@@ -342,6 +345,7 @@
 
     const hasEnergy = series.some(p =>
       (Number(p.peakAEnergy) || 0) > 0 ||
+      (Number(p.inputResponseMagnitudeA) || 0) > 0 ||
       (Number(p.melodyAmp) || 0) > 0 ||
       (Number(p.melodyCandidateAmp) || 0) > 0
     );
@@ -354,15 +358,222 @@
     drawGrid(ctx, chart, [0,1,2,3,4], i => `${Math.round(100 - 100 * i / 4)}%`);
 
     drawLine(ctx, series, p => Number(p.peakAEnergy) || 0, xMap, yMap, '#8e24aa');
+    drawLine(ctx, series, p => Number(p.inputResponseMagnitudeA) || 0, xMap, yMap, '#1565c0');
     drawLine(ctx, series, p => Number(p.melodyAmp) || 0, xMap, yMap, '#43a047');
     drawLine(ctx, series, p => Number(p.melodyCandidateAmp) || 0, xMap, yMap, '#ff9800');
 
     drawSweepLegend(ctx, chart, [
       ['#8e24aa', 'PeakA Energy'],
+      ['#1565c0', 'Input Response'],
       ['#43a047', 'Melody Amp'],
       ['#ff9800', 'Melody Candidate Amp'],
     ]);
     drawFooter(ctx, chart, H, `Sweep Trace Energy / Shared Auto Max ${formatCompactNumber(vmax)}`);
+  }
+
+
+  function getInputResponsePoints(side) {
+    const src = Array.isArray(side?.tsBuf) ? side.tsBuf : [];
+    return src
+      .map(p => ({
+        hz: Number(p?.inputHz) || 0,
+        responseHz: Number(p?.inputResponseHz) || 0,
+        mag: Number(p?.inputResponseMagnitudeA) || 0,
+      }))
+      .filter(p => p.hz > 0 && p.mag > 0)
+      .sort((a, b) => a.hz - b.hz);
+  }
+
+  function median(values) {
+    const arr = (values || []).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+    if (!arr.length) return NaN;
+    const mid = Math.floor(arr.length / 2);
+    return arr.length % 2 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+  }
+
+  function interpolateMagnitude(points, hz) {
+    if (!Array.isArray(points) || points.length < 2 || !Number.isFinite(hz)) return NaN;
+    if (hz < points[0].hz || hz > points[points.length - 1].hz) return NaN;
+
+    let lo = 0;
+    let hi = points.length - 1;
+    while (lo + 1 < hi) {
+      const mid = (lo + hi) >> 1;
+      if (points[mid].hz <= hz) lo = mid;
+      else hi = mid;
+    }
+
+    const a = points[lo];
+    const b = points[hi];
+    if (!a || !b) return NaN;
+    if (Math.abs(b.hz - a.hz) < 1e-9) return Number(a.mag) || NaN;
+    const r = (hz - a.hz) / (b.hz - a.hz);
+    return a.mag + (b.mag - a.mag) * r;
+  }
+
+  function buildTransmissionSeries(side, referencePoints, referenceFloor) {
+    const points = getInputResponsePoints(side);
+    if (!points.length || !referencePoints.length) return [];
+    const out = [];
+    for (const p of points) {
+      const refMag = interpolateMagnitude(referencePoints, p.hz);
+      if (!Number.isFinite(refMag) || refMag <= referenceFloor) continue;
+      const ratio = (p.mag / refMag) * 100;
+      if (!Number.isFinite(ratio) || ratio <= 0) continue;
+      out.push({
+        hz: p.hz,
+        ratio,
+        gainDb: 20 * Math.log10(ratio / 100),
+        mag: p.mag,
+        referenceMag: refMag,
+      });
+    }
+    return out;
+  }
+
+  function summarizeTransmission(points) {
+    if (!Array.isArray(points) || !points.length) return null;
+    const inBand = (f0, f1) => points.filter(p => p.hz >= f0 && p.hz < f1).map(p => p.ratio);
+    const maxPoint = points.reduce((best, p) => (!best || p.ratio > best.ratio) ? p : best, null);
+    return {
+      count: points.length,
+      overall: median(points.map(p => p.ratio)),
+      low: median(inBand(20, 80)),
+      mid: median(inBand(80, 160)),
+      high: median(inBand(160, 250)),
+      upper: median(inBand(250, 301)),
+      maxPoint,
+    };
+  }
+
+  function formatRatioAndDb(pct) {
+    if (!Number.isFinite(pct) || pct <= 0) return '-';
+    const db = 20 * Math.log10(pct / 100);
+    return `${pct.toFixed(1)}% (${db >= 0 ? '+' : ''}${db.toFixed(1)}dB)`;
+  }
+
+  function formatTransmissionSummary(label, summary) {
+    if (!summary) return `${label}: no transmission data`;
+    const max = summary.maxPoint
+      ? `${summary.maxPoint.ratio.toFixed(0)}%@${summary.maxPoint.hz.toFixed(0)}Hz`
+      : '-';
+    return `<b>${label}</b> Overall ${formatRatioAndDb(summary.overall)} / ` +
+      `Low 20-80 ${formatRatioAndDb(summary.low)} / ` +
+      `Mid 80-160 ${formatRatioAndDb(summary.mid)} / ` +
+      `High 160-250 ${formatRatioAndDb(summary.high)} / ` +
+      `250-300 ${formatRatioAndDb(summary.upper)} / Max ${max}`;
+  }
+
+  function drawTransmissionRatio() {
+    const canvas = $('transmissionRatio');
+    const statsEl = $('transmissionStats');
+    if (!canvas) return;
+
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 24, mb: 30 });
+
+    const referencePoints = getInputResponsePoints(state.reference);
+    if (referencePoints.length < 2) {
+      if (statsEl) {
+        statsEl.textContent = state.reference.raw
+          ? 'Reference log has no inputResponseMagnitudeA. Re-measure with v0.2.6 or later.'
+          : 'Load Speaker Direct log as Reference.';
+      }
+      return drawNoData(ctx, state.reference.raw
+        ? 'reference input-response fields unavailable'
+        : 'load Reference Log (Speaker Direct)');
+    }
+
+    const refMedian = median(referencePoints.map(p => p.mag));
+    const referenceFloor = Math.max(1e-9, (Number.isFinite(refMedian) ? refMedian : 0) * 0.05);
+    const leftSeries = buildTransmissionSeries(state.left, referencePoints, referenceFloor);
+    const rightSeries = buildTransmissionSeries(state.right, referencePoints, referenceFloor);
+
+    if (!leftSeries.length && !rightSeries.length) {
+      if (statsEl) statsEl.textContent = 'Load rod logs measured with v0.2.6 or later.';
+      return drawNoData(ctx, 'no rod input-response fields');
+    }
+
+    const all = [...leftSeries, ...rightSeries];
+    const minHz = Math.max(0, Math.min(20, ...all.map(p => p.hz)));
+    const maxHz = Math.max(300, ...all.map(p => p.hz));
+    const rawMax = Math.max(100, ...all.map(p => p.ratio));
+    const yMax = Math.max(200, niceAxisMax(rawMax * 1.05));
+
+    const xMap = hz => chart.left + ((hz - minHz) / Math.max(1e-9, maxHz - minHz)) * chart.width;
+    const yMap = pct => chart.bottom - Math.max(0, Math.min(yMax, Number(pct) || 0)) / yMax * chart.height;
+
+    // Y grid + 100% reference baseline
+    const yTicks = 5;
+    drawGrid(ctx, chart, Array.from({ length: yTicks }, (_, i) => i), i =>
+      `${Math.round(yMax - yMax * i / (yTicks - 1))}%`
+    );
+
+    ctx.save();
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
+    ctx.setLineDash([px(7), px(5)]);
+    ctx.beginPath();
+    ctx.moveTo(chart.left, yMap(100));
+    ctx.lineTo(chart.right, yMap(100));
+    ctx.stroke();
+    ctx.restore();
+
+    // X frequency guides
+    ctx.font = `${10 * (window.devicePixelRatio || 1)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (let hz = 50; hz <= 300; hz += 50) {
+      const x = xMap(hz);
+      ctx.strokeStyle = '#ececec';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, chart.top);
+      ctx.lineTo(x, chart.bottom);
+      ctx.stroke();
+      ctx.fillStyle = '#666';
+      ctx.fillText(`${hz}`, x, chart.bottom + px(4));
+    }
+
+    function drawRatioSeries(series, color) {
+      if (!series.length) return;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * (window.devicePixelRatio || 1);
+      ctx.beginPath();
+      let started = false;
+      for (const p of series) {
+        const x = xMap(p.hz);
+        const y = yMap(p.ratio);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+      if (started) ctx.stroke();
+      ctx.restore();
+    }
+
+    drawRatioSeries(leftSeries, '#1565c0');
+    drawRatioSeries(rightSeries, '#d81b60');
+
+    const leftLabel = state.left.raw?.experiment?.rod || state.left.name || 'Left';
+    const rightLabel = state.right.raw?.experiment?.rod || state.right.name || 'Right';
+
+    drawSweepLegend(ctx, chart, [
+      ['#555', 'Reference 100%'],
+      ['#1565c0', leftLabel],
+      ['#d81b60', rightLabel],
+    ]);
+    drawFooter(ctx, chart, H, `Transmission Ratio / Input Response RMS ±1bin / Ref floor ${formatCompactNumber(referenceFloor)} / Y Max ${Math.round(yMax)}%`);
+
+    if (statsEl) {
+      const parts = [];
+      if (leftSeries.length) parts.push(formatTransmissionSummary(leftLabel, summarizeTransmission(leftSeries)));
+      if (rightSeries.length) parts.push(formatTransmissionSummary(rightLabel, summarizeTransmission(rightSeries)));
+      statsEl.innerHTML = parts.join('<br>');
+    }
   }
 
   function drawBandTimeline(canvas, side) {
@@ -735,6 +946,7 @@
 
   function renderAll() {
     updateScaleStatus();
+    drawTransmissionRatio();
     renderSide('left');
     renderSide('right');
   }
@@ -755,6 +967,7 @@
 
   function setupUrlParams() {
     const params = new URLSearchParams(location.search);
+    loadFromUrlParam('reference', params.get('reference'));
     loadFromUrlParam('left', params.get('left'));
     loadFromUrlParam('right', params.get('right'));
   }

@@ -22,7 +22,7 @@
 }
 .compare-controls {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) minmax(210px, 1fr) minmax(220px, 0.75fr) minmax(250px, 0.9fr);
+  grid-template-columns: minmax(210px, 1fr) minmax(210px, 1fr) minmax(210px, 1fr) minmax(220px, 0.8fr);
   gap: 8px;
   align-items: end;
   margin: 4px 14px 8px;
@@ -38,7 +38,34 @@
   background: #fff;
 }
 .status { margin-top: 3px; font-size: 10px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.note-box { font-size: 10px; line-height: 1.35; color: #475569; }
+.note-box { grid-column: 1 / -1; font-size: 10px; line-height: 1.35; color: #475569; }
+.reference-load-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 7px;
+  background: #f8fafc;
+}
+.transmission-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fbfdff;
+}
+.transmission-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+}
+.transmission-stats {
+  padding: 5px 8px 6px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: normal;
+}
 .compare-grid { padding: 0 14px 12px; }
 .compare-row { margin-bottom: 8px; padding: 8px 10px; }
 .compare-row h2 { margin: 0 0 5px; font-size: 14px; line-height: 1.15; }

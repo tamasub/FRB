@@ -57,10 +57,18 @@ const FRB_MIC_ENABLED = false;
 // 旧ログ(version 1-3 / schemaVersionなし)は Legacy Log として表示互換を維持する。
 const FRB_LOG_VERSION = 4;
 const FRB_LOG_SCHEMA_VERSION = 'frb-log-0.4-draft';
-const FRB_APP_VERSION = 'fft-monitor-0.2.3-bridge-research-v02';
+const FRB_APP_VERSION = 'fft-monitor-0.2.7-input-aware-reference-audio-v01';
 const FRB_MIDI_EXPORT_POLICY = 'rebuild-from-tsBuf';
 
 let currentLoadedLogMeta = null;
+
+// ===== Auto measurement set =====
+// Sweep -> reference MP3 -> Save Log を1クリックで実行する計測セット。
+// 30s表示Windowとは独立して、一括計測中はtsBuf全区間を保持する。
+const FRB_REFERENCE_AUDIO_FILE = 'reference_vibration_2types.mp3';
+const FRB_REFERENCE_AUDIO_LABEL = '基準振動音２種';
+let autoMeasurementCaptureActive = false;
+let autoMeasurementRunMeta = null;
 
 function getFrameTimeSpan(list){
   if (!Array.isArray(list) || list.length === 0) {
@@ -1354,6 +1362,16 @@ if(type === 'M'){
   //const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 3);
   const rawTopPeaks = findTopPeaks(spec, df, startBin, maxBinView, 12);
 
+  const inputResponse = (type === 'A')
+    ? calcInputResponseMagnitude(
+        spec,
+        df,
+        Number(currentSoundHz) || 0,
+        startBin,
+        maxBinView,
+        1
+      )
+    : null;
 
   updatePeakTable(type, rawTopPeaks);
 
@@ -1394,7 +1412,15 @@ if(type === 'M'){
     maxV,
     topPeaks: trackedTopPeaks,   // 既存描画互換
     rawTopPeaks,                 // 追加
-    mixPeakTrackedHz: trackedMixHz
+    mixPeakTrackedHz: trackedMixHz,
+    inputResponseHz: Number(inputResponse?.inputResponseHz) || 0,
+    inputResponseCenterHz: Number(inputResponse?.inputResponseCenterHz) || 0,
+    inputResponseMagnitudeA: Number(inputResponse?.inputResponseMagnitudeA) || 0,
+    inputResponsePeakMagnitudeA: Number(inputResponse?.inputResponsePeakMagnitudeA) || 0,
+    inputResponseBin: Number.isFinite(Number(inputResponse?.inputResponseBin))
+      ? Number(inputResponse.inputResponseBin)
+      : -1,
+    inputResponseWindowBins: Number(inputResponse?.inputResponseWindowBins) || 1
   };
 
   if (type === 'A') latestA = item;
@@ -1487,6 +1513,16 @@ if(type === 'M'){
        soundVol: getSoundVol ? getSoundVol() : 0,
        peakAEnergy: lastPeakAEnergy,
 
+       // AutoSweep transmission research:
+       // inputHz 近傍 ±1 FFT bin のRMS振幅。Speaker Directを100%基準にする。
+       inputResponseHz: Number(latestA?.inputResponseHz) || 0,
+       inputResponseCenterHz: Number(latestA?.inputResponseCenterHz) || 0,
+       inputResponseMagnitudeA: Number(latestA?.inputResponseMagnitudeA) || 0,
+       inputResponsePeakMagnitudeA: Number(latestA?.inputResponsePeakMagnitudeA) || 0,
+       inputResponseBin: Number.isFinite(Number(latestA?.inputResponseBin))
+         ? Number(latestA.inputResponseBin)
+         : -1,
+       inputResponseWindowBins: Number(latestA?.inputResponseWindowBins) || 1,
 
     };
 
@@ -1783,6 +1819,57 @@ function ensureDb(item){
   let maxV = 1;
   for(const v of item.mags) if(v > maxV) maxV = v;
   return toDbArray(item.mags, maxV);
+}
+
+
+// ===== Sweep input response metric =====
+// AutoSweep では入力周波数が既知なので、その周波数近傍 ±1 FFT bin の
+// 振幅をRMS合成して「入力そのものが計測位置でどれだけ残ったか」を記録する。
+// 単一binだけを見るより、FFT bin境界をまたぐスイープの漏れに強い。
+function calcInputResponseMagnitude(spec, df, inputHz, minBin, maxBin, radiusBins = 1) {
+  const hz = Number(inputHz) || 0;
+  const binHz = Number(df) || 0;
+  if (!Array.isArray(spec) || !spec.length || hz <= 0 || binHz <= 0) {
+    return {
+      inputResponseHz: 0,
+      inputResponseCenterHz: 0,
+      inputResponseMagnitudeA: 0,
+      inputResponsePeakMagnitudeA: 0,
+      inputResponseBin: -1,
+      inputResponseWindowBins: radiusBins
+    };
+  }
+
+  const loLimit = Math.max(0, Number(minBin) || 0);
+  const hiLimit = Math.min(spec.length - 1, Number(maxBin) || (spec.length - 1));
+  const centerBin = Math.max(loLimit, Math.min(hiLimit, Math.round(hz / binHz)));
+  const lo = Math.max(loLimit, centerBin - radiusBins);
+  const hi = Math.min(hiLimit, centerBin + radiusBins);
+
+  let sumSq = 0;
+  let peakMag = -1;
+  let peakBin = centerBin;
+  let count = 0;
+
+  for (let i = lo; i <= hi; i++) {
+    const mag = Math.max(0, Number(spec[i]) || 0);
+    sumSq += mag * mag;
+    count++;
+    if (mag > peakMag) {
+      peakMag = mag;
+      peakBin = i;
+    }
+  }
+
+  return {
+    inputResponseHz: peakBin * binHz,
+    inputResponseCenterHz: centerBin * binHz,
+    // Amplitude-like local energy across the 3-bin window.
+    inputResponseMagnitudeA: count > 0 ? Math.sqrt(sumSq / count) : 0,
+    inputResponsePeakMagnitudeA: Math.max(0, peakMag),
+    inputResponseBin: peakBin,
+    inputResponseWindowBins: radiusBins
+  };
 }
 
 function findTopPeaks(spec, df, minBin, maxBin, topN = 3) {
@@ -2555,6 +2642,10 @@ function pruneTouch(nowT){
 }
 
 function pruneTimeSeries(nowT){
+  // 一括計測中は Sweep + 基準振動音 + 保存までを1セッションとして丸ごと保持する。
+  // 表示Windowが30秒でも、保存ログは計測セット全区間を欠落させない。
+  if (autoMeasurementCaptureActive) return;
+
   const keepLatestSec = Math.max(getTimeWindowSec(), 30) + 5;
 
   let focusStart = Infinity;
@@ -4195,7 +4286,7 @@ function getExperimentMeta(){
 function setExperimentMeta(experiment){
   const exp = experiment && typeof experiment === 'object' ? experiment : {};
   setSelectValue(experimentRodEl, exp.rod, 'その他');
-  setSelectValue(experimentInputEl, exp.input, 'その他');
+  setSelectValue(experimentInputEl, normalizeExperimentInputValue(exp.input), 'その他');
   setSelectValue(experimentInputContactEl, exp.inputContact, 'その他');
   setSelectValue(experimentMeasurementPartEl, exp.measurementPart, 'その他');
   setExperimentMemo(exp.memo ?? '');
@@ -4343,6 +4434,8 @@ function buildSessionData(){
     appVersion: FRB_APP_VERSION,
     savedAt: nowIso,
 
+    automationMeta: autoMeasurementRunMeta ? { ...autoMeasurementRunMeta } : null,
+
     experiment,
 
     captureMeta: {
@@ -4372,6 +4465,16 @@ function buildSessionData(){
       volumeMultiplier: getPianoRollVolumeMultiplier(),
       pitchSnapEnabled: !!PITCH_SNAP_ENABLED,
       previewWaveform: INSTR
+    },
+
+    sweepResponseMetricMeta: {
+      id: 'input-response-rms-3bin-v1',
+      source: 'accel-fft-ema-spectrum',
+      window: 'inputHz ± 1 FFT bin',
+      aggregation: 'sqrt(mean(magnitude^2))',
+      amplitudeRatioFormula: 'rod_inputResponseMagnitudeA / reference_inputResponseMagnitudeA * 100',
+      gainDbFormula: '20 * log10(rod/reference)',
+      note: 'Speaker Direct log is the 100% reference. Values above 100% are retained as possible resonance/amplification.'
     },
 
     bridgeMetricMeta: window.FRBBridgeMetrics ? {
@@ -4433,7 +4536,9 @@ function saveSessionToFile(){
     logInfoStatusEl.textContent = `saved: ${a.download}`;
   }
   console.log('session data saved', a.href.toString);
+  const savedFileName = a.download;
   URL.revokeObjectURL(a.href);
+  return savedFileName;
 }
 
 function loadSessionFromObject(data){
@@ -7345,6 +7450,29 @@ let sweepTimer = null;
 let sweepStartTime = 0;
 let sweepActive = false;
 
+// ===== One-click measurement set =====
+const FRB_INPUT_AUTO_SWEEP = 'AutoSweep';
+const FRB_INPUT_AUTO_SWEEP_REFERENCE = 'AutoSweep＋基準振動音';
+const FRB_INPUT_AUTO_SWEEP_REFERENCE_LEGACY = 'AutoSweep＋振動音';
+
+function normalizeExperimentInputValue(value){
+  const v = String(value || '').trim();
+  return v === FRB_INPUT_AUTO_SWEEP_REFERENCE_LEGACY
+    ? FRB_INPUT_AUTO_SWEEP_REFERENCE
+    : v;
+}
+
+function shouldAutoPlayReferenceAudio(){
+  return normalizeExperimentInputValue(getSelectValue(experimentInputEl)) === FRB_INPUT_AUTO_SWEEP_REFERENCE;
+}
+
+let autoMeasurementSetActive = false;
+let autoMeasurementSetCancelled = false;
+let referenceAudioBuffer = null;
+let referenceAudioSource = null;
+let referenceAudioGain = null;
+let referenceAudioResolve = null;
+
 function getNumInput(id, fallback, min, max){
   const el = document.getElementById(id);
   const v = Number(el?.value);
@@ -7362,6 +7490,168 @@ function getSweepEndHz(){
 
 function getSweepDurationSec(){
   return getNumInput('sweepDurationSec', 60, 1, 600);
+}
+
+function setSweepSetUiRunning(running){
+  const startBtn = document.getElementById('sweepStartBtn');
+  const stopBtn = document.getElementById('sweepStopBtn');
+  if (startBtn) startBtn.disabled = !!running;
+  if (stopBtn) stopBtn.disabled = !running;
+}
+
+function setSweepSetStatus(text){
+  const st = document.getElementById('sweepStatus');
+  if (st) st.textContent = text;
+}
+
+function sleepMs(ms){
+  return new Promise(resolve => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+async function loadReferenceAudioBuffer(){
+  if (referenceAudioBuffer) return referenceAudioBuffer;
+
+  const ctx = await ensureAudioContext();
+  setSweepSetStatus(`preparing ${FRB_REFERENCE_AUDIO_LABEL}...`);
+
+  // ESP32 の静的配信では日本語ファイル名のURLデコード差異が出やすいため、
+  // 配信用ファイル名はASCII固定にする。開発中の差し替えも確実に拾うため no-store。
+  const audioUrl = `./${FRB_REFERENCE_AUDIO_FILE}`;
+  const res = await fetch(audioUrl, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error(`reference audio load failed: ${audioUrl} / HTTP ${res.status}`);
+  }
+
+  const bytes = await res.arrayBuffer();
+  if (!bytes || bytes.byteLength < 1024) {
+    throw new Error(`reference audio load failed: ${audioUrl} / ${bytes?.byteLength || 0} bytes`);
+  }
+
+  try {
+    referenceAudioBuffer = await ctx.decodeAudioData(bytes.slice(0));
+  } catch (err) {
+    throw new Error(`reference audio decode failed: ${audioUrl} / ${String(err?.message || err)}`);
+  }
+  return referenceAudioBuffer;
+}
+
+function stopReferenceAudio(){
+  const resolve = referenceAudioResolve;
+  referenceAudioResolve = null;
+
+  if (referenceAudioSource) {
+    try { referenceAudioSource.onended = null; } catch (_) {}
+    try { referenceAudioSource.stop(); } catch (_) {}
+    try { referenceAudioSource.disconnect(); } catch (_) {}
+    referenceAudioSource = null;
+  }
+  if (referenceAudioGain) {
+    try { referenceAudioGain.disconnect(); } catch (_) {}
+    referenceAudioGain = null;
+  }
+
+  if (resolve) resolve(false);
+}
+
+async function playReferenceAudio(){
+  const ctx = await ensureAudioContext();
+  const buffer = await loadReferenceAudioBuffer();
+  stopReferenceAudio();
+
+  return new Promise((resolve, reject) => {
+    try {
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      source.buffer = buffer;
+      gain.gain.setValueAtTime(getSoundVol(), ctx.currentTime);
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      referenceAudioSource = source;
+      referenceAudioGain = gain;
+      referenceAudioResolve = resolve;
+
+      source.onended = () => {
+        try { source.disconnect(); } catch (_) {}
+        try { gain.disconnect(); } catch (_) {}
+        if (referenceAudioSource === source) referenceAudioSource = null;
+        if (referenceAudioGain === gain) referenceAudioGain = null;
+        if (referenceAudioResolve === resolve) referenceAudioResolve = null;
+        resolve(true);
+      };
+
+      source.start();
+    } catch (err) {
+      stopReferenceAudio();
+      reject(err);
+    }
+  });
+}
+
+function getMeasurementClockT(){
+  const last = Number(tsBuf?.[tsBuf.length - 1]?.t);
+  return Number.isFinite(last) ? last : performance.now() * 0.001;
+}
+
+function resetMeasurementSessionForSweepSet(){
+  // Loaded Log表示中でも必ずLiveへ戻し、その後に計測データだけを初期化する。
+  isLoadedSessionMode = false;
+  currentLoadedLogMeta = null;
+
+  tsBuf.length = 0;
+  touchBuf.length = 0;
+  touchShots.length = 0;
+
+  lastScrape = 0;
+  lastPeakAHz = NaN;
+  lastPeakMHz = NaN;
+  latestBandA = null;
+  latestBandM = null;
+  latestBandAInvestigate = null;
+  latestBandMInvestigate = null;
+
+  selectedShotId = null;
+  focusedTimeSeries = null;
+  frozenSeries = null;
+  freezeReadyAt = null;
+  followLatestTimeLog();
+
+  recAvgA = null;
+  recAvgB = null;
+
+  liveMelodyAmpHistory = [];
+  liveMelodyAmpHz = NaN;
+  window.FRB_MELODY_AMP_LAST = liveMelodyAmpHistory;
+  window.FRB_MELODY_AMP_MODE = 'live';
+  resetLivePianoRoll();
+
+  investigateReplayPianoRoll = [];
+  investigateReplayMelodyAmp = [];
+  window.FRB_PIANO_ROLL_LAST = livePianoRollHistory;
+
+  if (warnEl) warnEl.textContent = '';
+  if (logInfoStatusEl) logInfoStatusEl.textContent = 'auto set: capture reset';
+
+  // 画面上に前回ログの残像を残さない。
+  // Spectrum系も含め、まずCanvasを物理的にクリアしてから時系列の軸を描き直す。
+  document.querySelectorAll('canvas').forEach(c => {
+    try { c.getContext('2d')?.clearRect(0, 0, c.width, c.height); } catch (_) {}
+  });
+
+  drawTimeSeries();
+  drawTimeLog();
+  drawBandTimelineInvestigate();
+  drawStairTimeline();
+  drawStairTimelineZoom();
+  drawSweepTrace();
+  drawSweepTraceEnergy();
+  drawExperienceWave();
+  drawFluxTimeSeries();
+  drawPeakTimeline();
+  drawFrequencyFlow();
+  drawStateTimeline();
+  renderTouchTable();
+  requestDrawMainMelodyAmp();
+  requestDrawFRBPianoRoll();
 }
 
 async function startSweep(){
@@ -7389,9 +7679,7 @@ async function startSweep(){
   sweepActive = true;
 
   // Piano Rollは常時描画。Sweep開始ではリセットしない。
-
-  const st = document.getElementById('sweepStatus');
-  if (st) st.textContent = `sweeping ${startHz.toFixed(1)}→${endHz.toFixed(1)} Hz`;
+  setSweepSetStatus(`sweeping ${startHz.toFixed(1)}→${endHz.toFixed(1)} Hz`);
 
   sweepTimer = setInterval(() => {
     if (!audioCtx || !oscNode || !sweepActive) return;
@@ -7409,8 +7697,7 @@ async function startSweep(){
     const soundSt = document.getElementById('soundStatus');
     if (soundSt) soundSt.textContent = `playing ${hz.toFixed(1)} Hz`;
 
-    const sweepSt = document.getElementById('sweepStatus');
-    if (sweepSt) sweepSt.textContent = `sweep ${hz.toFixed(1)} Hz / ${(r * 100).toFixed(0)}%`;
+    setSweepSetStatus(`sweep ${hz.toFixed(1)} Hz / ${(r * 100).toFixed(0)}%`);
 
     if (r >= 1) {
       stopSweep();
@@ -7428,17 +7715,142 @@ function stopSweep(){
 
   stopTone();
 
-  const st = document.getElementById('sweepStatus');
-  if (st) st.textContent = 'sweep idle';
+  if (!autoMeasurementSetActive) {
+    setSweepSetStatus('sweep idle');
+  }
+}
+
+async function waitForSweepCompletion(timeoutSec){
+  const started = performance.now();
+  while (sweepActive) {
+    if (autoMeasurementSetCancelled) return false;
+    if ((performance.now() - started) > Math.max(1000, timeoutSec * 1000)) {
+      throw new Error('sweep completion timeout');
+    }
+    await sleepMs(50);
+  }
+  return !autoMeasurementSetCancelled;
+}
+
+async function runSweepMeasurementSet(){
+  if (autoMeasurementSetActive) return;
+
+  autoMeasurementSetActive = true;
+  autoMeasurementSetCancelled = false;
+  setSweepSetUiRunning(true);
+
+  try {
+    const inputType = normalizeExperimentInputValue(getSelectValue(experimentInputEl));
+    const includeReferenceAudio = shouldAutoPlayReferenceAudio();
+
+    // 基準振動音を使う入力種別だけMP3を先読みする。
+    // AutoSweep単独ではMP3取得/Decode自体を行わず、Sweep終了後すぐ保存する。
+    let buffer = null;
+    let referenceDurationSec = 0;
+    if (includeReferenceAudio) {
+      buffer = await loadReferenceAudioBuffer();
+      if (autoMeasurementSetCancelled) return;
+      referenceDurationSec = Number(buffer?.duration) || 0;
+    } else {
+      // Sweep開始時のUser Gesture内でAudioContextを確保する。
+      await ensureAudioContext();
+    }
+
+    const startHz = getSweepStartHz();
+    const endHz = getSweepEndHz();
+    const sweepDurationSec = getSweepDurationSec();
+    const totalSteps = includeReferenceAudio ? 3 : 2;
+
+    stopReferenceAudio();
+    stopSweep();
+    stopTone();
+    resetMeasurementSessionForSweepSet();
+
+    autoMeasurementCaptureActive = true;
+    autoMeasurementRunMeta = {
+      mode: includeReferenceAudio ? 'sweep-reference-audio-auto-save' : 'sweep-auto-save',
+      inputType,
+      startedAt: new Date().toISOString(),
+      sweepStartHz: startHz,
+      sweepEndHz: endHz,
+      sweepDurationSec,
+      ...(includeReferenceAudio ? {
+        referenceAudioFile: FRB_REFERENCE_AUDIO_FILE,
+        referenceAudioDurationSec: referenceDurationSec
+      } : {}),
+      expectedCaptureSec: sweepDurationSec + (includeReferenceAudio ? referenceDurationSec : 0),
+      displayWindowSec: getTimeWindowSec(),
+      captureRetention: 'full-session-during-auto-set',
+      sequence: includeReferenceAudio
+        ? ['reset', 'sweep', 'reference-audio', 'save-log']
+        : ['reset', 'sweep', 'save-log']
+    };
+
+    autoMeasurementRunMeta.captureStartedT = getMeasurementClockT();
+    autoMeasurementRunMeta.sweepStartedT = getMeasurementClockT();
+    setSweepSetStatus(`auto set 1/${totalSteps}: sweep ${startHz.toFixed(0)}→${endHz.toFixed(0)} Hz`);
+    await startSweep();
+    const sweepOk = await waitForSweepCompletion(sweepDurationSec + 3);
+    autoMeasurementRunMeta.sweepEndedT = getMeasurementClockT();
+    if (!sweepOk) return;
+
+    if (includeReferenceAudio) {
+      autoMeasurementRunMeta.referenceAudioStartedT = getMeasurementClockT();
+      setSweepSetStatus(`auto set 2/3: ${FRB_REFERENCE_AUDIO_LABEL} (${referenceDurationSec.toFixed(1)}s)`);
+      const referenceOk = await playReferenceAudio();
+      autoMeasurementRunMeta.referenceAudioEndedT = getMeasurementClockT();
+      if (!referenceOk || autoMeasurementSetCancelled) return;
+    }
+
+    autoMeasurementRunMeta.completedAt = new Date().toISOString();
+    autoMeasurementRunMeta.status = 'completed';
+    autoMeasurementRunMeta.capturedFrameCountBeforeSave = tsBuf.length;
+    autoMeasurementRunMeta.capturedSpanSecBeforeSave = getFrameTimeSpan(tsBuf).span;
+
+    setSweepSetStatus(`auto set ${totalSteps}/${totalSteps}: saving log...`);
+    const savedName = saveSessionToFile();
+    setSweepSetStatus(`complete / ${savedName || 'log saved'}`);
+  } catch (err) {
+    console.error('auto sweep measurement set failed', err);
+    if (autoMeasurementRunMeta) {
+      autoMeasurementRunMeta.status = 'error';
+      autoMeasurementRunMeta.error = String(err?.message || err);
+    }
+    setSweepSetStatus(`ERROR: ${String(err?.message || err)}`);
+    if (warnEl) warnEl.textContent = `Auto Sweep Set failed: ${String(err?.message || err)}`;
+  } finally {
+    stopReferenceAudio();
+    stopSweep();
+    autoMeasurementCaptureActive = false;
+    autoMeasurementSetActive = false;
+    setSweepSetUiRunning(false);
+  }
+}
+
+function cancelSweepMeasurementSet(){
+  if (!autoMeasurementSetActive) {
+    stopSweep();
+    stopReferenceAudio();
+    return;
+  }
+
+  autoMeasurementSetCancelled = true;
+  if (autoMeasurementRunMeta) {
+    autoMeasurementRunMeta.status = 'cancelled';
+    autoMeasurementRunMeta.cancelledAt = new Date().toISOString();
+  }
+  stopSweep();
+  stopReferenceAudio();
+  setSweepSetStatus('auto set cancelled');
 }
 
 document.getElementById('sweepStartBtn')
-  ?.addEventListener('click', startSweep);
+  ?.addEventListener('click', runSweepMeasurementSet);
 
 document.getElementById('sweepStopBtn')
-  ?.addEventListener('click', stopSweep);
+  ?.addEventListener('click', cancelSweepMeasurementSet);
 
-
+setSweepSetUiRunning(false);
 
 
   // ===== Sound Output: modulation =====
@@ -7731,6 +8143,7 @@ function getSweepEnergyScaleMax(visible){
     measuredMax = Math.max(
       measuredMax,
       Number(p.peakAEnergy) || 0,
+      Number(p.inputResponseMagnitudeA) || 0,
       Number(p.melodyAmp) || 0,
       Number(p.melodyCandidateAmp) || 0
     );
@@ -7830,6 +8243,7 @@ function drawSweepTraceEnergy(){
   }
 
   drawLine('peakAEnergy', '#8e24aa', 1.8);
+  drawLine('inputResponseMagnitudeA', '#1565c0', 2.2);
   drawLine('melodyAmp', '#43a047', 2.2);
   drawLine('melodyCandidateAmp', '#ff9800', 1.8);
 
@@ -7844,10 +8258,12 @@ function drawSweepTraceEnergy(){
   gTSweepEnergy.textBaseline = 'top';
   gTSweepEnergy.fillStyle = '#8e24aa';
   gTSweepEnergy.fillText('PeakA Energy', chartLeft + 8, chartTop + 6);
+  gTSweepEnergy.fillStyle = '#1565c0';
+  gTSweepEnergy.fillText('Input Response', chartLeft + 125, chartTop + 6);
   gTSweepEnergy.fillStyle = '#43a047';
-  gTSweepEnergy.fillText('Melody Amp', chartLeft + 125, chartTop + 6);
+  gTSweepEnergy.fillText('Melody Amp', chartLeft + 245, chartTop + 6);
   gTSweepEnergy.fillStyle = '#ff9800';
-  gTSweepEnergy.fillText('Melody Candidate Amp', chartLeft + 235, chartTop + 6);
+  gTSweepEnergy.fillText('Melody Candidate Amp', chartLeft + 345, chartTop + 6);
 
   const last = visible[visible.length - 1];
   gTSweepEnergy.fillStyle = '#333';
@@ -7855,7 +8271,7 @@ function drawSweepTraceEnergy(){
   gTSweepEnergy.textAlign = 'right';
   gTSweepEnergy.textBaseline = 'alphabetic';
   gTSweepEnergy.fillText(
-    `E:${Math.round(Number(last.peakAEnergy)||0)} / Mamp:${Math.round(Number(last.melodyAmp)||0)} / Cand:${Math.round(Number(last.melodyCandidateAmp)||0)} / ${mode === 'auto' ? 'Auto' : 'Fixed ' + formatCompactNumber(scaleMax)}`,
+    `E:${Math.round(Number(last.peakAEnergy)||0)} / In:${Math.round(Number(last.inputResponseMagnitudeA)||0)} / Mamp:${Math.round(Number(last.melodyAmp)||0)} / Cand:${Math.round(Number(last.melodyCandidateAmp)||0)} / ${mode === 'auto' ? 'Auto' : 'Fixed ' + formatCompactNumber(scaleMax)}`,
     chartRight,
     H - 6
   );

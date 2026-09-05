@@ -247,3 +247,34 @@ BridgeScore は 0〜1 の値なので、理論上の最大標準偏差 0.5 を�
 BridgeScoreがなぜ上がった／安定したのかを見るため、Legacy計算に使っている Low / Mid / High をそのまま時系列表示します。
 
 FRB Compare でも同じ共有ロジック `frb_bridge_metrics.js` を使用します。
+
+---
+
+## Transmission Ratio（Research / 2026-09-05）
+
+AutoSweepでは入力周波数が既知なので、各フレームについて `inputHz ± 1 FFT bin` の加速度FFT振幅をRMS合成し、`inputResponseMagnitudeA` としてLogへ保存します。
+
+```text
+inputResponseMagnitudeA = sqrt(mean(magnitude^2))  // inputHz近傍 ±1bin
+```
+
+FRB Compareでは、スピーカー直計測LogをReference（100%）として指定し、ロッド計測位置の残存率を表示します。
+
+```text
+Transmission Ratio (%)
+= Rod inputResponseMagnitudeA
+  / Speaker Direct inputResponseMagnitudeA
+  * 100
+
+Gain (dB)
+= 20 * log10(Rod / Speaker Direct)
+```
+
+- 100% = スピーカー直と同程度
+- 50% = 振幅比で半分程度（約 -6dB）
+- 200% = 振幅比で2倍程度（約 +6dB）
+- 100%を超える値は切り捨てず、共振・帯域強調候補として観測します。
+
+Reference側の振幅が極端に小さい地点では比率が不安定になるため、Compare表示ではReference Sweep中央値の5%未満を除外します。
+
+この指標は「感度そのもの」ではなく、**既知入力が計測位置までどの帯域でどれだけ残る／強調されるか**を見るための研究指標です。

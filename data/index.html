@@ -10,10 +10,10 @@
 </head>
 
 <body>
-  <h2>FRB FFT Monitor Ver0.2.2(beta) <span class="mini">Log Schema v4 / MIDI Professor</span></h2>
+  <h2>FRB FFT Monitor Ver0.2.4(beta) <span class="mini">Log Schema v4 / MIDI Professor</span></h2>
   <div class="box" style="display:flex;gap:12px;align-items:center;">
     <b>FRB Tools</b>
-    <a href="compare.html?v=20260823_sweep_compare_settings_v01">FRB Compare v1</a>
+    <a href="compare.html?v=20260905_transmission_ratio_v01">FRB Compare v1</a>
     <a href="https://tamasub.github.io/FRB/tools/mdViewer.html?md=https%3A%2F%2Ftamasub.github.io%2FFRB%2Fdata%2FESP32_FFT_Monitor_Help.md" target="_blank" rel="noopener">Help</a>
     <span class="mini">FFTログ左右比較専用View / 用語説明</span>
   </div>
@@ -52,9 +52,9 @@
       Sec:
       <input id="sweepDurationSec" type="number" value="30" min="1" max="600" step="1" style="width:72px">
     </label>
-    <button id="sweepStartBtn" type="button">Start Sweep</button>
-    <button id="sweepStopBtn" type="button">Stop Sweep</button>
-    <span id="sweepStatus" class="mini">sweep idle</span>
+    <button id="sweepStartBtn" type="button" title="画面/ログ初期化 → Sweep → 基準振動音2種 → Log保存">Sweep一括計測</button>
+    <button id="sweepStopBtn" type="button">Stop</button>
+    <span id="sweepStatus" class="mini">auto set idle</span>
   </div>
 
 
@@ -88,6 +88,7 @@
               <option value="ハイエンドロッドB">ハイエンドロッドB</option>
               <option value="ハイエンドロッドC">ハイエンドロッドC</option>
               <option value="ダイソー">ダイソー</option>
+              <option value="スピーカー直">スピーカー直</option>
               <option value="その他">その他</option>
             </select>
           </label>
@@ -95,8 +96,9 @@
           <label>
             入力:
             <select id="experimentInput">
-              <option value="振動基準音" selected>振動基準音</option>
+              <option value="AutoSweep＋基準振動音" selected>AutoSweep＋基準振動音</option>
               <option value="AutoSweep">AutoSweep</option>
+              <option value="振動基準音">振動基準音</option>
               <option value="ステンレス擦り">ステンレス擦り</option>
               <option value="床擦り">床擦り</option>
               <option value="絨毯擦り">絨毯擦り</option>
@@ -119,6 +121,7 @@
             <select id="experimentMeasurementPart">
               <option value="割りばしカーボン" selected>割りばしカーボン</option>
               <option value="EVAグリップ" selected>EVAグリップ</option>
+              <option value="トップより同一距離">トップより同一距離</option>   
               <option value="その他">その他</option>
             </select>
           </label>
@@ -689,7 +692,7 @@
 </div> 
 
 
-  <script src="app.js?v=20260823_sweep_compare_settings_v01"></script>
+  <script src="app.js?v=20260905_input_aware_reference_audio_v01"></script>
 
 </body>
 

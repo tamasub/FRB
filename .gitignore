@@ -71,6 +71,7 @@ data/exports/tmp/
 # ===== Large experiment artifacts =====
 *.wav
 *.mp4
+*.mp3
 *.zip
 *.exe
 *.bin
