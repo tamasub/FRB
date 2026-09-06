@@ -166,6 +166,81 @@
     }
   }
 
+  let hoverTooltipEl = null;
+
+  function ensureHoverTooltip(){
+    if (hoverTooltipEl) return hoverTooltipEl;
+    const el = document.createElement('div');
+    el.className = 'frb-chart-tooltip';
+    document.body.appendChild(el);
+    hoverTooltipEl = el;
+    return el;
+  }
+
+  function hideHoverTooltip(){
+    if (hoverTooltipEl) hoverTooltipEl.style.display = 'none';
+  }
+
+  function nearestByX(points, xValue, key = 'x'){
+    const arr = Array.isArray(points) ? points : [];
+    let best = null, bestDist = Infinity;
+    for (const p of arr) {
+      const v = Number(p?.[key]);
+      if (!Number.isFinite(v)) continue;
+      const d = Math.abs(v - xValue);
+      if (d < bestDist) { best = p; bestDist = d; }
+    }
+    return best;
+  }
+
+  function setCanvasFrequencyProbe(canvas, meta){
+    if (!canvas) return;
+    canvas._frbHoverMeta = meta || null;
+    canvas.classList.toggle('frb-hover-probe', !!meta);
+    if (canvas.dataset.frbHoverBound === '1') return;
+    canvas.dataset.frbHoverBound = '1';
+
+    canvas.addEventListener('mouseleave', hideHoverTooltip);
+    canvas.addEventListener('mousemove', ev => {
+      const m = canvas._frbHoverMeta;
+      if (!m || typeof m.format !== 'function') return hideHoverTooltip();
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !canvas.width) return hideHoverTooltip();
+      const pxX = (ev.clientX - rect.left) * canvas.width / rect.width;
+      const chart = m.chart;
+      if (!chart || pxX < chart.left || pxX > chart.right) return hideHoverTooltip();
+
+      const r = (pxX - chart.left) / Math.max(1e-9, chart.width);
+      const xValue = Number(m.xMin) + r * (Number(m.xMax) - Number(m.xMin));
+      const html = m.format(xValue);
+      if (!html) return hideHoverTooltip();
+
+      const tip = ensureHoverTooltip();
+      tip.innerHTML = html;
+      tip.style.display = 'block';
+      const pad = 12;
+      let left = ev.clientX + 14;
+      let top = ev.clientY + 14;
+      const tw = tip.offsetWidth || 220;
+      const th = tip.offsetHeight || 60;
+      if (left + tw + pad > window.innerWidth) left = ev.clientX - tw - 14;
+      if (top + th + pad > window.innerHeight) top = ev.clientY - th - 14;
+      tip.style.left = `${Math.max(pad, left)}px`;
+      tip.style.top = `${Math.max(pad, top)}px`;
+    });
+  }
+
+  function fmtHz(v){
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? `${n.toFixed(1)} Hz` : '-';
+  }
+
+  function fmtAmp(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? formatCompactNumber(n) : '-';
+  }
+
   function clearChart(ctx, W, H, fill = '#fcfcfc') {
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = fill;
@@ -316,6 +391,19 @@
       ['#26c6da', 'Energy Candidate Hz'],
     ]);
     drawFooter(ctx, chart, H, 'Sweep Trace Hz / Y 0-300Hz');
+    setCanvasFrequencyProbe(canvas, {
+      chart,
+      xMin: start,
+      xMax: end,
+      format: tCursor => {
+        const p = nearestByX(series.map(x => ({ ...x, x: Number(x.t) || 0 })), tCursor);
+        if (!p) return '';
+        return `<div class="hz">Input ${fmtHz(p.inputHz)}</div>` +
+          `<div>PeakA ${fmtHz(p.peakAHz)} / Melody ${fmtHz(p.melodyHz)}</div>` +
+          `<div>Candidate ${fmtHz(p.melodyCandidateHz)}</div>` +
+          `<div class="sub">t ${Number(p.t).toFixed(2)} s</div>`;
+      }
+    });
   }
 
   function getSharedSweepEnergyMax() {
@@ -369,6 +457,19 @@
       ['#ff9800', 'Melody Candidate Amp'],
     ]);
     drawFooter(ctx, chart, H, `Sweep Trace Energy / Shared Auto Max ${formatCompactNumber(vmax)}`);
+    setCanvasFrequencyProbe(canvas, {
+      chart,
+      xMin: start,
+      xMax: end,
+      format: tCursor => {
+        const p = nearestByX(series.map(x => ({ ...x, x: Number(x.t) || 0 })), tCursor);
+        if (!p) return '';
+        return `<div class="hz">Input ${fmtHz(p.inputHz)}</div>` +
+          `<div>Input Response <b>${fmtAmp(p.inputResponseMagnitudeA)}</b> / PeakA ${fmtAmp(p.peakAEnergy)}</div>` +
+          `<div>Melody ${fmtAmp(p.melodyAmp)} / Candidate ${fmtAmp(p.melodyCandidateAmp)}</div>` +
+          `<div class="sub">t ${Number(p.t).toFixed(2)} s</div>`;
+      }
+    });
   }
 
 
@@ -568,10 +669,196 @@
     ]);
     drawFooter(ctx, chart, H, `Transmission Ratio / Input Response RMS ±1bin / Ref floor ${formatCompactNumber(referenceFloor)} / Y Max ${Math.round(yMax)}%`);
 
+    setCanvasFrequencyProbe(canvas, {
+      chart,
+      xMin: minHz,
+      xMax: maxHz,
+      format: hzCursor => {
+        const lp = nearestByX(leftSeries.map(p => ({ ...p, x: p.hz })), hzCursor);
+        const rp = nearestByX(rightSeries.map(p => ({ ...p, x: p.hz })), hzCursor);
+        const candidates = [lp, rp].filter(Boolean);
+        if (!candidates.length) return '';
+        const anchor = candidates.reduce((best, p) => !best || Math.abs(p.hz - hzCursor) < Math.abs(best.hz - hzCursor) ? p : best, null);
+        const hz = Number(anchor?.hz) || hzCursor;
+        const l = nearestByX(leftSeries.map(p => ({ ...p, x: p.hz })), hz);
+        const r = nearestByX(rightSeries.map(p => ({ ...p, x: p.hz })), hz);
+        const lines = [`<div class="hz">${hz.toFixed(1)} Hz</div>`];
+        if (l) lines.push(`<div>${leftLabel}: <b>${l.ratio.toFixed(1)}%</b> (${l.gainDb >= 0 ? '+' : ''}${l.gainDb.toFixed(1)} dB)</div>`);
+        if (r) lines.push(`<div>${rightLabel}: <b>${r.ratio.toFixed(1)}%</b> (${r.gainDb >= 0 ? '+' : ''}${r.gainDb.toFixed(1)} dB)</div>`);
+        lines.push('<div class="sub">Speaker Direct = 100%</div>');
+        return lines.join('');
+      }
+    });
+
     if (statsEl) {
       const parts = [];
       if (leftSeries.length) parts.push(formatTransmissionSummary(leftLabel, summarizeTransmission(leftSeries)));
       if (rightSeries.length) parts.push(formatTransmissionSummary(rightLabel, summarizeTransmission(rightSeries)));
+      statsEl.innerHTML = parts.join('<br>');
+    }
+  }
+
+  function getRingDownSeries(side) {
+    const raw = side?.raw;
+    const source = Array.isArray(raw?.tsBuf) ? raw.tsBuf : [];
+    const meta = raw?.automationMeta || {};
+    const stopT = Number(meta?.toneStoppedT);
+    const targetHz = Number(meta?.ringDownTargetHz ?? meta?.ringDownSummary?.targetHz) || 0;
+    if (!Number.isFinite(stopT) || targetHz <= 0 || !source.length) return [];
+
+    return source
+      .map(frame => ({
+        sec: (Number(frame?.t) || 0) - stopT,
+        mag: Number(frame?.ringDownMagnitudeRawA) || 0,
+        responseHz: Number(frame?.ringDownResponseHz) || 0,
+        centerHz: Number(frame?.ringDownResponseCenterHz) || 0,
+        peakMag: Number(frame?.ringDownPeakMagnitudeRawA) || 0,
+      }))
+      .filter(p => Number.isFinite(p.sec) && p.sec >= -0.002 && Number.isFinite(p.mag) && p.mag >= 0)
+      .sort((a, b) => a.sec - b.sec);
+  }
+
+  function getRingDownSummary(side) {
+    const summary = side?.raw?.automationMeta?.ringDownSummary;
+    if (!summary || typeof summary !== 'object') return null;
+    return summary;
+  }
+
+  function formatSeconds(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? `${n.toFixed(3)}s` : '-';
+  }
+
+  function formatRingDownSummary(label, side) {
+    const s = getRingDownSummary(side);
+    if (!s) return `<b>${label}</b> no RingDown summary`;
+    const targetHz = Number(s.targetHz ?? side?.raw?.automationMeta?.ringDownTargetHz) || 0;
+    const start = Number(s.startMagnitudeRawA);
+    const end = Number(s.endMagnitudeRawA);
+    const endRatio = Number(s.endRatioPct);
+    const tail = Number(s.tailMedianMagnitudeRawA);
+    return `<b>${label}</b> Target ${targetHz ? targetHz.toFixed(0) + 'Hz' : '-'} / ` +
+      `Start ${fmtAmp(start)} / T50 ${formatSeconds(s.t50Sec)} / T10 ${formatSeconds(s.t10Sec)} / ` +
+      `Tail median ${fmtAmp(tail)} / End ${fmtAmp(end)}${Number.isFinite(endRatio) ? ` (${endRatio.toFixed(1)}%)` : ''}`;
+  }
+
+  function drawRingDownCompare() {
+    const canvas = $('ringDownCompare');
+    const statsEl = $('ringDownStats');
+    if (!canvas) return;
+
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    clearChart(ctx, W, H);
+    const chart = setupAxes(ctx, W, H, { ml: PLOT_LEFT_CSS, mr: PLOT_RIGHT_CSS, mt: 24, mb: 32 });
+
+    const leftSeries = getRingDownSeries(state.left);
+    const rightSeries = getRingDownSeries(state.right);
+    const leftLabel = state.left.raw?.experiment?.rod || state.left.name || 'Left';
+    const rightLabel = state.right.raw?.experiment?.rod || state.right.name || 'Right';
+
+    if (!leftSeries.length && !rightSeries.length) {
+      if (statsEl) statsEl.textContent = 'Load RingDown logs into Left / Right.';
+      setCanvasFrequencyProbe(canvas, null);
+      return drawNoData(ctx, 'load RingDown logs into Left / Right');
+    }
+
+    const all = [...leftSeries, ...rightSeries];
+    const maxSec = Math.max(0.5, ...all.map(p => Math.max(0, Number(p.sec) || 0)));
+    const rawMax = Math.max(1, ...all.map(p => Number(p.mag) || 0));
+    const yMax = Math.max(100, niceAxisMax(rawMax * 1.05));
+    const xMap = sec => chart.left + (Math.max(0, sec) / Math.max(1e-9, maxSec)) * chart.width;
+    const yMap = mag => chart.bottom - Math.max(0, Math.min(yMax, Number(mag) || 0)) / yMax * chart.height;
+
+    drawGrid(ctx, chart, [0,1,2,3,4], i => formatCompactNumber(yMax - yMax * i / 4));
+
+    // X guides are elapsed seconds after audio STOP.  Both logs share STOP = 0s.
+    ctx.font = `${10 * (window.devicePixelRatio || 1)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const xTicks = 5;
+    for (let i = 0; i <= xTicks; i++) {
+      const sec = maxSec * i / xTicks;
+      const x = xMap(sec);
+      ctx.strokeStyle = i === 0 ? '#94a3b8' : '#ececec';
+      ctx.lineWidth = i === 0 ? 1.5 * (window.devicePixelRatio || 1) : 1;
+      ctx.beginPath();
+      ctx.moveTo(x, chart.top);
+      ctx.lineTo(x, chart.bottom);
+      ctx.stroke();
+      ctx.fillStyle = '#666';
+      ctx.fillText(sec.toFixed(maxSec <= 2 ? 2 : 1), x, chart.bottom + px(4));
+    }
+
+    function drawRingSeries(series, color) {
+      if (!series.length) return;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * (window.devicePixelRatio || 1);
+      ctx.beginPath();
+      let started = false;
+      for (const p of series) {
+        if (p.sec < 0) continue;
+        const x = xMap(p.sec);
+        const y = yMap(p.mag);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+      if (started) ctx.stroke();
+      ctx.restore();
+    }
+
+    drawRingSeries(leftSeries, '#1565c0');
+    drawRingSeries(rightSeries, '#d81b60');
+
+    drawSweepLegend(ctx, chart, [
+      ['#1565c0', leftLabel],
+      ['#d81b60', rightLabel],
+    ]);
+
+    const leftTarget = Number(state.left.raw?.automationMeta?.ringDownTargetHz ?? state.left.raw?.automationMeta?.ringDownSummary?.targetHz) || 0;
+    const rightTarget = Number(state.right.raw?.automationMeta?.ringDownTargetHz ?? state.right.raw?.automationMeta?.ringDownSummary?.targetHz) || 0;
+    const sameTarget = leftTarget > 0 && rightTarget > 0 && Math.abs(leftTarget - rightTarget) < 1e-6;
+    const targetText = sameTarget
+      ? `Target ${leftTarget.toFixed(0)}Hz`
+      : [leftTarget ? `L ${leftTarget.toFixed(0)}Hz` : '', rightTarget ? `R ${rightTarget.toFixed(0)}Hz` : ''].filter(Boolean).join(' / ');
+    drawFooter(ctx, chart, H, `Ring Down Raw FFT RMS ±1bin / STOP = 0s / ${targetText || 'target -'} / Shared Y Max ${formatCompactNumber(yMax)}`);
+
+    const leftStart = Number(getRingDownSummary(state.left)?.startMagnitudeRawA) || (leftSeries[0]?.mag || 0);
+    const rightStart = Number(getRingDownSummary(state.right)?.startMagnitudeRawA) || (rightSeries[0]?.mag || 0);
+    setCanvasFrequencyProbe(canvas, {
+      chart,
+      xMin: 0,
+      xMax: maxSec,
+      format: secCursor => {
+        const l = nearestByX(leftSeries.map(p => ({ ...p, x: Math.max(0, p.sec) })), secCursor);
+        const r = nearestByX(rightSeries.map(p => ({ ...p, x: Math.max(0, p.sec) })), secCursor);
+        if (!l && !r) return '';
+        const sec = Math.max(0, Number((l && Math.abs(l.sec - secCursor) <= Math.abs((r?.sec ?? Infinity) - secCursor)) ? l.sec : r?.sec) || secCursor);
+        const ln = nearestByX(leftSeries.map(p => ({ ...p, x: Math.max(0, p.sec) })), sec);
+        const rn = nearestByX(rightSeries.map(p => ({ ...p, x: Math.max(0, p.sec) })), sec);
+        const lines = [`<div class="hz">STOP +${sec.toFixed(3)} s</div>`];
+        if (ln) {
+          const retain = leftStart > 0 ? (ln.mag / leftStart) * 100 : NaN;
+          lines.push(`<div>${leftLabel}: <b>${fmtAmp(ln.mag)}</b>${Number.isFinite(retain) ? ` / ${retain.toFixed(1)}%` : ''}</div>`);
+        }
+        if (rn) {
+          const retain = rightStart > 0 ? (rn.mag / rightStart) * 100 : NaN;
+          lines.push(`<div>${rightLabel}: <b>${fmtAmp(rn.mag)}</b>${Number.isFinite(retain) ? ` / ${retain.toFixed(1)}%` : ''}</div>`);
+        }
+        lines.push(`<div class="sub">Raw FFT RMS ±1bin${targetText ? ' / ' + targetText : ''}</div>`);
+        return lines.join('');
+      }
+    });
+
+    if (statsEl) {
+      const parts = [];
+      if (state.left.raw) parts.push(formatRingDownSummary(leftLabel, state.left));
+      if (state.right.raw) parts.push(formatRingDownSummary(rightLabel, state.right));
+      if (leftTarget > 0 && rightTarget > 0 && !sameTarget) {
+        parts.push(`<span class="warn">Warning: RingDown target mismatch (${leftTarget.toFixed(0)}Hz vs ${rightTarget.toFixed(0)}Hz)</span>`);
+      }
       statsEl.innerHTML = parts.join('<br>');
     }
   }
@@ -622,6 +909,17 @@
       lx += 16 * (window.devicePixelRatio || 1) + tw + 16 * (window.devicePixelRatio || 1);
     }
     drawFooter(ctx, chart, H, `Band Timeline Investigate / ${state.bandScale === 'auto' ? 'Auto shared' : 'Fixed ' + Math.round(globalMax)}`);
+    setCanvasFrequencyProbe(canvas, {
+      chart,
+      xMin: start,
+      xMax: end,
+      format: tCursor => {
+        const p = nearestByX(series.map(x => ({ ...x, x: Number(x.t) || 0 })), tCursor);
+        if (!p) return '';
+        return `<div class="hz">Input ${fmtHz(p.inputHz)}</div>` +
+          `<div class="sub">t ${Number(p.t).toFixed(2)} s / Band timeline</div>`;
+      }
+    });
   }
 
   // Flux / Triangle Motion are comparison charts.
@@ -947,6 +1245,7 @@
   function renderAll() {
     updateScaleStatus();
     drawTransmissionRatio();
+    drawRingDownCompare();
     renderSide('left');
     renderSide('right');
   }

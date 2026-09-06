@@ -57,7 +57,7 @@ const FRB_MIC_ENABLED = false;
 // 旧ログ(version 1-3 / schemaVersionなし)は Legacy Log として表示互換を維持する。
 const FRB_LOG_VERSION = 4;
 const FRB_LOG_SCHEMA_VERSION = 'frb-log-0.4-draft';
-const FRB_APP_VERSION = 'fft-monitor-0.2.7-input-aware-reference-audio-v01';
+const FRB_APP_VERSION = 'fft-monitor-0.2.9-sweep-sound-only-v01';
 const FRB_MIDI_EXPORT_POLICY = 'rebuild-from-tsBuf';
 
 let currentLoadedLogMeta = null;
@@ -69,6 +69,11 @@ const FRB_REFERENCE_AUDIO_FILE = 'reference_vibration_2types.mp3';
 const FRB_REFERENCE_AUDIO_LABEL = '基準振動音２種';
 let autoMeasurementCaptureActive = false;
 let autoMeasurementRunMeta = null;
+
+// ===== Ring Down research =====
+// Fixed tone -> auto stop -> observe raw FFT decay at the same frequency.
+let ringDownTrackingActive = false;
+let ringDownTargetHz = 0;
 
 function getFrameTimeSpan(list){
   if (!Array.isArray(list) || list.length === 0) {
@@ -1373,6 +1378,19 @@ if(type === 'M'){
       )
     : null;
 
+  // Ring Down uses the raw FFT payload rather than the EMA spectrum.
+  // Keep tracking the target frequency even after currentSoundHz becomes 0 at STOP.
+  const ringDownResponse = (type === 'A' && ringDownTrackingActive && ringDownTargetHz > 0)
+    ? calcInputResponseMagnitude(
+        arr,
+        df,
+        ringDownTargetHz,
+        startBin,
+        maxBinView,
+        1
+      )
+    : null;
+
   updatePeakTable(type, rawTopPeaks);
 
   let trackedTopPeaks = rawTopPeaks;
@@ -1420,7 +1438,16 @@ if(type === 'M'){
     inputResponseBin: Number.isFinite(Number(inputResponse?.inputResponseBin))
       ? Number(inputResponse.inputResponseBin)
       : -1,
-    inputResponseWindowBins: Number(inputResponse?.inputResponseWindowBins) || 1
+    inputResponseWindowBins: Number(inputResponse?.inputResponseWindowBins) || 1,
+
+    ringDownTargetHz: ringDownTrackingActive ? ringDownTargetHz : 0,
+    ringDownResponseHz: Number(ringDownResponse?.inputResponseHz) || 0,
+    ringDownResponseCenterHz: Number(ringDownResponse?.inputResponseCenterHz) || 0,
+    ringDownMagnitudeRawA: Number(ringDownResponse?.inputResponseMagnitudeA) || 0,
+    ringDownPeakMagnitudeRawA: Number(ringDownResponse?.inputResponsePeakMagnitudeA) || 0,
+    ringDownResponseBin: Number.isFinite(Number(ringDownResponse?.inputResponseBin))
+      ? Number(ringDownResponse.inputResponseBin)
+      : -1
   };
 
   if (type === 'A') latestA = item;
@@ -1523,6 +1550,16 @@ if(type === 'M'){
          ? Number(latestA.inputResponseBin)
          : -1,
        inputResponseWindowBins: Number(latestA?.inputResponseWindowBins) || 1,
+
+       // Ring Down research: raw FFT response at the fixed target frequency.
+       ringDownTargetHz: Number(latestA?.ringDownTargetHz) || 0,
+       ringDownResponseHz: Number(latestA?.ringDownResponseHz) || 0,
+       ringDownResponseCenterHz: Number(latestA?.ringDownResponseCenterHz) || 0,
+       ringDownMagnitudeRawA: Number(latestA?.ringDownMagnitudeRawA) || 0,
+       ringDownPeakMagnitudeRawA: Number(latestA?.ringDownPeakMagnitudeRawA) || 0,
+       ringDownResponseBin: Number.isFinite(Number(latestA?.ringDownResponseBin))
+         ? Number(latestA.ringDownResponseBin)
+         : -1,
 
     };
 
@@ -4343,6 +4380,8 @@ function getMonitorSettings(){
     sweepEndHz: String(document.getElementById('sweepEndHz')?.value ?? '300'),
     sweepDurationSec: String(document.getElementById('sweepDurationSec')?.value ?? '30'),
     soundFreq: String(document.getElementById('soundFreq')?.value ?? '120'),
+    ringDownToneSec: String(document.getElementById('ringDownToneSec')?.value ?? '5'),
+    ringDownObserveSec: String(document.getElementById('ringDownObserveSec')?.value ?? '5'),
     experiment: getExperimentMeta()
   };
 }
@@ -4368,6 +4407,8 @@ function applyMonitorSettings(settings){
   setInputValueById('sweepEndHz', st.sweepEndHz);
   setInputValueById('sweepDurationSec', st.sweepDurationSec);
   setInputValueById('soundFreq', st.soundFreq);
+  setInputValueById('ringDownToneSec', st.ringDownToneSec);
+  setInputValueById('ringDownObserveSec', st.ringDownObserveSec);
   if (st.experiment && typeof st.experiment === 'object') setExperimentMeta(st.experiment);
 
   // range表示文字も復元値へ同期する。
@@ -4475,6 +4516,16 @@ function buildSessionData(){
       amplitudeRatioFormula: 'rod_inputResponseMagnitudeA / reference_inputResponseMagnitudeA * 100',
       gainDbFormula: '20 * log10(rod/reference)',
       note: 'Speaker Direct log is the 100% reference. Values above 100% are retained as possible resonance/amplification.'
+    },
+
+    ringDownMetricMeta: {
+      id: 'ring-down-raw-rms-3bin-v1',
+      source: 'accel-fft-raw-spectrum',
+      window: 'ringDownTargetHz ± 1 FFT bin',
+      aggregation: 'sqrt(mean(magnitude^2))',
+      stopBehavior: 'target frequency remains tracked after audio STOP',
+      summary: 'T50/T10 are first post-STOP threshold crossings relative to the first post-STOP raw RMS sample',
+      note: 'Raw FFT is used here to avoid EMA tail being mistaken for rod ring-down.'
     },
 
     bridgeMetricMeta: window.FRBBridgeMetrics ? {
@@ -7449,6 +7500,8 @@ let modTimer = null;
 let sweepTimer = null;
 let sweepStartTime = 0;
 let sweepActive = false;
+let sweepSoundOnlyActive = false;
+let sweepSoundOnlyCancelled = false;
 
 // ===== One-click measurement set =====
 const FRB_INPUT_AUTO_SWEEP = 'AutoSweep';
@@ -7494,9 +7547,15 @@ function getSweepDurationSec(){
 
 function setSweepSetUiRunning(running){
   const startBtn = document.getElementById('sweepStartBtn');
+  const soundOnlyBtn = document.getElementById('sweepSoundOnlyBtn');
   const stopBtn = document.getElementById('sweepStopBtn');
+  const ringStartBtn = document.getElementById('ringDownStartBtn');
+  const ringStopBtn = document.getElementById('ringDownStopBtn');
   if (startBtn) startBtn.disabled = !!running;
+  if (soundOnlyBtn) soundOnlyBtn.disabled = !!running;
   if (stopBtn) stopBtn.disabled = !running;
+  if (ringStartBtn) ringStartBtn.disabled = !!running;
+  if (ringStopBtn) ringStopBtn.disabled = !running;
 }
 
 function setSweepSetStatus(text){
@@ -7732,6 +7791,236 @@ async function waitForSweepCompletion(timeoutSec){
   return !autoMeasurementSetCancelled;
 }
 
+function getRingDownToneSec(){
+  return getNumInput('ringDownToneSec', 5, 0.5, 60);
+}
+
+function getRingDownObserveSec(){
+  return getNumInput('ringDownObserveSec', 5, 0.5, 60);
+}
+
+function setRingDownStatus(text){
+  const st = document.getElementById('ringDownStatus');
+  if (st) st.textContent = text;
+}
+
+async function startFixedRingDownTone(targetHz){
+  const ctx = await ensureAudioContext();
+  stopTone();
+
+  oscNode = ctx.createOscillator();
+  gainNode = ctx.createGain();
+  oscNode.type = 'sine';
+  oscNode.frequency.setValueAtTime(targetHz, ctx.currentTime);
+  currentSoundHz = targetHz;
+  gainNode.gain.setValueAtTime(getSoundVol(), ctx.currentTime);
+  oscNode.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  oscNode.start();
+
+  // Ring Down excitation must be a steady tone. Do not apply AM/pulse modulation.
+  stopModulation();
+  const st = document.getElementById('soundStatus');
+  if (st) st.textContent = `ring tone ${targetHz.toFixed(1)} Hz`;
+}
+
+async function waitAutoMeasurementSeconds(sec){
+  const until = performance.now() + Math.max(0, Number(sec) || 0) * 1000;
+  while (performance.now() < until) {
+    if (autoMeasurementSetCancelled) return false;
+    await sleepMs(Math.min(50, Math.max(1, until - performance.now())));
+  }
+  return !autoMeasurementSetCancelled;
+}
+
+function ringDownCrossingSec(points, threshold){
+  if (!Array.isArray(points) || points.length < 1 || !Number.isFinite(threshold)) return null;
+  if (points[0].mag <= threshold) return 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    if (a.mag > threshold && b.mag <= threshold) {
+      const den = a.mag - b.mag;
+      const r = den > 1e-12 ? (a.mag - threshold) / den : 1;
+      return a.dt + Math.max(0, Math.min(1, r)) * (b.dt - a.dt);
+    }
+  }
+  return null;
+}
+
+function summarizeRingDown(targetHz, stopT){
+  const points = (tsBuf || [])
+    .map(p => ({
+      t: Number(p?.t),
+      mag: Number(p?.ringDownMagnitudeRawA) || 0,
+      hz: Number(p?.ringDownResponseHz) || 0
+    }))
+    .filter(p => Number.isFinite(p.t) && p.t >= stopT && p.mag > 0)
+    .map(p => ({ ...p, dt: p.t - stopT }));
+
+  if (!points.length) {
+    return { targetHz, sampleCount: 0, startMagnitudeRawA: 0, t50Sec: null, t10Sec: null };
+  }
+
+  const startMag = points[0].mag;
+  const peakMag = Math.max(...points.map(p => p.mag));
+  const endMag = points[points.length - 1].mag;
+  const tailCount = Math.max(1, Math.ceil(points.length * 0.2));
+  const tailMedian = medianNumeric(points.slice(-tailCount).map(p => p.mag));
+
+  return {
+    targetHz,
+    sampleCount: points.length,
+    firstPostStopSec: points[0].dt,
+    startMagnitudeRawA: startMag,
+    peakPostStopMagnitudeRawA: peakMag,
+    endMagnitudeRawA: endMag,
+    endRatioPct: startMag > 0 ? endMag / startMag * 100 : null,
+    tailMedianMagnitudeRawA: Number.isFinite(tailMedian) ? tailMedian : null,
+    t50Sec: ringDownCrossingSec(points, startMag * 0.5),
+    t10Sec: ringDownCrossingSec(points, startMag * 0.1)
+  };
+}
+
+function medianNumeric(values){
+  const arr = (values || []).map(Number).filter(Number.isFinite).sort((a,b) => a-b);
+  if (!arr.length) return NaN;
+  const m = Math.floor(arr.length / 2);
+  return arr.length % 2 ? arr[m] : (arr[m-1] + arr[m]) / 2;
+}
+
+async function runRingDownMeasurementSet(){
+  if (autoMeasurementSetActive) return;
+
+  autoMeasurementSetActive = true;
+  autoMeasurementSetCancelled = false;
+  setSweepSetUiRunning(true);
+
+  try {
+    const targetHz = getSoundFreq();
+    const toneSec = getRingDownToneSec();
+    const observeSec = getRingDownObserveSec();
+
+    await ensureAudioContext();
+    stopReferenceAudio();
+    stopSweep();
+    stopTone();
+    resetMeasurementSessionForSweepSet();
+
+    // Keep experiment metadata honest: this button means the actual input is RingDown.
+    setSelectValueById('experimentInput', 'RingDown');
+
+    ringDownTargetHz = targetHz;
+    ringDownTrackingActive = true;
+    autoMeasurementCaptureActive = true;
+    autoMeasurementRunMeta = {
+      mode: 'ring-down-auto-save',
+      inputType: 'RingDown',
+      startedAt: new Date().toISOString(),
+      ringDownTargetHz: targetHz,
+      toneDurationSec: toneSec,
+      observeDurationSec: observeSec,
+      expectedCaptureSec: toneSec + observeSec,
+      displayWindowSec: getTimeWindowSec(),
+      captureRetention: 'full-session-during-auto-set',
+      toneWaveform: 'sine',
+      toneModulation: 'none (forced for ring-down)',
+      responseMetric: 'raw FFT RMS / target ±1bin',
+      sequence: ['reset', 'fixed-tone', 'stop-tone', 'ring-down-observe', 'save-log']
+    };
+
+    autoMeasurementRunMeta.captureStartedT = getMeasurementClockT();
+    autoMeasurementRunMeta.toneStartedT = getMeasurementClockT();
+    setRingDownStatus(`1/3 tone ${targetHz.toFixed(1)} Hz / ${toneSec.toFixed(1)}s`);
+    await startFixedRingDownTone(targetHz);
+
+    const toneOk = await waitAutoMeasurementSeconds(toneSec);
+    if (!toneOk) return;
+
+    autoMeasurementRunMeta.toneStoppedT = getMeasurementClockT();
+    stopTone();
+    setRingDownStatus(`2/3 STOP → decay ${observeSec.toFixed(1)}s`);
+
+    const observeOk = await waitAutoMeasurementSeconds(observeSec);
+    autoMeasurementRunMeta.ringDownEndedT = getMeasurementClockT();
+    if (!observeOk) return;
+
+    autoMeasurementRunMeta.ringDownSummary = summarizeRingDown(
+      targetHz,
+      Number(autoMeasurementRunMeta.toneStoppedT) || 0
+    );
+    autoMeasurementRunMeta.completedAt = new Date().toISOString();
+    autoMeasurementRunMeta.status = 'completed';
+    autoMeasurementRunMeta.capturedFrameCountBeforeSave = tsBuf.length;
+    autoMeasurementRunMeta.capturedSpanSecBeforeSave = getFrameTimeSpan(tsBuf).span;
+
+    setRingDownStatus('3/3 saving log...');
+    const savedName = saveSessionToFile();
+    const sm = autoMeasurementRunMeta.ringDownSummary || {};
+    const t50 = Number.isFinite(sm.t50Sec) ? `${sm.t50Sec.toFixed(3)}s` : '-';
+    const t10 = Number.isFinite(sm.t10Sec) ? `${sm.t10Sec.toFixed(3)}s` : '-';
+    setRingDownStatus(`complete / T50 ${t50} / T10 ${t10}`);
+    if (logInfoStatusEl) logInfoStatusEl.textContent = `RingDown saved / ${savedName || ''} / T50 ${t50} / T10 ${t10}`;
+  } catch (err) {
+    console.error('ring down measurement failed', err);
+    if (autoMeasurementRunMeta) {
+      autoMeasurementRunMeta.status = 'error';
+      autoMeasurementRunMeta.error = String(err?.message || err);
+    }
+    setRingDownStatus(`ERROR: ${String(err?.message || err)}`);
+    if (warnEl) warnEl.textContent = `Ring Down failed: ${String(err?.message || err)}`;
+  } finally {
+    stopTone();
+    ringDownTrackingActive = false;
+    ringDownTargetHz = 0;
+    autoMeasurementCaptureActive = false;
+    autoMeasurementSetActive = false;
+    setSweepSetUiRunning(false);
+  }
+}
+
+
+async function runSweepSoundOnly(){
+  if (autoMeasurementSetActive || sweepActive) return;
+
+  setSweepSetUiRunning(true);
+  autoMeasurementSetCancelled = false;
+  sweepSoundOnlyActive = true;
+  sweepSoundOnlyCancelled = false;
+
+  try {
+    // 試聴専用。計測セッションをリセットせず、長時間保持も自動保存もしない。
+    // 後から手動Save Logした場合に過去の自動計測メタが紛れないようにする。
+    autoMeasurementCaptureActive = false;
+    autoMeasurementRunMeta = null;
+
+    stopReferenceAudio();
+    stopTone();
+    await ensureAudioContext();
+
+    const startHz = getSweepStartHz();
+    const endHz = getSweepEndHz();
+    const sweepDurationSec = getSweepDurationSec();
+
+    setSweepSetStatus(`sound only ${startHz.toFixed(0)}→${endHz.toFixed(0)} Hz / ${sweepDurationSec.toFixed(1)}s`);
+    await startSweep();
+    await waitForSweepCompletion(sweepDurationSec + 3);
+
+    if (sweepSoundOnlyCancelled) {
+      setSweepSetStatus('sound only cancelled / no auto log');
+    } else {
+      setSweepSetStatus('sound only complete / no auto log');
+    }
+  } catch (err) {
+    console.error('sweep sound only failed', err);
+    setSweepSetStatus(`ERROR: ${String(err?.message || err)}`);
+    if (warnEl) warnEl.textContent = `Sweep Sound Only failed: ${String(err?.message || err)}`;
+  } finally {
+    if (sweepActive) stopSweep();
+    sweepSoundOnlyActive = false;
+    setSweepSetUiRunning(false);
+  }
+}
+
 async function runSweepMeasurementSet(){
   if (autoMeasurementSetActive) return;
 
@@ -7829,6 +8118,13 @@ async function runSweepMeasurementSet(){
 
 function cancelSweepMeasurementSet(){
   if (!autoMeasurementSetActive) {
+    if (sweepSoundOnlyActive) {
+      sweepSoundOnlyCancelled = true;
+      stopSweep();
+      stopReferenceAudio();
+      setSweepSetStatus('sound only cancelled / no auto log');
+      return;
+    }
     stopSweep();
     stopReferenceAudio();
     return;
@@ -7841,13 +8137,29 @@ function cancelSweepMeasurementSet(){
   }
   stopSweep();
   stopReferenceAudio();
-  setSweepSetStatus('auto set cancelled');
+  stopTone();
+  ringDownTrackingActive = false;
+  ringDownTargetHz = 0;
+  if (autoMeasurementRunMeta?.mode === 'ring-down-auto-save') {
+    setRingDownStatus('ring down cancelled');
+  } else {
+    setSweepSetStatus('auto set cancelled');
+  }
 }
 
 document.getElementById('sweepStartBtn')
   ?.addEventListener('click', runSweepMeasurementSet);
 
+document.getElementById('sweepSoundOnlyBtn')
+  ?.addEventListener('click', runSweepSoundOnly);
+
 document.getElementById('sweepStopBtn')
+  ?.addEventListener('click', cancelSweepMeasurementSet);
+
+document.getElementById('ringDownStartBtn')
+  ?.addEventListener('click', runRingDownMeasurementSet);
+
+document.getElementById('ringDownStopBtn')
   ?.addEventListener('click', cancelSweepMeasurementSet);
 
 setSweepSetUiRunning(false);

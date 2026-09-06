@@ -120,7 +120,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 60
               },
               "search": {
@@ -137,7 +137,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "height": 60
               },
               "search": {
@@ -155,7 +155,7 @@
                 "width": 120
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               },
               "readonly": true,
@@ -173,7 +173,7 @@
                 "width": 100
               },
               "edit": {
-                "visible": true,
+                "visible": false,
                 "readonly": true
               },
               "readonly": true,

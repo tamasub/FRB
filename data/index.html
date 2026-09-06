@@ -52,7 +52,8 @@
       Sec:
       <input id="sweepDurationSec" type="number" value="30" min="1" max="600" step="1" style="width:72px">
     </label>
-    <button id="sweepStartBtn" type="button" title="画面/ログ初期化 → Sweep → 基準振動音2種 → Log保存">Sweep一括計測</button>
+    <button id="sweepStartBtn" type="button" title="入力種別に応じて 画面/ログ初期化 → Sweep → (基準振動音) → Log保存">Sweep一括計測</button>
+    <button id="sweepSoundOnlyBtn" type="button" title="ログ初期化・自動保存を行わず、現在のStart/End/Sec設定でSweep音だけを再生">Sweep音のみ</button>
     <button id="sweepStopBtn" type="button">Stop</button>
     <span id="sweepStatus" class="mini">auto set idle</span>
   </div>
@@ -69,6 +70,18 @@
           <button id="soundStopBtn" type="button">Stop</button>
           <span id="soundStatus" class="mini">idle</span>
         </label>
+
+        <label title="現在のHzを固定Toneで鳴らし、自動停止後の減衰を観測してLog保存">
+          RingDown ToneSec:
+          <input id="ringDownToneSec" type="number" value="5" min="0.5" max="60" step="0.5" style="width:58px">
+        </label>
+        <label>
+          ObserveSec:
+          <input id="ringDownObserveSec" type="number" value="5" min="0.5" max="60" step="0.5" style="width:58px">
+        </label>
+        <button id="ringDownStartBtn" type="button" title="固定周波数Tone → 自動STOP → 減衰観測 → Log保存">RingDown一括計測</button>
+        <button id="ringDownStopBtn" type="button">Stop</button>
+        <span id="ringDownStatus" class="mini">ring down idle</span>
   </div>
 
         <div class="logMetaPanel">
@@ -98,6 +111,7 @@
             <select id="experimentInput">
               <option value="AutoSweep＋基準振動音" selected>AutoSweep＋基準振動音</option>
               <option value="AutoSweep">AutoSweep</option>
+              <option value="RingDown">RingDown</option>
               <option value="振動基準音">振動基準音</option>
               <option value="ステンレス擦り">ステンレス擦り</option>
               <option value="床擦り">床擦り</option>
@@ -119,8 +133,7 @@
           <label>
             計測部:
             <select id="experimentMeasurementPart">
-              <option value="割りばしカーボン" selected>割りばしカーボン</option>
-              <option value="EVAグリップ" selected>EVAグリップ</option>
+              <option value="グリップ" selected>グリップ</option>
               <option value="トップより同一距離">トップより同一距離</option>   
               <option value="その他">その他</option>
             </select>
@@ -692,7 +705,7 @@
 </div> 
 
 
-  <script src="app.js?v=20260905_input_aware_reference_audio_v01"></script>
+  <script src="app.js?v=20260905_sweep_sound_only_v01"></script>
 
 </body>
 

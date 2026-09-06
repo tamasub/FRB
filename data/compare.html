@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FRB Compare v1</title>
   <link rel="stylesheet" href="style.css?v=20260905_transmission_ratio_v01" />
-  <link rel="stylesheet" href="compare.css?v=20260905_transmission_ratio_v01" />
+  <link rel="stylesheet" href="compare.css?v=20260905_ring_down_compare_v01" />
 </head>
 <body class="compare-body">
   <header class="compare-header">
@@ -50,8 +50,8 @@
       <span id="scaleStatus" class="status">Fixed 80k</span>
     </div>
     <div class="note-box">
-      v1: Transmission Ratio / Sweep Trace Hz / Sweep Trace Energy / BandTimeline Investigate / FRB Piano Roll / Flux / Triangle Motion / BridgeScore Legacy<br />
-      Transmission RatioはReference Log（スピーカー直計測）を100%として、AutoSweep入力周波数近傍 ±1 FFT bin のRMS振幅比を表示。100%超は共振・増幅候補としてそのまま残す。Sweep Energyは左右共通Auto Scale。
+      v1: Transmission Ratio / Ring Down / Sweep Trace Hz / Sweep Trace Energy / BandTimeline Investigate / FRB Piano Roll / Flux / Triangle Motion / BridgeScore Legacy<br />
+      Transmission RatioはReference Log（スピーカー直計測）を100%として、AutoSweep入力周波数近傍 ±1 FFT bin のRMS振幅比を表示。100%超は共振・増幅候補としてそのまま残す。Ring DownはLeft/RightのtoneStoppedTをSTOP=0sに揃え、対象周波数 ±1bin のRaw FFT RMS減衰を共通Yスケールで重ねる。Sweep Energyは左右共通Auto Scale。
     </div>
   </section>
 
@@ -64,9 +64,17 @@
       </div>
     </section>
 
+    <section class="compare-row panel ringdown-row">
+      <h2>② Ring Down — STOP = 0s</h2>
+      <div class="ringdown-wrap">
+        <canvas id="ringDownCompare" height="180"></canvas>
+        <div id="ringDownStats" class="ringdown-stats">Load RingDown logs into Left / Right.</div>
+      </div>
+    </section>
+
     <div class="global-side-labels" aria-hidden="true"><span>Left</span><span>Right</span></div>
     <section class="compare-row panel">
-      <h2>② Sweep Trace Hz</h2>
+      <h2>③ Sweep Trace Hz</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftSweepHz" height="125"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightSweepHz" height="125"></canvas></div>
@@ -74,7 +82,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>③ Sweep Trace Energy</h2>
+      <h2>④ Sweep Trace Energy</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftSweepEnergy" height="125"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightSweepEnergy" height="125"></canvas></div>
@@ -82,7 +90,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>④ BandTimeline Investigate</h2>
+      <h2>⑤ BandTimeline Investigate</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBand" height="150"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightBand" height="150"></canvas></div>
@@ -90,7 +98,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑤ FRB Piano Roll</h2>
+      <h2>⑥ FRB Piano Roll</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftPiano" height="120"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightPiano" height="120"></canvas></div>
@@ -98,7 +106,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑥ Flux</h2>
+      <h2>⑦ Flux</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftFlux" height="95"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightFlux" height="95"></canvas></div>
@@ -106,7 +114,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑦ Triangle Motion</h2>
+      <h2>⑧ Triangle Motion</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftTriangle" height="85"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightTriangle" height="85"></canvas></div>
@@ -114,7 +122,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑧ BridgeScore v1 (Legacy)</h2>
+      <h2>⑨ BridgeScore v1 (Legacy)</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBridge" height="85"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightBridge" height="85"></canvas></div>
@@ -122,7 +130,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑨ Bridge Stability (Research / rolling 1.0s)</h2>
+      <h2>⑩ Bridge Stability (Research / rolling 1.0s)</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBridgeStability" height="105"></canvas><div id="leftBridgeStats" class="bridge-stats"></div></div>
         <div class="side"><h3>Right</h3><canvas id="rightBridgeStability" height="105"></canvas><div id="rightBridgeStats" class="bridge-stats"></div></div>
@@ -130,7 +138,7 @@
     </section>
 
     <section class="compare-row panel">
-      <h2>⑩ Bridge v1 Breakdown (0-80 / 80-160 / 160-250Hz)</h2>
+      <h2>⑪ Bridge v1 Breakdown (0-80 / 80-160 / 160-250Hz)</h2>
       <div class="pair">
         <div class="side"><h3>Left</h3><canvas id="leftBridgeBreakdown" height="115"></canvas></div>
         <div class="side"><h3>Right</h3><canvas id="rightBridgeBreakdown" height="115"></canvas></div>
@@ -139,6 +147,6 @@
   </main>
 
   <script src="frb_bridge_metrics.js?v=20260905_transmission_ratio_v01"></script>
-  <script src="compare.js?v=20260905_transmission_ratio_v01"></script>
+  <script src="compare.js?v=20260905_ring_down_compare_v01"></script>
 </body>
 </html>

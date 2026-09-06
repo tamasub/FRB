@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "0dd98854668b0377",
+        "id": "b542a08c7feddc30",
         "type": "tabs",
         "children": [
           {
-            "id": "3da0d6b4433b6577",
+            "id": "d8824b62b41d07cc",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "ObsidianVault/wiki/index.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新規タブ"
+              "title": "index"
             }
           }
         ]
@@ -152,6 +156,7 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "ObsidianVault/wiki/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -178,21 +183,21 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "3da0d6b4433b6577",
+  "active": "d8824b62b41d07cc",
   "lastOpenFiles": [
+    "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_V2_1_20260906_153204.json",
+    "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV10_20260906_151713.json",
+    "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV09_20260605_215815.json",
+    "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_20260515_223233.json",
+    "ObsidianVault/wiki/index.md",
+    "FRB_FFT_App20260905_151518.zip",
+    "FRB_FFT_App20260905_151429.zip",
+    "FRB_FFT_App20260905_145354.zip",
+    "FRB_FFT_App20260905_142731.zip",
     "FRB_FFT_App20260905_140607.zip",
     "data/陜難ｽｺ雋・戟髯ｺ陷肴坩豬ｹ繝ｻ蝣､・ｨ・ｮ.mp3",
     "tools/FRBStudio_App/data/reference_vibration_2types.mp3",
-    "tools/FRBStudio_App/data/style.css",
-    "tools/FRBStudio_App/data/app.js",
     "tools/FRBStudio_App/data/ESP32_FFT_Monitor_Help.md",
-    "tools/FRBStudio_App/data/compare.css",
-    "tools/FRBStudio_App/data/frb_bridge_metrics.js",
-    "tools/FRBStudio_App/data/compare.html",
-    "tools/FRBStudio_App/data/index.html",
-    "tools/FRBStudio_App/data/陜難ｽｺ雋・戟髯ｺ陷肴坩豬ｹ繝ｻ蝣､・ｨ・ｮ.mp3",
-    "tools/FRBStudio_App/data/compare.js",
-    "ObsidianVault/wiki/index.md",
     "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
     "ObsidianVault/wiki/hot.md",
     "ObsidianVault/wiki/overview.md",

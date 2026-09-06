@@ -125,3 +125,52 @@
   line-height: 1.35;
   white-space: normal;
 }
+
+
+/* Mouse frequency probe */
+canvas.frb-hover-probe { cursor: crosshair; }
+.frb-chart-tooltip {
+  position: fixed;
+  z-index: 9999;
+  display: none;
+  pointer-events: none;
+  max-width: min(360px, 80vw);
+  padding: 7px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.93);
+  color: #fff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.2);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+.frb-chart-tooltip .hz { font-size: 12px; font-weight: 800; }
+.frb-chart-tooltip .sub { color: #cbd5e1; }
+
+/* Ring Down comparison */
+.ringdown-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fbfdff;
+}
+.ringdown-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+}
+.ringdown-stats {
+  padding: 5px 8px 6px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: normal;
+}
+.ringdown-stats .warn {
+  color: #b45309;
+  font-weight: 800;
+}

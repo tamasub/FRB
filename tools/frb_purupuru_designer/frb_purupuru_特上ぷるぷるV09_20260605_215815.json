@@ -1,0 +1,258 @@
+{
+  "app": "frb_purupuru_designer",
+  "schemaVersion": 1,
+  "appVersion": "v2.6",
+  "savedAt": "2026-06-05T12:58:15.774Z",
+  "settingsName": "特上ぷるぷるV09",
+  "settings": {
+    "duration": 5.7,
+    "amp": 0.9,
+    "decay": 0.56,
+    "f0": 121,
+    "f1": 197,
+    "curve": 2.15,
+    "speedBoost": 1.45,
+    "accel": 0.27,
+    "tailSpeed": 0.51,
+    "modFreq": 10.1,
+    "modDepth": 0.56,
+    "detuneHz": 7.1,
+    "detuneMix": 0.8,
+    "detunePhase": 304,
+    "secondAmp": 0.65,
+    "secondPos": 0.95,
+    "jitter": 0.2,
+    "lowAmp": 0.62,
+    "lowHz": 19,
+    "lowDelay": 1.8,
+    "lowRise": 0.05,
+    "lowTail": 6.6,
+    "lowLayerAmp": 0.81,
+    "lowLayerHz": 76,
+    "lowLayerDelay": 0.2,
+    "lowLayerAttack": 0.02,
+    "lowLayerHold": 3.55,
+    "lowLayerRelease": 4,
+    "lowLayerWobbleHz": 0.12,
+    "lowLayerWobbleDepth": 0.03,
+    "lowLayerHarmonic": 1,
+    "highLayerAmp": 0.92,
+    "highLayerHz": 237,
+    "highLayerDelay": 0.55,
+    "highLayerAttack": 0.07,
+    "highLayerHold": 4.75,
+    "highLayerRelease": 1.25,
+    "highLayerShimmerHz": 1.7,
+    "highLayerShimmerDepth": 0.12,
+    "highLayerHarmonic": 0,
+    "volume": 0.2
+  },
+  "parameterMeta": {
+    "duration": {
+      "min": 0.5,
+      "max": 20,
+      "step": "0.1"
+    },
+    "amp": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "decay": {
+      "min": 0,
+      "max": 1.2,
+      "step": "0.01"
+    },
+    "f0": {
+      "min": 5,
+      "max": 220,
+      "step": "1"
+    },
+    "f1": {
+      "min": 5,
+      "max": 500,
+      "step": "1"
+    },
+    "curve": {
+      "min": 0.2,
+      "max": 4,
+      "step": "0.05"
+    },
+    "speedBoost": {
+      "min": 0.25,
+      "max": 6,
+      "step": "0.05"
+    },
+    "accel": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "tailSpeed": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "modFreq": {
+      "min": 0.1,
+      "max": 20,
+      "step": "0.1"
+    },
+    "modDepth": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "detuneHz": {
+      "min": 0,
+      "max": 30,
+      "step": "0.1"
+    },
+    "detuneMix": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "detunePhase": {
+      "min": 0,
+      "max": 360,
+      "step": "1"
+    },
+    "secondAmp": {
+      "min": 0,
+      "max": 0.8,
+      "step": "0.01"
+    },
+    "secondPos": {
+      "min": 0.05,
+      "max": 0.95,
+      "step": "0.01"
+    },
+    "jitter": {
+      "min": 0,
+      "max": 0.35,
+      "step": "0.01"
+    },
+    "lowAmp": {
+      "min": 0,
+      "max": 0.8,
+      "step": "0.01"
+    },
+    "lowHz": {
+      "min": 10,
+      "max": 80,
+      "step": "1"
+    },
+    "lowDelay": {
+      "min": 0,
+      "max": 5,
+      "step": "0.05"
+    },
+    "lowRise": {
+      "min": 0.05,
+      "max": 3,
+      "step": "0.05"
+    },
+    "lowTail": {
+      "min": 0.1,
+      "max": 8,
+      "step": "0.1"
+    },
+    "lowLayerAmp": {
+      "min": 0,
+      "max": 1.5,
+      "step": "0.01"
+    },
+    "lowLayerHz": {
+      "min": 15,
+      "max": 90,
+      "step": "1"
+    },
+    "lowLayerDelay": {
+      "min": 0,
+      "max": 5,
+      "step": "0.05"
+    },
+    "lowLayerAttack": {
+      "min": 0.02,
+      "max": 3,
+      "step": "0.02"
+    },
+    "lowLayerHold": {
+      "min": 0,
+      "max": 6,
+      "step": "0.05"
+    },
+    "lowLayerRelease": {
+      "min": 0.1,
+      "max": 10,
+      "step": "0.1"
+    },
+    "lowLayerWobbleHz": {
+      "min": 0,
+      "max": 4,
+      "step": "0.01"
+    },
+    "lowLayerWobbleDepth": {
+      "min": 0,
+      "max": 0.35,
+      "step": "0.01"
+    },
+    "lowLayerHarmonic": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "highLayerAmp": {
+      "min": 0,
+      "max": 1.2,
+      "step": "0.01"
+    },
+    "highLayerHz": {
+      "min": 120,
+      "max": 500,
+      "step": "1"
+    },
+    "highLayerDelay": {
+      "min": 0,
+      "max": 5,
+      "step": "0.05"
+    },
+    "highLayerAttack": {
+      "min": 0.01,
+      "max": 2,
+      "step": "0.01"
+    },
+    "highLayerHold": {
+      "min": 0,
+      "max": 6,
+      "step": "0.05"
+    },
+    "highLayerRelease": {
+      "min": 0.05,
+      "max": 8,
+      "step": "0.05"
+    },
+    "highLayerShimmerHz": {
+      "min": 0,
+      "max": 22,
+      "step": "0.1"
+    },
+    "highLayerShimmerDepth": {
+      "min": 0,
+      "max": 0.8,
+      "step": "0.01"
+    },
+    "highLayerHarmonic": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    },
+    "volume": {
+      "min": 0,
+      "max": 1,
+      "step": "0.01"
+    }
+  },
+  "notes": "Artificial PuruPuru Designer setting file. Load this JSON from the app to restore the slider values."
+}
