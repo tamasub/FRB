@@ -27,7 +27,7 @@
                 "visible": true,
                 "readonly": true
               },
-              "width": 339
+              "width": 459
             },
             {
               "field": "target",
@@ -70,7 +70,7 @@
               "edit": {
                 "visible": true
               },
-              "width": 122
+              "width": 141
             },
             {
               "field": "created_at",
@@ -84,7 +84,7 @@
                 "visible": true,
                 "readonly": true
               },
-              "width": 84
+              "width": 115
             },
             {
               "field": "updated_at",
@@ -319,7 +319,7 @@
                 "operator": "equals"
               },
               "display_note": "follow_up_actionsの検索用代表状態。既存項目の要否未評価はUNASSESSED。個別action更新時は集約規則に従って同期する。",
-              "width": 154
+              "width": 254
             },
             {
               "field": "verification_status",

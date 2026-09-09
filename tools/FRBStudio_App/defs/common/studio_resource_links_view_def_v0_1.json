@@ -119,7 +119,7 @@
                 "initialValue": "diff",
                 "applyOnLoad": true
               },
-              "width": 116
+              "width": 83
             },
             {
               "field": "category",
