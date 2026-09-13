@@ -40,7 +40,7 @@ test('Phase 4 wires SearchCapabilityResolver -> StandardSearchUi -> SearchFilter
   assert.ok(ui > resolver);
   assert.ok(filter > ui);
   assert.ok(runtime > filter);
-  assert.match(html, /search_ui_controller\.js\?v=standard-search-ui-01867/);
+  assert.match(html, /search_ui_controller\.js\?v=standard-search-ui-018138/);
 
   const loadRuntime = readText('wwwroot/js/runtime/load_runtime.js');
   assert.match(loadRuntime, /await ensureStandardSearchUiContext\(\)/);
@@ -51,7 +51,7 @@ test('Phase 4 wires SearchCapabilityResolver -> StandardSearchUi -> SearchFilter
   assert.match(renderer, /createStandardSearchField\(field, capability, createFieldControlElement\)/);
 });
 
-test('standard operator stays visually quiet and only non-range override requires the pin', () => {
+test('pin compares current operator with resolved ViewDef default and treats between normally', () => {
   const textCapability = {
     value_family: 'string',
     derived: { default_operator: 'contains' },
@@ -64,12 +64,21 @@ test('standard operator stays visually quiet and only non-range override require
   assert.equal(SearchUi.operatorCaption('gte', 'date'), '以降');
   assert.equal(SearchUi.operatorCaption('lte', 'number'), '以下');
 
-  const rangeOverride = {
+  const viewDefOverride = {
+    value_family: 'number',
+    derived: { default_operator: 'between' },
+    effective: { default_operator: 'gte' }
+  };
+  assert.equal(SearchUi.isVisualOverride('gte', viewDefOverride), false, 'resolved ViewDef default is visually quiet');
+  assert.equal(SearchUi.isVisualOverride('equals', viewDefOverride), true);
+  assert.equal(SearchUi.isVisualOverride('between', viewDefOverride), true, 'between is no longer a special case');
+
+  const rangeDefault = {
     value_family: 'number',
     derived: { default_operator: 'equals' },
     effective: { default_operator: 'between' }
   };
-  assert.equal(SearchUi.isVisualOverride('between', rangeOverride), false, 'From/To shape itself is the visual signal');
+  assert.equal(SearchUi.isVisualOverride('between', rangeDefault), false, 'between stays quiet only when it is the resolved default');
 });
 
 test('context menu remains one level and merges Combo option maintenance below a separator', () => {

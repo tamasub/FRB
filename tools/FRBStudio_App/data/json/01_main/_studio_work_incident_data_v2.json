@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-09-05T10:45:00+09:00",
+  "updated_at": "2026-09-11T18:48:00+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 251,
+  "items_count": 252,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -37839,6 +37839,228 @@
           "reason": "見た目のMarkdown HTMLからinnerTextを保存すると原文記号が欠落するため。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0264",
+      "phase": "v0.18.138-standard-search-ui-resolved-default-pin",
+      "title": "検索Operator押しピン / ViewDef解決済み標準との差分表示へ統一",
+      "incident_type": "bugfix",
+      "category": "search_ui / viewdef",
+      "priority": "medium",
+      "status": "完了",
+      "follow_up_status": "ユーザー実機確認待ち / ViewDef検索Operator選択肢9件同期済み",
+      "verification_status": "JS構文PASS / 関連Static 33/33 PASS / 全Static 465件中462 PASS・既存3 FAILのみ / NativeShell実機確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-11T18:48:00+09:00",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-09-11T18:48:00+09:00",
+      "updated_at": "2026-09-11T19:13:00+09:00",
+      "work_summary": "検索Operator押しピンをViewDef適用後の解決済み標準との差分表示へ統一し、between例外を廃止する。あわせてViewDefメンテの検索条件Comboが旧4候補のまま残っていた漏れを補正し、Search Operator Registryのactive 9 Operatorを選択可能にする。",
+      "target_files": [
+        "wwwroot/js/services/search_ui_controller.js",
+        "wwwroot/index.html",
+        "tests/qa/static/standard_search_ui_context_menu_phase4.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "defs/common/view_def_maint_fields_v0_2.json",
+        "data/json/config/search_operator_registry_v0_1.json",
+        "tests/qa/static/combo_viewdef_maintenance_static.test.mjs",
+        "tests/qa/static/standard_search_contract_phase1.test.mjs"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/services/search_ui_controller.js",
+        "wwwroot/index.html",
+        "tests/qa/static/standard_search_ui_context_menu_phase4.test.mjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "defs/common/view_def_maint_fields_v0_2.json",
+        "data/json/config/search_operator_registry_v0_1.json",
+        "tests/qa/static/combo_viewdef_maintenance_static.test.mjs",
+        "tests/qa/static/standard_search_contract_phase1.test.mjs"
+      ],
+      "objective": "押しピンの意味を『この検索項目が通常の初期検索条件から一時的に変更されている』へ一本化し、ViewDefで明示したOperatorが初期表示からOverride扱いされる違和感をなくす。",
+      "background": "No.項目はViewDefでsearch.operator=gteを明示している一方、従来の押しピン判定はSearch Operator Registry由来のderived.default_operator（numberではbetween）と比較していた。そのためNo.の初期状態gteでも押しピンが表示された。またbetweenだけはCurrentと標準が異なっても押しピンを出さない特別扱いがあり、表示意味が一貫していなかった。会話中にViewDefメンテのsearch.operator候補がcontains/equals/gte/lteの4件固定で、Registryのactive Operator 9件へ追従していない別課題も確認した。",
+      "scope": [
+        "isVisualOverrideの比較先をeffective.default_operatorへ変更",
+        "betweenの押しピン特別扱いを削除",
+        "押しピンTooltipを初期検索条件との差分という意味へ変更",
+        "Search UI scriptのcache-bust更新",
+        "Resolved Default / between回帰Static Test追加",
+        "ViewDefメンテのsearch.operator選択肢へRegistry active Operator 9件を追加",
+        "ViewDefメンテのsearch.operator選択肢とSearch Operator Registry active語彙の一致をStatic Testで保証",
+        "Search Operator Registryのstandard_ui_policyをResolved Default基準・between例外なしへ更新"
+      ],
+      "out_of_scope": [
+        "Core標準との差分を別色の押しピン等で表示する3層UI",
+        "search.operator_set / search.operatorsのViewDefメンテUI追加"
+      ],
+      "fixed_name_policy": "Field名・Operator名の個別固定分岐は追加しない。押しピン判定はSearchCapabilityResolverが解決したeffective.default_operatorを共通基準として扱う。",
+      "module_policy": "Operator解決はSearchCapabilityResolver、検索UI状態と押しピン表示はStandardSearchUiの既存責務境界を維持する。ViewDef固有条件をRuntimeへ追加しない。",
+      "expected_outputs": [
+        "ViewDefでsearch.operator=gteのNo.は初期状態gteで押しピン非表示",
+        "No.をequals/between/blank等へ変更すると押しピン表示",
+        "gteへ戻すと押しピン非表示",
+        "betweenは特別扱いせず、解決済み標準がbetweenの時だけ押しピン非表示"
+      ],
+      "risk": "押しピンの意味が旧『Core標準からのOverride』から『画面上の初期検索条件からのRuntime変更』へ変わる。Core標準とViewDef設定の差分可視化が必要になった場合は、検索利用画面とは別のViewDefレビュー責務として検討する。",
+      "test_points": [
+        "derived=between / effective=gte / current=gte で押しピンなし",
+        "derived=between / effective=gte / current=equals で押しピンあり",
+        "derived=between / effective=gte / current=between で押しピンあり",
+        "effective=between / current=between では押しピンなし",
+        "検索取消/ResetでcurrentOperatorがeffectiveDefaultOperatorへ戻ること",
+        "既存Context Menu/Range/No-value Operatorに回帰がないこと"
+      ],
+      "verification_log": [
+        {
+          "at": "2026-09-11T18:48:00+09:00",
+          "confirmation_type": "JS構文",
+          "result": "PASS",
+          "detail": "search_ui_controller.js / standard_search_ui_context_menu_phase4.test.mjs node --check PASS"
+        },
+        {
+          "at": "2026-09-11T18:48:00+09:00",
+          "confirmation_type": "専用Static",
+          "result": "PASS",
+          "detail": "node --test tests/qa/static/standard_search_ui_context_menu_phase4.test.mjs = 8/8 PASS"
+        },
+        {
+          "at": "2026-09-11T18:48:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS_WITH_BASELINE_FAILURES",
+          "detail": "node --test tests/qa/static/*.test.mjs = 463 tests / 460 PASS / 3 FAIL。FAILは既存Baselineと同一（App Settings max_total_text_bytes 300000 vs 524288、field_group_type_resolver実行環境、Studio Resource Links shallow path契約）。今回追加FAILなし。"
+        },
+        {
+          "at": "2026-09-11T19:12:00+09:00",
+          "confirmation_type": "関連Static",
+          "result": "PASS",
+          "detail": "関連Static 3ファイル（combo_viewdef_maintenance / standard_search_contract_phase1 / standard_search_ui_context_menu_phase4）= 33/33 PASS。search.operator候補9件同期と押しピン契約整合を確認。"
+        },
+        {
+          "at": "2026-09-11T19:13:00+09:00",
+          "confirmation_type": "全Static",
+          "result": "PASS_WITH_BASELINE_FAILURES",
+          "detail": "node --test tests/qa/static/*.test.mjs = 465 tests / 462 PASS / 3 FAIL。FAILは既存Baselineと同一（App Settings max_total_text_bytes 300000 vs 524288、field_group_type_resolver実行環境、Studio Resource Links shallow path件数契約）。今回追加FAILなし。"
+        }
+      ],
+      "context_def_draft": "検索画面の押しピンは、Studio Core標準との差分ではなく、その画面・項目に解決された初期検索条件からのRuntime変更を表す。Resolved Default Operator = Current Operatorなら非表示、異なれば表示する。betweenを含むOperator IDごとの例外は持たない。",
+      "user_request": "3層に分けると押しピンアイコンの違う色が必要になるため今は行わない。解決済み標準（ViewDef）の設定と違うなら押しピン表示。betweenの特別扱いもなくす。対応し、インシデント登録も行う。",
+      "ai_response": "押しピン判定をCurrent Operatorとeffective.default_operatorの単純比較へ変更し、between例外を削除する。Core標準との差分表示は今回対象外とする。",
+      "latest_user_comment": "combo選択肢追加わすれているでーーー。",
+      "latest_ai_response": "ViewDefメンテのsearch.operator候補へRegistry active 9 Operator（contains / not_contains / equals / not_equals / gte / lte / between / blank / not_blank）を追加。Registry契約文もResolved Default基準・between例外なしへ合わせ、候補とRegistry active語彙の一致をStatic Testで固定。関連Static 33/33 PASS、全Static 465件中462 PASS / 既存3 FAILのみで今回追加FAILなし。",
+      "context_refs": [
+        "studio_work_0254",
+        "studio_work_0189",
+        "studio_work_0190"
+      ],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0264_001",
+          "status": "IN_PROGRESS",
+          "action": "NativeShell実機でNo.初期gteの押しピン非表示、equals/between変更時表示、gte復帰時非表示を確認する。"
+        },
+        {
+          "action_id": "followup_0264_002",
+          "status": "COMPLETED",
+          "action": "ViewDefメンテのsearch.operator選択肢をSearch Operator Registry active 9件へ同期し、Static Testで語彙一致を保証する。",
+          "completed_at": "2026-09-11T19:12:00+09:00",
+          "result": "固定4件だったoptionsをactive 9件へ更新。実行時動的導出は導入せず、Registry正本との差異をStaticで検知する方式とした。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0264_001",
+          "at": "2026-09-11",
+          "speaker": "user",
+          "topic": "押しピン意味の固定",
+          "message": "3層に分けると、押しピンアイコンの違う色つくらないとあかんなるから、今は少なくてもやめよう笑　・解決済み標準（ViewDef）の設定と違うなら、押しピン表示。・betweenの特別扱いなくして、解決済み標準（ViewDef）の設定と違うなら、押しピン表示。こうしようか。"
+        },
+        {
+          "history_id": "disc_0264_002",
+          "at": "2026-09-11",
+          "speaker": "user",
+          "topic": "実装依頼",
+          "message": "いい整理ができました。ほな、対応よろしく。インシデント登録もよろしくね"
+        },
+        {
+          "history_id": "disc_0264_003",
+          "at": "2026-09-11",
+          "speaker": "assistant",
+          "topic": "完了報告",
+          "message": "AI回答\n\n## 今回の更新\n\n- `wwwroot/js/services/search_ui_controller.js`\n- `wwwroot/index.html`\n- `tests/qa/static/standard_search_ui_context_menu_phase4.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## やったこと\n\n押しピンの意味を「Studio Core標準との差分」ではなく「ViewDef適用後の初期検索条件から変更中」へ統一した。Current Operatorと`effective.default_operator`が同じなら非表示、違えば表示する。`between`の特別扱いは削除した。\n\n## 方針\n\n3層の色分けは導入せず、検索利用画面の押しピンは1つの意味だけを持たせた。ViewDefメンテの`search.operator`候補がRegistryへ追従していない件は、今回の押しピン修正とは分離してfollow-upへ残した。\n\n## 確認結果\n\n- JS構文：PASS\n- 専用Static：8/8 PASS\n- 全Static：463件中460 PASS / 3 FAIL\n- 残る3 FAILは既存Baselineと同一で、今回追加FAILなし\n- NativeShell実機：確認待ち\n\n## 返却ZIP\n\n- `FRBStudio_App_diff_v0.18.138_search_pin_resolved_default_20260911.zip`"
+        },
+        {
+          "history_id": "disc_0264_004",
+          "at": "2026-09-11",
+          "speaker": "user",
+          "topic": "ViewDefメンテ候補漏れ",
+          "message": "combo選択肢追加わすれているでーーー。"
+        },
+        {
+          "history_id": "disc_0264_005",
+          "at": "2026-09-11",
+          "speaker": "assistant",
+          "topic": "漏れ補正",
+          "message": "ViewDefメンテのsearch.operator候補をSearch Operator Registryのactive 9件へ同期し、Static Testで一致を保証する。あわせてRegistry内のbetween例外記述も今回決定へ合わせる。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0264_001",
+          "at": "2026-09-11T18:48:00+09:00",
+          "decision": "押しピンはCurrent OperatorとViewDef適用後のResolved Default Operator（effective.default_operator）が異なる場合だけ表示する。",
+          "reason": "検索利用者にとっての押しピンの意味を『初期検索条件から変更中』へ一本化するため。",
+          "applied_axes": [
+            "人間が観測可能な意味の一貫性",
+            "ViewDef First"
+          ],
+          "conditions": "Standard Search UIのOperator切替",
+          "exceptions": "なし。betweenも同じ比較規則を適用する。",
+          "expected_behavior": "初期Operatorではピンなし、別Operatorへ変更時のみピンあり、初期Operatorへ戻すとピンなし。",
+          "acceptance_criteria": "effective defaultとの一致/不一致で表示が一意に決まる。",
+          "confirmation_level": "Static/NativeShell"
+        },
+        {
+          "decision_id": "dec_0264_002",
+          "at": "2026-09-11T18:48:00+09:00",
+          "decision": "Studio Core標準との差分は今回の押しピンへ重ねない。",
+          "reason": "3層差分を同一アイコンへ持ち込むと色分け等の追加UI意味設計が必要になり、現在の目的を越えるため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0264_001",
+          "at": "2026-09-11T18:48:00+09:00",
+          "change_type": "pin_semantics",
+          "before": "isVisualOverrideはderived.default_operatorをCore標準として比較し、ViewDefで別Operatorを初期値にしていても押しピンを表示した。",
+          "after": "isVisualOverrideはeffective.default_operatorを解決済み標準として比較し、Current Operatorが異なる場合だけ押しピンを表示する。",
+          "reason": "ViewDefで正式に設定した初期OperatorをRuntime Override扱いしないため。"
+        },
+        {
+          "history_id": "chg_0264_002",
+          "at": "2026-09-11T18:48:00+09:00",
+          "change_type": "between_special_case_removed",
+          "before": "current operatorがbetweenなら標準との差分があっても押しピンを非表示にした。",
+          "after": "betweenも他Operatorと同じくeffective defaultとの一致/不一致だけで判定する。",
+          "reason": "押しピンの意味をOperatorのUI形状から独立させ、一つの規則へ統一するため。"
+        },
+        {
+          "history_id": "chg_0264_003",
+          "at": "2026-09-11T19:12:00+09:00",
+          "change_type": "viewdef_search_operator_options_sync",
+          "before": "ViewDefメンテのsearch.operator optionsはcontains / equals / gte / lteの4件固定で、Registry active 9件の一部しか選択できなかった。",
+          "after": "contains / not_contains / equals / not_equals / gte / lte / between / blank / not_blankのactive 9件を選択可能にした。",
+          "reason": "ViewDefで利用可能な検索Operatorをメンテ画面から欠落なく設定できるようにするため。"
+        },
+        {
+          "history_id": "chg_0264_004",
+          "at": "2026-09-11T19:12:00+09:00",
+          "change_type": "registry_pin_policy_alignment",
+          "before": "Registry contract.standard_ui_policyにCore標準との差分とbetween例外の旧説明が残っていた。",
+          "after": "Resolved effective defaultとの差分だけを押しピン対象とし、betweenを含むOperator IDごとの例外を持たない契約へ更新した。",
+          "reason": "実装と正本契約の意味を一致させるため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [

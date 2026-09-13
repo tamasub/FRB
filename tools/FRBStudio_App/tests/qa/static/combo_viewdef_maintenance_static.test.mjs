@@ -48,6 +48,19 @@ test('ViewDef maintenance reuses one common ViewDef and saves the edited ViewDef
   assert.match(save, /finalizeViewDefMaintenanceDocument\(sourceData\)/);
 });
 
+test('ViewDef maintenance search.operator options cover every active Search Operator Registry entry', () => {
+  const maint = json('defs/common/view_def_maint_fields_v0_2.json');
+  const registry = json('data/json/config/search_operator_registry_v0_1.json');
+  const fields = maint.views?.[0]?.sections?.find(section => section.id === 'fields')?.fields ?? [];
+  const operatorField = fields.find(field => field.field === 'search.operator');
+  const activeOperatorIds = registry.operators
+    .filter(item => item.status === 'active')
+    .map(item => item.id);
+
+  assert.ok(operatorField, 'search.operator maintenance field is missing');
+  assert.deepEqual(operatorField.options, activeOperatorIds);
+});
+
 test('all standard select render paths bind the shared right-click option maintenance behavior', () => {
   const fieldControls = text('wwwroot/js/renderers/field_controls.js');
   const gridDetail = text('wwwroot/js/renderers/grid_detail.js');

@@ -33,6 +33,13 @@ test('SearchOperatorRegistry is the single vocabulary source and all active refe
   }
 });
 
+test('search pin contract uses resolved effective default with no between exception', () => {
+  const registry = readJson(registryPath);
+  assert.match(registry.contract.standard_ui_policy, /effective default/);
+  assert.match(registry.contract.standard_ui_policy, /between/);
+  assert.match(registry.contract.standard_ui_policy, /例外は設けず/);
+});
+
 test('standard operator sets cover text, numeric, temporal, boolean, and select with range-first numeric/date defaults', () => {
   const registry = readJson(registryPath);
   const sets = new Map(registry.operator_sets.map((item) => [item.id, item]));

@@ -1,4 +1,4 @@
-// v0.18.67-standard-search-ui-context-menu-phase4
+// v0.18.138-standard-search-ui-resolved-default-pin
 // Standard Search UI controller.
 // SearchCapabilityResolverの結果を、検索入力・1階層Context Menu・Override表示へ投影する。
 // Field type固有の検索UI判断を画面コードへ分散させず、将来Field Control Class化へ置換可能な境界に集約する。
@@ -93,10 +93,8 @@
 
   function isVisualOverride(operatorId, capability) {
     const operator = String(operatorId ?? '').trim();
-    const standard = standardOperator(capability);
-    if (!operator || !standard || operator === standard) return false;
-    // RangeはFrom/Toの形そのものが意味を示すため、📌を必須にしない。
-    if (operator === 'between') return false;
+    const resolvedDefault = effectiveDefaultOperator(capability);
+    if (!operator || !resolvedDefault || operator === resolvedDefault) return false;
     return true;
   }
 
@@ -275,10 +273,10 @@
     const override = isVisualOverride(state.currentOperator, state.capability);
     state.pinButton.hidden = !override;
     const currentCaption = operatorCaption(state.currentOperator, state.capability?.value_family);
-    const standardCaption = operatorCaption(standardOperator(state.capability), state.capability?.value_family);
+    const resolvedDefaultCaption = operatorCaption(state.effectiveDefaultOperator, state.capability?.value_family);
     state.pinButton.title = override
-      ? `標準検索から変更中: ${currentCaption} / 標準: ${standardCaption}`
-      : `標準検索: ${standardCaption}`;
+      ? `初期検索条件から変更中: ${currentCaption} / 初期: ${resolvedDefaultCaption}`
+      : `初期検索条件: ${resolvedDefaultCaption}`;
   }
 
   function renderOperator(state) {

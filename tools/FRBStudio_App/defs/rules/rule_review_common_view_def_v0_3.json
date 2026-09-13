@@ -401,7 +401,7 @@
               },
               "search": {
                 "visible": true,
-                "operator": "gte"
+                "operator": "between"
               },
               "width": 80
             },

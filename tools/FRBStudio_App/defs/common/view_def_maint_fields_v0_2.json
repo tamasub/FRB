@@ -282,9 +282,14 @@
               "type": "select",
               "options": [
                 "contains",
+                "not_contains",
                 "equals",
+                "not_equals",
                 "gte",
-                "lte"
+                "lte",
+                "between",
+                "blank",
+                "not_blank"
               ],
               "grid": {
                 "visible": true,
