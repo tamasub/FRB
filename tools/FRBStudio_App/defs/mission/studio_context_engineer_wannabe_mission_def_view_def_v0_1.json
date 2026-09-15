@@ -302,8 +302,7 @@
               "caption": "Details History Policy",
               "type": "textarea",
               "grid": {
-                "visible": false,
-                "width": 160
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -313,7 +312,8 @@
               "search": {
                 "visible": false
               },
-              "readonly": true
+              "readonly": true,
+              "width": 570
             },
             {
               "field": "mission.mission_id",
