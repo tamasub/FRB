@@ -127,8 +127,7 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 150
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -137,7 +136,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 220
             },
             {
               "field": "category",
@@ -158,8 +158,7 @@
                 "レビュー"
               ],
               "grid": {
-                "visible": true,
-                "width": 120
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -167,7 +166,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 210
             },
             {
               "field": "title",
@@ -240,8 +240,7 @@
                 "対象外"
               ],
               "grid": {
-                "visible": true,
-                "width": 110
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -251,7 +250,8 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": "未確認"
+              "defaultValue": "未確認",
+              "width": 210
             },
             {
               "field": "constraint_count",
@@ -259,8 +259,7 @@
               "type": "number",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 80
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -269,7 +268,8 @@
               "search": {
                 "visible": true,
                 "operator": "gte"
-              }
+              },
+              "width": 83
             },
             {
               "field": "summary",
@@ -345,7 +345,8 @@
               "layout": {
                 "placement": "detailBody",
                 "order": 100
-              }
+              },
+              "width": "FULL"
             },
             {
               "field": "__group_chat",
@@ -402,7 +403,8 @@
               "layout": {
                 "placement": "detailFooter",
                 "order": 900
-              }
+              },
+              "width": "FULL"
             },
             {
               "field": "constraints",

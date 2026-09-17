@@ -211,7 +211,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 220
             },
             {
               "field": "summary.short_definition",
@@ -226,7 +227,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 221
             },
             {
               "field": "summary.initial_trigger_count",
@@ -256,8 +258,7 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": true,
-                "width": 220
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -269,7 +270,8 @@
               },
               "validation": {
                 "required": true
-              }
+              },
+              "width": 214
             },
             {
               "field": "trigger_name",
@@ -346,8 +348,7 @@
               "caption": "Strategy ID",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 300
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -355,15 +356,15 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 214
             },
             {
               "field": "prompt_strategy",
               "caption": "Prompt Strategy",
               "type": "textarea",
               "grid": {
-                "visible": true,
-                "width": 420
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -372,7 +373,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 421
             },
             {
               "field": "status",
@@ -394,8 +396,7 @@
                 }
               ],
               "grid": {
-                "visible": true,
-                "width": 100
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -403,7 +404,8 @@
               "search": {
                 "visible": true,
                 "operator": "equals"
-              }
+              },
+              "width": 258
             },
             {
               "field": "activation_phrases",

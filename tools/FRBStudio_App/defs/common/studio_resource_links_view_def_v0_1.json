@@ -135,7 +135,7 @@
               "search": {
                 "visible": false
               },
-              "width": 211
+              "width": 410
             },
             {
               "field": "path",
@@ -187,7 +187,7 @@
               "search": {
                 "visible": false
               },
-              "width": 340
+              "width": 505
             },
             {
               "field": "link_id",
@@ -203,7 +203,7 @@
               "search": {
                 "visible": false
               },
-              "width": 155
+              "width": 220
             }
           ]
         }

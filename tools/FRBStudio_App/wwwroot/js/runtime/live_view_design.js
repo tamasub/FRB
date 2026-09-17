@@ -1,4 +1,4 @@
-// v0.18.136-live-view-design-editor-tip-top-layer-fix
+// v0.18.139-live-view-design-field-alignment-guide-exact-pixel-match
 // Live View Design: Field.width is the canonical visual width for data display/editing.
 // Field.width accepts a numeric px value or FULL. Search controls stay at Studio standard width.
 // Grid legacy grid.width remains read-compatible.
@@ -344,6 +344,124 @@ function studioHideFieldWidthTip() {
   if (!studioFieldWidthTip) return;
   studioFieldWidthTip.classList.add('hidden');
 }
+const STUDIO_FIELD_ALIGNMENT_GUIDE_TOLERANCE_PX = 1;
+
+let studioFieldAlignmentGuide = null;
+let studioFieldAlignmentSource = null;
+let studioFieldAlignmentTarget = null;
+
+function studioEnsureFieldAlignmentGuide(sourceElement=null) {
+  // A modal <dialog> is rendered in the browser Top Layer. A guide appended to
+  // document.body is therefore hidden behind the open Detail dialog even when it
+  // has a huge z-index. Keep the guide in the same Top Layer as the resize source,
+  // exactly like the live width Tip.
+  const host = studioFieldWidthTipHost(sourceElement);
+  if (!studioFieldAlignmentGuide?.isConnected) {
+    const guide = document.createElement('div');
+    guide.className = 'studio-field-alignment-guide hidden';
+    guide.setAttribute('aria-hidden', 'true');
+    studioFieldAlignmentGuide = guide;
+  }
+  if (studioFieldAlignmentGuide.parentElement !== host) {
+    host.appendChild(studioFieldAlignmentGuide);
+  }
+  return studioFieldAlignmentGuide;
+}
+
+function studioClearFieldAlignmentClasses() {
+  studioFieldAlignmentSource?.classList.remove('studio-field-alignment-source');
+  studioFieldAlignmentTarget?.classList.remove('studio-field-alignment-target');
+  studioFieldAlignmentSource = null;
+  studioFieldAlignmentTarget = null;
+}
+
+function studioHideFieldAlignmentGuide() {
+  studioClearFieldAlignmentClasses();
+  if (!studioFieldAlignmentGuide) return;
+  studioFieldAlignmentGuide.classList.add('hidden');
+}
+
+function studioFieldAlignmentContainer(sourceWrap) {
+  return sourceWrap?.closest('#detailForm, #headerForm, .detail-grid, .form-grid') ?? sourceWrap?.parentElement ?? null;
+}
+
+function studioFindFieldAlignmentMatch(sourceWrap) {
+  const container = studioFieldAlignmentContainer(sourceWrap);
+  if (!container) return null;
+
+  const sourceRect = sourceWrap.getBoundingClientRect();
+  const sourceX = sourceRect.right;
+  let best = null;
+
+  const candidates = [...container.querySelectorAll(':scope > .field, :scope > .standard-search-field')];
+  for (const candidate of candidates) {
+    if (candidate === sourceWrap || !candidate.isConnected) continue;
+    if (candidate.classList.contains('studio-field-width-full')) continue;
+
+    const style = getComputedStyle(candidate);
+    if (style.display === 'none' || style.visibility === 'hidden') continue;
+
+    const rect = candidate.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) continue;
+
+    const verticalGap = rect.bottom < sourceRect.top
+      ? sourceRect.top - rect.bottom
+      : sourceRect.bottom < rect.top
+        ? rect.top - sourceRect.bottom
+        : 0;
+
+    const edges = [
+      { edge: 'left', x: rect.left },
+      { edge: 'right', x: rect.right }
+    ];
+
+	for (const edge of edges) {
+	  const distance = Math.abs(sourceX - edge.x);
+
+	  if (distance > STUDIO_FIELD_ALIGNMENT_GUIDE_TOLERANCE_PX) continue;
+
+	  const score = (distance * 10000) + verticalGap;
+
+	  if (!best || score < best.score) {
+	    best = {
+	      sourceRect,
+	      target: candidate,
+	      targetRect: rect,
+	      x: edge.x,
+	      edge: edge.edge,
+	      score
+	    };
+	  }
+	}
+
+  }
+
+  return best;
+}
+
+function studioUpdateFieldAlignmentGuide(sourceWrap) {
+  const match = studioFindFieldAlignmentMatch(sourceWrap);
+  if (!match) {
+    studioHideFieldAlignmentGuide();
+    return;
+  }
+
+  const guide = studioEnsureFieldAlignmentGuide(sourceWrap);
+  const top = Math.min(match.sourceRect.top, match.targetRect.top) - 5;
+  const bottom = Math.max(match.sourceRect.bottom, match.targetRect.bottom) + 5;
+
+  studioClearFieldAlignmentClasses();
+  studioFieldAlignmentSource = sourceWrap;
+  studioFieldAlignmentTarget = match.target;
+  sourceWrap.classList.add('studio-field-alignment-source');
+  match.target.classList.add('studio-field-alignment-target');
+
+  guide.style.left = `${Math.round(match.x)}px`;
+  guide.style.top = `${Math.max(0, Math.round(top))}px`;
+  guide.style.height = `${Math.max(12, Math.round(bottom - Math.max(0, top)))}px`;
+  guide.dataset.alignmentEdge = match.edge;
+  guide.classList.remove('hidden');
+}
 
 function studioInstallFieldResizeHandle(wrap, field, context='detail', section=null) {
   if (!wrap || !field || !section) return;
@@ -384,6 +502,7 @@ function studioInstallFieldResizeHandle(wrap, field, context='detail', section=n
       wrap.dataset.studioFieldWidth = String(width);
       wrap.dataset.studioFieldWidthMode = 'FIXED';
       studioShowFieldWidthTip(width, moveEvent.clientX, moveEvent.clientY, wrap);
+      studioUpdateFieldAlignmentGuide(wrap);
     };
 
     const onUp = upEvent => {
@@ -391,6 +510,7 @@ function studioInstallFieldResizeHandle(wrap, field, context='detail', section=n
       document.removeEventListener('mouseup', onUp);
       document.body.classList.remove('studio-field-width-resizing');
       studioHideFieldWidthTip();
+      studioHideFieldAlignmentGuide();
       if (!moved) return;
       const width = studioNormalizeFieldWidth(startWidth + (upEvent.clientX - startX));
       if (!width) return;

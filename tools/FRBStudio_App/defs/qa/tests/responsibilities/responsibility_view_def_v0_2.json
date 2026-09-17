@@ -538,8 +538,7 @@
               "caption": "公開Interface",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 260
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -548,7 +547,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 573
             },
             {
               "field": "in_scope",
@@ -1123,7 +1123,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 971
             }
           ],
           "editorComponents": [

@@ -91,7 +91,7 @@
               "field": "title",
               "caption": "タイトル",
               "type": "text",
-              "width": "FULL",
+              "width": 666,
               "grid": {
                 "visible": true
               },
@@ -199,6 +199,11 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
+              },
+              "markdown": {
+                "enabled": true,
+                "allowLinks": true,
+                "allowImages": true
               },
               "display_note": "Qiita記事本文(Markdown原文)。詳細画面でMarkdownリンク/画像記法を許可する想定。",
               "width": "FULL"

@@ -138,7 +138,8 @@
               "edit": {
                 "visible": true,
                 "readonly": true
-              }
+              },
+              "width": 346
             },
             {
               "field": "source_version",
@@ -508,8 +509,7 @@
               "caption": "ルール名",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 280
+                "visible": true
               },
               "edit": {
                 "visible": true
@@ -517,7 +517,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 300
             },
             {
               "field": "priority",
@@ -538,7 +539,7 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "width": 80
+              "width": 168
             },
             {
               "field": "verification_status",
@@ -551,8 +552,7 @@
                 "対象外"
               ],
               "grid": {
-                "visible": true,
-                "width": 110
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -564,7 +564,8 @@
               },
               "defaultValue": "未確認",
               "readonly": true,
-              "display_note": "AIまたは自動検証が更新する確認状態。人間向けレビュー画面ではreadonly表示する。"
+              "display_note": "AIまたは自動検証が更新する確認状態。人間向けレビュー画面ではreadonly表示する。",
+              "width": 240
             },
             {
               "field": "approval_decision",
@@ -655,8 +656,7 @@
               "type": "number",
               "readonly": true,
               "grid": {
-                "visible": false,
-                "width": 90
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -668,7 +668,8 @@
               },
               "markdown": {
                 "export": false
-              }
+              },
+              "width": 246
             },
             {
               "field": "source_md_file",
@@ -685,7 +686,8 @@
               "search": {
                 "visible": false,
                 "operator": "contains"
-              }
+              },
+              "width": 298
             },
             {
               "field": "introduced_in",
@@ -693,8 +695,7 @@
               "type": "text",
               "readonly": true,
               "grid": {
-                "visible": false,
-                "width": 120
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -703,7 +704,8 @@
               "search": {
                 "visible": false,
                 "operator": "contains"
-              }
+              },
+              "width": 171
             },
             {
               "field": "ceremony_phrase",
@@ -1003,8 +1005,7 @@
               "caption": "承認者",
               "type": "text",
               "grid": {
-                "visible": false,
-                "width": 120
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -1016,15 +1017,15 @@
               },
               "defaultValue": "",
               "readonly": true,
-              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。"
+              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。",
+              "width": 239
             },
             {
               "field": "approved_at",
               "caption": "承認日時",
               "type": "datetime",
               "grid": {
-                "visible": false,
-                "width": 160
+                "visible": false
               },
               "edit": {
                 "visible": true,
@@ -1036,7 +1037,8 @@
               },
               "defaultValue": "",
               "readonly": true,
-              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。"
+              "display_note": "人間承認の証跡メタデータ。別の承認操作ではなく、承認処理または運用記録から設定する。",
+              "width": 221
             },
             {
               "field": "notes",

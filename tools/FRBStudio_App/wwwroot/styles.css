@@ -4246,7 +4246,11 @@ button.viewdef-maintenance-button:disabled {
   justify-content: flex-start;
 }
 
+#headerSection #headerForm.form-grid,
 #detailDialog #detailForm.detail-grid {
+  /* Keep every wrapped flex row top-aligned.
+     This is visually neutral for single-line fields, and prevents short controls
+     from dropping to the bottom when the same row contains a multi-line field. */
   align-items: flex-start;
 }
 
@@ -4344,6 +4348,35 @@ button.viewdef-maintenance-button:disabled {
 }
 
 .studio-field-width-tip.hidden {
+  display: none;
+}
+
+/* Live View Design: show a thin Smart Guide when the resized field edge aligns with a nearby field. */
+.studio-field-alignment-guide {
+  position: fixed;
+  z-index: 10060;
+  width: 1px;
+  pointer-events: none;
+  background: rgba(79, 70, 229, .96);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .72), 0 0 7px rgba(79, 70, 229, .48);
+  opacity: 1;
+  transition: opacity .06s linear;
+}
+
+.studio-field-alignment-guide::before,
+.studio-field-alignment-guide::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  width: 5px;
+  height: 1px;
+  background: rgba(79, 70, 229, .96);
+}
+
+.studio-field-alignment-guide::before { top: 0; }
+.studio-field-alignment-guide::after { bottom: 0; }
+
+.studio-field-alignment-guide.hidden {
   display: none;
 }
 

@@ -976,11 +976,11 @@
           "load_policy": "LOAD_ONCE",
           "save_policy": "SAVE_ONCE",
           "reload_policy": "RELOAD_ONCE",
-          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。現行のapproved Test DATAは互換維持のSeed Fixtureとして直接変更せずWorking Copyへ複製する。Expected Firstでは人間承認済みExpected Diffを検証意図とし、(-)側をBefore値、(+)側をAction / After値としてWorking Copyと操作を逆算する。Expected変更時は既存Generated Input / Actionを失効させる。",
+          "runner_type": "SELENIUM_NATIVE_SHELL",
           "working_copy_policy": "COPY_BEFORE_EXECUTION",
           "working_copy_directory": "data/json/99_test_runtime",
           "cleanup_policy": "DELETE_AFTER_EXECUTION",
-          "runner_type": "SELENIUM_NATIVE_SHELL",
+          "notes": "Test DATA JSONのview_defと、ViewDefのitem_definition_refを辿って対象項目を解決する。現行のapproved Test DATAは互換維持のSeed Fixtureとして直接変更せずWorking Copyへ複製する。Expected Firstでは人間承認済みExpected Diffを検証意図とし、(-)側をBefore値、(+)側をAction / After値としてWorking Copyと操作を逆算する。Expected変更時は既存Generated Input / Actionを失効させる。",
           "input_role": "SEED_FIXTURE",
           "expected_first_policy": "現行input_fileは既存E2Eとの互換を保つSeed Fixture。検証意図はInput側ではなくApproved Expected Diff側に置き、Expected編集後はWorking Copy上の対象Before値とAction値をExpectedから再生成する。"
         }
@@ -1071,7 +1071,7 @@
           "notes": "過去の複数行改行保持バグに対する品質強化パターン。最終行側の境界も確認する。"
         }
       ],
-      "notes": "COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。DATA_UPDATE_PERSISTをExpected Firstの模範責務とし、TestPattern→初期Expected Diff→Human Review/Edit→Approved Expected Diff→Generated Input / Action→Runner→Actual Diffの順で考える。操作手順は機械化しても、検証意図であるExpected Diffは人間が変更可能とする。本更新は責務JSON上の契約整理のみで、Expected編集UI・再生成Runtimeは次Phaseで実装する。",
+      "notes": "- COMMITは内部ステップとして扱い、承認責務は物理JSONへのSAVE→RELOAD後に外部観測できる境界まで含める。\n- DATA_UPDATE_PERSISTをExpected Firstの模範責務とし、TestPattern→初期Expected Diff→Human Review/Edit→Approved Expected Diff→Generated Input / Action→Runner→Actual Diffの順で考える。\n- 操作手順は機械化しても、検証意図であるExpected Diffは人間が変更可能とする。本更新は責務JSON上の契約整理のみで、Expected編集UI・再生成Runtimeは次Phaseで実装する。",
       "expected_first_contract": {
         "status": "PILOT",
         "intent_owner": "HUMAN",
