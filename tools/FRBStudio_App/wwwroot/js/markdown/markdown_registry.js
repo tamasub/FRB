@@ -95,7 +95,7 @@ async function markdownSaveManagedFile(name, content, sourceName='') {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ Name: cleanName, Content: content, SourceName: sourceName })
+    body: JSON.stringify({ name: cleanName, content: content, sourceName: sourceName })
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');

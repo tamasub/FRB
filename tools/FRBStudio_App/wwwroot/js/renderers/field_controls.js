@@ -373,6 +373,51 @@ function renderInlineMarkdownTokens(text, cfg) {
   return html;
 }
 
+// Pipe tables use the escaped inline renderer; raw HTML stays text.
+function markdownTableCells(line) {
+  const cells = [];
+  let cell = '';
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === '\\' && (line[i + 1] === '|' || line[i + 1] === '\\')) {
+      cell += line[++i];
+    } else if (char === '|') {
+      cells.push(cell.trim());
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+  cells.push(cell.trim());
+  if (line.trimStart().startsWith('|')) cells.shift();
+  if (cells.length > 1 && cells[cells.length - 1] === '' && line.trimEnd().endsWith('|')) cells.pop();
+  return cells;
+}
+
+function markdownTableAt(lines, start, cfg) {
+  if (!lines[start]?.includes('|') || !lines[start + 1]) return null;
+  const headers = markdownTableCells(lines[start]);
+  const separators = markdownTableCells(lines[start + 1]);
+  if (!headers.length || headers.length !== separators.length ||
+      !separators.every(cell => /^:?-{3,}:?$/.test(cell))) return null;
+  const alignments = separators.map(cell => cell.startsWith(':')
+    ? (cell.endsWith(':') ? 'center' : 'left') : (cell.endsWith(':') ? 'right' : 'left'));
+  const renderRow = (cells, tag) => `<tr>${headers.map((_, index) =>
+    `<${tag} style="text-align:${alignments[index]}">${renderInlineMarkdownTokens(cells[index] ?? '', cfg)}</${tag}>`
+  ).join('')}</tr>`;
+  const rows = [];
+  let next = start + 2;
+  while (next < lines.length && lines[next].trim() && lines[next].includes('|') &&
+      !/^\s*```/.test(lines[next])) {
+    rows.push(renderRow(markdownTableCells(lines[next]), 'td'));
+    next += 1;
+  }
+  return {
+    next,
+    html: `<div class="md-table-scroll"><table><thead>${renderRow(headers, 'th')}</thead><tbody>${rows.join('')}</tbody></table></div>`
+  };
+}
+
 function renderMarkdownContent(text, cfg) {
   const raw = String(text ?? '').replace(/\r\n/g, '\n');
   if (!cfg?.enabled) return escapeHtmlText(raw);
@@ -402,7 +447,9 @@ function renderMarkdownContent(text, cfg) {
     codeLines = [];
   };
 
-  lines.forEach(line => {
+  let tableEnd = 0;
+  lines.forEach((line, index) => {
+    if (index < tableEnd) return;
     const trimmed = line.trim();
 
     if (/^```/.test(trimmed)) {
@@ -426,6 +473,15 @@ function renderMarkdownContent(text, cfg) {
     if (!trimmed) {
       flushParagraph();
       flushList();
+      return;
+    }
+
+    const table = markdownTableAt(lines, index, cfg);
+    if (table) {
+      flushParagraph();
+      flushList();
+      out.push(table.html);
+      tableEnd = table.next;
       return;
     }
 
@@ -1269,4 +1325,3 @@ function applyGridCellEmphasis(td, field, row, value) {
 registerRenderer('header', renderHeader);
 registerRenderer('search', renderSearch);
 registerRenderer('detailFooterFields', renderDetailFooterFields);
-

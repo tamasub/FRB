@@ -72,7 +72,7 @@ async function exportViewDefMarkdown() {
   const content = buildViewDefMarkdown();
   const rawName = (typeof lastLoadedDefName !== 'undefined' && lastLoadedDefName) ? lastLoadedDefName : 'view_def.json';
   const base = markdownSafeSlug(markdownBaseNameWithoutExt(rawName), 'viewdef_export');
-  const name = `00_Common/${base}_viewdef_${markdownNowStamp()}.md`;
+  const name = `_system/temp/markdown_exports/${base}_viewdef_${markdownNowStamp()}.md`;
   const result = await markdownSaveManagedFile(name, content, rawName);
   const saved = result.saved || name;
   if (typeof setStatus === 'function') setStatus(`ViewDef Markdown出力しました: ${saved}`);

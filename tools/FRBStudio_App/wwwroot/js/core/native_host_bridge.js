@@ -291,8 +291,11 @@
       if (method === 'GET' && path === '/api/defs')
         return jsonResponse(await listRelativeFiles('defs', ['.json']));
 
-      if (method === 'GET' && path === '/api/markdown')
-        return jsonResponse(await listRelativeFiles('data/markdown', ['.md', '.markdown']));
+      if (method === 'GET' && path === '/api/markdown') {
+        const files = await listRelativeFiles('data/markdown', ['.md', '.markdown']);
+        // Studio生成物はViewerへ直接開くが、通常の管理Markdown一覧には混ぜない。
+        return jsonResponse(files.filter(name => !String(name).replace(/\\/g, '/').toLowerCase().startsWith('_system/')));
+      }
 
       if (method === 'GET' && path === '/api/overlays')
         return jsonResponse(await listDirectories('studio_overlays'));

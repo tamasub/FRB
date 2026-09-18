@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135" />
+  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -286,13 +286,14 @@
           <div class="studio-tool-group" aria-label="Markdown出力">
             <span class="studio-tool-label">Output</span>
             <div class="markdown-export-control" aria-label="Markdown出力モード">
-              <button id="exportMarkdownBtn" class="ghost-button studio-mini-button studio-mini-button-singleline" disabled title="選択したモードでMarkdownを出力してViewerで開く">MD 出力→Viewer</button>
-              <select id="exportMarkdownModeSelect" class="markdown-export-mode-select" disabled title="Markdown出力モード">
-                <option value="review_report">レビュー用</option>
-                <option value="full_dump">全項目</option>
+              <button id="exportMarkdownBtn" class="ghost-button studio-mini-button studio-mini-button-singleline" disabled title="選択した内容をMarkdown出力してViewerで開く">MD 出力→Viewer</button>
+              <select id="exportMarkdownModeSelect" class="markdown-export-mode-select" disabled title="Markdown出力内容">
+                <option value="document_rebuild">文書</option>
+                <option value="review_report">レビュー（表示行）</option>
+                <option value="full_dump">Data JSON全文</option>
+                <option value="viewdef">ViewDef</option>
               </select>
             </div>
-            <button id="exportViewDefMarkdownBtn" class="ghost-button studio-mini-button studio-mini-button-singleline" disabled title="ViewDef Markdownを出力してViewerで開く">ViewDef 出力→Viewer</button>
           </div>
         </div>
       </div>
@@ -437,7 +438,7 @@
   <script src="js/virtualData/relation_builders.js?v=action-execute-006"></script>
   <script src="js/virtualData/expected_builders.js?v=action-execute-006"></script>
   <script src="js/runtime/live_view_design.js?v=live-view-design-editor-tip-top-layer-fix-018136"></script>
-  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878&live=018133"></script>
+  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878&live=018133&tables=20260918"></script>
   <script src="js/responsibilities/grid_column_builder.js?v=responsibility-refactor-0187"></script>
   <script src="js/services/search_capability_resolver.js?v=standard-search-capability-01865"></script>
   <script src="js/services/search_ui_controller.js?v=standard-search-ui-018138"></script>

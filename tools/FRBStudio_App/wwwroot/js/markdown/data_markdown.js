@@ -1,4 +1,5 @@
 // v0.18.6-markdown-export-mode-exportdef-rules
+// v0.18.95-markdown-output-unified-temp
 // Data JSON -> Markdown export.
 // Restores the global exportMarkdown() contract used by:
 // - header button #exportMarkdownBtn
@@ -45,20 +46,31 @@ function markdownExportConfig() {
 function markdownDefaultExportModes() {
   return [
     {
-      id: 'review_report',
-      caption: 'レビュー用Markdown出力',
-      type: 'review_report',
+      id: 'document_rebuild',
+      caption: '文書',
+      type: 'document_rebuild',
       fieldPolicy: 'respect_markdown_export'
     },
     {
+      id: 'review_report',
+      caption: 'レビュー（表示行）',
+      type: 'review_report',
+      fieldPolicy: 'respect_markdown_export',
+      rowScope: 'displayed'
+    },
+    {
       id: 'full_dump',
-      caption: '全項目Markdown出力',
+      caption: 'Data JSON全文',
       type: 'full_dump',
       fieldPolicy: 'all'
+    },
+    {
+      id: 'viewdef',
+      caption: 'ViewDef',
+      type: 'viewdef'
     }
   ];
 }
-
 function markdownNormalizeExportMode(mode) {
   if (!mode || typeof mode !== 'object') return null;
   const type = String(mode.type ?? mode.id ?? '').trim() || 'review_report';
@@ -68,17 +80,19 @@ function markdownNormalizeExportMode(mode) {
     ...mode,
     id,
     type,
-    caption: mode.caption ?? mode.label ?? markdownExportModeCaption(type)
+    // OUTPUTは用途名を短く固定し、ViewDefごとの旧ラベル差をUIへ持ち込まない。
+    caption: markdownExportModeCaption(type)
   };
 }
 
 function markdownExportModeCaption(type) {
   switch (String(type ?? '').toLowerCase()) {
-    case 'full_dump': return '全項目Markdown出力';
+    case 'full_dump': return 'Data JSON全文';
+    case 'viewdef': return 'ViewDef';
     case 'document_sections':
-    case 'document_rebuild': return '文書Markdown出力';
+    case 'document_rebuild': return '文書';
     case 'review_report':
-    default: return 'レビュー用Markdown出力';
+    default: return 'レビュー（表示行）';
   }
 }
 
@@ -190,8 +204,10 @@ function markdownVisibleGridFields(section) {
   return (section?.fields ?? []).filter(f => f?.field && f.grid?.visible !== false && markdownShouldExportField(f));
 }
 
-function markdownRowsForSection(section) {
-  if (section === (typeof gridDef === 'function' ? gridDef() : null) && Array.isArray(filteredRows) && filteredRows.length) {
+function markdownRowsForSection(section, scope='displayed') {
+  const isMainGrid = section === (typeof gridDef === 'function' ? gridDef() : null);
+  if (scope === 'displayed' && isMainGrid && Array.isArray(filteredRows)) {
+    // 0件は0件のまま出力する。検索結果0件を「未検索=全件」と解釈しない。
     return filteredRows.map(x => x.row);
   }
   const rows = getByPath(sourceData, section.dataPath);
@@ -570,7 +586,7 @@ function markdownAppendDocumentFromViewSections(lines, mode={}) {
     }
 
     if (section.type !== 'grid') return;
-    const rows = markdownSortRowsForMode(markdownRowsForSection(section), mode);
+    const rows = markdownSortRowsForMode(markdownRowsForSection(section, 'all'), mode);
     lines.push(`## ${section.caption ?? section.id ?? '一覧'}`);
     lines.push('');
     lines.push(`件数: ${rows.length}`);
@@ -631,6 +647,9 @@ function buildDataMarkdown(modeId=null) {
   switch (type) {
     case 'full_dump':
       return buildFullDumpMarkdown(mode);
+    case 'viewdef':
+      if (typeof buildViewDefMarkdown !== 'function') throw new Error('ViewDef Markdown出力機能を読み込めません');
+      return buildViewDefMarkdown();
     case 'document_sections':
     case 'document_rebuild':
       return buildDocumentRebuildMarkdown(mode);
@@ -645,15 +664,28 @@ function markdownFileNameForMode(mode) {
   if (configured) return markdownNormalizePathName(configured).replace(/^data\/markdown\//, '');
   const base = markdownSafeSlug(markdownBaseNameWithoutExt(markdownCurrentDataName()), 'studio_data_export');
   const modeSuffix = markdownSafeSlug(mode?.id || mode?.type || 'markdown', 'markdown');
-  return `00_Common/${base}_${modeSuffix}_${markdownNowStamp()}.md`;
+  return `_system/temp/markdown_exports/${base}_${modeSuffix}_${markdownNowStamp()}.md`;
 }
 
 async function exportMarkdown(modeId=null) {
   const selectedModeId = modeId || markdownSelectedExportModeId();
   const mode = markdownExportModeById(selectedModeId);
   const content = buildDataMarkdown(mode.id);
-  const name = markdownFileNameForMode(mode);
-  const result = await markdownSaveManagedFile(name, content, markdownCurrentDataName());
+
+  const isViewDef = String(mode?.type ?? mode?.id ?? '').toLowerCase() === 'viewdef';
+  let name;
+  let sourceName;
+  if (isViewDef) {
+    const rawName = (typeof lastLoadedDefName !== 'undefined' && lastLoadedDefName) ? lastLoadedDefName : 'view_def.json';
+    const base = markdownSafeSlug(markdownBaseNameWithoutExt(rawName), 'viewdef_export');
+    name = `_system/temp/markdown_exports/${base}_viewdef_${markdownNowStamp()}.md`;
+    sourceName = rawName;
+  } else {
+    name = markdownFileNameForMode(mode);
+    sourceName = markdownCurrentDataName();
+  }
+
+  const result = await markdownSaveManagedFile(name, content, sourceName);
   const saved = result.saved || name;
   if (typeof setStatus === 'function') setStatus(`Markdown出力しました: ${saved} (${mode.caption || mode.id})`);
   if (!result.downloaded) markdownOpenViewer(saved);

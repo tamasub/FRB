@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-09-11T18:48:00+09:00",
+  "updated_at": "2026-09-18_19:15:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 252,
+  "items_count": 254,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -38061,6 +38061,183 @@
         }
       ],
       "failure_stories": []
+    },
+    {
+      "work_item_id": "studio_work_0265",
+      "phase": "responsibility-implemented-capability-registration",
+      "title": "実装済み未登録責務21候補の定義追加計画",
+      "incident_type": "planning",
+      "category": "responsibility",
+      "priority": "high",
+      "status": "未着手",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-09-18_19:09:34",
+      "updated_at": "2026-09-18_19:09:34",
+      "user_request": "このインシデントファイルに、責務追加作業としてインシデントを登録してもらってもいい？その時に今整理してくれたmarkdownの表の状態で、インシデント登録してほしい。但し、現在、添付画像の複数行テキストボックスに情報を入力してもらうことになるけど、現在markdownの表のプレビュー表示が表として表示できない状態の様子なので、ちゃんとした表として表示されるように直しておいてもらえる？？これは別インシデントとして修正履歴を残しておいてほしい。　お願いできる？",
+      "latest_user_comment": "",
+      "discussion_history": [
+        {
+          "history_id": "disc_0265_001",
+          "at": "2026-09-18_19:09:34",
+          "speaker": "user",
+          "topic": "責務追加作業登録とMarkdown表プレビュー修正依頼",
+          "message": "このインシデントファイルに、責務追加作業としてインシデントを登録してもらってもいい？その時に今整理してくれたmarkdownの表の状態で、インシデント登録してほしい。但し、現在、添付画像の複数行テキストボックスに情報を入力してもらうことになるけど、現在markdownの表のプレビュー表示が表として表示できない状態の様子なので、ちゃんとした表として表示されるように直しておいてもらえる？？これは別インシデントとして修正履歴を残しておいてほしい。　お願いできる？"
+        },
+        {
+          "history_id": "disc_0265_002",
+          "at": "2026-09-18_19:09:34",
+          "speaker": "assistant",
+          "topic": "計画登録結果",
+          "message": "実装済みの未登録責務候補21件を、3つのMarkdown表として対象範囲(scope)へ記録しました。責務追加作業は未着手で登録し、表プレビュー修正はstudio_work_0266へ分離しました。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0265_001",
+          "at": "2026-09-18_19:09:34",
+          "decision": "21候補を計画として記録し、境界整理後に段階的に責務追加する。",
+          "reason": "承認単位・観測境界・既存責務との重複を確認せずに数だけ増やさないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0265_001",
+          "at": "2026-09-18_19:09:34",
+          "change_type": "incident_added",
+          "before": "未登録責務候補は会話内のみ。",
+          "after": "対象範囲に21候補・実装根拠・優先順位をMarkdown表で記録。",
+          "reason": "ユーザー依頼による責務追加作業の台帳化。"
+        }
+      ],
+      "follow_up_status": "UNASSESSED",
+      "follow_up_actions": [],
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-18_19:09:34",
+      "context_refs": [],
+      "work_summary": "既存の5責務と実装を照合した未登録候補21件を、Markdown表で整理した責務追加計画。責務境界と観測可能なGuaranteeを検討し、優先5候補から段階的に定義追加する。本件は計画登録済み・責務追加作業は未着手。",
+      "objective": "実装済み機能の保証を、責務／Guarantee／TestPattern／Expectedとして人間が承認できる形へ整理する。",
+      "background": "現責務マスターはsearch_filter / grid_column_build / csv_export / grid_aggregate / data_update_persistの5件。未登録は未実装・テスト不在を意味しない。ソース処理・接続・個別テストの存在から抽出し、実機の合否判定はしていない。",
+      "scope": "## JSON編集の基本\n\n| 未登録の責務候補 | 既にある実装と、責務として保証したいこと | 実装根拠（調査時の行番号） |\n| --- | --- | --- |\n| ViewDef継承解決 | 親定義の読込・子定義とのマージ・循環検出。定義した優先順位で解決されること | wwwroot/js/core/viewdef_resolver.js:98 |\n| Dataに対応するViewDef選択 | Data内の候補や適合性からViewDefを選択すること | wwwroot/js/core/viewdef_resolver.js:545 |\n| 入力値の確定可否判定 | Field DefinitionがREJECT／UNRESOLVEDなら編集内容を正本へ反映しないこと | wwwroot/js/runtime/detail_save.js:352 |\n| 新規行登録 | 採番・検証・配列への追加を行い、正しい対象へ登録すること | wwwroot/js/runtime/detail_save.js:368 |\n| 行削除 | 選択した元データの行を削除し、他の行を削除しないこと | wwwroot/js/renderers/grid_detail.js:935 |\n| 行複製 | コピー元から新規行を作る際の引継ぎ値・新規識別子の扱い | wwwroot/js/renderers/grid_detail.js:1173 |\n| 未保存変更の検知・移動確認 | 未保存変更を検知して移動／キャンセルを確認すること。現実装は保存を含む3択ではない | wwwroot/js/runtime/json_unsaved_guard.js:156 |\n| 子配列編集 | SubGridへの挿入・編集・収集結果を正しい親の配列へ反映すること | wwwroot/js/runtime/detail_subgrid_edit.js:969 |\n\n## 定義駆動・拡張機能\n\n| 未登録の責務候補 | 既にある実装と、責務として保証したいこと | 実装根拠（調査時の行番号） |\n| --- | --- | --- |\n| 選択肢の変更・保存 | 選択肢を定義元へ保存し、キャッシュと現在画面へ反映すること | wwwroot/js/services/option_maintenance_service.js:433 |\n| 画面幅の定義保存 | 操作したField幅を対象ViewDefへ保存し、表示へ反映すること | wwwroot/js/runtime/live_view_design.js:208 |\n| Related Gridの親子連携 | 子画面を開き、編集結果を対応する親セッションへ返すこと | wwwroot/js/runtime/related_grid_view.js:322 |\n| 検索状態の取得・復元 | 検索条件や部品状態を取得・復元すること。検索条件評価とは別の保証 | wwwroot/js/runtime/search_state.js:92 |\n| Overlay構成の読込 | ManifestからData・ViewDefなどの構成を読み込み、統合すること | wwwroot/js/core/overlay_manager.js:224 |\n| Pluginの登録・有効化 | Pluginを読み込み、FieldEditor・SearchFilter・Actionの登録口へ接続すること | wwwroot/js/core/plugin_host.js:316 |\n| Action実行 | 宣言したActionへ対象文脈を渡して実行すること | wwwroot/js/actions/action_registry.js:11 |\n| 派生データの元データへの書戻し | 宣言したキー・項目対応に従って元データを更新・保存すること。途中失敗の保証は要調査 | wwwroot/js/runtime/detail_save.js:520 |\n| アプリ設定の検証・保存用整形 | 設定文書を検証し、保存する正本の形へ整えること | wwwroot/js/runtime/load_runtime.js:483 |\n\n## 文書機能・NativeShell\n\n| 未登録の責務候補 | 既にある実装と、責務として保証したいこと | 実装根拠（調査時の行番号） |\n| --- | --- | --- |\n| Markdown出力 | 出力モードに応じたDataの文書化と出力 | wwwroot/js/markdown/data_markdown.js:628 |\n| Markdownブロック編集 | 原文のブロック解析、対象範囲の編集・反映 | wwwroot/mdViewer.html:4214 |\n| ローカルファイルアクセス範囲の制御 | Workspace外・許可外書込・reparse point経由のアクセス拒否 | NativeShell/WorkspacePolicy.cs:27 |\n| 定義済み外部処理の実行 | Process Profileの実行、パラメーター検証、成果物の取得 | NativeShell/NativeCommandDispatcher.cs:826 |\n\n## 登録方針\n\n- 21件をそのまま21責務へ機械的に分割しない。\n- 入力値の確定可否・新規登録・削除・未保存変更保護・派生データ書戻しを優先検討する。\n- 子配列の値・型・改行保全は既存data_update_persistへの条件追加も検討する。\n- Related Gridの親子反映、別Data Sourceへの書戻しは観測境界が異なるため独立候補とする。\n- 定義する保証と、実装が満たしていることの検証を区別する。\n- 実装根拠のパスはStudioルート相対。行番号は調査時点であり、定義追加着手時に再確認する。",
+      "out_of_scope": "- 今回の登録時に責務マスターへ21件を一括追加すること。\n- 今回の登録時に各機能を改修すること。\n- Markdown表プレビューの修正はstudio_work_0266で管理する。",
+      "target_files": [
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "data/json/03_tests/responsibilities/responsibility_data_v0_2.json"
+      ],
+      "actual_updated_files": [
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "expected_outputs": "- 責務境界と既存責務との重複整理。\n- 観測可能なGuaranteeとTestPattern／Expected。\n- 人間確認を経た責務マスターへの段階的追加。",
+      "test_points": "- 各候補を現行実装と再照合する。\n- 各TestPatternは単一Guaranteeへ所属する。\n- Expectedを保証対象の実装へ依存させない。\n- 個別テストの存在と責務登録状況を区別する。",
+      "verification_status": "計画登録・JSON構造確認。責務追加／実機検証は未着手。",
+      "latest_ai_response": "実装済みの未登録責務候補21件を、3つのMarkdown表として対象範囲(scope)へ記録しました。責務追加作業は未着手で登録し、表プレビュー修正はstudio_work_0266へ分離しました。"
+    },
+    {
+      "work_item_id": "studio_work_0266",
+      "phase": "readable-markdown-pipe-table-preview",
+      "title": "複数行Markdownプレビューの表描画対応",
+      "incident_type": "bugfix",
+      "category": "markdown_preview",
+      "priority": "high",
+      "status": "確認中",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-09-18_19:09:34",
+      "updated_at": "2026-09-18_19:09:34",
+      "user_request": "このインシデントファイルに、責務追加作業としてインシデントを登録してもらってもいい？その時に今整理してくれたmarkdownの表の状態で、インシデント登録してほしい。但し、現在、添付画像の複数行テキストボックスに情報を入力してもらうことになるけど、現在markdownの表のプレビュー表示が表として表示できない状態の様子なので、ちゃんとした表として表示されるように直しておいてもらえる？？これは別インシデントとして修正履歴を残しておいてほしい。　お願いできる？",
+      "latest_user_comment": "このインシデントファイルに、責務追加作業としてインシデントを登録してもらってもいい？その時に今整理してくれたmarkdownの表の状態で、インシデント登録してほしい。但し、現在、添付画像の複数行テキストボックスに情報を入力してもらうことになるけど、現在markdownの表のプレビュー表示が表として表示できない状態の様子なので、ちゃんとした表として表示されるように直しておいてもらえる？？これは別インシデントとして修正履歴を残しておいてほしい。　お願いできる？",
+      "discussion_history": [
+        {
+          "history_id": "disc_0266_001",
+          "at": "2026-09-18_19:09:34",
+          "speaker": "user",
+          "topic": "責務追加作業登録とMarkdown表プレビュー修正依頼",
+          "message": "このインシデントファイルに、責務追加作業としてインシデントを登録してもらってもいい？その時に今整理してくれたmarkdownの表の状態で、インシデント登録してほしい。但し、現在、添付画像の複数行テキストボックスに情報を入力してもらうことになるけど、現在markdownの表のプレビュー表示が表として表示できない状態の様子なので、ちゃんとした表として表示されるように直しておいてもらえる？？これは別インシデントとして修正履歴を残しておいてほしい。　お願いできる？"
+        },
+        {
+          "history_id": "disc_0266_002",
+          "at": "2026-09-18_19:09:34",
+          "speaker": "assistant",
+          "topic": "修正経過",
+          "message": "Markdown表の変換処理と罫線付き表示を追加しました。関連テスト7件が通過。ブラウザー上で実データの表表示と原文保持を確認します。"
+        },
+        {
+          "history_id": "disc_0266_003",
+          "at": "2026-09-18_19:15:00",
+          "speaker": "assistant",
+          "topic": "修正結果",
+          "message": "Markdown表の変換処理と罫線付き表示を追加しました。関連Nodeテスト7件PASS。Chromiumで責務候補3表21行、文字追記後の表復帰と原文保持、幅480pxの収まりを確認しました。NativeShell実機確認待ちとして記録しています。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0266_001",
+          "at": "2026-09-18_19:09:34",
+          "decision": "既存共通Rendererへ表構文を追加し、既存のエスケープ・URL制限・原文保存経路を利用する。",
+          "reason": "特定のインシデントやField名に依存せず、既存表示への影響を表構文と表CSSへ限定するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0266_001",
+          "at": "2026-09-18_19:09:34",
+          "change_type": "markdown_table_preview",
+          "before": "表構文は段落へ変換され、列・罫線を持つ表にならない。",
+          "after": "表の見出し／区切り／本文を認識し、thead／tbody付きtableと専用CSSで表示する。",
+          "reason": "ユーザーが複数行欄で責務候補表を読めるようにするため。"
+        }
+      ],
+      "follow_up_status": "ユーザーNativeShell実機確認待ち / 確認ログ配列の表示は別課題",
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0266_001",
+          "status": "NOT_STARTED",
+          "action": "NativeShell再読込後、studio_work_0265の対象範囲で3表と編集復帰を確認する。"
+        },
+        {
+          "action_id": "followup_0266_002",
+          "status": "NOT_STARTED",
+          "action": "既存確認ログのobject配列がchatカードで[object Object]になる表示契約を別途整理する。既存Dataは変換しない。"
+        },
+        {
+          "action_id": "followup_0266_003",
+          "status": "NOT_STARTED",
+          "action": "contenteditableへの複数段落一括fill時にinnerTextが空行を増やす既存挙動を別途検討する。今回の表Rendererは原文保存経路を変更していない。"
+        }
+      ],
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-09-18_19:09:34",
+      "context_refs": [],
+      "work_summary": "共通Markdown描画にPipe Table対応を追加し、複数行欄・作業説明カードでMarkdown表を罫線付きの表として表示する。Markdown原文と既存編集ライフサイクルは維持する。",
+      "objective": "責務追加計画のMarkdown表を複数行欄のプレビューで表として読めるようにする。",
+      "background": "renderMarkdownContentは段落・見出し・リスト・コード等を処理するが表構文の解釈がなく、パイプ区切りが段落表示されていた。画像の確認ログ[object Object]はcreateChatMessageElementで配列をString化する別要因であり、表構文未対応とは区別する。",
+      "scope": "- 共通Markdown Rendererに見出し行／区切り行／本文行のPipe Table変換を追加。\n- 左／中央／右揃え、セル内の既存インラインMarkdown、エスケープ済みパイプ、空セルに対応。\n- 表専用CSSで罫線・余白・背景・横スクロールを付与。\n- 読込URLのcache-bust更新。\n- 既存Readable Textareaテストへ描画・安全性・回帰ケースを追加。",
+      "out_of_scope": "- HTMLの直接挿入許可。\n- 全Markdown仕様への全面置換。\n- 既存verification_log配列や既存インシデント値の一括変換。\n- C#変更。",
+      "target_files": [
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "wwwroot/js/renderers/field_controls.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/readable_textarea_markdown_preview_static.test.mjs"
+      ],
+      "actual_updated_files": [
+        "data/json/01_main/_studio_work_incident_data_v2.json",
+        "wwwroot/js/renderers/field_controls.js",
+        "wwwroot/styles.css",
+        "wwwroot/index.html",
+        "tests/qa/static/readable_textarea_markdown_preview_static.test.mjs"
+      ],
+      "test_points": "- 21候補の3表がthead／tbody／th／tdとして描画される。\n- focus／編集／blur後もMarkdown原文を保持して表へ戻る。\n- コードフェンス内や無効な区切り行を表と誤認しない。\n- HTML文字列と危険URLを実行可能にしない。\n- 既存の見出し・リスト・markdown:falseの挙動を維持。",
+      "verification_status": "JS構文PASS / 関連Nodeテスト7件PASS / Chromium部品確認PASS / ユーザーNativeShell実機確認待ち",
+      "verification_log": "- JS構文: PASS。\n- 関連Nodeテスト: 7/7 PASS。\n- Chromium部品確認: 実際のReadable Textareaで3表21行9見出し、文字追記→blur後の原文保持と表復帰、幅480pxの収まりを確認。\n- スクリーンショット: 罫線・列配置を確認。\n- NativeShell実機: 未確認。\n- C# build/run: 未実施（C#変更なし）。",
+      "latest_ai_response": "Markdown表の変換処理と罫線付き表示を追加しました。関連Nodeテスト7件PASS。Chromiumで責務候補3表21行、文字追記後の表復帰と原文保持、幅480pxの収まりを確認しました。NativeShell実機確認待ちとして記録しています。",
+      "failure_stories": [
+        {
+          "at": "2026-09-18_19:15:00",
+          "title": "テスト環境の登録口不足",
+          "body": "初回VM検証はregisterFieldControl／registerRendererのstub不足で起動に失敗。登録口を補完して7件PASS。ブラウザー一括fillで既存の空行増加を発見し、通常文字追記と操作を分離して検証、未修正事項は後続作業へ残した。"
+        }
+      ]
     }
   ],
   "review_notes": [
@@ -38576,8 +38753,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "v0.18.126-grid-column-build-pattern-definition-restore",
-  "latest_planning_note": "studio_work_0253: JSON PathはData、クリック起動はViewDefのgrid.action。共通Link Data/ViewDefをcommon配下に置き、OpenStudioJsonで新しいStudioに対象JSONを開く。",
+  "work_revision": "readable-markdown-pipe-table-preview",
+  "latest_planning_note": "studio_work_0265: 実装済み未登録責務21候補をMarkdown表で計画登録（未着手）。studio_work_0266: Markdown表プレビュー修正・ブラウザー部品確認済み（NativeShell確認待ち）。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",

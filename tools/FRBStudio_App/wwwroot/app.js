@@ -442,7 +442,6 @@ $('exportMarkdownBtn').addEventListener('click', () => exportMarkdown(typeof mar
 if ($('exportMarkdownModeSelect')) $('exportMarkdownModeSelect').addEventListener('change', () => {
   if (typeof setStatus === 'function') setStatus(`Markdown出力モード: ${$('exportMarkdownModeSelect').selectedOptions?.[0]?.textContent || $('exportMarkdownModeSelect').value}`, { toast: false });
 });
-if ($('exportViewDefMarkdownBtn')) $('exportViewDefMarkdownBtn').addEventListener('click', exportViewDefMarkdown);
 $('saveBtn').addEventListener('click', async () => {
   try {
     await saveOverwriteJson();

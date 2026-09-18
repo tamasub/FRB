@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +19,36 @@ const textareaControlSection = controls.slice(textareaStart, textareaEnd);
 const textareaCssStart = css.indexOf('v0.18.137-readable-textarea');
 const textareaCssEnd = css.indexOf('v0.10.1-markdown-block-preview-fix', textareaCssStart);
 const textareaCssSection = css.slice(textareaCssStart, textareaCssEnd);
+const markdownContext = vm.createContext({ registerFieldControl() {}, registerRenderer() {} });
+vm.runInContext(controls, markdownContext);
+const render = text => markdownContext.renderMarkdownContent(text, { enabled: true, allowLinks: true, allowImages: true });
+
+test('Markdown tables render headers, alignment, inline content, escaped pipes and surrounding prose', () => {
+  const input = '前文\r\n\r\n| 責務 | 根拠 |\r\n| :--- | ---: |\r\n| **登録** | `a\\|b` |\r\n| 削除 | [資料](https://example.test) |\r\n\r\n後文';
+  const html = render(input);
+  assert.match(html, /<thead><tr><th style="text-align:left">責務<\/th><th style="text-align:right">根拠<\/th>/);
+  assert.equal((html.match(/<tbody>/g) ?? []).length, 1);
+  assert.equal((html.match(/<td /g) ?? []).length, 4);
+  assert.match(html, /<strong>登録<\/strong>/);
+  assert.match(html, /<code class="md-inline-code">a\|b<\/code>/);
+  assert.match(html, /href="https:\/\/example.test"/);
+  assert.match(html, /<p>前文<\/p>/);
+  assert.match(html, /<p>後文<\/p>/);
+});
+
+test('Markdown tables support missing cells, optional outer pipes and do not reinterpret code or invalid delimiters', () => {
+  assert.match(render('A | B\n--- | :---:\n1 |'), /<td style="text-align:center"><\/td>/);
+  assert.doesNotMatch(render('| A | B |\n| --- | nope |\n| 1 | 2 |'), /<table>/);
+  assert.doesNotMatch(render('```\n| A | B |\n| --- | --- |\n```'), /<table>/);
+  assert.match(render('# 見出し\n\n- 項目'), /<h1>見出し<\/h1>[\s\S]*<ul><li>項目<\/li><\/ul>/);
+});
+
+test('Markdown table cells preserve the existing HTML and URL safety boundary', () => {
+  const html = render('| A | B |\n| --- | --- |\n| <script>alert(1)</script> | [bad](javascript:alert) |');
+  assert.doesNotMatch(html, /<script|href="javascript:/);
+  assert.match(html, /&lt;script&gt;/);
+  assert.doesNotMatch(markdownContext.renderMarkdownContent('| A |\n| --- |', { enabled: false }), /<table>/);
+});
 
 function findField(node, fieldName) {
   if (!node || typeof node !== 'object') return null;

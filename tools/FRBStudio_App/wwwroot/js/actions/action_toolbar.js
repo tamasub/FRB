@@ -123,7 +123,8 @@ function removeViewExecuteButtonElement() {
 
 function renderViewExecuteButton() {
   const executeButton = viewExecuteButtonDef();
-  if (!executeButton) {
+  // Markdown出力は上部OUTPUTへ統合。旧「表示行をMD出力」ショートカットは描画しない。
+  if (!executeButton || isVisibleRowsMarkdownExecuteButton(executeButton)) {
     removeViewExecuteButtonElement();
     return;
   }
