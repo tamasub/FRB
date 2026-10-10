@@ -8,6 +8,7 @@
     left:      { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
     right:     { name: '', raw: null, tsBuf: [], pianoRoll: [], offsetMs: 0 },
     bandScale: '80000',
+    bandRangeMode: 'all',
   };
 
   const BANDS_INVESTIGATE = [
@@ -38,6 +39,37 @@
     '#283593', '#1565c0', '#26c6da', '#4dd0e1', '#43a047',
     '#c0ca33', '#d4e157', '#fb8c00', '#e53935'
   ];
+
+  const BAND_TIMELINE_RANGE_STORAGE_KEY = 'frb_band_timeline_investigate_range_mode_v1';
+
+  function getVisibleInvestigateBands() {
+    if (state.bandRangeMode !== '60-220') return BANDS_INVESTIGATE;
+    return BANDS_INVESTIGATE.filter(b => Number(b.f0) >= 60 && Number(b.f1) <= 220);
+  }
+
+  function getVisibleInvestigateLegend() {
+    const keys = new Set(getVisibleInvestigateBands().map(b => b.key));
+    return BANDS_INVESTIGATE_LEGEND.filter(([key]) => keys.has(key));
+  }
+
+  function getInvestigateBandColor(key) {
+    const idx = BANDS_INVESTIGATE.findIndex(b => b.key === key);
+    return BAND_COLORS_INVESTIGATE[idx] || '#333';
+  }
+
+  function restoreBandRangeMode() {
+    try {
+      state.bandRangeMode = localStorage.getItem(BAND_TIMELINE_RANGE_STORAGE_KEY) === '60-220' ? '60-220' : 'all';
+    } catch (_) {
+      state.bandRangeMode = 'all';
+    }
+    const el = $('bandRangeMode');
+    if (el) el.value = state.bandRangeMode;
+  }
+
+  function saveBandRangeMode() {
+    try { localStorage.setItem(BAND_TIMELINE_RANGE_STORAGE_KEY, state.bandRangeMode); } catch (_) {}
+  }
 
   const PIANO = {
     midiMin: 24,
@@ -121,12 +153,18 @@
   }
 
   function setupFileInputs() {
+    restoreBandRangeMode();
     $('referenceFile')?.addEventListener('change', e => readFile('reference', e.target.files?.[0]));
     $('leftFile')?.addEventListener('change', e => readFile('left', e.target.files?.[0]));
     $('rightFile')?.addEventListener('change', e => readFile('right', e.target.files?.[0]));
     $('bandScale')?.addEventListener('change', e => {
       state.bandScale = String(e.target.value || '80000');
       updateScaleStatus();
+      renderAll();
+    });
+    $('bandRangeMode')?.addEventListener('change', e => {
+      state.bandRangeMode = String(e.target.value || 'all') === '60-220' ? '60-220' : 'all';
+      saveBandRangeMode();
       renderAll();
     });
   }
@@ -268,7 +306,7 @@
     for (const side of [state.left, state.right]) {
       for (const p of side.tsBuf) {
         const map = p.bandAInvestigate || {};
-        for (const band of BANDS_INVESTIGATE) max = Math.max(max, Number(map[band.key]) || 0);
+        for (const band of getVisibleInvestigateBands()) max = Math.max(max, Number(map[band.key]) || 0);
       }
     }
     return Math.max(1, max * 1.05);
@@ -878,10 +916,9 @@
     const yMap = (v) => chart.bottom - Math.max(0, Math.min(100, v)) / 100 * chart.height;
     drawGrid(ctx, chart, [0,1,2,3,4,5], i => String(Math.round(100 - (100 * i / 5))));
 
-    for (let b = 0; b < BANDS_INVESTIGATE.length; b++) {
-      const band = BANDS_INVESTIGATE[b];
+    for (const band of getVisibleInvestigateBands()) {
       ctx.save();
-      ctx.strokeStyle = BAND_COLORS_INVESTIGATE[b] || '#333';
+      ctx.strokeStyle = getInvestigateBandColor(band.key);
       ctx.lineWidth = 2;
       ctx.beginPath();
       let started = false;
@@ -899,16 +936,15 @@
     let lx = chart.left + 8, ly = chart.top + 8;
     ctx.font = `${12 * (window.devicePixelRatio || 1)}px sans-serif`;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    for (let i = 0; i < BANDS_INVESTIGATE_LEGEND.length; i++) {
-      const [key, label] = BANDS_INVESTIGATE_LEGEND[i];
-      const color = BAND_COLORS_INVESTIGATE[i] || '#333';
+    for (const [key, label] of getVisibleInvestigateLegend()) {
+      const color = getInvestigateBandColor(key);
       const tw = ctx.measureText(label).width;
       if (lx + 16 + tw + 16 > chart.right - 8) { lx = chart.left + 8; ly += 18 * (window.devicePixelRatio || 1); }
       ctx.fillStyle = color; ctx.fillRect(lx, ly + 4, 12 * (window.devicePixelRatio || 1), 3 * (window.devicePixelRatio || 1));
       ctx.fillStyle = '#333'; ctx.fillText(label, lx + 16 * (window.devicePixelRatio || 1), ly);
       lx += 16 * (window.devicePixelRatio || 1) + tw + 16 * (window.devicePixelRatio || 1);
     }
-    drawFooter(ctx, chart, H, `Band Timeline Investigate / ${state.bandScale === 'auto' ? 'Auto shared' : 'Fixed ' + Math.round(globalMax)}`);
+    drawFooter(ctx, chart, H, `Band Timeline Investigate / ${state.bandRangeMode === '60-220' ? '60-220Hz only' : 'All'} / ${state.bandScale === 'auto' ? 'Auto shared' : 'Fixed ' + Math.round(globalMax)}`);
     setCanvasFrequencyProbe(canvas, {
       chart,
       xMin: start,

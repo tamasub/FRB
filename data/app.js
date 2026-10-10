@@ -246,6 +246,7 @@ const MONITOR_SETTINGS_STORAGE_KEY = 'frb_fft_monitor_ui_settings_v1';
 // Logファイル読込時は loadSessionFromObject() 側の setExperimentMeta() が
 // この初期値を上書きするため、読み込んだLogの情報がそのまま表示される。
 window.addEventListener('DOMContentLoaded', () => {
+  restoreBandTimelineRangeMode();
   restoreMonitorSettingsFromStorage();
 });
 
@@ -470,18 +471,58 @@ function updatePianoRollVolumeMultiplierLabel(){
 // 重要：過去ログに 280-320 / 320-380 / 380-450 / 450-500 などが保存されていても、
 // ここで定義された「表示対象」以外は Viewer へ出さない。
 const INVESTIGATE_VISIBLE_BAND_COUNT = BAND_COLORS_INVESTIGATE.length;
+const BAND_TIMELINE_RANGE_STORAGE_KEY = 'frb_band_timeline_investigate_range_mode_v1';
+const BAND_TIMELINE_RANGE_ALL = 'all';
+const BAND_TIMELINE_RANGE_60_220 = '60-220';
+let bandTimelineInvestigateRangeMode = BAND_TIMELINE_RANGE_ALL;
 
 // const 配列でも中身は変更できる。ここで物理的に表示対象以外を切る。
 // ユーザーが上帯域を復活させたい時は、BAND_COLORS_INVESTIGATE 側のコメントを戻すだけでOK。
 BANDS_INVESTIGATE.length = Math.min(BANDS_INVESTIGATE.length, INVESTIGATE_VISIBLE_BAND_COUNT);
 BANDS_INVESTIGATE_LEGEND.length = Math.min(BANDS_INVESTIGATE_LEGEND.length, INVESTIGATE_VISIBLE_BAND_COUNT);
 
+function isInvestigateBandInRange(band){
+  if (bandTimelineInvestigateRangeMode !== BAND_TIMELINE_RANGE_60_220) return true;
+  return Number(band?.f0) >= 60 && Number(band?.f1) <= 220;
+}
+
 function getActiveInvestigateBands(){
+  // 計測・保存対象。表示モードでは変えない。
   return BANDS_INVESTIGATE.slice(0, INVESTIGATE_VISIBLE_BAND_COUNT);
 }
 
+function getDisplayedInvestigateBands(){
+  return getActiveInvestigateBands().filter(isInvestigateBandInRange);
+}
+
 function getActiveInvestigateBandKeys(){
-  return new Set(getActiveInvestigateBands().map(b => b.key));
+  return new Set(getDisplayedInvestigateBands().map(b => b.key));
+}
+
+function getInvestigateBandColor(key){
+  const idx = BANDS_INVESTIGATE.findIndex(b => b.key === key);
+  return BAND_COLORS_INVESTIGATE[idx] || '#333';
+}
+
+function saveBandTimelineRangeMode(mode){
+  bandTimelineInvestigateRangeMode = mode === BAND_TIMELINE_RANGE_60_220
+    ? BAND_TIMELINE_RANGE_60_220
+    : BAND_TIMELINE_RANGE_ALL;
+  try { localStorage.setItem(BAND_TIMELINE_RANGE_STORAGE_KEY, bandTimelineInvestigateRangeMode); }
+  catch (e) { console.warn('BandTimeline range storage save failed', e); }
+}
+
+function restoreBandTimelineRangeMode(){
+  try {
+    const saved = localStorage.getItem(BAND_TIMELINE_RANGE_STORAGE_KEY);
+    bandTimelineInvestigateRangeMode = saved === BAND_TIMELINE_RANGE_60_220
+      ? BAND_TIMELINE_RANGE_60_220
+      : BAND_TIMELINE_RANGE_ALL;
+  } catch (e) {
+    bandTimelineInvestigateRangeMode = BAND_TIMELINE_RANGE_ALL;
+  }
+  const el = document.getElementById('bandRangeModeInvestigate');
+  if (el) el.value = bandTimelineInvestigateRangeMode;
 }
 
 function filterInvestigateBandMap(map){
@@ -606,6 +647,7 @@ const EXP_MICRO_FIXED_MAX = 15000;
 
 const bandScaleModeEl = document.getElementById('bandScaleMode');
 const bandScaleModeInvestigateEl = document.getElementById('bandScaleModeInvestigate');
+const bandRangeModeInvestigateEl = document.getElementById('bandRangeModeInvestigate');
 
 
 function makeZeroBandMap(){
@@ -1008,6 +1050,14 @@ if (bandScaleModeInvestigateEl) {
   bandScaleModeInvestigateEl.addEventListener('change', () => {
     BAND_TIMELINE_INVESTIGATE_FIXED_MAX =
       Number(bandScaleModeInvestigateEl.value) || 80000;
+    drawBandTimelineInvestigate();
+  });
+}
+
+if (bandRangeModeInvestigateEl) {
+  bandRangeModeInvestigateEl.addEventListener('change', () => {
+    saveBandTimelineRangeMode(bandRangeModeInvestigateEl.value);
+    renderInvestigateLegend();
     drawBandTimelineInvestigate();
   });
 }
@@ -5849,12 +5899,12 @@ function drawBandTimelineInvestigate(){
   }
 
   const bandColors = {};
-  getActiveInvestigateBands().forEach((band, idx) => {
-    bandColors[band.key] = BAND_COLORS_INVESTIGATE[idx] || '#333';
+  getDisplayedInvestigateBands().forEach((band) => {
+    bandColors[band.key] = getInvestigateBandColor(band.key);
   });
 
-  // 線描画
-  for (const band of getActiveInvestigateBands()) {
+  // 線描画（表示モードだけを反映。計測・保存データは全帯域のまま保持）
+  for (const band of getDisplayedInvestigateBands()) {
     gTBI.save();
     gTBI.strokeStyle = bandColors[band.key] || '#333';
     gTBI.lineWidth = 2;
@@ -7355,7 +7405,7 @@ function renderInvestigateLegend(){
     const swatch = document.createElement('span');
     swatch.className = 'bandLegendSwatch';
     swatch.textContent = '■';
-    swatch.style.color = BAND_COLORS_INVESTIGATE[idx] || '#333';
+    swatch.style.color = getInvestigateBandColor(key);
 
     const text = document.createElement('span');
     text.className = 'bandLegendText';
