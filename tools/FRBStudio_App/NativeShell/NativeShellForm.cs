@@ -20,6 +20,7 @@ namespace FRBStudio.NativeShell
         private string _allowedOrigin;
         private readonly string _initialUri;
         private readonly string _initialPage;
+        private readonly string _initialJsonPath;
         private readonly string _initialWorkspaceRoot;
         private readonly CoreWebView2Environment _sharedEnvironment;
         private readonly bool _deferInitialNavigation;
@@ -29,12 +30,14 @@ namespace FRBStudio.NativeShell
         public NativeShellForm(
             string initialUri = null,
             string initialPage = null,
+            string initialJsonPath = null,
             string initialWorkspaceRoot = null,
             CoreWebView2Environment sharedEnvironment = null,
             bool deferInitialNavigation = false)
         {
             _initialUri = initialUri;
             _initialPage = initialPage;
+            _initialJsonPath = initialJsonPath;
             _initialWorkspaceRoot = initialWorkspaceRoot;
             _sharedEnvironment = sharedEnvironment;
             _deferInitialNavigation = deferInitialNavigation;
@@ -87,7 +90,7 @@ namespace FRBStudio.NativeShell
                     !string.IsNullOrWhiteSpace(_initialWorkspaceRoot) && Directory.Exists(_initialWorkspaceRoot)
                         ? _initialWorkspaceRoot
                         : _appRoot);
-                _dispatcher = new NativeCommandDispatcher(_config, _workspace);
+                _dispatcher = new NativeCommandDispatcher(_config, _workspace, _initialJsonPath);
 
                 var webRoot = Path.Combine(_appRoot, "wwwroot");
                 if (!File.Exists(Path.Combine(webRoot, _config.StartPage)))

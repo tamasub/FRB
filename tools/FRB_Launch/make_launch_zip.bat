@@ -12,4 +12,5 @@ if errorlevel 1 (
   exit /b 1
 )
 echo ZIP created successfully.
+start .
 pause

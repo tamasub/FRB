@@ -65,3 +65,31 @@ def hotkey(hwnd, text):
 def unhotkey(hwnd):
     if IS_WINDOWS:
         user.UnregisterHotKey(hwnd,1)
+
+
+def chrome_path():
+    """Find installed Chrome without relying on the default browser."""
+    import shutil
+    candidates=[]
+    if IS_WINDOWS:
+        import winreg
+        for hive in (winreg.HKEY_CURRENT_USER,winreg.HKEY_LOCAL_MACHINE):
+            for view in (winreg.KEY_WOW64_64KEY,winreg.KEY_WOW64_32KEY):
+                try:
+                    with winreg.OpenKey(hive,r"Software\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe",0,winreg.KEY_READ|view) as key:
+                        candidates.append(winreg.QueryValueEx(key,None)[0].strip('"'))
+                except OSError:pass
+    for name in ('LOCALAPPDATA','PROGRAMFILES','PROGRAMFILES(X86)'):
+        if os.environ.get(name):candidates.append(os.path.join(os.environ[name],'Google','Chrome','Application','chrome.exe'))
+    found=shutil.which('chrome.exe')
+    if found:candidates.append(found)
+    return next((p for p in candidates if os.path.isfile(p)),None)
+
+
+def open_chrome(url):
+    import subprocess
+    if not IS_WINDOWS:raise RuntimeError('起動操作はWindowsで利用できます')
+    if not url.lower().startswith(('https://','http://')):raise ValueError('Chromeにはhttp/httpsのURLを指定してください')
+    program=chrome_path()
+    if not program:raise RuntimeError('Google Chromeが見つかりません。Chromeをインストールしてください')
+    subprocess.Popen([program,url])

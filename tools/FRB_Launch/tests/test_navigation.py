@@ -67,6 +67,30 @@ class NavigationTests(unittest.TestCase):
         self.assertEqual(self.w.search.text(), 'appdata')
         self.assertFalse(self.w.menu.isVisible())
 
+    def test_function_page_keys(self):
+        QTest.keyClick(self.w.search, Qt.Key.Key_F2)
+        self.assertEqual(self.w.tabs.currentIndex(),1)
+        QTest.keyClick(self.w.list, Qt.Key.Key_F3)
+        self.assertEqual(self.w.tabs.currentIndex(),2)
+        QTest.keyClick(self.w.search, Qt.Key.Key_F1)
+        self.assertEqual(self.w.tabs.currentIndex(),0)
+        self.w.cascade(self.w.children()[0])
+        menu=self.w.menu
+        QTest.keyClick(menu,Qt.Key.Key_F2)
+        self.assertFalse(menu.isVisible())
+        self.assertEqual(self.w.tabs.currentIndex(),1)
+        QTest.keyClick(self.w.search,Qt.Key.Key_F11)
+        self.assertEqual(self.w.tabs.currentIndex(),1)
+        self.w.search.setText('test')
+        QTest.keyClick(self.w.search,Qt.Key.Key_F1)
+        self.assertEqual(self.w.search.text(),'')
+        row=next(x for x in self.w.data['items'] if x['item_kind']=='selection')
+        self.w.activate(row)
+        sent=[]
+        self.w.confirm_selection=lambda:sent.append(True)
+        QTest.keyClick(self.w.list,Qt.Key.Key_F12)
+        self.assertEqual(sent,[True])
+
     def test_selection_all_clear_and_back(self):
         row = next(x for x in self.w.data['items'] if x['item_kind']=='selection')
         self.w.activate(row)

@@ -351,7 +351,7 @@
       "page_id": "work",
       "parent_item_id": "",
       "title": "FRB Studio",
-      "description": "アプリを起動",
+      "description": "Launch設定JSONを開いて編集",
       "item_kind": "command",
       "icon_key": "app",
       "sort_order": 120,
@@ -370,7 +370,9 @@
           "launch_text": "",
           "launch_target": "",
           "launch_program": "%studio_root%\\NativeShell\\_publish\\FRBStudio.NativeShell.exe",
-          "launch_arguments": [],
+          "launch_arguments": [
+            "--open-json=%launch_data%"
+          ],
           "launch_working_directory": "%studio_root%",
           "launch_wait_for_exit": false,
           "launch_timeout_ms": 30000,
@@ -385,7 +387,7 @@
       "page_id": "work",
       "parent_item_id": "zip",
       "title": "Studio最新資材",
-      "description": "既存ZIP作成バッチを実行",
+      "description": "DOS窓を表示してZIPを作成（Launchは操作可能）",
       "item_kind": "command",
       "icon_key": "archive",
       "sort_order": 130,
@@ -410,11 +412,12 @@
             "%studio_root%\\cmd_make_FRBStudio_App_zip_v2.bat"
           ],
           "launch_working_directory": "%studio_root%",
-          "launch_wait_for_exit": true,
+          "launch_wait_for_exit": false,
           "launch_timeout_ms": 120000,
           "launch_failure_policy": "stop",
           "launch_result_name": "",
-          "launch_result_format": "none"
+          "launch_result_format": "none",
+          "launch_show_console": true
         }
       ]
     },
@@ -917,9 +920,9 @@
       "page_id": "work",
       "parent_item_id": "",
       "title": "お気に入りURL",
-      "description": "Webサイトを開く",
-      "item_kind": "command",
-      "icon_key": "globe",
+      "description": "お気に入りWebサイト",
+      "item_kind": "category",
+      "icon_key": "category.blue",
       "sort_order": 280,
       "enabled": true,
       "keywords": [],
@@ -930,21 +933,7 @@
       "launch_browse_target": "",
       "launch_context_app": "",
       "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_text": "",
-          "launch_target": "https://example.com/",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none"
-        }
-      ]
+      "launch_actions": []
     },
     {
       "item_id": "frb_root_folder",
@@ -993,6 +982,189 @@
         {
           "launch_action_type": "Open",
           "launch_target": "F:\\FRB\\tools\\FRB_Launch\\make_launch_zip.bat"
+        }
+      ]
+    },
+    {
+      "item_id": "favorite_ai",
+      "page_id": "work",
+      "parent_item_id": "website",
+      "title": "AI",
+      "description": "AIサービス",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "favorite_chatgpt",
+      "page_id": "work",
+      "parent_item_id": "favorite_ai",
+      "title": "ChatGPT",
+      "description": "https://chatgpt.com/",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "ChatGPT",
+        "AI"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "https://chatgpt.com/",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_browser": "chrome"
+        }
+      ]
+    },
+    {
+      "item_id": "favorite_claude",
+      "page_id": "work",
+      "parent_item_id": "favorite_ai",
+      "title": "Claude",
+      "description": "https://claude.ai/new",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [
+        "Claude",
+        "AI"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "https://claude.ai/new",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_browser": "chrome"
+        }
+      ]
+    },
+    {
+      "item_id": "favorite_gemini",
+      "page_id": "work",
+      "parent_item_id": "favorite_ai",
+      "title": "Gemini",
+      "description": "https://gemini.google.com/app",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [
+        "Gemini",
+        "AI"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "https://gemini.google.com/app",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_browser": "chrome"
+        }
+      ]
+    },
+    {
+      "item_id": "work_files",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "作業ファイル",
+      "description": "ファイルを関連付けアプリで開く",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 35,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "experiment_overview_excel",
+      "page_id": "work",
+      "parent_item_id": "work_files",
+      "title": "実験全体図",
+      "description": "F:\\FRB_docsExcel\\実験全体図.xlsx",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "Excel",
+        "xlsx",
+        "実験"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB_docsExcel\\実験全体図.xlsx"
         }
       ]
     }

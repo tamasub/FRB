@@ -33,7 +33,9 @@
     "folderGrant.createDirectory",
     "folderGrant.move",
     "folderGrant.describePath",
-    "document.writeText"
+    "document.writeText",
+    "startupJson.read",
+    "startupJson.write"
   ],
   "process_profiles": [
     {

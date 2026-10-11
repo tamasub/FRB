@@ -15,6 +15,8 @@ namespace FRBStudio.NativeShell
     internal sealed class NativeCommandDispatcher
     {
         private readonly NativeShellConfig _config;
+        private readonly string _startupJsonPath;
+        private string _startupDocumentId;
         private readonly WorkspacePolicy _workspace;
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         private readonly Dictionary<string, WorkspacePolicy> _folderGrants = new Dictionary<string, WorkspacePolicy>(StringComparer.OrdinalIgnoreCase);
@@ -22,9 +24,10 @@ namespace FRBStudio.NativeShell
         private readonly Dictionary<string, string> _persistedFolderGrantPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string _persistedFolderGrantStorePath;
 
-        public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace)
+        public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace, string startupJsonPath = null)
         {
             _config = config;
+            _startupJsonPath = startupJsonPath;
             _workspace = workspace;
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _persistedFolderGrantStorePath = Path.Combine(localAppData, "FRBStudio", "folder_grants.json");
@@ -92,6 +95,20 @@ namespace FRBStudio.NativeShell
                         ["protocol_version"] = _config.ProtocolVersion,
                         ["workspace_root"] = _workspace.RootPath
                     };
+
+                case "startupJson.read":
+                    return ReadStartupJson();
+
+                case "startupJson.write":
+                    ReadStartupJson(); // Revalidate the exact CLI-selected file before writing.
+                    var content = RequiredString(payload, "content");
+                    if (!(_serializer.DeserializeObject(content) is IDictionary<string, object>))
+                        throw new InvalidDataException("Startup JSON must contain an object.");
+                    return WriteGrantedDocument(new Dictionary<string, object>
+                    {
+                        ["document_id"] = _startupDocumentId,
+                        ["content"] = content
+                    });
 
                 case "workspace.getCurrent":
                     return new Dictionary<string, object> { ["root_path"] = _workspace.RootPath };
@@ -604,6 +621,27 @@ namespace FRBStudio.NativeShell
                 ["source_path"] = sourcePath.Replace('\\', '/'),
                 ["destination_path"] = policy.ToRelativePath(destination),
                 ["companions"] = companionsMoved.ToArray()
+            };
+        }
+
+        // The web page can access only the single file explicitly selected by CLI.
+        // Never accept a path from the web message or expand the workspace roots.
+        private object ReadStartupJson()
+        {
+            if (string.IsNullOrWhiteSpace(_startupJsonPath))
+                throw new InvalidOperationException("No startup JSON was specified.");
+            var full = Path.GetFullPath(_startupJsonPath);
+            if (!full.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Startup file must be JSON.");
+            if (!File.Exists(full)) throw new FileNotFoundException("Startup JSON not found.", full);
+            var content = File.ReadAllText(full, Encoding.UTF8);
+            if (!(_serializer.DeserializeObject(content) is IDictionary<string, object>))
+                throw new InvalidDataException("Startup JSON must contain an object.");
+            if (_startupDocumentId == null) _startupDocumentId = RegisterDocumentGrant(full);
+            return new Dictionary<string, object>
+            {
+                ["file_name"] = Path.GetFileName(full), ["path"] = full,
+                ["content"] = content, ["document_id"] = _startupDocumentId
             };
         }
 

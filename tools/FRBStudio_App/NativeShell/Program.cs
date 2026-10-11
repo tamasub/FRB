@@ -8,13 +8,19 @@ namespace FRBStudio.NativeShell
         [STAThread]
         private static void Main(string[] args)
         {
-            var launchOptions = NativeLaunchOptions.Parse(args);
+            NativeLaunchOptions launchOptions;
+            try { launchOptions = NativeLaunchOptions.Parse(args); }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "FRB Studio 起動引数", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             NativeAppIdentity.Ensure();
             JumpListManager.TryRegisterTasks();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new NativeShellForm(initialPage: launchOptions.InitialPage));
+            Application.Run(new NativeShellForm(initialPage: launchOptions.InitialPage, initialJsonPath: launchOptions.InitialJsonPath));
         }
     }
 }

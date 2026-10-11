@@ -1,4 +1,4 @@
-﻿// v0.18.64-fielddefs-data-picker-access
+// v0.18.64-fielddefs-data-picker-access
 // Browser mode: no-op.
 // WebView2 Native Shell mode: translate the existing /api/* fetch contract into
 // a small generic JSON command bridge so Studio application logic stays unchanged.
@@ -285,6 +285,18 @@
       return originalFetch(input, init);
 
     try {
+      if (path === '/api/data/__startup_document__.json') {
+        if (method === 'GET') {
+          const result = await invoke('startupJson.read');
+          return textResponse(result.content, 'application/json; charset=utf-8');
+        }
+        if (method === 'POST') {
+          const body = await parseJsonBody(input, init);
+          return jsonResponse(await invoke('startupJson.write', { content: prettyJson(body) }));
+        }
+        return errorResponse(405, 'METHOD_NOT_ALLOWED', 'Only GET/POST are supported.');
+      }
+
       if (method === 'GET' && path === '/api/data')
         return jsonResponse(await listStudioDataJsonFiles());
 

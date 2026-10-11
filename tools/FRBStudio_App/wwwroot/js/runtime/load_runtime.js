@@ -586,6 +586,26 @@ async function autoLoadFromQuery() {
     }
     return;
   }
+  if (params.get('startupJson') === '1') {
+    try {
+      if (!window.FRBStudioNativeHost?.isAvailable?.()) throw new Error('NativeShellで起動してください');
+      const document = await window.FRBStudioNativeHost.invoke('startupJson.read');
+      const dataObj = JSON.parse(document.content);
+      const dataName = document.file_name;
+      updateCurrentDataViewDefCandidates(dataObj, dataName);
+      const resolved = await resolveDefForData(null, dataObj, dataName);
+      lastLoadedDefName = resolved.defName;
+      launchRuntime = { fromUrl: true, mode: '', readonly: false, dataParam: document.path, viewParam: resolved.defName, fileParam: '' };
+      if ($('dataNameInput')) $('dataNameInput').value = dataName;
+      if ($('defNameInput')) $('defNameInput').value = resolved.defName;
+      await loadFromObjects(resolved.defObj, dataObj, '起動指定JSONを読み込みました',
+        '/api/data/__startup_document__.json', document.path);
+    } catch (err) {
+      console.error(err);
+      setStatus('起動指定JSON読込エラー: ' + err.message, { kind: 'error', title: '起動指定JSON読込エラー', sticky: true });
+    }
+    return;
+  }
   const viewParam = params.get('view') || params.get('def');
   const dataParam = params.get('data');
   const mode = params.get('mode') || '';
