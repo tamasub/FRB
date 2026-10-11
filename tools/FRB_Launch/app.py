@@ -6,13 +6,14 @@ import time
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QLabel, QHBoxLayout, QPushButton)
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows
 import windows
+import installed_apps
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
 from process_runner import start_process
@@ -130,19 +131,84 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
 
 
+class AppCascadeMenu(CascadeMenu):
+    """Large app catalogs use a real scrollable view instead of QMenu arrows."""
+    def __init__(self, parent=None, launcher=None):
+        super().__init__(parent=parent,launcher=launcher)
+        self.order_enabled=False
+        self.tree=QTreeWidget(self);self.tree.setColumnCount(2);self.tree.setHeaderHidden(True)
+        self.tree.setRootIsDecorated(False);self.tree.setColumnWidth(0,220)
+        self.tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tree.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.tree.verticalScrollBar().setSingleStep(35)
+        self.tree.setMinimumSize(440,280)
+        height=min(490,max(280,QApplication.primaryScreen().availableGeometry().height()-120))
+        self.tree.setFixedSize(440,height)
+        self.tree.installEventFilter(self);self.tree.viewport().installEventFilter(self)
+        self.widget_action=QWidgetAction(self);self.widget_action.setDefaultWidget(self.tree)
+        self.addAction(self.widget_action)
+        self.tree.itemActivated.connect(lambda item,col:self.launcher.run_menu_item(item.data(0,Qt.ItemDataRole.UserRole)))
+
+    def populate(self, rows):
+        for row in rows:
+            item=QTreeWidgetItem([row['title'],row.get('description','')])
+            item.setData(0,Qt.ItemDataRole.UserRole,row)
+            item.setIcon(0,self.launcher.row_icon(row));item.setToolTip(0,row['title'])
+            action=QAction(self);action.setData(row);item.setData(0,Qt.ItemDataRole.UserRole+1,action)
+            self.tree.addTopLevelItem(item)
+        self.select_first()
+
+    def select_first(self):
+        if hasattr(self,'tree') and self.tree.topLevelItemCount():self.tree.setCurrentItem(self.tree.topLevelItem(0))
+
+    def activeAction(self):
+        item=self.tree.currentItem() if hasattr(self,'tree') else None
+        return item.data(0,Qt.ItemDataRole.UserRole+1) if item else None
+
+    def eventFilter(self, obj, event):
+        if obj==self.tree and event.type()==QEvent.Type.KeyPress:
+            key=event.key()
+            if key in (Qt.Key.Key_Up,Qt.Key.Key_Down,Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):return False
+            self.keyPressEvent(event);return True
+        if obj==self.tree and event.type()==QEvent.Type.InputMethod:
+            self.inputMethodEvent(event);return True
+        if obj==self.tree.viewport() and event.type()==QEvent.Type.Wheel:
+            # Three rows per wheel notch; touchpads keep their pixel delta.
+            pixels=event.pixelDelta().y()
+            delta=pixels if pixels else event.angleDelta().y()/120*105
+            bar=self.tree.verticalScrollBar();bar.setValue(bar.value()-round(delta))
+            event.accept();return True
+        return super().eventFilter(obj,event)
+
+    def keyPressEvent(self, event):
+        key=event.key()
+        if key in (Qt.Key.Key_Up,Qt.Key.Key_Down,Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):
+            QApplication.sendEvent(self.tree,event);return
+        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter):
+            item=self.tree.currentItem()
+            if item:self.launcher.run_menu_item(item.data(0,Qt.ItemDataRole.UserRole))
+            event.accept();return
+        if key==Qt.Key.Key_Right:event.accept();return
+        super().keyPressEvent(event)
+
+
 class Launcher(QWidget):
+    CORNER_RADIUS = 10  # Main window corner radius in logical pixels.
     def __init__(self):
         super().__init__(None, Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
         self.setWindowTitle('FRB Launch'); self.resize(390,440)
         self.setWindowIcon(icon('command'))
+        self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None
+        self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
         self.data = None; self.mtime = None; self.target = 0; self.busy = False
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
-        self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider()
+        self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
         self.page_id = self.settings.value('page', 'work')
         self.search = QLineEdit(); self.search.setPlaceholderText('検索 — 全Pageから探す'); self.search.setClearButtonEnabled(True)
         self.tabs = QTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
         self.list = ReorderTree(self); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
+        self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
         self.list.setColumnWidth(0,180); self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.footer = QLabel('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
         layout = QVBoxLayout(self); layout.setContentsMargins(12,12,12,9); layout.setSpacing(8)
@@ -158,6 +224,8 @@ class Launcher(QWidget):
         traymenu = QMenu(self)
         traymenu.addAction('開く', self.summon); traymenu.addAction('設定を再読込', lambda:self.reload(True))
         traymenu.addAction('設定フォルダーを開く', lambda:self.open_target(str(CONFIG.parent)))
+        traymenu.addAction('アプリ一覧を更新', self.refresh_apps)
+        traymenu.addAction('アプリ一覧JSONを開く', lambda:self.open_target(str(STATE/'apps_cache.json')))
         traymenu.addAction('ログフォルダーを開く', lambda:self.open_target(str(STATE)))
         traymenu.addSeparator(); traymenu.addAction('終了', self.quit)
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
@@ -178,12 +246,70 @@ class Launcher(QWidget):
         self.hover_watch = QTimer(self);self.hover_watch.setInterval(60)
         self.hover_watch.timeout.connect(self.check_hover_menus);self.hover_watch.start()
         self.reload(True)
+        QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
         self.register_key()
         position = self.settings.value('position')
         if position: self.move(position)
         else:
             screen=QApplication.primaryScreen().availableGeometry();self.move(screen.center()-self.rect().center())
+
+    def update_window_shape(self):
+        path=QPainterPath()
+        path.addRoundedRect(QRectF(self.rect()),self.CORNER_RADIUS,self.CORNER_RADIUS)
+        self.setMask(QRegion(path.toFillPolygon().toPolygon()))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.update_window_shape()
+
+    def showEvent(self, event):
+        self.update_window_shape()
+        super().showEvent(event)
+
+    def row_icon(self, row):
+        path=row.get('_icon_file') or row.get('_file')
+        key=path or row.get('icon_key','command')
+        if key not in self.icon_cache:
+            self.icon_cache[key]=self.file_icons.icon(QFileInfo(path)) if path and Path(path).is_file() else icon(row.get('icon_key','command'))
+        return self.icon_cache[key]
+
+    def refresh_apps(self):
+        if not windows.IS_WINDOWS or self.apps_proc:return
+        if not any(r.get('launch_source')=='installed_apps' for r in self.data['items']):return
+        try:
+            import uuid
+            self.apps_output=STATE/('apps_scan_'+uuid.uuid4().hex+'.json')
+            script=LAUNCH_HOME/'scripts'/'Get-LaunchApps.ps1'
+            if not script.is_file():raise RuntimeError('Get-LaunchApps.ps1が見つかりません')
+            self.apps_proc=start_process('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',str(script),'-OutputPath',str(self.apps_output)],str(LAUNCH_HOME),False)
+            self.apps_started=time.monotonic();self.apps_timer.start()
+            DIAG.info('APPS scan started pid=%s',self.apps_proc.pid)
+            self.footer.setText('アプリ一覧を更新中…')
+        except Exception as e:self.error('アプリ一覧の取得に失敗: '+str(e))
+
+    def poll_apps(self):
+        proc=self.apps_proc
+        if not proc:return
+        code=proc.poll()
+        if code is None:
+            if time.monotonic()-self.apps_started<60:return
+            proc.kill();proc.wait();code=-1
+        self.apps_timer.stop();self.apps_proc=None
+        try:
+            if code!=0:raise RuntimeError('終了コード '+str(code)+'。apps.logを確認してください')
+            raw=json.loads(self.apps_output.read_text(encoding='utf-8-sig'))
+            if raw.get('version')!=1:raise ValueError('アプリ一覧の形式が不正です')
+            records=installed_apps.normalize(raw['apps'])
+            installed_apps.write_cache(STATE/'apps_cache.json',records)
+            self.app_records=records;self.icon_cache.clear()
+            self.data=installed_apps.attach(self.data,records)
+            if self.menu:self.menu.close()
+            self.render();self.footer.setText('アプリ一覧を更新しました: '+str(len(records))+'件')
+            DIAG.info('APPS scan complete count=%s',len(records))
+        except Exception as e:
+            DIAG.exception('APPS scan failed');self.error('アプリ一覧の更新に失敗: '+str(e))
+        finally:self.apps_output.unlink(missing_ok=True)
 
     def error(self, message):
         logging.warning('%s', message)
@@ -206,7 +332,7 @@ class Launcher(QWidget):
             if not force and stamp==self.mtime:return
             fresh=load(CONFIG)
             Expander(fresh)  # Validate timezone before swapping the active data.
-            self.data=fresh;self.mtime=stamp
+            self.data=installed_apps.attach(fresh,self.app_records);self.mtime=stamp
             self.tabs.blockSignals(True)
             while self.tabs.count():self.tabs.removeTab(0)
             self.pages=sorted([p for p in fresh['pages'] if p.get('enabled',True)],key=lambda p:p.get('sort_order',0))
@@ -279,7 +405,7 @@ class Launcher(QWidget):
         self.selection_tools.setVisible(self.selection is not None)
         self.list.blockSignals(True);self.list.clear()
         query=self.search.text().strip()
-        self.list.order_enabled=not query and not self.selection and not (self.stack and self.stack[-1]['item_kind']=='directory')
+        self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source')=='installed_apps'))
         self.list.order_rows=[]
         self.list.order_page=self.page_id
         self.list.order_parent=self.stack[-1]['item_id'] if self.stack else ''
@@ -295,7 +421,7 @@ class Launcher(QWidget):
                 isfolder=row.get('item_kind') in {'category','directory'}
                 q=QTreeWidgetItem([row['title']+('  ›' if isfolder else ''),desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
                 q.setToolTip(0,row['title']);q.setToolTip(1,desc)
-                q.setIcon(0,self.file_icons.icon(QFileInfo(row['_file'])) if '_file' in row else icon(row.get('icon_key','mail')))
+                q.setIcon(0,self.row_icon(row))
                 q.setForeground(1,QColor('#a6b4c7'))
                 if self.selection:
                     q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable);q.setCheckState(0,Qt.CheckState.Checked if row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
@@ -368,6 +494,7 @@ class Launcher(QWidget):
     def persist_order(self, ids, page, parent, selected):
         try:
             self.data,self.mtime=save_order(CONFIG,self.mtime,page,parent,ids)
+            self.data=installed_apps.attach(self.data,self.app_records)
             self.render()
             for i in range(self.list.topLevelItemCount()):
                 q=self.list.topLevelItem(i)
@@ -396,7 +523,9 @@ class Launcher(QWidget):
         if select:self.search.selectAll()
 
     def fill_cascade(self, menu, parent):
-        menu.order_enabled=parent['item_kind']=='category'
+        if isinstance(menu,AppCascadeMenu):
+            menu.populate(self.children(parent));return
+        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source')!='installed_apps'
         menu.order_page=parent.get('page_id',self.page_id)
         menu.order_parent=parent.get('item_id','')
         menu.order_context=parent
@@ -406,14 +535,14 @@ class Launcher(QWidget):
                 folder = row['item_kind'] in {'category','directory'}
                 label = row['title'] + ('  ›' if folder else '')
                 if not folder and parent['item_kind']!='directory':label += '    '+row.get('description','')
-                action = menu.addAction(icon(row.get('icon_key','command')),label)
+                action = menu.addAction(self.row_icon(row),label)
                 action.setToolTip(row.get('description',''))
                 action.setData(row)
                 if menu.order_enabled:menu.order_rows.append(row)
                 if folder:
                     def open_child(mode="keyboard", m=menu, r=row, a=action):
                         if m.child:m.child.close();m.child.deleteLater()
-                        m.child=CascadeMenu(parent=m,launcher=self)
+                        m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
                         self.fill_cascade(m.child,r)
                         m.child.popup(m.mapToGlobal(m.actionGeometry(a).topRight()))
@@ -434,7 +563,7 @@ class Launcher(QWidget):
     def cascade(self,row,q=None,mode="keyboard"):
         self.hover_timer.stop();self.pending_menu_item=None
         if self.menu:self.menu.close();self.menu.deleteLater()
-        self.menu=CascadeMenu(parent=self,launcher=self)
+        self.menu=(AppCascadeMenu if row.get('launch_source')=='installed_apps' else CascadeMenu)(parent=self,launcher=self)
         self.menu.open_mode=mode;self.menu.owner_item=q or self.list.currentItem()
         self.fill_cascade(self.menu,row)
         pos=self.list.viewport().mapToGlobal(self.list.visualItemRect(q or self.list.currentItem()).topRight())
@@ -460,6 +589,14 @@ class Launcher(QWidget):
 
     def eventFilter(self,obj,event):
         if obj==self.tabs:
+            if event.type()==QEvent.Type.KeyPress and event.modifiers()==Qt.KeyboardModifier.NoModifier:
+                key=event.key()
+                if key==Qt.Key.Key_Up:
+                    event.accept();return True
+                if key in (Qt.Key.Key_Left,Qt.Key.Key_Right):
+                    index=max(0,min(self.tabs.count()-1,self.tabs.currentIndex()+(1 if key==Qt.Key.Key_Right else -1)))
+                    if self.tabs.count():self.tabs.setCurrentIndex(index)
+                    event.accept();return True
             if event.type()==QEvent.Type.KeyPress and event.key()==Qt.Key.Key_Down:
                 if not self.list.currentItem() and self.list.topLevelItemCount():
                     self.list.setCurrentItem(self.list.topLevelItem(0))
@@ -485,7 +622,11 @@ class Launcher(QWidget):
                     if row.get('item_kind') in {'category','directory'}:self.cascade(row,q)
                 return True
             if k in (Qt.Key.Key_Down,Qt.Key.Key_Up):
-                i=self.list.indexOfTopLevelItem(self.list.currentItem());i=max(0,min(self.list.topLevelItemCount()-1,i+(1 if k==Qt.Key.Key_Down else -1)))
+                i=self.list.indexOfTopLevelItem(self.list.currentItem())
+                if k==Qt.Key.Key_Up and obj==self.list and i<=0:
+                    self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+                    event.accept();return True
+                i=max(0,min(self.list.topLevelItemCount()-1,i+(1 if k==Qt.Key.Key_Down else -1)))
                 if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(i))
                 self.list.setFocus();return True
             if k==Qt.Key.Key_Escape:
@@ -600,6 +741,8 @@ class Launcher(QWidget):
 
     def closeEvent(self,event):event.ignore();self.dismiss()
     def quit(self):
+        if self.apps_proc:
+            self.apps_proc.kill();self.apps_proc.wait();self.apps_output.unlink(missing_ok=True)
         windows.unhotkey(int(self.winId()));self.dismiss();self.tray.hide();QApplication.quit()
 
 

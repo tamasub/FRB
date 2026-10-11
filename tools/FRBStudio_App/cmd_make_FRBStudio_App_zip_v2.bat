@@ -2,4 +2,3 @@
 cd /d "%~dp0"
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\zip\make_FRBStudio_App_zip_v2.ps1"
 start .
-pause

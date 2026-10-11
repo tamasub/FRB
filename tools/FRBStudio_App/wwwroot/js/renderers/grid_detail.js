@@ -56,6 +56,7 @@ function renderGrid() {
     updateViewDefMaintenanceMoveButtons();
   }
   const gd = gridDef();
+  studioTreeToolbar();
   if (wantsDocumentGrid(gd)) return renderByKey('gridDocument', gd);
   return renderByKey('gridTable', gd);
 }
@@ -171,6 +172,7 @@ function renderCompactGrid(gd=gridDef()) {
   setGridWrapMode('table');
   const table = ensureGridHostElement('table');
   table.className = '';
+  if (studioTreeConfig() && !studioTreeState().flat) table.setAttribute('role', 'treegrid'); else table.removeAttribute('role');
   table.innerHTML = '';
   const visibleFields = tableGridVisibleFields(gd);
 
@@ -224,7 +226,7 @@ function renderCompactGrid(gd=gridDef()) {
     mark.className = 'sort-mark';
     mark.textContent = sortState.field === f.field ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
     th.appendChild(mark);
-    th.addEventListener('click', () => cycleSort(f.field));
+    th.addEventListener('click', () => { if (!studioTreeConfig() || studioTreeState().flat) cycleSort(f.field); });
 
     if (typeof studioInstallGridColumnResizeHandle === 'function') {
       studioInstallGridColumnResizeHandle(
@@ -244,7 +246,8 @@ function renderCompactGrid(gd=gridDef()) {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  filteredRows.forEach(({row, index}) => {
+  studioTreeRows().forEach((entry) => {
+    const {row,index} = entry;
     const tr = document.createElement('tr');
     tr.dataset.sourceIndex = String(index);
     const rowKeyField = String(gd?.keyField ?? '').trim();
@@ -285,6 +288,7 @@ function renderCompactGrid(gd=gridDef()) {
       }
       tr.appendChild(td);
     });
+    studioTreeDecorate(tr, entry, visibleFields);
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
@@ -923,6 +927,7 @@ function createDefaultRow() {
   return assignNewRowKeys(row);
 }
 function addGridRow() {
+  if (studioTreeConfig()) return studioTreeRun(() => studioTreeAdd(selectedIndex >= 0 ? "sibling" : "root"));
   if (!Array.isArray(currentRows)) return;
   if (wantsDocumentGrid()) {
     addDocumentGridRowAtEnd();
@@ -936,6 +941,9 @@ async function deleteSelectedRow() {
   if (!Array.isArray(currentRows) || selectedIndex < 0) {
     setStatus('削除する行を選択してください');
     return;
+  }
+  if (studioTreeConfig()) {
+    try { if (studioTreeReadonly()) return; if (studioTreeModel().nodes[selectedIndex].children.length) { setStatus("子のある項目は削除できません。先に子を移動・削除してください"); return; } } catch(e) { setStatus(e.message); return; }
   }
   const ok = await showStudioConfirmDialog({
     title: '選択中の1行を削除しますか？',
@@ -1098,6 +1106,8 @@ function removeCreateExcludedFields(row) {
 
 function assignNewRowKeys(row, sourceRow=null) {
   const gd = gridDef();
+  const tree = studioTreeConfig(gd);
+  if (tree) { row[tree.idField] = crypto.randomUUID(); return row; }
   const noField = (gd.fields ?? []).find(f => f.field === 'no' || String(f.field).toLowerCase() === 'no');
   if (noField) setByPath(row, noField.field, nextNumberValue(noField.field));
   if (gd.keyField) {
@@ -1110,7 +1120,10 @@ function assignNewRowKeys(row, sourceRow=null) {
 function createRowFromSourceRow(sourceRow) {
   const row = cloneData(sourceRow);
   removeCreateExcludedFields(row);
-  return assignNewRowKeys(row, sourceRow);
+  assignNewRowKeys(row, sourceRow);
+  const tree = studioTreeConfig();
+  if (tree) row[tree.orderField] = studioTreeOrderAfter(sourceRow);
+  return row;
 }
 
 function detailEditableControls() {

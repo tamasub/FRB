@@ -68,30 +68,33 @@
           "fields": [
             {
               "field": "page_id",
-              "caption": "Page ID",
+              "caption": "Page",
               "type": "text",
               "grid": {
                 "visible": true
               },
               "edit": {
-                "visible": true
+                "visible": false,
+                "readonly": true
               },
               "search": {
                 "visible": true
-              }
+              },
+              "width": 105
             },
             {
               "field": "parent_item_id",
               "caption": "親項目ID",
               "type": "text",
               "grid": {
-                "visible": true
+                "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false,
+                "readonly": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -99,10 +102,11 @@
               "caption": "項目ID",
               "type": "text",
               "grid": {
-                "visible": true
+                "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false,
+                "readonly": true
               },
               "search": {
                 "visible": false
@@ -135,7 +139,7 @@
               "search": {
                 "visible": true
               },
-              "width": "FULL"
+              "width": 262
             },
             {
               "field": "item_kind",
@@ -155,7 +159,8 @@
                 "directory",
                 "command",
                 "selection"
-              ]
+              ],
+              "defaultValue": "command"
             },
             {
               "field": "icon_key",
@@ -179,7 +184,8 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false,
+                "readonly": true
               },
               "search": {
                 "visible": false
@@ -197,7 +203,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "defaultValue": true
             },
             {
               "field": "keywords",
@@ -225,6 +232,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
               }
             },
             {
@@ -239,6 +250,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
               }
             },
             {
@@ -253,6 +268,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
               }
             },
             {
@@ -267,6 +286,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
               }
             },
             {
@@ -281,6 +304,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "directory"
               }
             },
             {
@@ -319,13 +346,175 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": true,
+                "subGrid": {
+                  "columns": [
+                    {
+                      "field": "launch_action_type",
+                      "caption": "処理の種類",
+                      "type": "select",
+                      "defaultValue": "Open",
+                      "options": [
+                        "Open",
+                        "SendKey",
+                        "ClipboardCopy",
+                        "Run"
+                      ]
+                    },
+                    {
+                      "field": "launch_target",
+                      "caption": "開くファイル・フォルダー・URL",
+                      "type": "text",
+                      "defaultValue": ""
+                    },
+                    {
+                      "field": "launch_text",
+                      "caption": "送信する文字列",
+                      "type": "textarea",
+                      "defaultValue": ""
+                    },
+                    {
+                      "field": "launch_program",
+                      "caption": "実行プログラム",
+                      "type": "text",
+                      "defaultValue": ""
+                    },
+                    {
+                      "field": "launch_arguments",
+                      "caption": "引数（JSON配列）",
+                      "type": "json",
+                      "defaultValue": []
+                    },
+                    {
+                      "field": "launch_working_directory",
+                      "caption": "作業フォルダー",
+                      "type": "text",
+                      "defaultValue": ""
+                    },
+                    {
+                      "field": "launch_browser",
+                      "caption": "ブラウザー（空欄は標準）",
+                      "type": "select",
+                      "defaultValue": "",
+                      "options": [
+                        "",
+                        "chrome"
+                      ]
+                    },
+                    {
+                      "field": "launch_wait_for_exit",
+                      "caption": "終了を待つ",
+                      "type": "boolean",
+                      "defaultValue": false
+                    },
+                    {
+                      "field": "launch_show_console",
+                      "caption": "実行画面を表示",
+                      "type": "boolean",
+                      "defaultValue": false
+                    },
+                    {
+                      "field": "launch_timeout_ms",
+                      "caption": "タイムアウト（ms）",
+                      "type": "number",
+                      "defaultValue": 30000
+                    },
+                    {
+                      "field": "launch_failure_policy",
+                      "caption": "失敗時",
+                      "type": "select",
+                      "defaultValue": "stop",
+                      "options": [
+                        "stop",
+                        "continue"
+                      ]
+                    },
+                    {
+                      "field": "launch_result_name",
+                      "caption": "結果の変数名",
+                      "type": "text",
+                      "defaultValue": ""
+                    },
+                    {
+                      "field": "launch_result_format",
+                      "caption": "結果の形式",
+                      "type": "select",
+                      "defaultValue": "none",
+                      "options": [
+                        "none"
+                      ]
+                    }
+                  ],
+                  "initialExpanded": true
+                }
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "in": [
+                  "command",
+                  "selection"
+                ]
               }
             }
-          ]
+          ],
+          "tree": {
+            "enabled": true,
+            "idField": "item_id",
+            "parentField": "parent_item_id",
+            "labelField": "title",
+            "groupField": "page_id",
+            "orderField": "sort_order",
+            "groupSource": "$.pages",
+            "groupIdField": "page_id",
+            "groupLabelField": "title",
+            "parentKindField": "item_kind",
+            "parentKinds": [
+              "category"
+            ],
+            "createPresets": [
+              {
+                "caption": "カテゴリーを追加",
+                "values": {
+                  "item_kind": "category",
+                  "icon_key": "category.blue"
+                }
+              },
+              {
+                "caption": "ファイルを開く",
+                "values": {
+                  "item_kind": "command",
+                  "launch_actions": [
+                    {
+                      "launch_action_type": "Open",
+                      "launch_target": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "caption": "実行項目を追加",
+                "values": {
+                  "item_kind": "command"
+                }
+              },
+              {
+                "caption": "選択リストを追加",
+                "values": {
+                  "item_kind": "selection"
+                }
+              },
+              {
+                "caption": "フォルダー参照を追加",
+                "values": {
+                  "item_kind": "directory",
+                  "icon_key": "folder"
+                }
+              }
+            ]
+          }
         }
       ],
       "toolbar": {

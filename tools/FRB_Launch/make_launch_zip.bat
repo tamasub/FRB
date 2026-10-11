@@ -13,4 +13,4 @@ if errorlevel 1 (
 )
 echo ZIP created successfully.
 start .
-pause
+

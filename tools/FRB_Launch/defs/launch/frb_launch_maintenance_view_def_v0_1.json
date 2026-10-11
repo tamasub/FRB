@@ -324,6 +324,24 @@
               "search": {
                 "visible": false
               }
+            },
+            {
+              "field": "launch_source",
+              "caption": "一覧の取得元",
+              "type": "select",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "",
+                "installed_apps"
+              ]
             }
           ]
         }

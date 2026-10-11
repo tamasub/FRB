@@ -140,16 +140,36 @@ function renderDetailBodyFields(form, row, gd) {
   });
 }
 
+// Detached detail state preserves edits hidden by visibleWhen without committing canonical data.
+let detailVisibilityDraft = null;
+function refreshDetailConditionalVisibility(event) {
+  const fieldName = event.target?.dataset?.field;
+  if (!fieldName) return;
+  const gd = gridDef();
+  const dependent = (gd.fields ?? []).some(f => {
+    const c = f.visibleWhen ?? f.visible_when;
+    return c && (c.field ?? c.sourceField ?? c.source_field) === fieldName;
+  });
+  if (!dependent || !detailVisibilityDraft) return;
+  const working = buildPendingDetailApplyRow(detailVisibilityDraft);
+  if (!working) return;
+  if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
+  renderDetailForRow(working);
+  [...$('detailForm').querySelectorAll('[data-field]')].find(el => el.dataset.field === fieldName)?.focus();
+}
 function renderDetailForRow(row) {
+  detailVisibilityDraft = cloneData(row);
   if (typeof clearStudioJsonRoundTripDiff === 'function') clearStudioJsonRoundTripDiff();
   const gd = gridDef();
   const pasteBtn = $('pasteCopiedBtn');
   if (pasteBtn) pasteBtn.disabled = !copiedRow;
   const form = $('detailForm');
   form.innerHTML = '';
+  form.onchange = refreshDetailConditionalVisibility;
 
   if (typeof renderTargetContextDetailPanel === 'function') renderTargetContextDetailPanel(row, gd, form);
 
+  studioTreeDetailContext(form, row);
   renderDetailBodyFields(form, row, gd);
 
   renderChildArea(row, gd);
@@ -198,7 +218,8 @@ function renderChildArea(row, gd) {
       ? isFieldVisibleInDetail(f, row)
       : (f?.edit?.visible !== false && (typeof fieldMatchesVisibleWhen === 'function' ? fieldMatchesVisibleWhen(f, row) : true)))
     .forEach(field => {
-    const data = getByPath(row, field.field);
+    const value = getByPath(row, field.field);
+    const data = value == null ? [] : value;
     if (!Array.isArray(data)) return;
 
     // v0.16.2-detail-subgrid-table-edit-core-mvp:
@@ -251,7 +272,7 @@ function buildPendingDetailApplyRow(baseRow) {
   const roundTripDraft = typeof getStudioJsonRoundTripDraftRow === 'function'
     ? getStudioJsonRoundTripDraftRow()
     : null;
-  const working = cloneData(roundTripDraft ?? baseRow) ?? {};
+  const working = cloneData(roundTripDraft ?? detailVisibilityDraft ?? baseRow) ?? {};
   // F12 validation must inspect the latest UI values without mutating canonical Data.
   // SubGrid dirty state is only cleared after validation succeeds.
   applyDetailInputsToRow(working, { markSubGridCommitted: false });
@@ -353,8 +374,10 @@ function tryCommitCurrentDetailEdits(options={}) {
   if (detailMode !== 'edit' || selectedIndex < 0 || !currentRows[selectedIndex]) return true;
   const gd = gridDef();
   const pending = buildPendingDetailApplyRow(currentRows[selectedIndex]);
+  if (pending) studioTreeProtect(pending, currentRows[selectedIndex]);
   if (!pending) return false;
 
+  if (!studioTreeValidateKind(pending, selectedIndex)) return false;
   const validation = validatePendingDetailApplyRow(pending, gd);
   if (validation.status === 'REJECT' || validation.status === 'UNRESOLVED') {
     reportRuntimeFieldDefinitionValidationFailure(validation);
@@ -371,6 +394,7 @@ function applyDetail(e) {
   if (detailMode === 'new') {
     if (!draftRow || !Array.isArray(currentRows)) return;
     const pending = buildPendingDetailApplyRow(draftRow);
+    if (pending) studioTreeProtect(pending, draftRow);
     if (!pending) return;
 
     // 反映直前にもNo/Keyを再採番して、開いている間に増えた行との重複を避ける。

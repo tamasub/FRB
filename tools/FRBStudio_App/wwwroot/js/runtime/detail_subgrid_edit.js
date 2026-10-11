@@ -962,7 +962,7 @@ function createObjectArraySubGridRow({ item={}, columns, editable=true, card, fi
 
 function emptyObjectForColumns(columns) {
   const row = {};
-  (columns ?? []).forEach(col => { row[col.field] = col.defaultValue ?? col.default ?? ''; });
+  (columns ?? []).forEach(col => { row[col.field] = cloneSubGridCanonicalValue(col.defaultValue ?? col.default ?? ''); });
   return row;
 }
 
@@ -983,7 +983,9 @@ function insertDetailSubGridRow(card, baseRow=null, position='after') {
       __autoWidth: th.style.width || th.style.minWidth || '',
       __autoInputMinWidth: th.dataset.subgridInputMinWidth || ''
     }));
-    row = createObjectArraySubGridRow({ item: emptyObjectForColumns(columns), columns, editable: true, card, field: { type: 'objectArray' } });
+    const field = card.__studioSubGridField ?? { type: 'objectArray' };
+    const configuredColumns = enrichSubGridColumnsWithFieldConfig(columns, field);
+    row = createObjectArraySubGridRow({ item: emptyObjectForColumns(configuredColumns), columns: configuredColumns, editable: true, card, field });
   }
 
   if (!baseRow) tbody.appendChild(row);
@@ -1040,6 +1042,7 @@ function createDetailSubGridCard({ field, row, gd, data }) {
   // Derived Component cards use a different role and are excluded from the parent JSON commit path.
   card.dataset.subgridRole = 'data';
   card.dataset.subgridPersistence = 'canonical';
+  card.__studioSubGridField = field;
   card.dataset.subgridField = field.field;
   card.dataset.subgridType = field.type;
 
@@ -1216,6 +1219,7 @@ function applyDetailSubGridEdits(row, gd, options={}) {
     const field = (gd?.fields ?? []).find(f => f.field === fieldName);
     if (!field || !isDetailSubGridEditable(field)) return;
     const value = collectDetailSubGridValue(card);
+    if (getByPath(row, fieldName) == null && !card.classList.contains("is-dirty") && value.length === 0) return;
     setByPath(row, fieldName, value);
     if (markCommitted) {
       card.classList.remove('is-dirty');
