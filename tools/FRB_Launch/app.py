@@ -16,12 +16,17 @@ import windows
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
 from process_runner import start_process
+from launch_diagnostics import make_logger, wifi_transcript_arguments
+from runtime_paths import launch_home
 
 ROOT = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent
-CONFIG = ROOT / 'config' / 'frb_launch_sample_data_v0_1.json'
+LAUNCH_HOME = launch_home(ROOT)
+CONFIG = LAUNCH_HOME / 'config' / 'frb_launch_sample_data_v0_1.json'
 STATE = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'FRBLaunch'
 STATE.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(filename=str(STATE / 'error.log'), encoding='utf-8', level=logging.WARNING)
+DIAG = make_logger(STATE)
+DIAG.info('START root=%s config=%s', ROOT, CONFIG)
 
 
 def icon(kind):
@@ -153,6 +158,7 @@ class Launcher(QWidget):
         traymenu = QMenu(self)
         traymenu.addAction('開く', self.summon); traymenu.addAction('設定を再読込', lambda:self.reload(True))
         traymenu.addAction('設定フォルダーを開く', lambda:self.open_target(str(CONFIG.parent)))
+        traymenu.addAction('ログフォルダーを開く', lambda:self.open_target(str(STATE)))
         traymenu.addSeparator(); traymenu.addAction('終了', self.quit)
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
         self.tray.show()
@@ -181,6 +187,7 @@ class Launcher(QWidget):
 
     def error(self, message):
         logging.warning('%s', message)
+        DIAG.warning('%s',message)
         self.tray.showMessage('FRB Launch', str(message), QSystemTrayIcon.MessageIcon.Warning,6000)
         self.footer.setText(str(message))
 
@@ -258,7 +265,7 @@ class Launcher(QWidget):
 
     def children(self,row=None):
         if row and row.get('item_kind')=='directory':
-            path=Path(Expander(self.data,QApplication.clipboard().text()).expand(row['launch_browse_target']))
+            path=Path(self.expander().expand(row['launch_browse_target']))
             result=[]
             for p in sorted(path.iterdir(),key=lambda p:(not p.is_dir(),p.name.casefold())):
                 result.append(dict(item_id=str(p),title=p.name,description=str(p),item_kind='directory' if p.is_dir() else 'command',icon_key='folder.yellow' if p.is_dir() else 'file',launch_browse_target=str(p),launch_actions=[{'launch_action_type':'Open','launch_target':str(p)}],_file=str(p)))
@@ -522,23 +529,31 @@ class Launcher(QWidget):
             subprocess.Popen(['explorer.exe',target])
         else:os.startfile(target)
 
+    def expander(self, values=None):
+        ex=Expander(self.data,QApplication.clipboard().text(),values or {})
+        ex.values.update(launch_data=str(CONFIG),launch_dir=str(ROOT),launch_home=str(LAUNCH_HOME),launch_scripts=str(LAUNCH_HOME/'scripts'))
+        return ex
+
     def execute(self,row,values=None):
+        DIAG.info('ITEM id=%s title=%s busy=%s',row.get('item_id'),row.get('title'),self.busy)
         if self.busy:return
         try:
-            ex=Expander(self.data,QApplication.clipboard().text(),{'launch_data':str(CONFIG), **(values or {})})
+            ex=self.expander(values)
             # Resolve all values before any side effects.
             self.queue=[]
             for raw in row.get('launch_actions',[]):
                 step={k:([ex.expand(a) for a in val] if k=='launch_arguments' else ex.expand(val) if isinstance(val,str) else val) for k,val in raw.items()}
                 self.queue.append(step)
-            self.busy=True;self.dismiss();QTimer.singleShot(180,self.next_step)
-        except Exception as e:self.error(e)
+            self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue));self.dismiss();QTimer.singleShot(180,self.next_step)
+        except Exception as e:
+            DIAG.exception('PREPARE failed');self.error(e)
 
     def next_step(self):
-        if not self.queue:self.busy=False;return
+        if not self.queue:self.busy=False;DIAG.info('COMPLETE');return
         step=self.queue.pop(0)
         try:
             kind=step['launch_action_type']
+            DIAG.info('STEP type=%s remaining=%s',kind,len(self.queue))
             if kind in {'SendKey','ClipboardCopy'}:
                 if kind=='SendKey':windows.restore(self.target)
                 QApplication.clipboard().setText(step.get('launch_text',''))
@@ -548,7 +563,10 @@ class Launcher(QWidget):
                 else:self.open_target(step['launch_target'])
             elif kind=='Run':
                 program=step['launch_program'];args=step.get('launch_arguments',[]);cwd=step.get('launch_working_directory') or str(ROOT)
+                args,transcript=wifi_transcript_arguments(program,args,STATE)
+                DIAG.info('RUN program=%s cwd=%s console=%s wait=%s transcript=%s',program,cwd,step.get('launch_show_console',False),step.get('launch_wait_for_exit',False),transcript)
                 self.proc = start_process(program, args, cwd, step.get('launch_show_console',False))
+                DIAG.info('PROCESS started pid=%s',getattr(self.proc,'pid',None))
                 if step.get('launch_wait_for_exit'):
                     self.timedout=False
                     self.process_started=time.monotonic()
@@ -559,7 +577,8 @@ class Launcher(QWidget):
                         self.process_timer.timeout.connect(self.poll_process)
                     self.process_timer.start();return
             QTimer.singleShot(100,self.next_step)
-        except Exception as e:self.fail(str(e))
+        except Exception as e:
+            DIAG.exception("STEP failed");self.fail(str(e))
 
     def poll_process(self):
         code=self.proc.poll()
@@ -568,9 +587,10 @@ class Launcher(QWidget):
                 self.queue=[];self.timedout=True
                 self.error('タイムアウトしました。後続処理を中止し、実行中の処理が終了するまで待ちます')
             return
+        DIAG.info('PROCESS exited code=%s timedout=%s',code,self.timedout)
         self.process_timer.stop()
         if self.timedout:self.busy=False;return
-        if code!=0:self.fail(f'外部処理の終了コード: {code}')
+        if code!=0:self.fail(f'外部処理の終了コード: {code}（トレイの「ログフォルダーを開く」で詳細を確認）')
         else:self.next_step()
 
     def fail(self,message):
@@ -609,5 +629,6 @@ if __name__=='__main__':
     try:sys.exit(main())
     except Exception:
         logging.exception('Startup failed')
+        DIAG.exception('Startup failed')
         if QApplication.instance():QMessageBox.critical(None,'FRB Launch','起動に失敗しました。LOCALAPPDATA/FRBLaunch/error.logを確認してください。')
         raise

@@ -943,7 +943,7 @@
       "description": "F:\\FRB",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
-      "sort_order": 1,
+      "sort_order": 20,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1142,7 +1142,7 @@
     {
       "item_id": "experiment_overview_excel",
       "page_id": "work",
-      "parent_item_id": "work_files",
+      "parent_item_id": "frb_files",
       "title": "実験全体図",
       "description": "F:\\FRB_docsExcel\\実験全体図.xlsx",
       "item_kind": "command",
@@ -1167,6 +1167,53 @@
           "launch_target": "F:\\FRB_docsExcel\\実験全体図.xlsx"
         }
       ]
+    },
+    {
+      "item_id": "F_root_folder",
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "title": "F:\\",
+      "description": "F:\\",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "F:\\",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\"
+        }
+      ]
+    },
+    {
+      "item_id": "frb_files",
+      "page_id": "work",
+      "parent_item_id": "work_files",
+      "title": "FRB Files",
+      "description": "FRB Files",
+      "item_kind": "category",
+      "icon_key": "file",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "frb"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
     }
   ],
   "launch_variables": [
@@ -1192,7 +1239,7 @@
       "variable_id": "fft_wifi_profile",
       "title": "FFT接続プロファイル",
       "launch_variable_type": "literal",
-      "launch_value": "ESP32_FFT",
+      "launch_value": "ESP32_FFT 2",
       "launch_date_offset_days": 0,
       "launch_date_format": "",
       "enabled": true
@@ -1210,7 +1257,7 @@
       "variable_id": "cam_wifi_profile",
       "title": "CAM接続プロファイル",
       "launch_variable_type": "literal",
-      "launch_value": "REPLACE_CAM_PROFILE",
+      "launch_value": "FRB_CAM 2",
       "launch_date_offset_days": 0,
       "launch_date_format": "",
       "enabled": true
@@ -1219,7 +1266,7 @@
       "variable_id": "cam_address",
       "title": "CAMアドレス",
       "launch_variable_type": "literal",
-      "launch_value": "REPLACE_CAM_ADDRESS",
+      "launch_value": "192.168.4.1",
       "launch_date_offset_days": 0,
       "launch_date_format": "",
       "enabled": true

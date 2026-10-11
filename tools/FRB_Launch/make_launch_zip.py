@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 from zipfile import ZipFile, ZIP_DEFLATED
 
-EXCLUDED = {'.venv', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules'}
+EXCLUDED = {'.venv', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules', 'backups'}
 
 def make_zip(root):
     root = Path(root).resolve()
@@ -21,6 +21,8 @@ def make_zip(root):
                     dirs[:] = sorted(d for d in dirs if allowed(d))
                     for name in sorted(files):
                         path = Path(directory) / name
+                        if name=='.launch_home_ready':
+                            continue
                         if path.is_symlink() or path.suffix.lower() in {'.zip', '.pyc', '.pyo', '.log'}:
                             continue
                         archive.write(path, path.relative_to(root))
