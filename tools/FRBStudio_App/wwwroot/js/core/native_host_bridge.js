@@ -66,7 +66,13 @@
       }, timeoutMs);
 
       pending.set(requestId, { resolve, reject, timeoutId, command });
-      webview.postMessage(request);
+      if (options.additionalObjects) {
+        if (typeof webview.postMessageWithAdditionalObjects !== 'function') {
+          global.clearTimeout(timeoutId); pending.delete(requestId); reject(new Error('NativeShellのファイルドロップAPIが使用できません')); return;
+        }
+        try { webview.postMessageWithAdditionalObjects(request, options.additionalObjects); }
+        catch (error) { global.clearTimeout(timeoutId); pending.delete(requestId); reject(error); }
+      } else webview.postMessage(request);
     });
   }
 
@@ -95,6 +101,7 @@
   global.FRBStudioNativeHost = Object.freeze({
     protocolVersion: PROTOCOL_VERSION,
     isAvailable: () => true,
+    supportsFileDrop: () => delegatedBridge ? Boolean(delegatedBridge.supportsFileDrop?.()) : typeof webview.postMessageWithAdditionalObjects === "function",
     invoke
   });
 

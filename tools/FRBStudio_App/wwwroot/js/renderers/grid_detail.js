@@ -247,6 +247,7 @@ function renderCompactGrid(gd=gridDef()) {
 
   const tbody = document.createElement('tbody');
   studioTreeRows().forEach((entry) => {
+    if(entry.groupId!=null){tbody.appendChild(studioTreeGroupRow(entry,visibleFields));return;}
     const {row,index} = entry;
     const tr = document.createElement('tr');
     tr.dataset.sourceIndex = String(index);
@@ -254,7 +255,7 @@ function renderCompactGrid(gd=gridDef()) {
     if (rowKeyField && row?.[rowKeyField] != null) tr.dataset.rowKey = String(row[rowKeyField]);
     applyGridRowEmphasis(tr, row);
     if (index === selectedIndex) tr.classList.add('selected');
-    tr.addEventListener('click', () => { selectedIndex = index; renderGrid(); });
+    tr.addEventListener('click', () => { selectedIndex = index; if(studioTreeConfig())studioTreeState().selectedGroup=null; renderGrid(); });
     tr.addEventListener('dblclick', () => openDetail(index));
     tr.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -292,6 +293,8 @@ function renderCompactGrid(gd=gridDef()) {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
+  studioTreeInstallFileDrop();
+  studioTreeInstallDragMove();
 }
 function documentGridConfig(gd) {
   return {

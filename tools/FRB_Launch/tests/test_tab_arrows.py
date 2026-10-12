@@ -8,11 +8,14 @@ class TabArrowTests(unittest.TestCase):
     setUpClass=classmethod(apps_ui.AppsUITests.setUpClass.__func__)
     setUp=apps_ui.AppsUITests.setUp
     tearDown=apps_ui.AppsUITests.tearDown
-    def test_first_item_up_stops_at_tabs_and_down_returns(self):
+    def test_first_item_up_to_tabs_then_last_item(self):
         self.w.list.setCurrentItem(self.w.list.topLevelItem(0));self.w.list.setFocus()
         QTest.keyClick(self.w.list,Qt.Key.Key_Up)
         self.assertEqual(QApplication.focusWidget(),self.w.tabs)
-        for _ in range(4):QTest.keyClick(self.w.tabs,Qt.Key.Key_Up)
+        QTest.keyClick(self.w.tabs,Qt.Key.Key_Up)
+        self.assertEqual(QApplication.focusWidget(),self.w.list)
+        self.assertEqual(self.w.list.indexOfTopLevelItem(self.w.list.currentItem()),self.w.list.topLevelItemCount()-1)
+        QTest.keyClick(self.w.list,Qt.Key.Key_Down)
         self.assertEqual(QApplication.focusWidget(),self.w.tabs)
         QTest.keyClick(self.w.tabs,Qt.Key.Key_Down)
         self.assertEqual(QApplication.focusWidget(),self.w.list)

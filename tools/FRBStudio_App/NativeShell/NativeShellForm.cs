@@ -151,7 +151,7 @@ namespace FRBStudio.NativeShell
             try
             {
                 if (!IsAllowedSource(e.Source)) return;
-                var responseJson = await _dispatcher.DispatchAsync(e.WebMessageAsJson);
+                var responseJson = await _dispatcher.DispatchAsync(e.WebMessageAsJson, e.AdditionalObjects);
                 _webView.CoreWebView2.PostWebMessageAsJson(responseJson);
                 _status.Text = "Native Bridge: message processed / App Root: " + _workspace.RootPath;
             }

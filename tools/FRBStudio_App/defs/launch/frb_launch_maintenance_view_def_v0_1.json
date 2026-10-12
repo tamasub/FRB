@@ -23,7 +23,7 @@
                 "visible": true
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
@@ -37,7 +37,7 @@
                 "visible": true
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
@@ -51,7 +51,7 @@
                 "visible": true
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
@@ -71,7 +71,7 @@
               "caption": "Page",
               "type": "text",
               "grid": {
-                "visible": true
+                "visible": false
               },
               "edit": {
                 "visible": false,
@@ -165,7 +165,7 @@
             {
               "field": "icon_key",
               "caption": "アイコン",
-              "type": "text",
+              "type": "select",
               "grid": {
                 "visible": false
               },
@@ -174,7 +174,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "valueVocabularyRef": "launch.icon_key"
             },
             {
               "field": "sort_order",
@@ -318,7 +319,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
@@ -332,7 +333,7 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
@@ -340,7 +341,7 @@
             },
             {
               "field": "launch_actions",
-              "caption": "実行する処理（種類・送信文字列など）",
+              "caption": "実行する処理",
               "type": "objectArray",
               "grid": {
                 "visible": false
@@ -355,41 +356,89 @@
                       "type": "select",
                       "defaultValue": "Open",
                       "options": [
-                        "Open",
-                        "SendKey",
-                        "ClipboardCopy",
-                        "Run"
+                        {
+                          "value": "Open",
+                          "label": "開く（ファイル・フォルダー・URL）"
+                        },
+                        {
+                          "value": "SendKey",
+                          "label": "文字列を入力"
+                        },
+                        {
+                          "value": "ClipboardCopy",
+                          "label": "クリップボードへコピー"
+                        },
+                        {
+                          "value": "Run",
+                          "label": "プログラム・スクリプトを実行"
+                        }
                       ]
                     },
                     {
                       "field": "launch_target",
                       "caption": "開くファイル・フォルダー・URL",
                       "type": "text",
-                      "defaultValue": ""
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Open"
+                        ]
+                      },
+                      "placeholder": "F:\\FRB_docsExcel\\実験全体図.xlsx",
+                      "help": "ファイル・フォルダー・URL・shell: の対象を入力します。引用符は不要です。"
                     },
                     {
                       "field": "launch_text",
                       "caption": "送信する文字列",
                       "type": "textarea",
-                      "defaultValue": ""
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "SendKey",
+                          "ClipboardCopy"
+                        ]
+                      }
                     },
                     {
                       "field": "launch_program",
                       "caption": "実行プログラム",
                       "type": "text",
-                      "defaultValue": ""
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      }
                     },
                     {
                       "field": "launch_arguments",
-                      "caption": "引数（JSON配列）",
+                      "caption": "引数（1行に1つ）",
                       "type": "json",
-                      "defaultValue": []
+                      "defaultValue": [],
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "control": "lines",
+                      "help": "例: -NoProfile と -File は別々の行に入力します。JSON配列として保存します。"
                     },
                     {
                       "field": "launch_working_directory",
                       "caption": "作業フォルダー",
                       "type": "text",
-                      "defaultValue": ""
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
                     },
                     {
                       "field": "launch_browser",
@@ -399,25 +448,53 @@
                       "options": [
                         "",
                         "chrome"
-                      ]
+                      ],
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Open"
+                        ]
+                      },
+                      "advanced": true
                     },
                     {
                       "field": "launch_wait_for_exit",
                       "caption": "終了を待つ",
                       "type": "boolean",
-                      "defaultValue": false
+                      "defaultValue": false,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
                     },
                     {
                       "field": "launch_show_console",
                       "caption": "実行画面を表示",
                       "type": "boolean",
-                      "defaultValue": false
+                      "defaultValue": false,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
                     },
                     {
                       "field": "launch_timeout_ms",
                       "caption": "タイムアウト（ms）",
                       "type": "number",
-                      "defaultValue": 30000
+                      "defaultValue": 30000,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
                     },
                     {
                       "field": "launch_failure_policy",
@@ -427,13 +504,15 @@
                       "options": [
                         "stop",
                         "continue"
-                      ]
+                      ],
+                      "advanced": true
                     },
                     {
                       "field": "launch_result_name",
                       "caption": "結果の変数名",
                       "type": "text",
-                      "defaultValue": ""
+                      "defaultValue": "",
+                      "advanced": true
                     },
                     {
                       "field": "launch_result_format",
@@ -442,10 +521,13 @@
                       "defaultValue": "none",
                       "options": [
                         "none"
-                      ]
+                      ],
+                      "advanced": true
                     }
                   ],
-                  "initialExpanded": true
+                  "initialExpanded": true,
+                  "layout": "cards",
+                  "rowCaption": "処理"
                 }
               },
               "search": {
@@ -513,21 +595,47 @@
                   "icon_key": "folder"
                 }
               }
-            ]
+            ],
+            "groupRoots": true,
+            "groupOrderField": "sort_order",
+            "groupEnabledField": "enabled",
+            "fileDrop": {
+              "enabled": true,
+              "fileTemplate": {
+                "title": "{name}",
+                "description": "{path}",
+                "item_kind": "command",
+                "icon_key": "file",
+                "enabled": true,
+                "launch_actions": [
+                  {
+                    "launch_action_type": "Open",
+                    "launch_target": "{launchPath}"
+                  }
+                ]
+              },
+              "directoryTemplate": {
+                "title": "{name}",
+                "description": "{path}",
+                "item_kind": "directory",
+                "icon_key": "folder.yellow",
+                "enabled": true,
+                "launch_browse_target": "{launchPath}",
+                "launch_actions": [
+                  {
+                    "launch_action_type": "Open",
+                    "launch_target": "{launchPath}"
+                  }
+                ]
+              }
+            },
+            "treeOnly": true,
+            "dragMove": true
           }
         }
       ],
       "toolbar": {
         "relatedGridViews": [
-          {
-            "id": "pages",
-            "caption": "Page",
-            "dataPath": "$.pages",
-            "viewId": "pages_view",
-            "action": "OpenRelatedGridView",
-            "launchMode": "modal",
-            "shellMode": "grid_only"
-          },
           {
             "id": "launch_variables",
             "caption": "変数",
@@ -943,5 +1051,8 @@
         }
       ]
     }
+  ],
+  "valueVocabularySources": [
+    "config/launch_enums_v0_1.json"
   ]
 }

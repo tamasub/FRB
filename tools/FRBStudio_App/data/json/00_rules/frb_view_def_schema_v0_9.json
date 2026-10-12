@@ -3467,6 +3467,41 @@
               }
             }
           }
+        },
+        "groupRoots": {
+          "type": "boolean"
+        },
+        "groupOrderField": {
+          "type": "string"
+        },
+        "groupEnabledField": {
+          "type": "string"
+        },
+        "fileDrop": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "fileTemplate",
+            "directoryTemplate"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fileTemplate": {
+              "type": "object"
+            },
+            "directoryTemplate": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "treeOnly": {
+          "type": "boolean"
+        },
+        "dragMove": {
+          "type": "boolean"
         }
       }
     }

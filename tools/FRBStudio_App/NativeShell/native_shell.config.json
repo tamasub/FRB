@@ -35,7 +35,8 @@
     "folderGrant.describePath",
     "document.writeText",
     "startupJson.read",
-    "startupJson.write"
+    "startupJson.write",
+    "file.describeDrop"
   ],
   "process_profiles": [
     {

@@ -2,28 +2,29 @@
 const studioTreeStates = new WeakMap();
 let studioTreeVisible = [];
 function studioTreeConfig(gd=gridDef()) {const c=gd?.tree;return c?.enabled && c.idField && c.parentField && c.labelField ? c : null;}
-function studioTreeState(){let s=studioTreeStates.get(currentRows);if(!s){s={collapsed:new Set(),flat:false};studioTreeStates.set(currentRows,s);}return s;}
+function studioTreeState(){let s=studioTreeStates.get(currentRows);if(!s){s={collapsed:new Set(),flat:false};studioTreeStates.set(currentRows,s);}if(studioTreeConfig()?.treeOnly)s.flat=false;return s;}
 function studioTreeReadonly(){return Boolean(launchRuntime?.readonly);}
 function studioTreeRun(fn){try{fn();}catch(e){setStatus(e.message,{kind:'error'});}}
 function studioTreeModel(){return StudioTreeModel.build(currentRows,studioTreeConfig());}
 function studioTreeRows(){
  const c=studioTreeConfig();if(!c)return filteredRows;
- try {const s=studioTreeState();studioTreeVisible=StudioTreeModel.project(studioTreeModel(),filteredRows.map(x=>x.index),s.flat?new Set():s.collapsed,c);return s.flat?filteredRows:studioTreeVisible;}
+ try {const s=studioTreeState();studioTreeVisible=studioTreeGroupEntries(StudioTreeModel.project(studioTreeModel(),filteredRows.map(x=>x.index),s.flat?new Set():s.collapsed,c),c);return s.flat?filteredRows:studioTreeVisible;}
  catch(e){setStatus(e.message,{kind:'error'});return filteredRows;}
 }
-function studioTreeGroups(c){const raw=c.groupSource?getByPath(sourceData,c.groupSource):[];const groups=new Map();(Array.isArray(raw)?raw:[]).forEach(r=>groups.set(String(r[c.groupIdField]),String(r[c.groupLabelField]??r[c.groupIdField])));currentRows.forEach(r=>{const g=String(r[c.groupField]??'');if(!groups.has(g))groups.set(g,g||'未分類');});return groups;}
+function studioTreeGroups(c){const raw=c.groupSource?getByPath(sourceData,c.groupSource):[];const groups=new Map();(Array.isArray(raw)?[...raw].sort((a,b)=>(Number(a[c.groupOrderField])||0)-(Number(b[c.groupOrderField])||0)):[]).forEach(r=>groups.set(String(r[c.groupIdField]),String(r[c.groupLabelField]??r[c.groupIdField])));currentRows.forEach(r=>{const g=String(r[c.groupField]??'');if(!groups.has(g))groups.set(g,g||'未分類');});return groups;}
 function studioTreeLabel(n,c){const a=[];for(let p=n;p;p=p.parent)a.unshift(p.row[c.labelField]||'(名称なし)');return a.join(' › ');}
 function studioTreeToolbar(){
  let bar=$('studioTreeToolbar');const c=studioTreeConfig();if(!c){bar?.remove();return;}
  if(!bar){bar=document.createElement('div');bar.id='studioTreeToolbar';$('dataGrid').parentElement.before(bar);}bar.replaceChildren();
  const button=(text,fn,edit=false)=>{const b=document.createElement('button');b.textContent=text;b.type='button';b.disabled=edit&&studioTreeReadonly();b.onclick=()=>studioTreeRun(fn);bar.append(b);};
- button(studioTreeState().flat?'ツリー表示':'一覧表示',()=>{studioTreeState().flat=!studioTreeState().flat;renderGrid();});
- button('子を追加',()=>studioTreeAdd('child'),true);button('同じ階層に追加',()=>studioTreeAdd('sibling'),true);button('最上位に追加',()=>studioTreeAdd('root'),true);
- button('↑ 上へ',()=>{StudioTreeModel.reorder(currentRows,c,selectedIndex,-1);applySearch();},true);
- button('↓ 下へ',()=>{StudioTreeModel.reorder(currentRows,c,selectedIndex,1);applySearch();},true);
- button('移動…',()=>studioTreeMoveDialog(),true);
+ if(!c.treeOnly)button(studioTreeState().flat?'ツリー表示':'一覧表示',()=>{studioTreeState().flat=!studioTreeState().flat;renderGrid();});
+ if(c.groupRoots){button('Pageを追加',()=>studioTreeEditGroup(true),true);button('Pageを編集',()=>studioTreeEditGroup(false),true);}
+ button('子を追加',()=>studioTreeAdd('child'),true);button('同じ階層に追加',()=>studioTreeAdd('sibling'),true);if(!c.treeOnly)button('最上位に追加',()=>studioTreeAdd('root'),true);
+ if(!c.treeOnly)button('↑ 上へ',()=>{studioTreeMoveSelected(-1);},true);
+ if(!c.treeOnly)button('↓ 下へ',()=>{studioTreeMoveSelected(1);},true);
+ if(!c.treeOnly)button('移動…',()=>studioTreeMoveDialog(),true);
  button('すべて展開',()=>{studioTreeState().collapsed.clear();renderGrid();});
- button('すべて折りたたむ',()=>{studioTreeState().collapsed=new Set(currentRows.map(r=>String(r[c.idField])));renderGrid();});
+ button('すべて折りたたむ',()=>{studioTreeState().collapsed=new Set([...currentRows.map(r=>String(r[c.idField])),...[...studioTreeGroups(c).keys()].map(g=>'group:'+g)]);renderGrid();});
 }
 function studioTreeChoose(title,choices,done){
  const dialog=document.createElement('dialog'),label=document.createElement('h3'),select=document.createElement('select');label.textContent=title;select.style.minWidth='320px';select.setAttribute('aria-label',title);
@@ -33,6 +34,7 @@ function studioTreeChoose(title,choices,done){
 function studioTreeAdd(mode,group,preset){
  if(studioTreeReadonly())throw Error("読み取り専用です");
  const c=studioTreeConfig(),m=studioTreeModel(),n=m.nodes[selectedIndex];
+ if(c.groupRoots&&studioTreeState().selectedGroup!=null&&!n){group=studioTreeState().selectedGroup;mode='root';}
  if(mode!=='root'&&!n)throw Error('親または同じ階層の項目を選択してください');
  const p=mode==='child'?n:mode==='sibling'?n.parent:null;
  if(p&&c.parentKindField&&!c.parentKinds.includes(p.row[c.parentKindField]))throw Error('カテゴリーを選択してください');
@@ -42,6 +44,7 @@ function studioTreeAdd(mode,group,preset){
  if(c.groupField)row[c.groupField]=mode==='root'?group:n.row[c.groupField];
  const peers=currentRows.filter(r=>String(r[c.parentField]??'')===row[c.parentField]&&(!c.groupField||r[c.groupField]===row[c.groupField]));
  row[c.orderField]=mode==='sibling'?studioTreeOrderAfter(n.row):Math.max(0,...peers.map(r=>Number(r[c.orderField])||0))+10;
+ if(c.groupRoots)studioTreeState().collapsed.delete('group:'+row[c.groupField]);
  if(p)studioTreeState().collapsed.delete(String(p.row[c.idField]));
  applyHeaderEdits();openNewDetail(row,'追加先: '+(p?studioTreeLabel(p,c):studioTreeGroups(c).get(String(row[c.groupField]))||'最上位')+'（F12で反映）');
 }
@@ -60,13 +63,13 @@ function studioTreeDecorate(tr,entry,fields){
  td.style.paddingLeft=(8+entry.depth*22)+'px';const b=document.createElement('button');b.type='button';b.textContent=entry.children.length?(studioTreeState().collapsed.has(String(entry.row[c.idField]))?'▸':'▾'):'·';b.disabled=!entry.children.length;b.setAttribute('aria-label','展開・折りたたみ');b.onclick=e=>{e.stopPropagation();studioTreeToggle(entry);};td.prepend(b);
  tr.tabIndex=(entry.index===selectedIndex||selectedIndex<0&&entry===studioTreeVisible[0])?0:-1;tr.setAttribute('aria-level',entry.depth+1);if(entry.children.length)tr.setAttribute('aria-expanded',!studioTreeState().collapsed.has(String(entry.row[c.idField])));
  tr.addEventListener('keydown',e=>{
- if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.key))return;e.preventDefault();e.stopPropagation();selectedIndex=entry.index;
+ if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.key))return;e.preventDefault();e.stopPropagation();selectedIndex=entry.index;studioTreeState().selectedGroup=null;
  const s=studioTreeState(),id=String(entry.row[c.idField]),pos=studioTreeVisible.findIndex(n=>n.index===entry.index);
  if(e.key==='Enter'){openDetail(entry.index);return;}
- if(e.key==='ArrowUp'||e.key==='ArrowDown')selectedIndex=studioTreeVisible[Math.max(0,Math.min(studioTreeVisible.length-1,pos+(e.key==='ArrowDown'?1:-1)))].index;
- if(e.key==='ArrowLeft'){if(entry.children.length&&!s.collapsed.has(id))s.collapsed.add(id);else if(entry.parent)selectedIndex=entry.parent.index;}
+ if(e.key==='ArrowUp'||e.key==='ArrowDown'){const next=studioTreeVisible[Math.max(0,Math.min(studioTreeVisible.length-1,pos+(e.key==='ArrowDown'?1:-1)))];selectedIndex=next.groupId!=null?-1:next.index;s.selectedGroup=next.groupId??null;}
+ if(e.key==='ArrowLeft'){if(entry.children.length&&!s.collapsed.has(id))s.collapsed.add(id);else if(entry.parent)selectedIndex=entry.parent.index;else if(entry.groupRoot){selectedIndex=-1;s.selectedGroup=entry.groupRoot.groupId;}}
  if(e.key==='ArrowRight'&&entry.children.length){if(s.collapsed.has(id))s.collapsed.delete(id);else selectedIndex=entry.children[0].index;}
- renderGrid();document.querySelector('#dataGrid tr[data-source-index="'+selectedIndex+'"]')?.focus();
+ renderGrid();if(s.selectedGroup!=null)studioTreeFocusGroup(s.selectedGroup);else document.querySelector('#dataGrid tr[data-source-index="'+selectedIndex+'"]')?.focus();
  });
  tr.addEventListener('click',()=>document.querySelector('#dataGrid tr[data-source-index="'+selectedIndex+'"]')?.focus());
 }

@@ -7,7 +7,7 @@ from pathlib import Path
 from ctypes import wintypes
 import ctypes
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
@@ -41,6 +41,20 @@ def icon(kind):
         p.drawRoundedRect(3,3,18,18,5,5)
         p.setPen(QColor('#17212b')); p.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, {'calendar':'D','mail':'@','wifi':'W','volume':'♪','archive':'Z','globe':'↗','settings':'⚙'}.get(kind,'›'))
     p.end(); return QIcon(pix)
+
+
+def application_icon():
+    # PyInstaller bundles assets below _MEIPASS; source runs use app.py's folder.
+    resources = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
+    path = resources / 'assets' / 'frb_launch.ico'
+    result = QIcon(str(path))
+    return result if not result.isNull() else icon('command')
+
+
+def tray_icon():
+    resources = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
+    result = QIcon(str(resources / 'assets' / 'frb_launch_tray.svg'))
+    return result if not result.isNull() else application_icon()
 
 
 class CascadeMenu(OrderDragMixin,QMenu):
@@ -141,6 +155,15 @@ class AppCascadeMenu(CascadeMenu):
         self.tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(35)
+        self.tree.verticalScrollBar().setStyleSheet('''
+            QScrollBar:vertical { background:#202b29; width:8px; margin:0; border:0; }
+            QScrollBar::handle:vertical { background:#929894; min-height:28px; border-radius:2px; margin:0 2px; }
+            QScrollBar::handle:vertical:hover { background:#c9d0cc; }
+            QScrollBar::handle:vertical:pressed { background:#eef2ef; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }
+            QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { width:0; height:0; background:transparent; }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }
+        ''')
         self.tree.setMinimumSize(440,280)
         height=min(490,max(280,QApplication.primaryScreen().availableGeometry().height()-120))
         self.tree.setFixedSize(440,height)
@@ -197,10 +220,16 @@ class Launcher(QWidget):
     def __init__(self):
         super().__init__(None, Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
         self.setWindowTitle('FRB Launch'); self.resize(390,440)
-        self.setWindowIcon(icon('command'))
+        self.setWindowIcon(application_icon())
+        self.setMouseTracking(True)
+        self.setMinimumHeight(240)
+        self.frame_title = QLabel('FRB Launch', self)
+        self.frame_title.setGeometry(14, 3, 220, 18)
+        self.frame_title.setStyleSheet('background:transparent;color:#f2f5f2;font-size:12px;border:0;')
+        self.frame_title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None
         self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
-        self.data = None; self.mtime = None; self.target = 0; self.busy = False
+        self.data = None; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
@@ -211,7 +240,7 @@ class Launcher(QWidget):
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
         self.list.setColumnWidth(0,180); self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.footer = QLabel('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
-        layout = QVBoxLayout(self); layout.setContentsMargins(12,12,12,9); layout.setSpacing(8)
+        layout = QVBoxLayout(self); layout.setContentsMargins(14,32,14,14); layout.setSpacing(8)
         self.selection_tools = QWidget()
         buttons = QHBoxLayout(self.selection_tools); buttons.setContentsMargins(0,0,0,0)
         for title, callback in [('全選択 (Ctrl+A)', lambda:self.select_all(True)), ('全解除 (Ctrl+Shift+A)', lambda:self.select_all(False)), ('戻る (←)', self.go_back)]:
@@ -219,10 +248,10 @@ class Launcher(QWidget):
         buttons.addStretch()
         self.selection_tools.hide()
         for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self.setStyleSheet('''QWidget{background:#19212c;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#19212c;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTabBar::tab{padding:7px 17px;color:#9eafc3;} QTabBar::tab:selected{background:#2a3b50;color:#8cbcff;border-radius:5px;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
-        self.tray = QSystemTrayIcon(self.windowIcon(), self); self.tray.setToolTip('FRB Launch — Ctrl+Shift+;')
+        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTabBar::tab{padding:7px 17px;color:#9eafc3;} QTabBar::tab:selected{background:#2a3b50;color:#8cbcff;border-radius:5px;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
+        self.tray = QSystemTrayIcon(tray_icon(), self); self.tray.setToolTip('FRB Launch — Ctrl+Shift+;')
         traymenu = QMenu(self)
-        traymenu.addAction('開く', self.summon); traymenu.addAction('設定を再読込', lambda:self.reload(True))
+        traymenu.addAction('開く', self.summon)
         traymenu.addAction('設定フォルダーを開く', lambda:self.open_target(str(CONFIG.parent)))
         traymenu.addAction('アプリ一覧を更新', self.refresh_apps)
         traymenu.addAction('アプリ一覧JSONを開く', lambda:self.open_target(str(STATE/'apps_cache.json')))
@@ -249,10 +278,112 @@ class Launcher(QWidget):
         QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
         self.register_key()
+        self.restore_window_height()
         position = self.settings.value('position')
         if position: self.move(position)
         else:
             screen=QApplication.primaryScreen().availableGeometry();self.move(screen.center()-self.rect().center())
+
+    FRAME_WIDTH = 6
+    FRAME_TOP = 24
+
+    def frame_inner_rect(self):
+        return QRectF(self.FRAME_WIDTH + .5, self.FRAME_TOP + .5,
+                      self.width() - 2 * self.FRAME_WIDTH - 1,
+                      self.height() - self.FRAME_TOP - self.FRAME_WIDTH - 1)
+
+    def frame_hit(self, pos):
+        return self.rect().contains(pos.toPoint()) and not self.frame_inner_rect().contains(pos)
+
+    def restore_window_height(self):
+        try:
+            height = int(self.settings.value('window_height', 440))
+        except (TypeError, ValueError):
+            height = 440
+        screen = self.screen().availableGeometry()
+        self.resize(self.width(), max(self.minimumHeight(), min(height, screen.height())))
+
+    def resize_edge(self, pos):
+        if not self.rect().contains(pos.toPoint()): return None
+        if pos.y() < self.FRAME_WIDTH: return 'top'
+        if pos.y() >= self.height() - self.FRAME_WIDTH: return 'bottom'
+        return None
+
+    def save_window_height(self):
+        self.settings.setValue('window_height', self.height())
+        self.settings.sync()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        outer = QRectF(self.rect()).adjusted(.5, .5, -.5, -.5)
+        gradient = QLinearGradient(0, 0, 0, self.FRAME_TOP)
+        gradient.setColorAt(0, QColor('#6b756e'))
+        gradient.setColorAt(1, QColor('#43524b'))
+        painter.setBrush(gradient)
+        painter.setPen(QPen(QColor('#d0d7cf'), 1))
+        painter.drawRoundedRect(outer, self.CORNER_RADIUS, self.CORNER_RADIUS)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setPen(QPen(QColor('#27362e'), 1))
+        painter.drawRoundedRect(outer.adjusted(1, 1, -1, -1), self.CORNER_RADIUS - 1, self.CORNER_RADIUS - 1)
+        inner = self.frame_inner_rect()
+        painter.setBrush(QColor('#202b29'))
+        painter.setPen(QPen(QColor('#abb5ab'), 1))
+        painter.drawRoundedRect(inner, 3, 3)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setPen(QPen(QColor('#101a17'), 1))
+        painter.drawRoundedRect(inner.adjusted(1, 1, -1, -1), 2, 2)
+        painter.end()
+
+    def mousePressEvent(self, event):
+        edge = self.resize_edge(event.position())
+        if event.button() == Qt.MouseButton.LeftButton and edge:
+            self.hover_timer.stop(); self.pending_menu_item = None
+            if self.menu: self.menu.close()
+            self._frame_drag = None
+            self._height_drag = (edge, event.globalPosition().toPoint().y(), self.geometry())
+            event.accept(); return
+        if event.button() == Qt.MouseButton.LeftButton and self.frame_hit(event.position()):
+            self.hover_timer.stop(); self.pending_menu_item = None
+            if self.menu: self.menu.close()
+            self._frame_drag = None
+            handle = self.windowHandle()
+            if not handle or not handle.startSystemMove():
+                self._frame_drag = (event.globalPosition().toPoint(), self.pos())
+            event.accept(); return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        resize = getattr(self, '_height_drag', None)
+        if resize and event.buttons() & Qt.MouseButton.LeftButton:
+            edge, start_y, original = resize
+            delta = event.globalPosition().toPoint().y() - start_y
+            requested = original.height() + (delta if edge == 'bottom' else -delta)
+            height = max(self.minimumHeight(), min(requested, self.screen().availableGeometry().height()))
+            top = original.y() if edge == 'bottom' else original.y() + original.height() - height
+            self.setGeometry(original.x(), top, original.width(), height)
+            event.accept(); return
+        self.setCursor(Qt.CursorShape.SizeVerCursor if self.resize_edge(event.position()) else Qt.CursorShape.ArrowCursor)
+        drag = getattr(self, '_frame_drag', None)
+        if drag and event.buttons() & Qt.MouseButton.LeftButton:
+            self.move(drag[1] + event.globalPosition().toPoint() - drag[0])
+            event.accept(); return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._frame_drag = None
+            if getattr(self, '_height_drag', None):
+                self._height_drag = None
+                self.save_window_height()
+                self.settings.setValue('position', self.pos())
+                self.settings.sync()
+        super().mouseReleaseEvent(event)
+
+    def leaveEvent(self, event):
+        if not getattr(self, '_height_drag', None): self.unsetCursor()
+        super().leaveEvent(event)
 
     def update_window_shape(self):
         path=QPainterPath()
@@ -262,8 +393,10 @@ class Launcher(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.update_window_shape()
+        if self.isVisible() and hasattr(self, 'settings'): self.save_window_height()
 
     def showEvent(self, event):
+        if self.data is not None:self.reload()
         self.update_window_shape()
         super().showEvent(event)
 
@@ -328,11 +461,11 @@ class Launcher(QWidget):
 
     def reload(self, force=False):
         try:
-            stamp=CONFIG.stat().st_mtime_ns
-            if not force and stamp==self.mtime:return
+            stat=CONFIG.stat();stamp=stat.st_mtime_ns
+            if not force and stamp==self.mtime and stat.st_size==self.config_size:return
             fresh=load(CONFIG)
             Expander(fresh)  # Validate timezone before swapping the active data.
-            self.data=installed_apps.attach(fresh,self.app_records);self.mtime=stamp
+            self.data=installed_apps.attach(fresh,self.app_records);self.mtime=stamp;self.config_size=stat.st_size
             self.tabs.blockSignals(True)
             while self.tabs.count():self.tabs.removeTab(0)
             self.pages=sorted([p for p in fresh['pages'] if p.get('enabled',True)],key=lambda p:p.get('sort_order',0))
@@ -362,6 +495,7 @@ class Launcher(QWidget):
 
     def dismiss(self):
         if self.menu:self.menu.close()
+        self.save_window_height()
         self.hover_timer.stop();self.settings.setValue('position',self.pos());self.settings.setValue('page',self.page_id);self.hide()
 
     def app_state(self,state):
@@ -455,6 +589,7 @@ class Launcher(QWidget):
 
     def hover(self,q,col):
         if self.selection or QApplication.mouseButtons() & Qt.MouseButton.LeftButton or getattr(self.list,'order_dragging',False):return
+        self.list.setCurrentItem(q)
         self.pending_menu_item=q
         self.hover_timer.start(int(self.data.get('launch_hover_delay_ms',250)))
 
@@ -592,13 +727,15 @@ class Launcher(QWidget):
             if event.type()==QEvent.Type.KeyPress and event.modifiers()==Qt.KeyboardModifier.NoModifier:
                 key=event.key()
                 if key==Qt.Key.Key_Up:
+                    if self.list.topLevelItemCount():
+                        self.list.setCurrentItem(self.list.topLevelItem(self.list.topLevelItemCount()-1));self.list.setFocus(Qt.FocusReason.TabFocusReason);self.list.scrollToItem(self.list.currentItem())
                     event.accept();return True
                 if key in (Qt.Key.Key_Left,Qt.Key.Key_Right):
                     index=max(0,min(self.tabs.count()-1,self.tabs.currentIndex()+(1 if key==Qt.Key.Key_Right else -1)))
                     if self.tabs.count():self.tabs.setCurrentIndex(index)
                     event.accept();return True
             if event.type()==QEvent.Type.KeyPress and event.key()==Qt.Key.Key_Down:
-                if not self.list.currentItem() and self.list.topLevelItemCount():
+                if self.list.topLevelItemCount():
                     self.list.setCurrentItem(self.list.topLevelItem(0))
                 self.list.setFocus(Qt.FocusReason.TabFocusReason)
                 if self.list.currentItem():self.list.scrollToItem(self.list.currentItem())
@@ -626,6 +763,8 @@ class Launcher(QWidget):
                 if k==Qt.Key.Key_Up and obj==self.list and i<=0:
                     self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
                     event.accept();return True
+                if k==Qt.Key.Key_Down and obj==self.list and i>=self.list.topLevelItemCount()-1:
+                    self.tabs.setFocus(Qt.FocusReason.TabFocusReason);event.accept();return True
                 i=max(0,min(self.list.topLevelItemCount()-1,i+(1 if k==Qt.Key.Key_Down else -1)))
                 if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(i))
                 self.list.setFocus();return True
@@ -748,6 +887,7 @@ class Launcher(QWidget):
 
 def main():
     app=QApplication(sys.argv);app.setQuitOnLastWindowClosed(False)
+    app.setWindowIcon(application_icon())
     # One user/session-local instance, independent of its installation directory.
     name='FRBLaunch-'+os.environ.get('USERNAME',os.environ.get('USER','default'))
     lock=QLockFile(str(STATE/'instance.lock'));lock.setStaleLockTime(0)

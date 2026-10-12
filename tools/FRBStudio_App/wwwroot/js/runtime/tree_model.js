@@ -36,7 +36,21 @@ const StudioTreeModel = (() => {
     const peers=rows.filter(r=>r!==n.row&&value(r,cfg.parentField)===value(n.row,cfg.parentField)&&value(r,cfg.groupField)===value(n.row,cfg.groupField));
     n.row[cfg.orderField]=Math.max(0,...peers.map(r=>Number(r[cfg.orderField])||0))+10;
   }
+  // Validate the complete destination before mutating the flat canonical rows.
+  function place(rows,cfg,index,parentIndex,group,beforeIndex) {
+    const m=build(rows,cfg),n=m.nodes[index],p=parentIndex==null?null:m.nodes[parentIndex];
+    if(!n || parentIndex!=null&&!p)throw Error('移動する項目または移動先が見つかりません');
+    for(let a=p;a;a=a.parent)if(a===n)throw Error('自分や子孫の下には移動できません');
+    if(p&&cfg.parentKindField&&!cfg.parentKinds.includes(p.row[cfg.parentKindField]))throw Error('カテゴリーの中へ移動してください');
+    const g=p?p.row[cfg.groupField]:group;
+    const peers=m.nodes.filter(x=>x!==n&&x.parent===p&&(!cfg.groupField||x.row[cfg.groupField]===g)).sort((a,b)=>(Number(a.row[cfg.orderField])||0)-(Number(b.row[cfg.orderField])||0)||a.index-b.index);
+    if(beforeIndex===index)return false;
+    const at=beforeIndex==null?peers.length:peers.findIndex(x=>x.index===beforeIndex);
+    if(at<0)throw Error('移動先の並び順が変更されました');
+    move(rows,cfg,index,parentIndex,group);
+    peers.splice(at,0,n);peers.forEach((x,i)=>x.row[cfg.orderField]=(i+1)*10);return true;
+  }
   function reorder(rows,cfg,index,delta){const m=build(rows,cfg),n=m.nodes[index];m.cfg=cfg;const peers=siblings(m,n);const pos=peers.indexOf(n),to=pos+delta;if(to<0||to>=peers.length)return false;[peers[pos],peers[to]]=[peers[to],peers[pos]];peers.forEach((x,i)=>x.row[cfg.orderField]=(i+1)*10);return true;}
-  return {build,project,move,reorder};
+  return {build,project,move,place,reorder};
 })();
 if(typeof module!=='undefined')module.exports=StudioTreeModel;

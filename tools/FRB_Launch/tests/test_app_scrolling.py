@@ -41,3 +41,11 @@ class AppScrollingTests(unittest.TestCase):
         self.assertIn('Application 199',[self.w.list.topLevelItem(i).data(0,Qt.ItemDataRole.UserRole)['title'] for i in range(self.w.list.topLevelItemCount())])
         self.w.search.clear();self.w.cascade(next(r for r in self.w.data['items'] if r['item_id']=='installed_apps'))
         menu=self.w.menu;QTest.keyClick(menu.tree,Qt.Key.Key_Left);self.assertFalse(menu.isVisible())
+
+    def test_thin_scrollbar_can_still_reach_last_item(self):
+        menu=self.open_large();bar=menu.tree.verticalScrollBar()
+        self.assertTrue(bar.isVisible())
+        self.assertEqual(bar.width(),8)
+        bar.setValue(bar.maximum());self.qt.processEvents()
+        last=menu.tree.visualItemRect(menu.tree.topLevelItem(199))
+        self.assertTrue(menu.tree.viewport().rect().intersects(last))

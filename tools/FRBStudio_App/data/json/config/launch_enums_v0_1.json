@@ -1,0 +1,98 @@
+{
+  "view_def": "common/common_enums_view_def_v0_1.json",
+  "document_type": "common_enum_registry",
+  "title": "FRB Launch 選択肢",
+  "namespaces": [
+    {
+      "namespace_id": "launch",
+      "name": "FRB Launch",
+      "enums": [
+        {
+          "enum_id": "icon_key",
+          "enum_ref": "launch.icon_key",
+          "name": "アイコン",
+          "items": [
+            {
+              "cd": "category.blue",
+              "name": "カテゴリー（青）",
+              "sort_order": 10,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.yellow",
+              "name": "フォルダー（黄）",
+              "sort_order": 20,
+              "deprecated": false
+            },
+            {
+              "cd": "file",
+              "name": "ファイル",
+              "sort_order": 30,
+              "deprecated": false
+            },
+            {
+              "cd": "command",
+              "name": "実行項目",
+              "sort_order": 40,
+              "deprecated": false
+            },
+            {
+              "cd": "calendar",
+              "name": "日付",
+              "sort_order": 50,
+              "deprecated": false
+            },
+            {
+              "cd": "mail",
+              "name": "メール",
+              "sort_order": 60,
+              "deprecated": false
+            },
+            {
+              "cd": "wifi",
+              "name": "Wi-Fi",
+              "sort_order": 70,
+              "deprecated": false
+            },
+            {
+              "cd": "volume",
+              "name": "音声",
+              "sort_order": 80,
+              "deprecated": false
+            },
+            {
+              "cd": "archive",
+              "name": "ZIP",
+              "sort_order": 90,
+              "deprecated": false
+            },
+            {
+              "cd": "globe",
+              "name": "Web",
+              "sort_order": 100,
+              "deprecated": false
+            },
+            {
+              "cd": "settings",
+              "name": "設定",
+              "sort_order": 110,
+              "deprecated": false
+            },
+            {
+              "cd": "message",
+              "name": "message（既存値）",
+              "sort_order": 120,
+              "deprecated": false
+            },
+            {
+              "cd": "app",
+              "name": "app（既存値）",
+              "sort_order": 130,
+              "deprecated": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

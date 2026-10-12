@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-09-18_19:15:00",
+  "updated_at": "2026-10-11T21:02:30+09:00",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 254,
+  "items_count": 255,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -38236,6 +38236,88 @@
           "at": "2026-09-18_19:15:00",
           "title": "テスト環境の登録口不足",
           "body": "初回VM検証はregisterFieldControl／registerRendererのstub不足で起動に失敗。登録口を補完して7件PASS。ブラウザー一括fillで既存の空行増加を発見し、通常文字追記と操作を分離して検証、未修正事項は後続作業へ残した。"
+        }
+      ]
+    },
+    {
+      "work_item_id": "studio_work_0267",
+      "phase": "launch-tree-only-drag-move",
+      "title": "Launchメニューのツリー専用表示とドラッグ移動",
+      "incident_type": "enhancement",
+      "category": "tree_ui / launch",
+      "status": "完了",
+      "verification_status": "関連Nodeテスト55件成功 / Windows実ドラッグ未確認",
+      "follow_up_status": "ユーザーWindows実機確認待ち",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-10-11T21:02:30+09:00",
+      "updated_at": "2026-10-11T21:02:30+09:00",
+      "work_summary": "Launch設定のメニューITEM表示をツリー専用に統一しました。一覧切替・最上位追加・上下／移動ボタンを非表示とし、ドラッグで配置を変更できます。行の上端／下端で前後、カテゴリー中央で子へ移動。Pageへの項目移動とPage同士の並べ替えにも対応。IDを維持し、子孫のPageを追従させます。不正な親子移動と読み取り専用は変更を拒否。関連自動テスト55件成功、Windowsの実ドラッグは未確認。差分上書き後Studio再起動、配置変更後JSON保存。EXE再ビルド不要。",
+      "objective": "Launch設定をツリーだけで分かりやすく編集し、移動はドラッグで行う。",
+      "user_request": "メニューを精査しよう。\nまず、ツリーモード。\n最上位に追加は不要。移動のボタンは不要。但し、移動はドラッグをサポートしてほしい。\nつぎ。一覧モード。あぁ・・・・。一覧モードは無しにしようか・・・。機能を精査するの面倒。使わないし。\n一覧モードという概念はなくして、あくまでランチJSONはツリーのみに対応しているという体裁にしよう。",
+      "latest_user_comment": "メニューを精査しよう。\nまず、ツリーモード。\n最上位に追加は不要。移動のボタンは不要。但し、移動はドラッグをサポートしてほしい。\nつぎ。一覧モード。あぁ・・・・。一覧モードは無しにしようか・・・。機能を精査するの面倒。使わないし。\n一覧モードという概念はなくして、あくまでランチJSONはツリーのみに対応しているという体裁にしよう。",
+      "scope": [
+        "Launch ViewDefのtreeOnly / dragMove契約",
+        "ツリー操作バーの整理",
+        "ITEMの親・Page・順序変更",
+        "Pageの並べ替え"
+      ],
+      "target_files": [
+        "wwwroot/js/runtime/tree_drag_move.js",
+        "wwwroot/index.html",
+        "wwwroot/js/runtime/tree_grid.js",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/js/runtime/tree_model.js",
+        "defs/launch/frb_launch_maintenance_view_def_v0_1.json",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "tests/tree/tree_ui.test.cjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "actual_updated_files": [
+        "wwwroot/js/runtime/tree_drag_move.js",
+        "wwwroot/index.html",
+        "wwwroot/js/runtime/tree_grid.js",
+        "wwwroot/js/renderers/grid_detail.js",
+        "wwwroot/js/runtime/tree_model.js",
+        "defs/launch/frb_launch_maintenance_view_def_v0_1.json",
+        "data/json/00_rules/frb_view_def_schema_v0_9.json",
+        "tests/tree/tree_ui.test.cjs",
+        "data/json/01_main/_studio_work_incident_data_v2.json"
+      ],
+      "latest_ai_response": "Launch設定のメニューITEM表示をツリー専用に統一しました。一覧切替・最上位追加・上下／移動ボタンを非表示とし、ドラッグで配置を変更できます。行の上端／下端で前後、カテゴリー中央で子へ移動。Pageへの項目移動とPage同士の並べ替えにも対応。IDを維持し、子孫のPageを追従させます。不正な親子移動と読み取り専用は変更を拒否。関連自動テスト55件成功、Windowsの実ドラッグは未確認。差分上書き後Studio再起動、配置変更後JSON保存。EXE再ビルド不要。",
+      "test_points": "一覧切替と最上位／移動ボタンなし。ドラッグ上下順序・カテゴリー内・別Pageへの子孫移動・Page順序・循環拒否・読み取り専用・外部ファイルdrop回帰を検証。保存後Launchへの反映はWindows実機で確認。",
+      "discussion_history": [
+        {
+          "history_id": "studio_work_0267_user",
+          "at": "2026-10-11T21:02:30+09:00",
+          "speaker": "user",
+          "topic": "メニュー精査依頼",
+          "message": "メニューを精査しよう。\nまず、ツリーモード。\n最上位に追加は不要。移動のボタンは不要。但し、移動はドラッグをサポートしてほしい。\nつぎ。一覧モード。あぁ・・・・。一覧モードは無しにしようか・・・。機能を精査するの面倒。使わないし。\n一覧モードという概念はなくして、あくまでランチJSONはツリーのみに対応しているという体裁にしよう。"
+        },
+        {
+          "history_id": "studio_work_0267_assistant",
+          "at": "2026-10-11T21:02:30+09:00",
+          "speaker": "assistant",
+          "topic": "対応結果",
+          "message": "Launch設定のメニューITEM表示をツリー専用に統一しました。一覧切替・最上位追加・上下／移動ボタンを非表示とし、ドラッグで配置を変更できます。行の上端／下端で前後、カテゴリー中央で子へ移動。Pageへの項目移動とPage同士の並べ替えにも対応。IDを維持し、子孫のPageを追従させます。不正な親子移動と読み取り専用は変更を拒否。関連自動テスト55件成功、Windowsの実ドラッグは未確認。差分上書き後Studio再起動、配置変更後JSON保存。EXE再ビルド不要。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "studio_work_0267_decision",
+          "at": "2026-10-11T21:02:30+09:00",
+          "decision": "Launch ViewDefでツリー専用とドラッグ移動を有効化する。共通Runtimeにアプリ固有フィールド名を埋め込まない。",
+          "reason": "Studioの標準操作として再利用し、通常のグリッドの表示へ影響させないため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "studio_work_0267_change",
+          "at": "2026-10-11T21:02:30+09:00",
+          "change_type": "tree_only_drag_move",
+          "before": "Launch設定に一覧切替、最上位追加、上下／移動ボタンがあり、ドラッグ移動は未対応。",
+          "after": "Launch設定のメニューITEM表示をツリー専用に統一しました。一覧切替・最上位追加・上下／移動ボタンを非表示とし、ドラッグで配置を変更できます。行の上端／下端で前後、カテゴリー中央で子へ移動。Pageへの項目移動とPage同士の並べ替えにも対応。IDを維持し、子孫のPageを追従させます。不正な親子移動と読み取り専用は変更を拒否。関連自動テスト55件成功、Windowsの実ドラッグは未確認。差分上書き後Studio再起動、配置変更後JSON保存。EXE再ビルド不要。",
+          "reason": "使わない操作を減らし、ツリー上の直感的な配置変更へ統一するため。"
         }
       ]
     }

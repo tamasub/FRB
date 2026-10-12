@@ -11,7 +11,7 @@ if errorlevel 1 goto unsupported
 if errorlevel 1 goto fail
 .venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
 if errorlevel 1 goto fail
-.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata app.py
+.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata --icon "assets\frb_launch.ico" --add-data "assets;assets" app.py
 if errorlevel 1 goto fail
 xcopy /E /I /Y defs dist\FRBLaunch\defs
 if errorlevel 1 goto fail

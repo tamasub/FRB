@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Web.Script.Serialization;
+using Microsoft.Web.WebView2.Core;
 
 namespace FRBStudio.NativeShell
 {
@@ -34,7 +35,26 @@ namespace FRBStudio.NativeShell
             LoadPersistedFolderGrants();
         }
 
-        public async Task<string> DispatchAsync(string messageJson)
+        private object DescribeDroppedFiles(IEnumerable<object> objects)
+        {
+            var files = new List<object>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var value in objects ?? Enumerable.Empty<object>())
+            {
+                var dropped = value as CoreWebView2File;
+                if (dropped == null) throw new InvalidOperationException("Dropped File object is required.");
+                var path = Path.GetFullPath(dropped.Path);
+                if (!seen.Add(path)) continue;
+                var directory = Directory.Exists(path);
+                if (!directory && !File.Exists(path)) throw new FileNotFoundException("Dropped path no longer exists.", path);
+                var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                files.Add(new Dictionary<string, object> { ["path"] = path, ["name"] = string.IsNullOrEmpty(name) ? path : name, ["kind"] = directory ? "directory" : "file" });
+            }
+            if (files.Count == 0) throw new InvalidOperationException("No dropped files were supplied.");
+            return new Dictionary<string, object> { ["files"] = files };
+        }
+
+        public async Task<string> DispatchAsync(string messageJson, IEnumerable<object> additionalObjects = null)
         {
             string requestId = null;
             string command = null;
@@ -60,7 +80,7 @@ namespace FRBStudio.NativeShell
                 if (!_config.AllowedCommands.Contains(command))
                     return SerializeError(requestId, command, "COMMAND_NOT_ALLOWED", "The native command is not enabled by native_shell.config.json.");
 
-                var result = await ExecuteAsync(command, payload);
+                var result = command == "file.describeDrop" ? DescribeDroppedFiles(additionalObjects) : await ExecuteAsync(command, payload);
                 return _serializer.Serialize(new Dictionary<string, object>
                 {
                     ["protocol_version"] = _config.ProtocolVersion,

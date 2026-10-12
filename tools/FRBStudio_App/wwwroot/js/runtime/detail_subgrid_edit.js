@@ -1033,6 +1033,7 @@ function fitDetailSubGridColumnsToWrap(card, columns=[]) {
 }
 
 function createDetailSubGridCard({ field, row, gd, data }) {
+  if (field.type === "objectArray" && detailSubGridConfig(field).layout === "cards") return createDetailSubGridCards({field,row,gd,data});
   const editable = isDetailSubGridEditable(field);
   let expanded = detailSubGridInitialExpanded(field);
   const card = document.createElement('div');
@@ -1174,6 +1175,7 @@ function readSubGridControlValue(input) {
 }
 
 function collectDetailSubGridValue(card) {
+  if (card.__studioCardRows) return cloneSubGridCanonicalValue(card.__studioCardRows);
   const type = card.dataset.subgridType;
   const rows = [...card.querySelectorAll('tbody tr')];
   if (type === 'stringArray') {

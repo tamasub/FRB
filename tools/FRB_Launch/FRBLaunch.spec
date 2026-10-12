@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = []
+datas = [('assets', 'assets')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('tzdata')
@@ -39,6 +39,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets\\frb_launch.ico'],
 )
 coll = COLLECT(
     exe,

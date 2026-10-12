@@ -61,3 +61,30 @@ class HoverChromeTests(test_navigation.NavigationTests):
         with patch.object(module.windows,'IS_WINDOWS',True),patch.object(module.windows,'chrome_path',return_value=r'C:\chrome.exe'),patch('subprocess.Popen') as process:
             module.windows.open_chrome('https://chatgpt.com/')
             process.assert_called_once_with([r'C:\chrome.exe','https://chatgpt.com/'])
+
+    def test_main_hover_selects_the_submenu_owner(self):
+        first=self.w.list.topLevelItem(0)
+        target=self.w.list.topLevelItem(2)
+        self.w.list.setCurrentItem(first)
+        self.w.hover(target,0)
+        self.assertEqual(self.w.list.currentItem(),target)
+        self.assertTrue(target.isSelected())
+        self.assertFalse(first.isSelected())
+        self.assertEqual(self.w.pending_menu_item,target)
+        pos=self.w.list.viewport().mapToGlobal(self.w.list.visualItemRect(target).center())
+        with patch.object(module.QCursor,'pos',return_value=pos):
+            self.w.open_hover()
+        self.assertEqual(self.w.menu.owner_item,target)
+        self.assertEqual(self.w.list.currentItem(),target)
+
+    def test_hover_does_not_change_current_while_dragging_or_selecting(self):
+        first=self.w.list.topLevelItem(0)
+        target=self.w.list.topLevelItem(2)
+        self.w.list.setCurrentItem(first)
+        self.w.list.order_dragging=True
+        self.w.hover(target,0)
+        self.assertEqual(self.w.list.currentItem(),first)
+        self.w.list.order_dragging=False
+        self.w.selection={'id':'test'}
+        self.w.hover(target,0)
+        self.assertEqual(self.w.list.currentItem(),first)
