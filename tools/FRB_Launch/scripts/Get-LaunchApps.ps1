@@ -1,40 +1,85 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$OutputPath)
-$ErrorActionPreference='Stop'
+$ErrorActionPreference = 'Stop'
+
+# Use built-in commands only.  In company environments COM activation and
+# arbitrary .NET method invocation may be prohibited by policy.
 try {
-    $apps=@(Get-StartApps -ErrorAction Stop)
-    $shell=New-Object -ComObject WScript.Shell
-    $shortcuts=@()
-    $roots=@([Environment]::GetFolderPath('Programs'),[Environment]::GetFolderPath('CommonPrograms'))
-    foreach ($root in $roots) {
-        if (-not $root -or -not (Test-Path -LiteralPath $root)) { continue }
-        foreach ($file in @(Get-ChildItem -LiteralPath $root -Filter '*.lnk' -Recurse -File -ErrorAction SilentlyContinue)) {
+    $partial = $false
+    $gotStartApps = $false
+    $gotShortcuts = $false
+    $apps = @()
+
+    try {
+        $apps = @(Get-StartApps -ErrorAction Stop)
+        $gotStartApps = $true
+        Write-Output ('APPS Get-StartApps count=' + $apps.Count)
+    } catch {
+        $partial = $true
+        Write-Output ('APPS Get-StartApps unavailable: ' + $_.Exception.Message)
+    }
+
+    $roots = @()
+    if ($env:APPDATA) { $roots += (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs') }
+    if ($env:PROGRAMDATA) { $roots += (Join-Path $env:PROGRAMDATA 'Microsoft\Windows\Start Menu\Programs') }
+    $shortcuts = @(
+        foreach ($root in ($roots | Select-Object -Unique)) {
             try {
-                $link=$shell.CreateShortcut($file.FullName)
-                $target=[Environment]::ExpandEnvironmentVariables($link.TargetPath)
-                if (-not $target -or -not (Test-Path -LiteralPath $target -PathType Leaf)) { continue }
-                if ([IO.Path]::GetExtension($target) -notin @('.exe','.com','.bat','.cmd')) { continue }
-                if ([IO.Path]::GetFileName($target) -match '^(unins\d*|uninstall|uninstaller)\.exe$') { continue }
-                $shortcuts+=@([pscustomobject]@{name=$file.BaseName;path=$file.FullName})
-            } catch { }
+                if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+                    Write-Warning ('APPS Start Menu unavailable: ' + $root)
+                    $partial = $true
+                    continue
+                }
+                # Some company folders are access-restricted; skip unreadable subfolders.
+                $scanErrors = @()
+                $files = @(Get-ChildItem -LiteralPath $root -Filter '*.lnk' -Recurse -File -ErrorAction SilentlyContinue -ErrorVariable +scanErrors)
+                if ($scanErrors.Count -gt 0) {
+                    $partial = $true
+                    Write-Warning ('APPS Some shortcut folders were restricted under ' + $root + ': ' + $scanErrors.Count)
+                }
+                $gotShortcuts = $true
+                foreach ($file in $files) {
+                    [pscustomobject]@{ name=[string]$file.BaseName; path=[string]$file.FullName }
+                }
+                Write-Warning ('APPS Start Menu count=' + $files.Count)
+            } catch {
+                $partial = $true
+                Write-Warning ('APPS Start Menu enumeration failed: ' + $_.Exception.Message)
+            }
         }
+    )
+    if (-not $gotStartApps -and -not $gotShortcuts) {
+        throw 'Neither Get-StartApps nor Start Menu shortcuts could be read'
     }
-    $records=@()
-    foreach ($app in $apps) {
-        if (-not $app.Name -or -not $app.AppID) { continue }
-        $match=$shortcuts | Where-Object {$_.name -eq $app.Name} | Select-Object -First 1
-        $records+=@([pscustomobject]@{name=[string]$app.Name;target=[string]$app.AppID;kind='aumid';icon_path=$(if ($match) {$match.path} else {''})})
-    }
+
+    # Hash tables avoid O(start-app-count * shortcut-count) lookup loops.
+    $linkByName = @{}
     foreach ($link in $shortcuts) {
-        if (@($apps | Where-Object {$_.Name -eq $link.name}).Count) { continue }
-        $records+=@([pscustomobject]@{name=$link.name;target=$link.path;kind='shortcut';icon_path=$link.path})
+        if (-not $linkByName.ContainsKey($link.name)) { $linkByName[$link.name] = $link.path }
     }
-    $json=ConvertTo-Json -InputObject @{version=1;apps=@($records)} -Depth 5
-    [IO.File]::WriteAllText($OutputPath,$json,[Text.UTF8Encoding]::new($false))
+    $existingNames = @{}
+    $records = @(
+        foreach ($app in $apps) {
+            if (-not $app.Name -or -not $app.AppID) { continue }
+            $name = [string]$app.Name
+            $icon = ''
+            if ($linkByName.ContainsKey($name)) { $icon = $linkByName[$name] }
+            [pscustomobject]@{ name=$name; target=[string]$app.AppID; kind='aumid'; icon_path=$icon }
+            $existingNames[$name] = $true
+        }
+        foreach ($link in $shortcuts) {
+            if ($existingNames.ContainsKey($link.name)) { continue }
+            [pscustomobject]@{ name=$link.name; target=$link.path; kind='shortcut'; icon_path=$link.path }
+        }
+    )
+    if ($records.Count -eq 0) { throw 'No applications were discovered; refusing to replace the cached list' }
+
+    $json = ConvertTo-Json -InputObject @{version=1; apps=@($records); partial=$partial} -Depth 5
+    # Set-Content works in PowerShell ConstrainedLanguage (unlike static .NET IO APIs).
+    Set-Content -LiteralPath $OutputPath -Value $json -Encoding UTF8 -ErrorAction Stop
+    Write-Output ('APPS saved count=' + $records.Count + ' partial=' + $partial)
     exit 0
 } catch {
-    $logDir=Join-Path $env:LOCALAPPDATA 'FRBLaunch'
-    New-Item -ItemType Directory -Force -Path $logDir | Out-Null
-    Add-Content -LiteralPath (Join-Path $logDir 'apps.log') -Encoding UTF8 -Value ((Get-Date -Format 'yyyy/MM/dd HH:mm:ss')+' '+$_.Exception.ToString())
+    Write-Output ('APPS ERROR: ' + $_.Exception.ToString())
     exit 1
 }

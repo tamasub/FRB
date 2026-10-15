@@ -42,7 +42,10 @@ def prepare(root):
     from core import validate
     validate(data)
     if (legacy/'scripts').is_dir():
-        shutil.copytree(legacy/'scripts',root/'scripts',dirs_exist_ok=True)
+        # Preserve editable legacy user scripts but never overwrite the updated
+        # system app scanner shipped with this source ZIP during migration.
+        shutil.copytree(legacy/'scripts',root/'scripts',dirs_exist_ok=True,
+            ignore=lambda _folder,names: {'Get-LaunchApps.ps1'} & set(names))
     dest=root/CONFIG;dest.parent.mkdir(parents=True,exist_ok=True)
     temp=dest.with_suffix('.migration.tmp');temp.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');temp.replace(dest)
     ready.write_text('Editable config/scripts are in this project root. Do not restore dist files.\n',encoding='utf-8')

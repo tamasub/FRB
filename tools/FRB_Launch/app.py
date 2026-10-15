@@ -14,11 +14,13 @@ from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows
 import windows
 import installed_apps
+from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
 from process_runner import start_process
 from launch_diagnostics import make_logger, wifi_transcript_arguments
 from runtime_paths import launch_home
+from desktop_double_click import DesktopDoubleClick
 
 ROOT = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent
 LAUNCH_HOME = launch_home(ROOT)
@@ -227,7 +229,7 @@ class Launcher(QWidget):
         self.frame_title.setGeometry(14, 3, 220, 18)
         self.frame_title.setStyleSheet('background:transparent;color:#f2f5f2;font-size:12px;border:0;')
         self.frame_title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None
+        self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None;self.apps_log=STATE/'apps.log'
         self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
         self.data = None; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
@@ -266,6 +268,9 @@ class Launcher(QWidget):
         self.list.itemEntered.connect(self.hover)
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True); self.hover_timer.timeout.connect(self.open_hover)
         self.search.installEventFilter(self); self.list.installEventFilter(self); self.tabs.installEventFilter(self)
+        # QTreeWidget sends mouse events from its viewport, not from the tree.
+        # An empty-area double-click navigates back only while inside a submenu.
+        self.list.viewport().installEventFilter(self)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
         self.page_shortcuts = []
         for index in range(12):
@@ -409,40 +414,83 @@ class Launcher(QWidget):
 
     def refresh_apps(self):
         if not windows.IS_WINDOWS or self.apps_proc:return
-        if not any(r.get('launch_source')=='installed_apps' for r in self.data['items']):return
+        if not self.data or not any(r.get('launch_source')=='installed_apps' for r in self.data['items']):return
+        self.apps_log=STATE/'apps.log'
+        append_apps_log(self.apps_log,'SCAN_START','Get-StartApps / Start Menu discovery requested')
         try:
             import uuid
             self.apps_output=STATE/('apps_scan_'+uuid.uuid4().hex+'.json')
             script=LAUNCH_HOME/'scripts'/'Get-LaunchApps.ps1'
-            if not script.is_file():raise RuntimeError('Get-LaunchApps.ps1が見つかりません')
-            self.apps_proc=start_process('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',str(script),'-OutputPath',str(self.apps_output)],str(LAUNCH_HOME),False)
+            if not script.is_file():raise FileNotFoundError('Get-LaunchApps.ps1が見つかりません: '+str(script))
+            self.apps_proc=start_process('powershell.exe',
+                ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',str(script),'-OutputPath',str(self.apps_output)],
+                str(LAUNCH_HOME),False,log_path=self.apps_log)
             self.apps_started=time.monotonic();self.apps_timer.start()
-            DIAG.info('APPS scan started pid=%s',self.apps_proc.pid)
+            DIAG.info('APPS scan started pid=%s log=%s',self.apps_proc.pid,self.apps_log)
             self.footer.setText('アプリ一覧を更新中…')
-        except Exception as e:self.error('アプリ一覧の取得に失敗: '+str(e))
+        except Exception as e:
+            DIAG.exception('APPS PowerShell launch failed')
+            append_apps_log(self.apps_log,'POWERSHELL_LAUNCH_FAILED',str(e))
+            self.apps_proc=None
+            self._recover_apps(e)
+
+    def _apply_apps_scan(self, records, partial=False):
+        # Never destroy a valid catalog when a managed PC gives us zero results.
+        records=merge_catalog(self.app_records,records,partial)
+        if not records:raise ValueError('取得件数が0件のため、以前のアプリ一覧を保持します')
+        installed_apps.write_cache(STATE/'apps_cache.json',records)
+        self.app_records=records;self.icon_cache.clear()
+        self.data=installed_apps.attach(self.data,records)
+        if self.menu:self.menu.close()
+        self.render()
+        if partial:
+            self.footer.setText('アプリ一覧を部分更新: '+str(len(records))+'件（詳細: apps.log）')
+        else:
+            self.footer.setText('アプリ一覧を更新しました: '+str(len(records))+'件')
+        append_apps_log(self.apps_log,'SCAN_COMPLETE',f'count={len(records)} partial={partial}')
+        DIAG.info('APPS scan complete count=%s partial=%s',len(records),partial)
+
+    def _recover_apps(self, reason):
+        """Read ordinary Start Menu links if company policy blocks PowerShell."""
+        try:
+            raw,warnings=scan_shortcuts()
+            for warning in warnings:
+                append_apps_log(self.apps_log,'FALLBACK_WARNING',warning)
+            records=installed_apps.normalize(raw)
+            append_apps_log(self.apps_log,'FALLBACK_SCAN',f'count={len(records)}')
+            if not records:
+                self.error('アプリ一覧の更新に失敗。既存一覧は保持しました。詳細: '+str(self.apps_log))
+                return
+            self._apply_apps_scan(records,partial=True)
+            DIAG.warning('APPS fallback used because PowerShell scan failed: %s',reason)
+        except Exception as e:
+            DIAG.exception('APPS fallback failed')
+            append_apps_log(self.apps_log,'FALLBACK_FAILED',str(e))
+            self.error('アプリ一覧の更新に失敗。既存一覧は保持しました。詳細: '+str(self.apps_log))
 
     def poll_apps(self):
         proc=self.apps_proc
         if not proc:return
         code=proc.poll()
         if code is None:
-            if time.monotonic()-self.apps_started<60:return
+            if time.monotonic()-self.apps_started<90:return
+            append_apps_log(self.apps_log,'POWERSHELL_TIMEOUT','90 seconds; terminating scan and trying shortcut fallback')
             proc.kill();proc.wait();code=-1
         self.apps_timer.stop();self.apps_proc=None
         try:
-            if code!=0:raise RuntimeError('終了コード '+str(code)+'。apps.logを確認してください')
+            append_apps_log(self.apps_log,'POWERSHELL_EXIT',f'exit_code={code}')
+            if code!=0:raise RuntimeError('PowerShell終了コード '+str(code))
             raw=json.loads(self.apps_output.read_text(encoding='utf-8-sig'))
-            if raw.get('version')!=1:raise ValueError('アプリ一覧の形式が不正です')
+            if not isinstance(raw,dict) or raw.get('version')!=1 or not isinstance(raw.get('apps'),list):
+                raise ValueError('アプリ一覧の形式が不正です')
             records=installed_apps.normalize(raw['apps'])
-            installed_apps.write_cache(STATE/'apps_cache.json',records)
-            self.app_records=records;self.icon_cache.clear()
-            self.data=installed_apps.attach(self.data,records)
-            if self.menu:self.menu.close()
-            self.render();self.footer.setText('アプリ一覧を更新しました: '+str(len(records))+'件')
-            DIAG.info('APPS scan complete count=%s',len(records))
+            self._apply_apps_scan(records,partial=bool(raw.get('partial',False)))
         except Exception as e:
-            DIAG.exception('APPS scan failed');self.error('アプリ一覧の更新に失敗: '+str(e))
-        finally:self.apps_output.unlink(missing_ok=True)
+            DIAG.exception('APPS PowerShell scan failed; trying Start Menu fallback')
+            append_apps_log(self.apps_log,'POWERSHELL_SCAN_FAILED',str(e))
+            self._recover_apps(e)
+        finally:
+            self.apps_output.unlink(missing_ok=True)
 
     def error(self, message):
         logging.warning('%s', message)
@@ -723,6 +771,16 @@ class Launcher(QWidget):
         self.execute(row,{row.get('launch_selection_result_name','recipients'):value})
 
     def eventFilter(self,obj,event):
+        if obj is self.list.viewport() and event.type()==QEvent.Type.MouseButtonDblClick:
+            # Enter opens a category *inside* the launcher window. Double-clicking
+            # unused list space has the same meaning as the existing Left/Back key.
+            # Never steal double-clicks on items, or at the top/root level.
+            if (event.button()==Qt.MouseButton.LeftButton
+                    and (self.stack or self.selection is not None)
+                    and self.list.itemAt(event.position().toPoint()) is None):
+                self.go_back()
+                event.accept()
+                return True
         if obj==self.tabs:
             if event.type()==QEvent.Type.KeyPress and event.modifiers()==Qt.KeyboardModifier.NoModifier:
                 key=event.key()
@@ -899,6 +957,42 @@ def main():
     server=QLocalServer()
     if not server.listen(name):raise RuntimeError(server.errorString())
     window=Launcher()
+    # CLaunch-style: double-click empty desktop wallpaper to open the launcher.
+    # Keep a strong reference for the whole Qt event loop and release on exit.
+    # Desktop double-click support is optional: a Windows API/COM error must
+    # never prevent the launcher itself from starting (tray/hotkey still work).
+    desktop_click = None
+    def open_from_desktop():
+        DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s', window.isVisible())
+        if not window.isVisible():
+            window.summon()
+        DIAG.info('DESKTOP_OPEN_RESULT visible=%s active=%s',
+                  window.isVisible(), window.isActiveWindow())
+        QTimer.singleShot(400, lambda: DIAG.info(
+            'DESKTOP_OPEN_AFTER_400MS visible=%s active=%s',
+            window.isVisible(), window.isActiveWindow()))
+    def dismiss_from_outside_click():
+        # A Tool/always-on-top window may not receive ApplicationInactive when
+        # summoned from the desktop. Use the existing mouse hook as fallback.
+        if window.isVisible() and QApplication.activeModalWidget() is None:
+            DIAG.info('OUTSIDE_CLICK_DISMISS')
+            window.dismiss()
+
+    try:
+        desktop_click = DesktopDoubleClick(
+            open_from_desktop, DIAG,
+            on_outside_click=dismiss_from_outside_click,
+            is_launcher_visible=window.isVisible,
+        )
+        DIAG.info('DESKTOP_DOUBLE_CLICK_HOOK active=%s', desktop_click.start())
+    except Exception:
+        DIAG.exception('DESKTOP_DOUBLE_CLICK_HOOK unavailable; launcher will keep running')
+        if desktop_click is not None:
+            try:
+                desktop_click.stop()
+            except Exception:
+                DIAG.exception('DESKTOP_DOUBLE_CLICK_HOOK cleanup failed')
+        desktop_click = None
     def wake():
         sock=server.nextPendingConnection()
         if sock:sock.close();sock.deleteLater()
@@ -906,7 +1000,13 @@ def main():
         else:window.raise_();window.activateWindow()
     server.newConnection.connect(wake)
     if '--preview' in sys.argv:window.summon()
-    result=app.exec();server.close();lock.unlock();return result
+    try:
+        result=app.exec()
+    finally:
+        if desktop_click is not None:
+            desktop_click.stop()
+        server.close();lock.unlock()
+    return result
 
 if __name__=='__main__':
     try:sys.exit(main())

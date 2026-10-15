@@ -1,7 +1,14 @@
 {
   "app": {
     "name": "FRB Launch 設定メンテナンス",
-    "version": "0.2-draft"
+    "version": "0.2-draft",
+    "presentation": {
+      "preset": "launcher",
+      "density": "compact",
+      "theme": "launch-dark",
+      "shell": "minimal",
+      "savePlacement": "footer"
+    }
   },
   "views": [
     {
@@ -78,7 +85,7 @@
                 "readonly": true
               },
               "search": {
-                "visible": true
+                "visible": false
               },
               "width": 105
             },
@@ -123,8 +130,9 @@
                 "visible": true
               },
               "search": {
-                "visible": true
-              }
+                "visible": false
+              },
+              "width": 255
             },
             {
               "field": "description",
@@ -137,7 +145,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               },
               "width": 262
             },
@@ -152,7 +160,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               },
               "options": [
                 "category",
@@ -160,7 +168,8 @@
                 "command",
                 "selection"
               ],
-              "defaultValue": "command"
+              "defaultValue": "command",
+              "width": 118
             },
             {
               "field": "icon_key",
@@ -630,7 +639,16 @@
               }
             },
             "treeOnly": true,
-            "dragMove": true
+            "dragMove": true,
+            "captions": {
+              "rootAdd": "Pageを追加",
+              "rootEdit": "Pageを編集",
+              "rootName": "Page名",
+              "rootSelect": "Pageを選択してください",
+              "rootMissing": "Page配列が見つかりません",
+              "rootChoose": "追加先のPage",
+              "rootToggle": "Pageを展開・折りたたみ"
+            }
           }
         }
       ],

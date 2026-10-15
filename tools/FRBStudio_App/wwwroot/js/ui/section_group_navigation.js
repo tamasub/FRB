@@ -176,8 +176,9 @@ function renderActiveSectionGroup(options={}) {
   const gd = typeof gridDef === 'function' ? gridDef() : null;
 
   if (hd) renderByKey('header');
+  // Core full-text search is independent of ViewDef search fields or active Grid.
+  renderByKey('search');
   if (gd) {
-    renderByKey('search');
     loadRows();
     renderByKey('grid');
   } else {

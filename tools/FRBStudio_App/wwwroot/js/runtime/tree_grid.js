@@ -3,6 +3,14 @@ const studioTreeStates = new WeakMap();
 let studioTreeVisible = [];
 function studioTreeConfig(gd=gridDef()) {const c=gd?.tree;return c?.enabled && c.idField && c.parentField && c.labelField ? c : null;}
 function studioTreeState(){let s=studioTreeStates.get(currentRows);if(!s){s={collapsed:new Set(),flat:false};studioTreeStates.set(currentRows,s);}if(studioTreeConfig()?.treeOnly)s.flat=false;return s;}
+function studioTreeCaption(key, c=studioTreeConfig()) {
+ const defaults = {
+  rootAdd: '最上位に追加', rootEdit: '最上位を編集', rootName: '最上位の名称',
+  rootSelect: '最上位項目を選択してください', rootMissing: '最上位項目の配列が見つかりません',
+  rootChoose: '追加先の最上位項目', rootToggle: '最上位項目を展開・折りたたみ'
+ };
+ return String(c?.captions?.[key] || defaults[key] || key);
+}
 function studioTreeReadonly(){return Boolean(launchRuntime?.readonly);}
 function studioTreeRun(fn){try{fn();}catch(e){setStatus(e.message,{kind:'error'});}}
 function studioTreeModel(){return StudioTreeModel.build(currentRows,studioTreeConfig());}
@@ -18,7 +26,7 @@ function studioTreeToolbar(){
  if(!bar){bar=document.createElement('div');bar.id='studioTreeToolbar';$('dataGrid').parentElement.before(bar);}bar.replaceChildren();
  const button=(text,fn,edit=false)=>{const b=document.createElement('button');b.textContent=text;b.type='button';b.disabled=edit&&studioTreeReadonly();b.onclick=()=>studioTreeRun(fn);bar.append(b);};
  if(!c.treeOnly)button(studioTreeState().flat?'ツリー表示':'一覧表示',()=>{studioTreeState().flat=!studioTreeState().flat;renderGrid();});
- if(c.groupRoots){button('Pageを追加',()=>studioTreeEditGroup(true),true);button('Pageを編集',()=>studioTreeEditGroup(false),true);}
+ if(c.groupRoots){button(studioTreeCaption('rootAdd',c),()=>studioTreeEditGroup(true),true);button(studioTreeCaption('rootEdit',c),()=>studioTreeEditGroup(false),true);}
  button('子を追加',()=>studioTreeAdd('child'),true);button('同じ階層に追加',()=>studioTreeAdd('sibling'),true);if(!c.treeOnly)button('最上位に追加',()=>studioTreeAdd('root'),true);
  if(!c.treeOnly)button('↑ 上へ',()=>{studioTreeMoveSelected(-1);},true);
  if(!c.treeOnly)button('↓ 下へ',()=>{studioTreeMoveSelected(1);},true);
@@ -38,7 +46,7 @@ function studioTreeAdd(mode,group,preset){
  if(mode!=='root'&&!n)throw Error('親または同じ階層の項目を選択してください');
  const p=mode==='child'?n:mode==='sibling'?n.parent:null;
  if(p&&c.parentKindField&&!c.parentKinds.includes(p.row[c.parentKindField]))throw Error('カテゴリーを選択してください');
- if(mode==='root'&&c.groupField&&group===undefined){studioTreeChoose('追加先のPage', [...studioTreeGroups(c)],g=>studioTreeAdd(mode,g,preset));return;}
+ if(mode==='root'&&c.groupField&&group===undefined){studioTreeChoose(studioTreeCaption('rootChoose',c), [...studioTreeGroups(c)],g=>studioTreeAdd(mode,g,preset));return;}
  if(preset===undefined && c.createPresets?.length){studioTreeChoose('追加する項目の種類',c.createPresets.map((p,i)=>[String(i),p.caption]),i=>studioTreeAdd(mode,group,c.createPresets[Number(i)].values));return;}
  const row=createDefaultRow();Object.assign(row,cloneData(preset||{}));row[c.parentField]=p?String(p.row[c.idField]):'';
  if(c.groupField)row[c.groupField]=mode==='root'?group:n.row[c.groupField];

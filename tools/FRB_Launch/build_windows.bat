@@ -1,6 +1,9 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+echo [BUILD] Stopping FRBLaunch.exe if running...
+taskkill /F /IM FRBLaunch.exe >nul 2>&1
+if not errorlevel 1 timeout /t 2 /nobreak >nul
 if exist .venv\Scripts\python.exe goto checkpython
 py -3 -m venv .venv
 if errorlevel 1 goto fail

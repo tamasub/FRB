@@ -196,6 +196,7 @@
   }
 </style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p10-json-output-align" />
+  <link rel="stylesheet" href="css/studio-presentation.css?v=studio-presentation-004-related-grid-theme" />
 </head>
 <body>
   <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
@@ -306,13 +307,14 @@
       <div id="headerForm" class="form-grid"></div>
     </section>
 
-    <section id="searchSection" class="card hidden" aria-label="検索">
+    <section id="searchSection" class="card" aria-label="検索">
       <div class="section-title-row studio-search-title-row">
         <label class="studio-full-text-search-control" for="studioFullTextSearchInput">
           <span class="studio-full-text-search-label">🔍 全文検索</span>
           <input
             id="studioFullTextSearchInput"
             type="text"
+            disabled
             data-field="__studio_full_text__"
             data-type="text"
             autocomplete="off"
@@ -320,8 +322,8 @@
           />
         </label>
         <div class="button-row compact">
-          <button id="searchBtn" class="primary-button small">検索</button>
-          <button id="clearSearchBtn" class="ghost-button small">取消</button>
+          <button id="searchBtn" class="primary-button small" disabled>検索</button>
+          <button id="clearSearchBtn" class="ghost-button small" disabled>取消</button>
         </div>
       </div>
       <div id="searchForm" class="form-grid search-grid"></div>
@@ -461,12 +463,13 @@
   <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831&live=018132"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
+  <script src="js/ui/studio_presentation_profile.js?v=studio-presentation-002"></script>
   <script src="js/runtime/load_runtime.js?v=viewdef-search-initial-018125&live=018132&startup=20261010"></script>
   <script src="js/actions/action_registry.js?v=01887-test-run-post-json-api-fix&resource=018124"></script>
   <script src="js/runtime/related_grid_view.js?v=related-grid-inline-view-id-01834b"></script>
   <script src="js/core/plugin_host.js?v=native-overlay-runtime-01894"></script>
   <script src="js/runtime/search_state.js?v=viewdef-search-initial-018125"></script>
   <script src="js/actions/action_toolbar.js?v=visible-rows-md-01861"></script>
-  <script src="app.js?v=detail-dialog-expand-01836"></script>
+  <script src="app.js?v=detail-dialog-expand-01836&amp;search=enter-002"></script>
 </body>
 </html>

@@ -14,6 +14,8 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   if (typeof logViewDefReadContract === 'function') logViewDefReadContract(currentViewDefReadContract);
   if (typeof logViewDefContextModel === 'function') logViewDefContextModel(currentViewDefContextModel);
   viewDef = defObj;
+  // Presentation is a ViewDef-load contract. No runtime toggle or duplicate Save handler.
+  if (typeof StudioPresentationProfile !== 'undefined') StudioPresentationProfile.apply(defObj);
   if (typeof studioResetLiveFieldWidths === 'function') studioResetLiveFieldWidths();
   if (typeof initializeSectionGroupNavigation === 'function') {
     initializeSectionGroupNavigation(defObj);

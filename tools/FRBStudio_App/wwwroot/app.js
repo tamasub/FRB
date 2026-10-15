@@ -418,6 +418,15 @@ $('loadBtn').addEventListener('click', async () => {
 });
 
 $('searchBtn').addEventListener('click', applySearch);
+// Standard behavior: Enter in full-text search submits the existing search action.
+// Do not handle IME conversion or introduce a new search pathway.
+$('studioFullTextSearchInput')?.addEventListener('keydown', event => {
+  if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+  const button = $('searchBtn');
+  if (!button || button.disabled) return;
+  event.preventDefault();
+  button.click();
+});
 $('addRowBtn').addEventListener('click', addGridRow);
 $('deleteRowBtn').addEventListener('click', deleteSelectedRow);
 if ($('gridCsvExportBtn')) $('gridCsvExportBtn').addEventListener('click', exportVisibleGridCsv);
@@ -452,16 +461,23 @@ $('saveBtn').addEventListener('click', async () => {
 });
 
 refreshServerLists().finally(async () => {
-  if (typeof loadStudioOverlayPlugins === 'function') {
-    const results = await loadStudioOverlayPlugins();
-    const activated = results.filter(x => x?.activated).map(x => x.id);
-    if (activated.length) {
-      console.log(`[FRBStudio PluginHost] Overlay Pluginを読み込みました: ${activated.join(' / ')}`);
+  try {
+    if (typeof loadStudioOverlayPlugins === 'function') {
+      const results = await loadStudioOverlayPlugins();
+      const activated = results.filter(x => x?.activated).map(x => x.id);
+      if (activated.length) {
+        console.log(`[FRBStudio PluginHost] Overlay Pluginを読み込みました: ${activated.join(' / ')}`);
+      }
     }
+    await autoLoadFromQuery();
+    updateViewDefMarkdownButtonState();
+    setupSelectedJsonFolderButtons();
+  } finally {
+    // Tell NativeShell that the initial Data/ViewDef load (and any launcher
+    // size restoration) is complete. Browser hosting simply ignores this.
+    try { window.chrome?.webview?.postMessage({ studio_startup_ready: true }); }
+    catch (_) { /* startup messaging must never block Studio */ }
   }
-  await autoLoadFromQuery();
-  updateViewDefMarkdownButtonState();
-  setupSelectedJsonFolderButtons();
 });
 
 window.__NCJS_exportScreenState = function () {

@@ -1,0 +1,352 @@
+/* FRB Studio standard Presentation Profile v0.1
+   Data and ViewDef renderers stay unchanged. Body attributes originate from
+   ViewDef app.presentation and never from an interactive runtime switch. */
+.studio-presentation-heading,
+.studio-presentation-footer { display:none; }
+
+/* Density is independent from theme and shell. */
+body.frb-page-json-object[data-studio-density="compact"] {
+  --frb-radius:8px;
+  --radius:8px;
+  --shadow:none;
+  font-size:12px;
+}
+body.frb-page-json-object[data-studio-density="compact"] .card { padding:8px 10px; margin-bottom:7px; }
+body.frb-page-json-object[data-studio-density="compact"] .grid-title-row { margin-bottom:5px; gap:5px; }
+body.frb-page-json-object[data-studio-density="compact"] .grid-title-row h2 { font-size:13px; }
+body.frb-page-json-object[data-studio-density="compact"] .grid-actions { gap:4px; min-height:24px; flex-wrap:wrap; }
+body.frb-page-json-object[data-studio-density="compact"] button:not(.detail-window-icon) { border-radius:5px; }
+body.frb-page-json-object[data-studio-density="compact"] .grid-actions button,
+body.frb-page-json-object[data-studio-density="compact"] #studioTreeToolbar button { min-height:25px; padding:3px 7px; font-size:11px; }
+body.frb-page-json-object[data-studio-density="compact"] #studioTreeToolbar { display:flex; flex-wrap:wrap; gap:4px; margin:3px 0 6px; }
+body.frb-page-json-object[data-studio-density="compact"] #dataGrid th,
+body.frb-page-json-object[data-studio-density="compact"] #dataGrid td {
+  height:27px;
+  padding:3px 6px;
+  line-height:1.35;
+  font-size:11px;
+}
+body.frb-page-json-object[data-studio-density="compact"] #dataGrid .grid-column-header-row th { height:26px; }
+body.frb-page-json-object[data-studio-density="compact"] #dataGrid td button,
+body.frb-page-json-object[data-studio-density="compact"] #dataGrid th button { padding:2px 5px; min-height:19px; font-size:11px; }
+body.frb-page-json-object[data-studio-density="compact"] .form-grid { gap:6px 9px; }
+body.frb-page-json-object[data-studio-density="compact"] .field label { font-size:10px; margin-bottom:2px; }
+body.frb-page-json-object[data-studio-density="compact"] .field input,
+body.frb-page-json-object[data-studio-density="compact"] .field select { min-height:28px; padding:4px 6px; font-size:12px; }
+body.frb-page-json-object[data-studio-density="compact"] .field textarea { min-height:56px; padding:5px 7px; font-size:12px; }
+body.frb-page-json-object[data-studio-density="compact"] .table-wrap { min-height:180px; border-radius:6px; }
+body.frb-page-json-object[data-studio-density="compact"] #detailDialog .dialog-body { gap:8px; }
+
+/* Independent dark/launch-dark visual tokens. */
+body.frb-page-json-object[data-studio-theme="dark"],
+body.frb-page-json-object[data-studio-theme="launch-dark"] {
+  --bg:#172321;--bg2:#172321;--panel:#202b29;--panel-solid:#202b29;
+  --line:#405451;--line-soft:#354a46;--text:#e5ebf3;--muted:#acbcb9;
+  --row-alt:#20302d;--row-hover:#314942;--selected:#334d68;
+  --readonly:#2a3735;--accent:#6ba7ff;--accent2:#416c9b;
+  --frb-canvas:#172321;--frb-surface:#202b29;--frb-text:#e5ebf3;
+  --frb-muted:#acbcb9;--frb-line:#405451;--frb-json-surface:#202b29;
+  --frb-json-surface-2:#172321;--frb-json-line:#405451;
+  color:#e5ebf3;
+  background:#172321;
+  color-scheme:dark;
+}
+body.frb-page-json-object[data-studio-theme="dark"] .card,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .card,
+body.frb-page-json-object[data-studio-theme="dark"] .json-studio-main-toolbar,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .json-studio-main-toolbar,
+body.frb-page-json-object[data-studio-theme="dark"] .section-group-navigation,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .section-group-navigation {
+  background:#202b29;
+  color:#e5ebf3;
+  border-color:#405451;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+body.frb-page-json-object[data-studio-theme="dark"] h2,
+body.frb-page-json-object[data-studio-theme="launch-dark"] h2,
+body.frb-page-json-object[data-studio-theme="dark"] label,
+body.frb-page-json-object[data-studio-theme="launch-dark"] label,
+body.frb-page-json-object[data-studio-theme="dark"] .count,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .count { color:#dce7e5; }
+body.frb-page-json-object[data-studio-theme="dark"] .table-wrap,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .table-wrap { background:#172321; border-color:#405451; }
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid { color:#e5ebf3; background:#172321; }
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid th,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid th {
+  background:#293b38!important; color:#c9d7df; border-color:#405451;
+}
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid td {
+  background:#172321; color:#e5ebf3; border-color:#354a46;
+}
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr:nth-child(even) td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:nth-child(even) td { background:#1d2b29; }
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr:hover td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:hover td { background:#2a403e; }
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr.selected td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr.selected td,
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr[aria-selected="true"] td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr[aria-selected="true"] td { background:#334d68!important;color:#fff; }
+body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tr[data-group-id] td,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tr[data-group-id] td { background:#283b38!important; color:#e5ebf3; }
+body.frb-page-json-object[data-studio-theme="dark"] button,
+body.frb-page-json-object[data-studio-theme="launch-dark"] button,
+body.frb-page-json-object[data-studio-theme="dark"] select,
+body.frb-page-json-object[data-studio-theme="launch-dark"] select {
+  color:#e5ebf3; background:#2a3c39; border-color:#4a6261; box-shadow:none;
+}
+body.frb-page-json-object[data-studio-theme="dark"] button.primary-button,
+body.frb-page-json-object[data-studio-theme="launch-dark"] button.primary-button,
+body.frb-page-json-object[data-studio-theme="dark"] button#saveBtn,
+body.frb-page-json-object[data-studio-theme="launch-dark"] button#saveBtn { background:#365777; color:#fff; border-color:#4c6f90; }
+body.frb-page-json-object[data-studio-theme="dark"] button:disabled,
+body.frb-page-json-object[data-studio-theme="launch-dark"] button:disabled { opacity:.48; }
+body.frb-page-json-object[data-studio-theme="dark"] input,
+body.frb-page-json-object[data-studio-theme="launch-dark"] input,
+body.frb-page-json-object[data-studio-theme="dark"] textarea,
+body.frb-page-json-object[data-studio-theme="launch-dark"] textarea,
+body.frb-page-json-object[data-studio-theme="dark"] #searchSection #studioFullTextSearchInput,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #searchSection #studioFullTextSearchInput {
+  background:#101a20; color:#e5ebf3; border-color:#40536d; box-shadow:none;
+}
+body.frb-page-json-object[data-studio-theme="dark"] input::placeholder,
+body.frb-page-json-object[data-studio-theme="launch-dark"] input::placeholder { color:#93a7b2; }
+body.frb-page-json-object[data-studio-theme="dark"] .field input:disabled,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .field input:disabled { background:#283532; color:#acbfba; }
+body.frb-page-json-object[data-studio-theme="dark"] #searchSection #studioFullTextSearchInput:focus,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #searchSection #studioFullTextSearchInput:focus { border-color:#6ba7ff; box-shadow:0 0 0 2px #6ba7ff40; }
+body.frb-page-json-object[data-studio-theme="dark"] .section-group-navigation-item,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .section-group-navigation-item { color:#c8d6d3; }
+body.frb-page-json-object[data-studio-theme="dark"] .section-group-navigation-item.active,
+body.frb-page-json-object[data-studio-theme="launch-dark"] .section-group-navigation-item.active { background:#334d68; color:#fff; }
+body.frb-page-json-object[data-studio-theme="dark"] #detailDialog,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog,
+body.frb-page-json-object[data-studio-theme="dark"] dialog,
+body.frb-page-json-object[data-studio-theme="launch-dark"] dialog {
+  background:#202b29; color:#e5ebf3; border-color:#4a6261;
+}
+body.frb-page-json-object[data-studio-theme="dark"] #detailDialog input,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog input,
+body.frb-page-json-object[data-studio-theme="dark"] #detailDialog select,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog select,
+body.frb-page-json-object[data-studio-theme="dark"] #detailDialog textarea,
+body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog textarea { background:#101a20; color:#e5ebf3; border-color:#40536d; }
+
+/* Minimal shell is fixed by the loaded ViewDef. Hidden standard controls still
+   exist in DOM for file APIs and shared save routines; not user-accessible. */
+body.frb-page-json-object[data-studio-shell="minimal"] .frb-app-shell,
+body.frb-page-json-object[data-studio-shell="minimal"] .frb-pagebar,
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-source-pane,
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-main-toolbar { display:none!important; }
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-workspace {
+  display:block!important; width:100%; max-width:none; margin:0!important; padding:0!important;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-main-pane {
+  display:flex!important; flex-direction:column!important; gap:0;
+  width:100%!important; max-width:none!important;
+  min-height:100dvh; padding:0!important; margin:0!important;
+  background:transparent; box-sizing:border-box;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-main-pane > main {
+  display:flex!important; flex-direction:column!important; flex:1 1 auto; gap:7px;
+  min-height:0; max-width:none; padding:8px 9px!important; margin:0!important;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .json-studio-main-pane.has-section-groups > .section-group-navigation {
+  position:static; width:auto; height:auto; min-height:0; margin:5px 9px 0;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .section-group-navigation-list { flex-direction:row; flex-wrap:wrap; }
+body.frb-page-json-object[data-studio-shell="minimal"] .studio-presentation-heading {
+  display:flex; flex:0 0 auto; align-items:center;
+  min-height:44px; padding:10px 14px;
+  font-size:13px; font-weight:750;
+  background:#202b29; color:#e5ebf3; border-bottom:1px solid #405451;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .studio-presentation-heading::before {
+  content:'⚙'; font-size:14px; color:#79b8f8; margin-right:9px;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .studio-presentation-footer {
+  display:flex; flex:0 0 auto; position:sticky; bottom:0; z-index:15;
+  min-height:45px; align-items:center; justify-content:space-between;
+  gap:8px; padding:6px 12px;
+  background:#202b29; border-top:1px solid #405451;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .studio-presentation-info {
+  flex:1 1 auto; min-width:0; overflow:hidden; white-space:nowrap;
+  text-overflow:ellipsis; font-size:10px; color:#acbfbc;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] .studio-presentation-actions {
+  display:flex; gap:7px; align-items:center;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #studioPresentationFooter #saveBtn {
+  width:auto; min-width:55px; min-height:31px; margin:0;
+  padding:6px 13px; border-radius:5px; font-size:12px;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection {
+  flex:0 0 auto; padding:7px 9px; order:0;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection .studio-search-title-row {
+  grid-template-columns:minmax(0,1fr) auto; gap:7px; align-items:center;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection .studio-full-text-search-control {
+  display:flex; gap:6px; align-items:center; width:100%; min-width:0;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection .studio-full-text-search-label {
+  font-size:11px; white-space:nowrap; color:#a9c6d6;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection #studioFullTextSearchInput {
+  width:100%; min-width:0; min-height:31px; flex:1; padding:5px 8px; font-size:12px;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection #searchForm:empty,
+body.frb-page-json-object[data-studio-shell="minimal"] #searchSection #searchForm.hidden { display:none!important; }
+body.frb-page-json-object[data-studio-shell="minimal"] #gridSection { flex:1 1 auto; min-height:0; }
+body.frb-page-json-object[data-studio-shell="minimal"] #gridSection .table-wrap {
+  max-height:calc(100dvh - 205px); min-height:180px; overflow:auto;
+}
+body.frb-page-json-object[data-studio-shell="minimal"] #gridSection #dataGrid { min-width:550px; }
+body.frb-page-json-object[data-studio-shell="minimal"] #gridCount { font-size:10px; }
+@media(max-width:700px) {
+ body.frb-page-json-object[data-studio-shell="minimal"] #searchSection .studio-search-title-row { grid-template-columns:1fr; }
+ body.frb-page-json-object[data-studio-shell="minimal"] #searchSection .button-row.compact { justify-content:flex-end; }
+ body.frb-page-json-object[data-studio-shell="minimal"] #gridSection #dataGrid { min-width:420px; }
+}
+
+/* v0.2: complete detail-editor / subgrid dark surfaces. Scoped to resolved ViewDef
+   theme only; Standard Studio retains its existing white editor. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) {
+  --studio-editor-bg:#202b29;
+  --studio-editor-input:#101a20;
+  --studio-editor-line:#405451;
+  --studio-editor-muted:#acbfbc;
+  --studio-editor-text:#e5ebf3;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog {
+  background:var(--studio-editor-bg);
+  color:var(--studio-editor-text);
+  border:1px solid var(--studio-editor-line);
+  color-scheme:dark;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .dialog-body {
+  background:var(--studio-editor-bg);
+  color:var(--studio-editor-text);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .dialog-title-row,
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-footer {
+  background:#202b29;
+  color:var(--studio-editor-text);
+  border-color:var(--studio-editor-line);
+  box-shadow:none;
+  backdrop-filter:none;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(h2,h3,label,.field-label,.app-kicker,.detail-subgrid-meta,.detail-subgrid-note) {
+  color:var(--studio-editor-text);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(input,select,textarea,.detail-subgrid-cell-input) {
+  background:var(--studio-editor-input);
+  border-color:var(--studio-editor-line);
+  color:var(--studio-editor-text);
+  color-scheme:dark;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(input,textarea)::placeholder {
+  color:#829da6;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(input,select,textarea):disabled,
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-subgrid-edit.is-readonly .detail-subgrid-cell-input {
+  background:#293834;
+  color:#acbfbc;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-edit,.detail-subgrid-table-wrap,.detail-subgrid-header,.detail-subgrid-action-th,.detail-subgrid-row-actions,.detail-subgrid-card-editor-toolbar),
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-table th,.detail-subgrid-table td) {
+  background:#202b29;
+  color:var(--studio-editor-text);
+  border-color:var(--studio-editor-line);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-subgrid-table tbody tr:nth-child(even) td {
+  background:#1c2a28;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-dirty-badge,.detail-subgrid-action-btn) {
+  background:#293b38;
+  color:var(--studio-editor-text);
+  border-color:var(--studio-editor-line);
+}
+/* Preview/editor overlays are mounted outside #detailDialog; scope these by body theme. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) :is(.detail-subgrid-preview-dialog,.detail-subgrid-preview-body,.detail-subgrid-preview-header,.detail-subgrid-preview-card,.detail-subgrid-preview-empty-card,.detail-subgrid-card-editor-dialog,.detail-subgrid-card-editor-toolbar) {
+  background:#202b29;
+  color:#e5ebf3;
+  border-color:#405451;
+  box-shadow:none;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) :is(.detail-subgrid-preview-label,.detail-subgrid-preview-value,.detail-subgrid-preview-card-title,.detail-subgrid-card-editor-card-title) {
+  color:#e5ebf3;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .detail-subgrid-preview-field { border-color:#405451; }
+
+/* v0.4: Related Grid modal + child shell dark theme.
+   The parent overlay and the child iframe are separate documents: each uses
+   its own resolved ViewDef theme. No app/domain-specific selectors or runtime
+   theme switching. Light/Standard continues to use styles.css unchanged. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) {
+  --studio-related-surface:#202b29;
+  --studio-related-surface-low:#172321;
+  --studio-related-border:#405451;
+  --studio-related-text:#e5ebf3;
+  --studio-related-muted:#acbfbc;
+}
+/* Parent document: the related-grid overlay is deliberately outside the
+   detail editor, so #detailDialog selectors cannot reach it. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-panel {
+  background:var(--studio-related-surface);
+  color:var(--studio-related-text);
+  border-color:var(--studio-related-border);
+  color-scheme:dark;
+  box-shadow:0 20px 56px rgba(0,0,0,.48);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-header {
+  background:#243633;
+  color:var(--studio-related-text);
+  border-bottom-color:var(--studio-related-border);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-body,
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-frame {
+  background:var(--studio-related-surface-low);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-close {
+  background:#2a3c39;
+  color:var(--studio-related-text);
+  border-color:#4a6261;
+}
+/* Child document: the info banner and result badge are separate from the
+   main grid. The status colors remain meaningful on the dark background. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner {
+  background:#263b37;
+  color:var(--studio-related-text);
+  border-color:var(--studio-related-border);
+  box-shadow:none;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner strong {
+  color:var(--studio-related-text);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner span {
+  color:var(--studio-related-muted);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status {
+  background:#2e4340;
+  color:#d5e3e0;
+  border-color:#607a75;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status[data-kind="success"] {
+  background:#193d31;
+  color:#a3ebc1;
+  border-color:#3c8060;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status[data-kind="warn"] {
+  background:#46371b;
+  color:#f8d48a;
+  border-color:#9e7735;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status[data-kind="error"] {
+  background:#482629;
+  color:#ffbabb;
+  border-color:#9e5155;
+}

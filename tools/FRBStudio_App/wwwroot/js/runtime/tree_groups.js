@@ -15,7 +15,7 @@ function studioTreeGroupRow(entry,fields){
  const s=studioTreeState(),tr=document.createElement('tr');tr.dataset.sourceIndex=String(entry.index);tr.dataset.groupId=entry.groupId;tr.tabIndex=0;
  if(s.selectedGroup===entry.groupId)tr.classList.add('selected');
  const td=document.createElement('td');td.colSpan=fields.length;td.style.cssText='font-weight:700;background:#edf3ff;padding:8px';
- const button=document.createElement('button');button.textContent=s.collapsed.has('group:'+entry.groupId)?'▸':'▾';button.setAttribute('aria-label','Pageを展開・折りたたみ');button.onclick=e=>{e.stopPropagation();toggle();};
+ const button=document.createElement('button');button.textContent=s.collapsed.has('group:'+entry.groupId)?'▸':'▾';button.setAttribute('aria-label',studioTreeCaption('rootToggle',studioTreeConfig()));button.onclick=e=>{e.stopPropagation();toggle();};
  const toggle=()=>{const key='group:'+entry.groupId;s.collapsed.has(key)?s.collapsed.delete(key):s.collapsed.add(key);renderGrid();};
  td.append(button,document.createTextNode(' '+entry.groupLabel));tr.append(td);
  const select=()=>{selectedIndex=-1;s.selectedGroup=entry.groupId;};
@@ -33,9 +33,9 @@ function studioTreeGroupRow(entry,fields){
 function studioTreeFocusGroup(id){[...document.querySelectorAll('#dataGrid tr[data-group-id]')].find(tr=>tr.dataset.groupId===id)?.focus();}
 function studioTreeEditGroup(isNew){
  if(studioTreeReadonly())throw Error('読み取り専用です');
- const c=studioTreeConfig(),rows=getByPath(sourceData,c.groupSource),s=studioTreeState();if(!Array.isArray(rows))throw Error('Page配列が見つかりません');
- const existing=rows.find(r=>String(r[c.groupIdField])===s.selectedGroup);if(!isNew&&!existing)throw Error('Pageを選択してください');
- const d=document.createElement('dialog'),title=document.createElement('h3'),input=document.createElement('input'),enabled=document.createElement('input'),enabledLabel=document.createElement('label');title.textContent=isNew?'Pageを追加':'Pageを編集';input.value=existing?.[c.groupLabelField]??'';input.placeholder='Page名';input.setAttribute('aria-label','Page名');enabled.type='checkbox';enabled.checked=existing?.[c.groupEnabledField]!==false;enabledLabel.append(enabled,document.createTextNode('有効'));
+ const c=studioTreeConfig(),rows=getByPath(sourceData,c.groupSource),s=studioTreeState();if(!Array.isArray(rows))throw Error(studioTreeCaption('rootMissing',c));
+ const existing=rows.find(r=>String(r[c.groupIdField])===s.selectedGroup);if(!isNew&&!existing)throw Error(studioTreeCaption('rootSelect',c));
+ const d=document.createElement('dialog'),title=document.createElement('h3'),input=document.createElement('input'),enabled=document.createElement('input'),enabledLabel=document.createElement('label');title.textContent=studioTreeCaption(isNew?'rootAdd':'rootEdit',c);input.value=existing?.[c.groupLabelField]??'';input.placeholder=studioTreeCaption('rootName',c);input.setAttribute('aria-label',studioTreeCaption('rootName',c));enabled.type='checkbox';enabled.checked=existing?.[c.groupEnabledField]!==false;enabledLabel.append(enabled,document.createTextNode('有効'));
  const ok=document.createElement('button');ok.textContent='反映';ok.onclick=()=>{if(!input.value.trim()){input.focus();return;}const row=existing??{[c.groupIdField]:crypto.randomUUID(),[c.groupOrderField]:Math.max(0,...rows.map(r=>Number(r[c.groupOrderField])||0))+10};row[c.groupLabelField]=input.value.trim();if(c.groupEnabledField)row[c.groupEnabledField]=enabled.checked;if(isNew)rows.push(row);s.selectedGroup=String(row[c.groupIdField]);d.close();applySearch();};
  const cancel=document.createElement('button');cancel.textContent='キャンセル';cancel.onclick=()=>d.close();d.append(title,input,enabledLabel,ok,cancel);d.onclose=()=>d.remove();document.body.append(d);d.showModal();input.focus();
 }

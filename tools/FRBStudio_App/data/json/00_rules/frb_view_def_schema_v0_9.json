@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "frb_view_def_schema_v0_9.json",
   "title": "FRB Studio View Definition Schema v0.9 - Section Groups / Markdown Export Mode / Context / Chat Input Mapping / Related Grid View",
-  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files. v0.18.38 adds date as an explicit Field type separate from datetime; date means YYYY-MM-DD only, while datetime means values with a time component. Existing datetime ViewDefs remain valid for compatibility. v0.18.52 adds section.fieldSets as a Detail layout contract that groups existing fields in a full-width three-column FieldSet; caption is optional and empty caption renders border-only grouping. v0.18.64 adds standard search override shape (operator/operator_set/operators); SearchOperatorRegistry is the vocabulary source of truth. v0.18.72 adds optional views[].sectionGroups as a declarative grouping contract that references existing sections by sectionIds without duplicating Section definitions; grouping is one level only in this phase. v0.18.124 adds field.grid.action for ViewDef-declared per-cell actions such as opening a managed Data JSON in another Studio window without introducing a domain-specific Field type. v0.18.125 adds field.search.initialValue / applyOnLoad so a ViewDef can declare the initial search control value separately from field.defaultValue and optionally apply that filter immediately after Data load. v0.18.133 adds Field.width FULL mode: explicit full-row width in Header/Detail and remaining-width Grid columns while Search remains fixed at Studio standard width.",
+  "description": "Schema for FRBStudio_App / No-Code JSON Studio view_def JSON files. Includes inheritance, common field types, Markdown export / AI Prompt, dataSources, virtualData registry builders, single-source writeBack, Relation status filters, and toolbar.executeButton action declarations. v0.9 adds chat edit.input.appendPosition/appendLabel and chat Markdown inline link/image permissions. v0.15.5でViewDef context.read_contract定義を追加。 v0.15.5.1で主文脈 Data root main_context_refs[] と対象文脈 Data明細 context_refs[] の正本モデルを追加し、ViewDefは context.main_context.data_path / context.target_context で場所と表示方法だけを宣言する形へ整理。 v0.15.5.3 adds target context Detail-top panel declaration. v0.18.6 adds Markdown Export Mode / ExportDef options: markdown.defaultMode, markdown.modes[], full_dump/review_report/document_sections, fieldPolicy, and field/section markdown.export. v0.18.14 adds FieldGroupType declarations, fieldGroupSources, and dynamic visibleWhen support. v0.18.20 adds field.grid.aggregate for numeric Grid sum rows with filtered/all scope. v0.18.28 adds toolbar.relatedGridViews / related_grid_views for ViewDef-driven Root array launch in a grid_only child Studio. v0.18.34 adds relatedGridViews.viewId / view_id so a related Root Grid can open a named views[] entry from the same ViewDef file; viewDef remains supported for external files. v0.18.38 adds date as an explicit Field type separate from datetime; date means YYYY-MM-DD only, while datetime means values with a time component. Existing datetime ViewDefs remain valid for compatibility. v0.18.52 adds section.fieldSets as a Detail layout contract that groups existing fields in a full-width three-column FieldSet; caption is optional and empty caption renders border-only grouping. v0.18.64 adds standard search override shape (operator/operator_set/operators); SearchOperatorRegistry is the vocabulary source of truth. v0.18.72 adds optional views[].sectionGroups as a declarative grouping contract that references existing sections by sectionIds without duplicating Section definitions; grouping is one level only in this phase. v0.18.124 adds field.grid.action for ViewDef-declared per-cell actions such as opening a managed Data JSON in another Studio window without introducing a domain-specific Field type. v0.18.125 adds field.search.initialValue / applyOnLoad so a ViewDef can declare the initial search control value separately from field.defaultValue and optionally apply that filter immediately after Data load. v0.18.133 adds Field.width FULL mode: explicit full-row width in Header/Detail and remaining-width Grid columns while Search remains fixed at Studio standard width. 2026-10-15: app.presentationを表示プロファイル契約として明文化し、tree.captionsの既存Runtime対応語彙をSchemaへ正式登録。",
   "type": "object",
   "additionalProperties": true,
   "properties": {
@@ -15,6 +15,64 @@
         },
         "version": {
           "type": "string"
+        },
+        "presentation": {
+          "type": "object",
+          "description": "Studio標準の表示プロファイル。ViewDefで宣言し読み込み時に解決する。Data・編集・保存の処理とは独立した表示契約。実行中にStandardへ戻すメニューやプロファイル切替操作は提供しない。未宣言のViewDefは従来のStandard表示を維持する。presetから初期値を解決し、個別のdensity/theme/shell/savePlacementで上書きする。minimal shellでは保存手段を隠さないためsavePlacementはfooterとして解決する。",
+          "additionalProperties": false,
+          "properties": {
+            "preset": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "compact",
+                "launcher"
+              ],
+              "description": "標準表示プリセット。省略時はstandard。standard=従来の密度/ライト/標準シェル、compact=高密度、launcher=compact＋launch-dark＋minimal＋footerを初期セットとする。業務名の分岐には用いない。"
+            },
+            "density": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "compact"
+              ],
+              "description": "画面密度。standard=従来の行高と余白、compact=Gridの行高および余白を縮小。presetの初期値を任意に上書きできる。"
+            },
+            "theme": {
+              "type": "string",
+              "enum": [
+                "light",
+                "dark",
+                "launch-dark"
+              ],
+              "description": "配色。light=従来配色、dark=汎用ダーク、launch-dark=FRB Launchに着想を得たStudio標準ダーク配色。Native Shellのタイトルバー色はOS対応範囲で適用される。"
+            },
+            "shell": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "minimal"
+              ],
+              "description": "外枠の構成。minimalはStudio共通ヘッダー／左サイドバーを表示せず、データ編集や検索・保存責務を変更しない。"
+            },
+            "savePlacement": {
+              "type": "string",
+              "enum": [
+                "sidebar",
+                "footer"
+              ],
+              "description": "既存の単一saveBtn要素の表示先。sidebar=従来位置、footer=固定フッター。ボタンや保存処理を複製しない。minimalではfooterに解決。"
+            }
+          },
+          "examples": [
+            {
+              "preset": "launcher",
+              "density": "compact",
+              "theme": "launch-dark",
+              "shell": "minimal",
+              "savePlacement": "footer"
+            }
+          ]
         }
       }
     },
@@ -3502,6 +3560,48 @@
         },
         "dragMove": {
           "type": "boolean"
+        },
+        "captions": {
+          "type": "object",
+          "description": "ツリー最上位グループ等の操作CaptionをViewDefで上書きする。未指定はStudio標準の汎用名称。ランチャーのPageなど業務固有語はData/UI共通処理ではなくこの宣言で与える。",
+          "additionalProperties": false,
+          "properties": {
+            "rootAdd": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位のグループを追加する操作Caption"
+            },
+            "rootEdit": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位のグループを編集する操作Caption"
+            },
+            "rootName": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位グループ名の入力ラベル"
+            },
+            "rootSelect": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位グループを選択する案内Caption"
+            },
+            "rootMissing": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位グループのDataが存在しないときの文言"
+            },
+            "rootChoose": {
+              "type": "string",
+              "minLength": 1,
+              "description": "追加先の最上位グループを選ぶときのCaption"
+            },
+            "rootToggle": {
+              "type": "string",
+              "minLength": 1,
+              "description": "最上位グループの展開折りたたみアクセシビリティラベル"
+            }
+          }
         }
       }
     }

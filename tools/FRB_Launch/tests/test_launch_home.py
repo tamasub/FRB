@@ -30,6 +30,18 @@ class LaunchHomeTests(unittest.TestCase):
         shutil.rmtree(legacy);link_build(self.root)
         self.assertEqual(launch_home(legacy),self.root)
         self.assertEqual((self.root/CONFIG).read_bytes(),expected)
+    def test_migration_does_not_replace_updated_system_scanner(self):
+        legacy=self.root/'dist/FRBLaunch/scripts'
+        legacy.mkdir(parents=True)
+        (legacy/'Get-LaunchApps.ps1').write_text('OLD_SCANNER',encoding='utf-8')
+        (legacy/'company_custom.ps1').write_text('CUSTOM_SCRIPT',encoding='utf-8')
+        current=self.root/'scripts'
+        current.mkdir()
+        (current/'Get-LaunchApps.ps1').write_text('UPDATED_SCANNER',encoding='utf-8')
+        prepare(self.root)
+        self.assertEqual((current/'Get-LaunchApps.ps1').read_text(encoding='utf-8'),'UPDATED_SCANNER')
+        self.assertEqual((current/'company_custom.ps1').read_text(encoding='utf-8'),'CUSTOM_SCRIPT')
+
     def test_missing_link_target_does_not_fall_back_to_stale_config(self):
         out=self.root/'dist/FRBLaunch';link_build(self.root)
         (self.root/CONFIG).unlink()

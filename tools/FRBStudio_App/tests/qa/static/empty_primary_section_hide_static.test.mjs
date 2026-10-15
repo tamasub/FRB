@@ -12,10 +12,11 @@ test('basic-info card hides when no visible Header target field exists', () => {
   assert.match(source, /section\.classList\.toggle\('hidden', !hasHeaderContent\)/);
 });
 
-test('search card hides when no canonical or plugin search target field exists', () => {
+test('Core full-text search stays visible with zero ViewDef or plugin search targets', () => {
   const source = text('wwwroot/js/renderers/field_controls.js');
-  assert.match(source, /function renderSearch\(\)[\s\S]*renderStudioPluginSearchFilters\(form,[\s\S]*const hasSearchTargets = form\.childElementCount > 0/);
-  assert.match(source, /searchSection\.classList\.toggle\('hidden', !hasSearchTargets\)/);
+  assert.match(source, /function renderSearch\(\)[\s\S]*searchSection\.classList\.remove\('hidden'\)/);
+  assert.match(source, /form\.classList\.toggle\('hidden', form\.childElementCount === 0\)/);
+  assert.doesNotMatch(source, /searchSection\.classList\.toggle\('hidden', !hasSearchTargets\)/);
 });
 
 test('field control cache key is advanced for empty primary section visibility change', () => {

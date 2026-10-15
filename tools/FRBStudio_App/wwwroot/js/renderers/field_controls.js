@@ -1154,6 +1154,16 @@ function renderSearch() {
   if (fullText) fullText.value = '';
   const form = $('searchForm');
   form.innerHTML = '';
+  if (!gd) {
+    // A ViewDef can omit the active Grid (e.g. a Form-only section group).
+    // Keep Core search visible but safely inactive until a Grid is available.
+    $('searchSection').classList.remove('hidden');
+    form.classList.add('hidden');
+    if (fullText) fullText.disabled = true;
+    if ($('searchBtn')) $('searchBtn').disabled = true;
+    if ($('clearSearchBtn')) $('clearSearchBtn').disabled = true;
+    return;
+  }
   gd.fields.filter(f => f.search?.visible).forEach(field => {
     // v0.18.67-standard-search-ui-context-menu-phase4:
     // SearchCapabilityResolverの実効Capabilityから検索UIを生成する。
@@ -1178,16 +1188,20 @@ function renderSearch() {
   });
 
   // v0.17.6-pluginhost-mvp: Plugin SearchFilterは通常検索欄の後ろに追加する。
-  if (typeof renderStudioPluginSearchFilters === 'function') {
+  if (gd && typeof renderStudioPluginSearchFilters === 'function') {
     renderStudioPluginSearchFilters(form, { gd, viewDef, sourceData, currentRows });
   }
 
-  // v0.18.78-empty-primary-section-hide:
-  // Canonical Grid / Pluginの検索対象Fieldが0件なら、全文検索だけの空検索カードも含めて枠ごと隠す。
+  // Core full-text search is always visible, even if ViewDef declares zero search fields.
+  // Without an active Grid the control remains visible but disabled.
   const searchSection = $('searchSection');
-  const hasSearchTargets = form.childElementCount > 0;
-  searchSection.classList.toggle('hidden', !hasSearchTargets);
-  if (hasSearchTargets && typeof refreshStudioSearchPatternSelect === 'function') refreshStudioSearchPatternSelect();
+  const activeGrid = Boolean(gd);
+  searchSection.classList.remove('hidden');
+  form.classList.toggle('hidden', form.childElementCount === 0);
+  if (fullText) fullText.disabled = !activeGrid;
+  if ($('searchBtn')) $('searchBtn').disabled = !activeGrid;
+  if ($('clearSearchBtn')) $('clearSearchBtn').disabled = !activeGrid;
+  if (activeGrid && typeof refreshStudioSearchPatternSelect === 'function') refreshStudioSearchPatternSelect();
 }
 
 
