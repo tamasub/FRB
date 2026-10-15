@@ -100,6 +100,20 @@ class Expander:
         return re.sub(r'%%|%[^%\r\n]+%', replace, str(text))
 
 
+
+def column_filter_match(row, query):
+    """Match only one cascade column, never its ancestors' paths.
+
+    Explorer rows carry their full path in `description`. Searching that
+    would match every sibling whenever the parent directory name matches.
+    """
+    text = str(row.get('title', ''))
+    if not row.get('_file'):
+        text += ' ' + str(row.get('description', ''))
+    content = text.casefold()
+    return all(word in content for word in query.casefold().split())
+
+
 def searchable_rows(data, query):
     items = {x['item_id']: x for x in data['items']}
     pages = {p['page_id']: p for p in data['pages']}

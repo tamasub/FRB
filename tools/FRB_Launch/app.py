@@ -11,7 +11,7 @@ from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
-from core import load, Expander, searchable_rows
+from core import load, Expander, searchable_rows, column_filter_match
 import windows
 import installed_apps
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
@@ -68,14 +68,143 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.open_mode = "keyboard"; self.owner_item = None; self.owner_action = None; self.outside_since = None
         self.setup_order_drag();self.order_press=None
         self.openers = {}
+        # A search belongs to one open column, not to the launcher's global search.
+        # AppCascadeMenu intentionally keeps its existing global-search behavior.
+        self.filter_action = None
+        self.filter_edit = None
+        self.filter_count = None
+        self._order_enabled_before_filter = False
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.setStyleSheet('QMenu { menu-scrollable: 1; }')
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True)
         self.hover_timer.timeout.connect(lambda:self.open_current("hover"))
 
     def select_first(self):
-        first = next((a for a in self.actions() if a.isEnabled() and not a.isSeparator()), None)
-        if first:self.setActiveAction(first)
+        first = next((a for a in self.actions()
+                      if a.isVisible() and a.isEnabled() and isinstance(a.data(), dict)), None)
+        self.setActiveAction(first)
+
+    def _ensure_local_filter(self):
+        """Display an inline search only after the user starts typing in this column."""
+        if self.filter_action is not None:
+            return
+        # Keyboard input should keep a hover-opened menu alive even after the
+        # pointer leaves the row (same promotion used by Right-arrow).
+        ancestor = self
+        while isinstance(ancestor, CascadeMenu):
+            ancestor.open_mode = 'keyboard'
+            ancestor.outside_since = None
+            ancestor = ancestor.parentWidget()
+        container = QWidget(self)
+        container.setObjectName('columnFilterBar')
+        container.setStyleSheet("""
+            QWidget#columnFilterBar { background: #26384a; border-radius: 5px; }
+            QLineEdit { background: #111e2b; color: #e8f1fc; border: 1px solid #6995cb;
+                        border-radius: 5px; padding: 5px 7px; font-size: 13px; }
+            QLineEdit:focus { border-color: #85bbff; }
+            QLabel { background: transparent; color: #9fb9d5; font-size: 11px; }
+        """)
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(7, 5, 7, 5)
+        layout.setSpacing(5)
+        glyph = QLabel('⌕', container)
+        layout.addWidget(glyph)
+        self.filter_edit = QLineEdit(container)
+        self.filter_edit.setPlaceholderText('この列から探す…')
+        self.filter_edit.setClearButtonEnabled(True)
+        self.filter_edit.setMinimumWidth(180)
+        self.filter_edit.installEventFilter(self)
+        layout.addWidget(self.filter_edit, 1)
+        self.filter_count = QLabel('', container)
+        layout.addWidget(self.filter_count)
+        action = QWidgetAction(self)
+        action.setDefaultWidget(container)
+        self.filter_action = action
+        before = self.actions()[0] if self.actions() else None
+        if before is not None:
+            self.insertAction(before, action)
+        else:
+            self.addAction(action)
+        self._order_enabled_before_filter = self.order_enabled
+        self.order_enabled = False  # Never reorder a filtered subset as if it were complete.
+        self.filter_edit.textChanged.connect(self._apply_local_filter)
+        self.filter_edit.setFocus(Qt.FocusReason.ShortcutFocusReason)
+
+    def _apply_local_filter(self, query):
+        if not query:
+            self.clear_local_filter()
+            return
+        shown = 0
+        total = 0
+        self.hover_timer.stop()
+        if self.child:
+            self.child.close()
+        for action in self.actions():
+            if action is self.filter_action:
+                continue
+            row = action.data()
+            if isinstance(row, dict):
+                total += 1
+                visible = column_filter_match(row, query)
+                shown += visible
+                action.setVisible(visible)
+            else:
+                # Separators and utilities (e.g. 'open this folder') are not results.
+                action.setVisible(False)
+        if self.filter_count is not None:
+            self.filter_count.setText(f'{shown}/{total}')
+        self.select_first()
+
+    def clear_local_filter(self):
+        """Fully restore the original menu, including ordering and keyboard focus."""
+        action = self.filter_action
+        if action is None:
+            return
+        self.hover_timer.stop()
+        for candidate in self.actions():
+            if candidate is not action:
+                candidate.setVisible(True)
+        self.removeAction(action)
+        action.deleteLater()
+        self.filter_action = None
+        self.filter_edit = None
+        self.filter_count = None
+        self.order_enabled = self._order_enabled_before_filter
+        self.select_first()
+        if self.isVisible():
+            self.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def _move_filtered_selection(self, increment):
+        matches = [a for a in self.actions()
+                   if a is not self.filter_action and a.isVisible()
+                   and a.isEnabled() and isinstance(a.data(), dict)]
+        if not matches:
+            self.setActiveAction(None)
+            return
+        current = self.activeAction()
+        index = matches.index(current) if current in matches else (0 if increment > 0 else len(matches)-1)
+        self.setActiveAction(matches[max(0, min(len(matches)-1, index+increment))])
+
+    def eventFilter(self, obj, event):
+        if obj is self.filter_edit and event.type() == QEvent.Type.KeyPress:
+            key = event.key()
+            if key == Qt.Key.Key_Escape:
+                self.clear_local_filter()
+                event.accept()
+                return True
+            if key in (Qt.Key.Key_Down, Qt.Key.Key_Up):
+                self._move_filtered_selection(1 if key == Qt.Key.Key_Down else -1)
+                event.accept()
+                return True
+            if key in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                self.keyPressEvent(event)
+                event.accept()
+                return True
+            if event.modifiers() & Qt.KeyboardModifier.ControlModifier and key == Qt.Key.Key_F:
+                self.keyPressEvent(event)
+                event.accept()
+                return True
+        return super().eventFilter(obj, event)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -122,6 +251,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
         if self.launcher.page_key(event):event.accept();return
+        if key == Qt.Key.Key_Escape and self.filter_action is not None:
+            self.clear_local_filter();event.accept();return
         if key in (Qt.Key.Key_Left, Qt.Key.Key_Escape):
             parent = self.parentWidget()
             self.close()
@@ -129,21 +260,39 @@ class CascadeMenu(OrderDragMixin,QMenu):
             else:self.launcher.list.setFocus()
             event.accept();return
         action=self.activeAction()
-        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter) and action and action.data() and action.data().get('item_kind')=='directory':
+        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter) and action and isinstance(action.data(),dict) and action.data().get('item_kind')=='directory':
             self.launcher.run_menu_item(action.data());event.accept();return
         if key == Qt.Key.Key_Right or (key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action in self.openers):
             self.open_current();event.accept();return
         if (mods & Qt.KeyboardModifier.ControlModifier and key==Qt.Key.Key_F):
             self.launcher.focus_search();event.accept();return
-        if event.text() and event.text().isprintable() and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
+        if not isinstance(self, AppCascadeMenu):
+            if key == Qt.Key.Key_Backspace and self.filter_edit is not None:
+                self.filter_edit.backspace();event.accept();return
+            if mods & Qt.KeyboardModifier.ControlModifier and key == Qt.Key.Key_V:
+                clip = QApplication.clipboard().text()
+                if clip:
+                    self._ensure_local_filter()
+                    self.filter_edit.insert(clip)
+                event.accept();return
+            if event.text() and event.text().isprintable() and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
+                self._ensure_local_filter()
+                QApplication.sendEvent(self.filter_edit, QKeyEvent(event.type(),key,mods,event.text()))
+                event.accept();return
+        elif event.text() and event.text().isprintable() and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
+            # The large installed-app catalog intentionally retains global search.
             self.launcher.focus_search(False)
             QApplication.sendEvent(self.launcher.search, QKeyEvent(event.type(),key,mods,event.text()))
             event.accept();return
         super().keyPressEvent(event)
 
     def inputMethodEvent(self, event):
-        self.launcher.focus_search(False)
-        QApplication.sendEvent(self.launcher.search,event)
+        if isinstance(self, AppCascadeMenu):
+            self.launcher.focus_search(False)
+            QApplication.sendEvent(self.launcher.search,event)
+        else:
+            self._ensure_local_filter()
+            QApplication.sendEvent(self.filter_edit,event)
 
 
 
@@ -688,7 +837,7 @@ class Launcher(QWidget):
                     refresh(menu.child);return
                 if menu.isVisible() and menu.order_enabled:
                     if menu.child:menu.child.close()
-                    context=menu.order_context;menu.clear();menu.openers.clear()
+                    context=menu.order_context;menu.clear_local_filter();menu.clear();menu.openers.clear()
                     self.fill_cascade(menu,context)
                     for action in menu.actions():
                         if action.data() and action.data()['item_id']==selected:menu.setActiveAction(action);break

@@ -64,8 +64,9 @@ class NavigationTests(unittest.TestCase):
         self.assertEqual(QApplication.focusWidget(), self.w.search)
         self.w.cascade(row)
         QTest.keyClicks(self.w.menu, 'appdata')
-        self.assertEqual(self.w.search.text(), 'appdata')
-        self.assertFalse(self.w.menu.isVisible())
+        self.assertEqual(self.w.menu.filter_edit.text(), 'appdata')
+        self.assertEqual(self.w.search.text(), '')
+        self.assertTrue(self.w.menu.isVisible())
 
     def test_function_page_keys(self):
         QTest.keyClick(self.w.search, Qt.Key.Key_F2)

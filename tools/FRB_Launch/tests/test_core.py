@@ -2,7 +2,7 @@ import sys, unittest, copy
 from pathlib import Path
 from datetime import datetime
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from core import load, validate, Expander, searchable_rows
+from core import load, validate, Expander, searchable_rows, column_filter_match
 DATA=load(Path(__file__).resolve().parents[1]/'config/frb_launch_sample_data_v0_1.json')
 class CoreTests(unittest.TestCase):
  def test_calendar_and_formats(self):
@@ -22,6 +22,14 @@ class CoreTests(unittest.TestCase):
   d=copy.deepcopy(DATA)
   next(r for r in d['items'] if r['item_id']=='locations')['enabled']=False
   self.assertEqual(searchable_rows(d,'appdata'),[])
+ def test_column_filter_avoids_parent_path_false_matches(self):
+  row={'title':'notes','description':r'F:\\FRB\\notes','_file':r'F:\\FRB\\notes'}
+  self.assertFalse(column_filter_match(row,'FRB'))
+  self.assertTrue(column_filter_match(row,'NOTES'))
+ def test_column_filter_descriptions_and_multiple_words(self):
+  row={'title':'Launch settings','description':'System tools'}
+  self.assertTrue(column_filter_match(row,'settings SYSTEM'))
+  self.assertFalse(column_filter_match(row,'settings archive'))
  def test_recipients(self):
   self.assertEqual(Expander(DATA,values={'recipients':'a; b'}).expand('%recipients%'),'a; b')
 if __name__=='__main__':unittest.main()

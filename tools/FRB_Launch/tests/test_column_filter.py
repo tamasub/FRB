@@ -1,0 +1,98 @@
+"""Column-local cascade search. Run with QT_QPA_PLATFORM=offscreen."""
+import unittest
+from pathlib import Path
+from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
+import test_navigation
+import app as module
+
+
+class ColumnFilterTests(test_navigation.NavigationTests):
+    # Reuse the real launcher setup, but not the inherited test cases.
+    test_immediate_right_and_left = None
+    test_nested_and_directory_single_column = None
+    test_function_page_keys = None
+    test_selection_all_clear_and_back = None
+
+    def make_menu(self):
+        path = Path(self.temp.name) / 'column_fixture'
+        path.mkdir(exist_ok=True)
+        for folder in ('FRB_Alpha', 'FRB_Beta', 'Other'):
+            (path / folder).mkdir(exist_ok=True)
+        (path / 'FRB_Alpha' / 'depth.txt').touch()
+        (path / 'launch.txt').touch()
+        self.w.cascade(dict(item_kind='directory', launch_browse_target=str(path)))
+        self.app.processEvents()
+        return self.w.menu
+
+    @staticmethod
+    def visible_titles(menu):
+        return [a.data()['title'] for a in menu.actions()
+                if a.isVisible() and isinstance(a.data(), dict)]
+
+    def test_search_appears_only_after_typing_and_is_local(self):
+        menu = self.make_menu()
+        self.assertIsNone(menu.filter_edit)
+        QTest.keyClicks(menu, 'frb')
+        self.app.processEvents()
+        self.assertEqual(menu.filter_edit.text(), 'frb')
+        self.assertEqual(self.visible_titles(menu), ['FRB_Alpha', 'FRB_Beta'])
+        self.assertTrue(menu.isVisible())
+        self.assertEqual(self.w.search.text(), '')
+        self.assertEqual(menu.filter_count.text(), '2/4')
+        self.assertFalse(menu.order_enabled)
+
+    def test_arrow_right_enters_matching_child(self):
+        menu = self.make_menu()
+        QTest.keyClicks(menu, 'alpha')
+        edit = menu.filter_edit
+        self.assertEqual(menu.activeAction().data()['title'], 'FRB_Alpha')
+        QTest.keyClick(edit, Qt.Key.Key_Right)
+        self.app.processEvents()
+        self.assertIsNotNone(menu.child)
+        self.assertTrue(menu.child.isVisible())
+        self.assertEqual(menu.child.filter_edit, None)
+        QTest.keyClicks(menu.child, 'depth')
+        self.assertEqual(self.visible_titles(menu.child), ['depth.txt'])
+        self.assertEqual(self.visible_titles(menu), ['FRB_Alpha'])
+
+    def test_escape_resets_filter_without_closing_menu(self):
+        menu = self.make_menu()
+        original = self.visible_titles(menu)
+        QTest.keyClicks(menu, 'frb')
+        QTest.keyClick(menu.filter_edit, Qt.Key.Key_Escape)
+        self.app.processEvents()
+        self.assertIsNone(menu.filter_edit)
+        self.assertEqual(self.visible_titles(menu), original)
+        self.assertTrue(menu.isVisible())
+        QTest.keyClick(menu, Qt.Key.Key_Escape)
+        self.assertFalse(menu.isVisible())
+
+    def test_zero_hit_and_edit_clear(self):
+        menu = self.make_menu()
+        QTest.keyClicks(menu, 'zzzx')
+        self.assertEqual(self.visible_titles(menu), [])
+        self.assertIsNone(menu.activeAction())
+        QTest.keyClick(menu.filter_edit, Qt.Key.Key_Right)
+        self.assertIsNone(menu.child)
+        menu.filter_edit.clear()
+        self.app.processEvents()
+        self.assertIsNone(menu.filter_edit)
+        self.assertEqual(len(self.visible_titles(menu)), 4)
+
+    def test_regular_category_and_apps_exclusion(self):
+        root = next(row for row in self.w.data['items'] if row.get('item_kind')=='category'
+                    and row.get('launch_source')!='installed_apps')
+        self.w.cascade(root)
+        menu = self.w.menu
+        QTest.keyClicks(menu, 'test')
+        self.assertIsNotNone(menu.filter_edit)
+        self.assertEqual(self.w.search.text(), '')
+        self.w.cascade(dict(item_kind='category', item_id='app_fixture', page_id=self.w.page_id,
+                            launch_source='installed_apps'))
+        appmenu = self.w.menu
+        self.assertIsInstance(appmenu, module.AppCascadeMenu)
+        self.assertIsNone(appmenu.filter_edit)
+
+if __name__ == '__main__':
+    unittest.main()
