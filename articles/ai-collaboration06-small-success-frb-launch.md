@@ -44,8 +44,8 @@ ZIPを作るバッチだって、ここから実行できればいい。
 
 名前は、**FRB Launch**。
 
-![alt text](/images\ai-collaboration06-small-success-frb-launch/frb-launch01.png)
-![alt text](/images\ai-collaboration06-small-success-frb-launch/frb-launch02.png)
+![alt text](/images/ai-collaboration06-small-success-frb-launch/frb-launch01.png)
+![alt text](/images/ai-collaboration06-small-success-frb-launch/frb-launch02.png)
 
 
 
@@ -66,7 +66,7 @@ Windowsのメニューから見つけにくいアプリも、ランチャーを�
 すると、メニューを育てる場所として、以前から作っているJSON編集ツール「FRB Studio」が使える。
 
 設定画面は、「FRB Studio」
-![alt text](/images\ai-collaboration06-small-success-frb-launch/frb-launch03.png)
+![alt text](/images/ai-collaboration06-small-success-frb-launch/frb-launch03.png)
 
 
 ランチャー専用の設定画面を一から作る代わりに、Studioくんで分かりやすく編集できるようにする。
