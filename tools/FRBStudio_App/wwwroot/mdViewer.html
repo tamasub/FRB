@@ -720,6 +720,15 @@
       color: var(--code-text) !important;
       box-shadow: 0 0 0 3px rgba(63,124,255,.045);
     }
+    /* Mermaid diagrams are rendered inside PRE elements, but are not source-code blocks.
+       Keep a light canvas in editor/review mode while retaining selection outlines. */
+    body[data-mode="editor"] #preview pre.mermaid[data-md-line],
+    body[data-mode="editor"] #preview pre.mermaid[data-md-line]:hover,
+    body[data-mode="editor"] #preview pre.mermaid.md-current-block,
+    body[data-mode="review"] #preview pre.mermaid.md-current-block {
+      background: rgba(255,255,255,.94) !important;
+      color: #1f2937 !important;
+    }
     #preview [data-md-block-id] {
       position: relative;
     }

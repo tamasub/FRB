@@ -1,0 +1,46 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FRB Sea Camera — PC Player</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,'Meiryo',sans-serif;background:#10151e;color:#edf2f8;margin:0}header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#1c2532;padding:14px 20px}header strong{font-size:20px}button{padding:10px 16px;background:#277cc5;border:none;border-radius:7px;color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:hover:not(:disabled){filter:brightness(1.13)}input[type=number]{background:#243345;color:#fff;border:1px solid #46586c;border-radius:6px;padding:7px;width:70px;font-size:15px}.muted{color:#aebccc;font-size:13px}.panel{display:grid;grid-template-columns:minmax(0,1fr) 275px;gap:16px;margin:16px}section{background:#1c2532;border-radius:12px;padding:14px}.screen{background:#05070a;min-height: min(68vh,720px);display:flex;align-items:center;justify-content:center;border-radius:9px;overflow:hidden}.screen img{display:block;width:100%;height:min(68vh,720px);object-fit:contain}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.seek{width:100%;accent-color:#58a6ff;margin-top:14px}aside h3{margin-top:0}.stat{padding:12px 0;border-bottom:1px solid #38495a;overflow-wrap:anywhere}.stat span{display:block;color:#aebccc;font-size:12px;margin-bottom:4px}.thumbnote{font-size:13px;color:#b8cce0;line-height:1.7}.error{color:#ff9f9f;white-space:pre-wrap}.loading{color:#9fc5ee}@media(max-width:850px){.panel{grid-template-columns:1fr}.screen,.screen img{height:55vh;min-height:0}}
+</style></head><body>
+<header><strong>🎣 FRB Sea Camera — PC Player</strong><button onclick="document.getElementById('folder').click()">📁 REC フォルダー選択</button><input type="file" id="folder" webkitdirectory multiple hidden><span class="muted">ESP32への接続不要・画像は外部送信されません</span></header>
+<div class="panel"><section><div class="screen"><img id="image" alt="フォルダーを選択すると撮影画像が表示されます"></div><input id="seek" class="seek" type="range" min="1" max="1" value="1" disabled><div class="controls"><button id="play" disabled>▶ 再生</button><button id="prev" disabled>◀ 1コマ</button><button id="next" disabled>1コマ ▶</button><label>fps <input type="number" id="fps" min="0.1" max="60" step="0.1" value="5"></label><button id="save" disabled>現在の画像を保存</button><button id="full" disabled>全画面</button></div><p id="message" class="loading">「REC フォルダー選択」を押して、PCにコピーした REC_0004 などを指定してください。</p></section><aside><h3>再生情報</h3><div class="stat"><span>録画</span><b id="session">—</b></div><div class="stat"><span>読み込んだ枚数</span><b id="count">—</b></div><div class="stat"><span>現在位置</span><b id="position">—</b></div><div class="stat"><span>ファイル</span><b id="filename">—</b></div><p class="thumbnote">REC_0004 の中にある SEG_0001、SEG_0002 … を自動でまとめて、frame_番号順に再生します。<br><br>シークバーで好きな位置へ移動。再生中は最後まで行くと先頭に戻ります。<br><br>フォルダー選択時に、上位フォルダーを選んで複数RECがある場合は録画を選べます。</p></aside></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let frames=[],index=0,playing=false,timer=0,url=null,seq=0;
+function stop(){playing=false;clearTimeout(timer);$('play').textContent='▶ 再生';}
+function setStatus(msg,isError=false){$('message').textContent=msg;$('message').className=isError?'error':'loading';}
+function relative(f){return f.webkitRelativePath||f.name;}
+async function selectFolder(files){
+ stop();seq++;
+ const images=Array.from(files).filter(f=>/^frame_\d+\.jpe?g$/i.test(f.name));
+ if(!images.length){setStatus('対象画像がありません。REC_xxxx フォルダーを選択してください。',true);return;}
+ const names=[...new Set(images.map(f=>(relative(f).match(/(?:^|\/)(REC_\d+)(?:\/|$)/i)||[])[1]).filter(Boolean))].sort();
+ let selected=images;
+ if(names.length>1){const name=prompt('複数の録画があります。再生するREC名を入力してください。\n'+names.join(' / '),names[0]);if(!name)return;if(!names.includes(name)){setStatus('指定したRECが見つかりません。',true);return;}selected=images.filter(f=>relative(f).split('/').includes(name));}
+ const name=names.length===1?names[0]:(names.length?relative(selected[0]).match(/REC_\d+/i)?.[0]:relative(selected[0]).split('/')[0]);
+ selected.sort((a,b)=>Number(a.name.match(/\d+/)[0])-Number(b.name.match(/\d+/)[0])||relative(a).localeCompare(relative(b)));
+ frames=selected;index=0;
+ $('session').textContent=name||'選択フォルダー';$('count').textContent=frames.length.toLocaleString()+' 枚';
+ $('seek').max=frames.length;$('seek').value=1;
+ ['seek','play','prev','next','save','full'].forEach(id=>$(id).disabled=false);
+ show();setStatus(`${frames.length.toLocaleString()} 枚を読み込みました。フォルダーは ${name||'選択フォルダー'} です。`);
+}
+function show(){
+ if(!frames.length)return;
+ const own=++seq,f=frames[index];$('position').textContent=(index+1).toLocaleString()+' / '+frames.length.toLocaleString();$('filename').textContent=relative(f);$('seek').value=index+1;
+ const next=URL.createObjectURL(f),img=$('image');
+ img.onload=()=>{if(own!==seq)return;if(url)URL.revokeObjectURL(url);url=next;};
+ img.onerror=()=>{if(own!==seq)return;URL.revokeObjectURL(next);stop();setStatus('画像を読み込めません: '+relative(f),true);};
+ img.src=next;
+}
+function tick(){if(!playing)return;const fps=Math.max(.1,Math.min(60,Number($('fps').value)||5));timer=setTimeout(()=>{index=(index+1)%frames.length;show();tick();},1000/fps);}
+$('folder').addEventListener('change',e=>{selectFolder(e.target.files);e.target.value='';});
+$('play').onclick=()=>{if(!frames.length)return;if(playing)stop();else{playing=true;$('play').textContent='⏸ 一時停止';tick();}};
+$('prev').onclick=()=>{stop();index=(index+frames.length-1)%frames.length;show();};
+$('next').onclick=()=>{stop();index=(index+1)%frames.length;show();};
+$('seek').oninput=e=>{stop();index=Math.max(0,Math.min(frames.length-1,Number(e.target.value)-1));show();};
+$('save').onclick=()=>{if(!frames.length)return;const a=document.createElement('a'),tmp=URL.createObjectURL(frames[index]);a.href=tmp;a.download=frames[index].name;a.click();setTimeout(()=>URL.revokeObjectURL(tmp),3000);};
+$('full').onclick=()=>{const el=document.querySelector('.screen');if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen?.();};
+window.addEventListener('beforeunload',()=>{if(url)URL.revokeObjectURL(url);});
+</script></body></html>
