@@ -1,0 +1,1140 @@
+{
+  "app": {
+    "name": "FRB Launch 設定メンテナンス",
+    "version": "0.2-draft",
+    "presentation": {
+      "preset": "launcher",
+      "density": "compact",
+      "theme": "launch-dark",
+      "shell": "minimal",
+      "savePlacement": "heading",
+      "headingMenu": {
+        "items": [
+          {
+            "id": "maintain_viewdef",
+            "label": "ViewDefをメンテナンス",
+            "actionId": "MaintainCurrentViewDef"
+          }
+        ]
+      }
+    }
+  },
+  "views": [
+    {
+      "id": "items_view",
+      "caption": "メニュー項目",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "基本情報",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_hotkey",
+              "caption": "呼び出しキー",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_default_page_id",
+              "caption": "初期Page",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "items",
+          "caption": "メニュー項目",
+          "type": "grid",
+          "dataPath": "$.items",
+          "keyField": "item_id",
+          "fields": [
+            {
+              "field": "page_id",
+              "caption": "Page",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 105
+            },
+            {
+              "field": "parent_item_id",
+              "caption": "親項目ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "item_id",
+              "caption": "項目ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 217
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 271
+            },
+            {
+              "field": "item_kind",
+              "caption": "項目種類",
+              "type": "select",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "category",
+                "directory",
+                "command",
+                "selection"
+              ],
+              "defaultValue": "command",
+              "width": 80
+            },
+            {
+              "field": "icon_key",
+              "caption": "アイコン",
+              "type": "select",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "valueVocabularyRef": "launch.icon_key"
+            },
+            {
+              "field": "sort_order",
+              "caption": "表示順",
+              "type": "number",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "defaultValue": true
+            },
+            {
+              "field": "keywords",
+              "caption": "検索別名",
+              "type": "stringArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_selection_group_id",
+              "caption": "選択候補グループ",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
+              }
+            },
+            {
+              "field": "launch_selection_value_field",
+              "caption": "結合する値の項目",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
+              }
+            },
+            {
+              "field": "launch_selection_separator",
+              "caption": "結合区切り文字",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
+              }
+            },
+            {
+              "field": "launch_selection_result_name",
+              "caption": "選択結果の変数名",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "selection"
+              }
+            },
+            {
+              "field": "launch_browse_target",
+              "caption": "実フォルダー展開先",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "equals": "directory"
+              }
+            },
+            {
+              "field": "launch_context_app",
+              "caption": "適用アプリ（将来用）",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_context_url_pattern",
+              "caption": "適用URL（将来用）",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": false
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_actions",
+              "caption": "実行する処理",
+              "type": "objectArray",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "subGrid": {
+                  "columns": [
+                    {
+                      "field": "launch_action_type",
+                      "caption": "処理の種類",
+                      "type": "select",
+                      "defaultValue": "Open",
+                      "options": [
+                        {
+                          "value": "Open",
+                          "label": "開く（ファイル・フォルダー・URL）"
+                        },
+                        {
+                          "value": "SendKey",
+                          "label": "文字列を入力"
+                        },
+                        {
+                          "value": "ClipboardCopy",
+                          "label": "クリップボードへコピー"
+                        },
+                        {
+                          "value": "Run",
+                          "label": "プログラム・スクリプトを実行"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "launch_target",
+                      "caption": "開くファイル・フォルダー・URL",
+                      "type": "text",
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Open"
+                        ]
+                      },
+                      "placeholder": "F:\\FRB_docsExcel\\実験全体図.xlsx",
+                      "help": "ファイル・フォルダー・URL・shell: の対象を入力します。引用符は不要です。"
+                    },
+                    {
+                      "field": "launch_text",
+                      "caption": "送信する文字列",
+                      "type": "textarea",
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "SendKey",
+                          "ClipboardCopy"
+                        ]
+                      }
+                    },
+                    {
+                      "field": "launch_program",
+                      "caption": "実行プログラム",
+                      "type": "text",
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      }
+                    },
+                    {
+                      "field": "launch_arguments",
+                      "caption": "引数（1行に1つ）",
+                      "type": "json",
+                      "defaultValue": [],
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "control": "lines",
+                      "help": "例: -NoProfile と -File は別々の行に入力します。JSON配列として保存します。"
+                    },
+                    {
+                      "field": "launch_working_directory",
+                      "caption": "作業フォルダー",
+                      "type": "text",
+                      "defaultValue": "",
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_browser",
+                      "caption": "ブラウザー（空欄は標準）",
+                      "type": "select",
+                      "defaultValue": "",
+                      "options": [
+                        "",
+                        "chrome"
+                      ],
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Open"
+                        ]
+                      },
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_wait_for_exit",
+                      "caption": "終了を待つ",
+                      "type": "boolean",
+                      "defaultValue": false,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_show_console",
+                      "caption": "実行画面を表示",
+                      "type": "boolean",
+                      "defaultValue": false,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_timeout_ms",
+                      "caption": "タイムアウト（ms）",
+                      "type": "number",
+                      "defaultValue": 30000,
+                      "visibleWhen": {
+                        "field": "launch_action_type",
+                        "in": [
+                          "Run"
+                        ]
+                      },
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_failure_policy",
+                      "caption": "失敗時",
+                      "type": "select",
+                      "defaultValue": "stop",
+                      "options": [
+                        "stop",
+                        "continue"
+                      ],
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_result_name",
+                      "caption": "結果の変数名",
+                      "type": "text",
+                      "defaultValue": "",
+                      "advanced": true
+                    },
+                    {
+                      "field": "launch_result_format",
+                      "caption": "結果の形式",
+                      "type": "select",
+                      "defaultValue": "none",
+                      "options": [
+                        "none"
+                      ],
+                      "advanced": true
+                    }
+                  ],
+                  "initialExpanded": true,
+                  "layout": "cards",
+                  "rowCaption": "処理"
+                }
+              },
+              "search": {
+                "visible": false
+              },
+              "visibleWhen": {
+                "field": "item_kind",
+                "in": [
+                  "command",
+                  "selection"
+                ]
+              }
+            }
+          ],
+          "tree": {
+            "enabled": true,
+            "idField": "item_id",
+            "parentField": "parent_item_id",
+            "labelField": "title",
+            "groupField": "page_id",
+            "orderField": "sort_order",
+            "groupSource": "$.pages",
+            "groupIdField": "page_id",
+            "groupLabelField": "title",
+            "parentKindField": "item_kind",
+            "parentKinds": [
+              "category"
+            ],
+            "createPresets": [
+              {
+                "caption": "カテゴリーを追加",
+                "values": {
+                  "item_kind": "category",
+                  "icon_key": "category.blue"
+                }
+              },
+              {
+                "caption": "ファイルを開く",
+                "values": {
+                  "item_kind": "command",
+                  "launch_actions": [
+                    {
+                      "launch_action_type": "Open",
+                      "launch_target": ""
+                    }
+                  ]
+                }
+              },
+              {
+                "caption": "実行項目を追加",
+                "values": {
+                  "item_kind": "command"
+                }
+              },
+              {
+                "caption": "選択リストを追加",
+                "values": {
+                  "item_kind": "selection"
+                }
+              },
+              {
+                "caption": "フォルダー参照を追加",
+                "values": {
+                  "item_kind": "directory",
+                  "icon_key": "folder"
+                }
+              }
+            ],
+            "groupRoots": true,
+            "groupOrderField": "sort_order",
+            "groupEnabledField": "enabled",
+            "fileDrop": {
+              "enabled": true,
+              "fileTemplate": {
+                "title": "{name}",
+                "description": "{path}",
+                "item_kind": "command",
+                "icon_key": "file",
+                "enabled": true,
+                "launch_actions": [
+                  {
+                    "launch_action_type": "Open",
+                    "launch_target": "{launchPath}"
+                  }
+                ]
+              },
+              "directoryTemplate": {
+                "title": "{name}",
+                "description": "{path}",
+                "item_kind": "directory",
+                "icon_key": "folder.yellow",
+                "enabled": true,
+                "launch_browse_target": "{launchPath}",
+                "launch_actions": [
+                  {
+                    "launch_action_type": "Open",
+                    "launch_target": "{launchPath}"
+                  }
+                ]
+              }
+            },
+            "treeOnly": true,
+            "dragMove": true,
+            "captions": {
+              "rootAdd": "Pageを追加",
+              "rootEdit": "Pageを編集",
+              "rootName": "Page名",
+              "rootSelect": "Pageを選択してください",
+              "rootMissing": "Page配列が見つかりません",
+              "rootChoose": "追加先のPage",
+              "rootToggle": "Pageを展開・折りたたみ"
+            }
+          }
+        }
+      ],
+      "toolbar": {
+        "relatedGridViews": [
+          {
+            "id": "launch_variables",
+            "caption": "変数",
+            "dataPath": "$.launch_variables",
+            "viewId": "launch_variables_view",
+            "action": "OpenRelatedGridView",
+            "launchMode": "modal",
+            "shellMode": "grid_only"
+          },
+          {
+            "id": "launch_choices",
+            "caption": "選択候補",
+            "dataPath": "$.launch_choices",
+            "viewId": "launch_choices_view",
+            "action": "OpenRelatedGridView",
+            "launchMode": "modal",
+            "shellMode": "grid_only"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pages_view",
+      "caption": "Page",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "pages",
+          "caption": "Page",
+          "type": "grid",
+          "dataPath": "$.pages",
+          "keyField": "page_id",
+          "fields": [
+            {
+              "field": "page_id",
+              "caption": "Page ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "sort_order",
+              "caption": "表示順",
+              "type": "number",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "launch_variables_view",
+      "caption": "変数",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "launch_variables",
+          "caption": "変数",
+          "type": "grid",
+          "dataPath": "$.launch_variables",
+          "keyField": "variable_id",
+          "fields": [
+            {
+              "field": "variable_id",
+              "caption": "変数ID",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_variable_type",
+              "caption": "変数種類",
+              "type": "select",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "literal",
+                "date",
+                "clipboard"
+              ]
+            },
+            {
+              "field": "launch_value",
+              "caption": "固定値",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_date_offset_days",
+              "caption": "日付差（日）",
+              "type": "number",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_date_format",
+              "caption": "日付書式",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "launch_choices_view",
+      "caption": "選択候補",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "launch_choices",
+          "caption": "選択候補",
+          "type": "grid",
+          "dataPath": "$.launch_choices",
+          "keyField": "choice_id",
+          "fields": [
+            {
+              "field": "choice_id",
+              "caption": "候補ID",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "group_id",
+              "caption": "グループID",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 80
+            },
+            {
+              "field": "title",
+              "caption": "タイトル",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 126
+            },
+            {
+              "field": "description",
+              "caption": "説明",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 177
+            },
+            {
+              "field": "value",
+              "caption": "値",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 188
+            },
+            {
+              "field": "sort_order",
+              "caption": "表示順",
+              "type": "number",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "boolean",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "width": 80
+            }
+          ]
+        }
+      ],
+      "toolbar": {
+        "csvImport": {
+          "enabled": true,
+          "caption": "CSV取込",
+          "mode": "replace_all",
+          "columns": {
+            "title": [
+              "名前",
+              "氏名",
+              "表示名",
+              "宛先名",
+              "フルネーム",
+              "Name",
+              "Full Name",
+              "Display Name",
+              "タイトル"
+            ],
+            "value": [
+              "値",
+              "メールアドレス",
+              "電子メールアドレス",
+              "電子メール アドレス",
+              "Email",
+              "E-mail",
+              "Email Address",
+              "E-mail Address",
+              "E-mail 1 - Value",
+              "E-mail 2 - Value",
+              "Primary Email",
+              "メール アドレス"
+            ],
+            "description": [
+              "説明",
+              "備考",
+              "部署",
+              "Description"
+            ]
+          },
+          "requiredField": "value",
+          "idField": "choice_id",
+          "idPrefix": "import_mail_",
+          "orderField": "sort_order",
+          "orderStep": 10,
+          "maxRows": 10000,
+          "defaults": {
+            "group_id": "",
+            "enabled": true
+          },
+          "descriptionFallbackField": "value"
+        }
+      }
+    },
+    {
+      "id": "launch_settings_view",
+      "caption": "Launch共通設定",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "header",
+          "caption": "共通設定",
+          "type": "form",
+          "dataPath": "$",
+          "fields": [
+            {
+              "field": "launch_hotkey",
+              "caption": "呼び出しキー",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_default_page_id",
+              "caption": "初期Page",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_search_scope",
+              "caption": "検索範囲",
+              "type": "select",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "all_pages"
+              ]
+            },
+            {
+              "field": "launch_hover_delay_ms",
+              "caption": "マウス展開待ちms",
+              "type": "number",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "launch_timezone",
+              "caption": "タイムゾーン",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "valueVocabularySources": [
+    "config/launch_enums_v0_1.json"
+  ]
+}

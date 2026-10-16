@@ -632,6 +632,11 @@ class Launcher(QWidget):
         self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None;self.apps_log=STATE/'apps.log'
         self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
         self.data = None; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
+        # A Qt item activation on double-click happens on the second DOWN.
+        # Defer launching until its matching UP, otherwise Windows can revoke
+        # the new GUI child's foreground permission on that last mouse input.
+        self._pending_mouse_activation = None
+        self._pending_mouse_foreground = None
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
@@ -1131,6 +1136,9 @@ class Launcher(QWidget):
                   reason, active, before, windows.foreground(), self.search.hasFocus())
 
     def dismiss(self):
+        # Never carry a half-finished double-click into the next summon.
+        self._pending_mouse_activation = None
+        self._pending_mouse_foreground = None
         if self.menu:self.menu.close()
         self.save_window_height()
         self.hover_timer.stop();self.settings.setValue('position',self.pos());self.settings.setValue('page',self.page_id);self.hide()
@@ -1398,15 +1406,55 @@ class Launcher(QWidget):
         value=row.get('launch_selection_separator','; ').join(str(c.get(row.get('launch_selection_value_field','value'),'')) for c in choices)
         self.execute(row,{row.get('launch_selection_result_name','recipients'):value})
 
+    def activate_after_mouse_release(self, row, expected_foreground):
+        """Launch only after the final UP of a mouse double-click is delivered.
+
+        A Qt Tool window can be visible/on top without owning keyboard focus.
+        Before spawning a GUI child, request foreground for the launcher only
+        if the user has not switched to some other application in the meantime.
+        The existing execute() method then grants foreground to the child.
+        """
+        if not self.isVisible() or self.busy:
+            return
+        if windows.IS_WINDOWS:
+            hwnd = int(self.winId())
+            before = windows.foreground()
+            if before != hwnd:
+                restored = windows.activate_keyboard_window(
+                    hwnd, expected_foreground=expected_foreground)
+                DIAG.info('MOUSE_LAUNCH_FOCUS before=%s expected=%s restored=%s after=%s',
+                          before, expected_foreground, restored, windows.foreground())
+        self.activate(row)
+
     def eventFilter(self,obj,event):
-        if obj is self.list.viewport() and event.type()==QEvent.Type.MouseButtonDblClick:
-            # Enter opens a category *inside* the launcher window. Double-clicking
-            # unused list space has the same meaning as the existing Left/Back key.
-            # Never steal double-clicks on items, or at the top/root level.
-            if (event.button()==Qt.MouseButton.LeftButton
-                    and (self.stack or self.selection is not None)
-                    and self.list.itemAt(event.position().toPoint()) is None):
-                self.go_back()
+        if obj is self.list.viewport():
+            if (event.type()==QEvent.Type.MouseButtonDblClick
+                    and event.button()==Qt.MouseButton.LeftButton):
+                item = self.list.itemAt(event.position().toPoint())
+                if item is not None:
+                    # Consume Qt's double-click activation on mouse DOWN.
+                    # The same row is activated exactly once on mouse UP.
+                    self._pending_mouse_activation = item.data(0,Qt.ItemDataRole.UserRole)
+                    self._pending_mouse_foreground = windows.foreground()
+                    DIAG.info('MOUSE_ACTIVATION queued item=%s',
+                              self._pending_mouse_activation.get('item_id'))
+                    event.accept()
+                    return True
+                # Double-click on empty submenu space remains Back.
+                if self.stack or self.selection is not None:
+                    self.go_back()
+                    event.accept()
+                    return True
+            if (event.type()==QEvent.Type.MouseButtonRelease
+                    and event.button()==Qt.MouseButton.LeftButton
+                    and self._pending_mouse_activation is not None):
+                row = self._pending_mouse_activation
+                expected = self._pending_mouse_foreground
+                self._pending_mouse_activation = None
+                self._pending_mouse_foreground = None
+                # Deliver this release to Windows *before* creating the child.
+                QTimer.singleShot(0, lambda r=row, fg=expected:
+                                  self.activate_after_mouse_release(r,fg))
                 event.accept()
                 return True
         if obj==self.tabs:

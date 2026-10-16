@@ -1,5 +1,6 @@
 """Launch data contract and expansion, independent of the GUI."""
 import json
+import os
 import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -49,8 +50,9 @@ def validate(data):
                 raise ValueError('引数は配列です')
             if step.get('launch_result_format', 'none') != 'none':
                 raise ValueError('v0.1の処理結果変数は未対応です')
-        if row['item_kind'] == 'selection' and not any(c.get('group_id') == row.get('launch_selection_group_id') for c in choices.values()):
-            raise ValueError('選択候補がありません')
+        # A selection group may temporarily have no candidates while the user
+        # imports a replacement CSV and assigns group_id values later.
+        # Keep the item valid; the selection screen already handles 0 rows.
     return data
 
 
@@ -91,9 +93,21 @@ class Expander:
             if name in {'today', 'yesterday', 'now'}:
                 value = self.now + timedelta(days=-1 if name == 'yesterday' else 0)
                 return format_date(value, fmt or 'yyyy/MM/dd')
-            if name not in self.values:
-                raise ValueError(f'未定義の変数: %{name}%')
-            value = str(self.values[name])
+            # App-defined variables take precedence over Windows environment
+            # variables.  Unlike os.path.expandvars(), unknown names must
+            # retain the launcher's explicit error behavior.
+            if name in self.values:
+                value = self.values[name]
+            else:
+                # Windows environment names are case-insensitive. Keep that
+                # behavior in tests and on other platforms as well.
+                value = os.environ.get(name)
+                if value is None:
+                    value = next((v for k, v in os.environ.items()
+                                  if k.casefold() == name.casefold()), None)
+                if value is None:
+                    raise ValueError(f'未定義の変数: %{name}%')
+            value = str(value)
             if value.startswith('REPLACE_'):
                 raise ValueError(f'設定値を入力してください: {name}')
             return value

@@ -683,7 +683,58 @@
             }
           ]
         }
-      ]
+      ],
+      "toolbar": {
+        "csvImport": {
+          "enabled": true,
+          "caption": "CSV取込",
+          "mode": "replace_all",
+          "columns": {
+            "title": [
+              "名前",
+              "氏名",
+              "表示名",
+              "宛先名",
+              "フルネーム",
+              "Name",
+              "Full Name",
+              "Display Name",
+              "タイトル"
+            ],
+            "value": [
+              "値",
+              "メールアドレス",
+              "電子メールアドレス",
+              "電子メール アドレス",
+              "Email",
+              "E-mail",
+              "Email Address",
+              "E-mail Address",
+              "E-mail 1 - Value",
+              "E-mail 2 - Value",
+              "Primary Email",
+              "メール アドレス"
+            ],
+            "description": [
+              "説明",
+              "備考",
+              "部署",
+              "Description"
+            ]
+          },
+          "requiredField": "value",
+          "idField": "choice_id",
+          "idPrefix": "import_mail_",
+          "orderField": "sort_order",
+          "orderStep": 10,
+          "maxRows": 10000,
+          "defaults": {
+            "group_id": "",
+            "enabled": true
+          },
+          "descriptionFallbackField": "value"
+        }
+      }
     },
     {
       "id": "launch_settings_view",

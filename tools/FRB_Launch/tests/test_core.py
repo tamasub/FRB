@@ -1,4 +1,5 @@
-import sys, unittest, copy
+import sys, unittest, copy, os
+from unittest.mock import patch
 from pathlib import Path
 from datetime import datetime
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -12,7 +13,29 @@ class CoreTests(unittest.TestCase):
   e=Expander(DATA,clipboard='%today%')
   self.assertEqual(e.expand('校正してください。%clipboard% 100%%'),'校正してください。%today% 100%')
  def test_unknown(self):
-  with self.assertRaises(ValueError):Expander(DATA).expand('%missing%')
+  with patch.dict(os.environ, {'missing': ''}, clear=False):
+   # Defined-but-empty is valid, unknown still raises.
+   self.assertEqual(Expander(DATA).expand('%missing%'), '')
+  with patch.dict(os.environ, {}, clear=True):
+   with self.assertRaises(ValueError):Expander(DATA).expand('%missing%')
+ def test_windows_userprofile_fallback(self):
+  with patch.dict(os.environ, {'USERPROFILE': r'C:\Users\Sample'}, clear=True):
+   target = r'%USERPROFILE%\OneDrive\ドキュメント\Book1.xlsx'
+   self.assertEqual(Expander(DATA).expand(target), r'C:\Users\Sample\OneDrive\ドキュメント\Book1.xlsx')
+ def test_windows_env_names_case_insensitive(self):
+  with patch.dict(os.environ, {'APPDATA': r'C:\Users\Sample\AppData\Roaming'}, clear=True):
+   self.assertEqual(Expander(DATA).expand(r'%appdata%\settings.json'),
+                    r'C:\Users\Sample\AppData\Roaming\settings.json')
+ def test_launch_variables_override_windows_environment(self):
+  with patch.dict(os.environ, {'launch_dir': r'C:\wrong'}, clear=True):
+   ex = Expander(DATA, values={'launch_dir': r'F:\FRB\tools'})
+   self.assertEqual(ex.expand(r'%launch_dir%\script.bat'), r'F:\FRB\tools\script.bat')
+ def test_environment_fallback_remains_nonrecursive(self):
+  with patch.dict(os.environ, {'USERPROFILE': r'C:\Users\%today%'}, clear=True):
+   self.assertEqual(Expander(DATA).expand('%USERPROFILE%'), r'C:\Users\%today%')
+ def test_literal_percent_not_changed(self):
+  with patch.dict(os.environ, {'USERPROFILE': r'C:\Users\Sample'}, clear=True):
+   self.assertEqual(Expander(DATA).expand('100%%'), '100%')
  def test_all_page_search(self):
   self.assertEqual({r['item_id'] for r,p in searchable_rows(DATA,'appdata')},{'roaming','local'})
  def test_cycle(self):

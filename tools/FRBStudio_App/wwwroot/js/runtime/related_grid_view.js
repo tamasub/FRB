@@ -241,7 +241,7 @@ function openRelatedGridView(definition) {
 }
 
 function removeRelatedGridButtons() {
-  document.querySelectorAll('.related-grid-launch-button, .related-grid-apply-button').forEach(button => button.remove());
+  document.querySelectorAll('.related-grid-launch-button, .related-grid-apply-button, .related-grid-csv-import-button, .related-grid-csv-file').forEach(button => button.remove());
 }
 
 function ensureRelatedGridButton(definition, rows) {
@@ -306,11 +306,95 @@ function ensureRelatedGridApplyButton() {
   return button;
 }
 
+// CSV import is available only when the active ViewDef explicitly declares
+// toolbar.csvImport. The Studio runtime never hardcodes launch_choices/email fields.
+function relatedGridCsvImportDefinition() {
+  if (!relatedGridChildRuntime) return null;
+  const definition = relatedGridToolbarDef()?.csvImport;
+  if (!definition || definition.enabled === false || definition.mode !== 'replace_all') return null;
+  return definition;
+}
+
+function ensureRelatedGridCsvImportButton() {
+  const definition = relatedGridCsvImportDefinition();
+  const actions = document.querySelector('.grid-actions');
+  if (!actions || !definition) return null;
+
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = '.csv,text/csv';
+  picker.className = 'related-grid-csv-file';
+  picker.hidden = true;
+  picker.setAttribute('aria-label', 'CSV取り込みファイル');
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ghost-button small related-grid-csv-import-button';
+  button.textContent = definition.caption || 'CSV取込';
+  button.title = 'CSVを読み込み、現在のGrid配列を全件置換します（確認あり）。最終保存は親画面で行います。';
+  const exportButton = $('gridCsvExportBtn');
+  if (exportButton && exportButton.parentElement === actions) {
+    exportButton.after(button, picker);
+  } else {
+    actions.append(button, picker);
+  }
+  button.addEventListener('click', () => { picker.value = ''; picker.click(); });
+  picker.addEventListener('change', async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    button.disabled = true;
+    try {
+      if (file.size > 10 * 1024 * 1024) throw new Error('CSVのサイズ上限は10MBです');
+      if (!globalThis.CsvGridImporter) throw new Error('CSV取込モジュールが読み込まれていません');
+      const text = CsvGridImporter.decode(await file.arrayBuffer());
+      // Fully parse and validate before asking to destroy any existing entries.
+      const importedRows = CsvGridImporter.buildRows(text, definition);
+      const previousRows = relatedGridChildRows();
+      if (!Array.isArray(previousRows)) throw new Error('選択中のGridがArrayではありません');
+      const oldCount = previousRows.length;
+      const message = `CSV全件置換の確認\n\n既存の${oldCount}件をすべて削除してから、CSVの${importedRows.length}件を取り込みます。\n` +
+        '既存のグループIDも引き継ぎません。\n\n' +
+        '取り込み後は「親画面へ反映」→ 親画面の「保存」が必要です。\n\n続行しますか？';
+      if (!window.confirm(message)) {
+        setStatus('CSV取込をキャンセルしました。既存データは変更していません。', { toast: false });
+        return;
+      }
+      const previousIndex = selectedIndex;
+      try {
+        setByPath(sourceData, relatedGridChildRuntime.dataPath, importedRows);
+        selectedIndex = -1;
+        loadRows();
+        renderGrid();
+      } catch (renderError) {
+        // Even a rendering failure must not leave a half-applied replacement.
+        setByPath(sourceData, relatedGridChildRuntime.dataPath, previousRows);
+        selectedIndex = previousIndex;
+        try { loadRows(); renderGrid(); } catch { /* preserve original error */ }
+        throw renderError;
+      }
+      setRelatedGridShellStatus(`CSV取込済み / ${oldCount}件を削除 → ${importedRows.length}件（親画面へ未反映）`, 'warn');
+      setStatus(`CSV ${importedRows.length}件を取り込みました。親画面へ反映後、保存してください。`, {
+        kind: 'success', title: 'CSV取込', toast: false, sticky: true
+      });
+    } catch (error) {
+      console.error('CSV import failed:', error);
+      setStatus(`CSV取込エラー: ${error.message}（既存データは変更していません）`, {
+        kind: 'error', title: 'CSV取込エラー', sticky: true
+      });
+    } finally {
+      button.disabled = false;
+      picker.value = '';
+    }
+  });
+  return button;
+}
+
 function renderRelatedGridLaunchButtons() {
   removeRelatedGridButtons();
   if (!viewDef || !sourceData) return;
   if (relatedGridChildRuntime) {
     ensureRelatedGridApplyButton();
+    ensureRelatedGridCsvImportButton();
     return;
   }
   relatedGridDefinitions().forEach(definition => {

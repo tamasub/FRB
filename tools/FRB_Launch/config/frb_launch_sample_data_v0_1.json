@@ -1551,6 +1551,99 @@
       ],
       "launch_source": "browser_bookmarks",
       "launch_actions": []
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "frb_files",
+      "item_id": "47e6a2b4-d942-44f0-95d4-f29d25dea706",
+      "title": "Book1.xlsx",
+      "description": "%USERPROFILE%\\OneDrive\\ドキュメント\\Book1.xlsx",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "%USERPROFILE%\\OneDrive\\ドキュメント\\Book1.xlsx"
+        }
+      ]
+    },
+    {
+      "item_id": "9190e8c0-21e6-4606-960e-f93d2034bfc5",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "環境変数変換テスト",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "message",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "USERPROFILE：%USERPROFILE%\nAPPDATA：%APPDATA%\nLOCALAPPDATA：%LOCALAPPDATA%\nTEMP：%TEMP%\nPath：%Path%\nUSERNAME：%USERNAME%\nOneDrive：%OneDrive%\n\n----\n\nstudio_root：%studio_root%\nyesterday：%yesterday:yyyy/MM/dd%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "5f4d04f5-40e5-4b1e-b569-062073ad2540",
+      "page_id": "work",
+      "parent_item_id": "mail",
+      "title": "SE部 E-MAIL",
+      "description": "Spaceで選択、F12で宛先を入力",
+      "item_kind": "selection",
+      "icon_key": "mail",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "se",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; \\n",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%recipients%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
     }
   ],
   "launch_variables": [
@@ -1629,31 +1722,67 @@
   ],
   "launch_choices": [
     {
-      "choice_id": "sales_1",
       "group_id": "sales",
+      "enabled": true,
       "title": "田中（サンプル）",
-      "description": "tanaka@example.invalid",
       "value": "tanaka@example.invalid",
-      "sort_order": 10,
-      "enabled": true
+      "description": "tanaka@example.invalid",
+      "choice_id": "import_mail_000001",
+      "sort_order": 10
     },
     {
-      "choice_id": "sales_2",
       "group_id": "sales",
+      "enabled": true,
       "title": "佐藤（サンプル）",
-      "description": "sato@example.invalid",
       "value": "sato@example.invalid",
-      "sort_order": 20,
-      "enabled": true
+      "description": "sato@example.invalid",
+      "choice_id": "import_mail_000002",
+      "sort_order": 20
     },
     {
-      "choice_id": "sales_3",
       "group_id": "sales",
+      "enabled": true,
       "title": "鈴木（サンプル）",
-      "description": "suzuki@example.invalid",
       "value": "suzuki@example.invalid",
-      "sort_order": 30,
-      "enabled": true
+      "description": "suzuki@example.invalid",
+      "choice_id": "import_mail_000003",
+      "sort_order": 30
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se001",
+      "value": "se001@example.invalid",
+      "description": "se001@example.invalid",
+      "choice_id": "import_mail_000004",
+      "sort_order": 40
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se002",
+      "value": "se002@example.invalid",
+      "description": "se002@example.invalid",
+      "choice_id": "import_mail_000005",
+      "sort_order": 50
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se003",
+      "value": "se003@example.invalid",
+      "description": "se003@example.invalid",
+      "choice_id": "import_mail_000006",
+      "sort_order": 60
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se004",
+      "value": "se004@example.invalid",
+      "description": "se004@example.invalid",
+      "choice_id": "import_mail_000007",
+      "sort_order": 70
     }
   ],
   "bookmark_category_initialized": true

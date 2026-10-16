@@ -15,10 +15,14 @@ launcher = next(c for c in source.body if isinstance(c, ast.ClassDef) and c.name
 method = next(n for n in launcher.body if isinstance(n, ast.FunctionDef) and n.name == 'eventFilter')
 code = compile(ast.fix_missing_locations(ast.Module(body=[ast.ClassDef(name='TestLauncher', bases=[ast.Name(id='_Base', ctx=ast.Load())], keywords=[], body=[method], decorator_list=[])], type_ignores=[])), '<launcher-event-filter>', 'exec')
 # Only the mouse-doubleclick early branch is executed here.
-Qt = types.SimpleNamespace(MouseButton=types.SimpleNamespace(LeftButton='left'))
-QEvent = types.SimpleNamespace(Type=types.SimpleNamespace(MouseButtonDblClick='double', KeyPress='key', InputMethod='ime'))
-namespace = dict(_Base=_Base, Qt=Qt, QEvent=QEvent)
+Qt = types.SimpleNamespace(MouseButton=types.SimpleNamespace(LeftButton='left'), ItemDataRole=types.SimpleNamespace(UserRole=32))
+QEvent = types.SimpleNamespace(Type=types.SimpleNamespace(MouseButtonDblClick='double', MouseButtonRelease='release', KeyPress='key', InputMethod='ime'))
+namespace = dict(_Base=_Base, Qt=Qt, QEvent=QEvent, windows=types.SimpleNamespace(foreground=lambda:1), QTimer=types.SimpleNamespace(singleShot=lambda *args:None), DIAG=types.SimpleNamespace(info=lambda *args:None))
 exec(code, namespace)
+
+
+class _Row:
+    def data(self,*args): return {'item_id':'dummy'}
 
 
 class _Click:
@@ -37,7 +41,9 @@ class BlankDoubleClickLogicTests(unittest.TestCase):
     def setUp(self):
         self.w = namespace['TestLauncher']()
         self.viewport = object()
-        self.w.list = types.SimpleNamespace(viewport=lambda: self.viewport, itemAt=lambda e: object() if e.hit else None)
+        self.w.list = types.SimpleNamespace(viewport=lambda: self.viewport, itemAt=lambda e: _Row() if e.hit else None)
+        self.w._pending_mouse_activation = None
+        self.w._pending_mouse_foreground = None
         self.w.tabs = object()
         self.w.search = object()
         self.w.stack = ['parent']
@@ -52,7 +58,12 @@ class BlankDoubleClickLogicTests(unittest.TestCase):
         self.assertEqual(self.w.calls, int(should_back))
 
     def test_left_on_empty_submenu_goes_back(self): self.check(_Click(), True)
-    def test_left_on_row_is_ignored(self): self.check(_Click(hit=True), False)
+    def test_left_on_row_is_queued_for_mouse_release(self):
+        event=_Click(hit=True)
+        self.assertTrue(self.w.eventFilter(self.viewport,event))
+        self.assertTrue(event.accepted)
+        self.assertEqual(self.w._pending_mouse_activation['item_id'],'dummy')
+        self.assertEqual(self.w.calls,0)
     def test_right_on_empty_is_ignored(self): self.check(_Click(button='right'), False)
     def test_root_empty_is_ignored(self):
         self.w.stack = []
