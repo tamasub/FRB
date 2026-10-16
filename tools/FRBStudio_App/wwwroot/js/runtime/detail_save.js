@@ -179,11 +179,11 @@ function renderDetailForRow(row) {
 }
 
 function rebindDetailAfterCanonicalCommit(row, { preserveScroll=true }={}) {
-  const body = $('detailDialog')?.querySelector?.('.dialog-body') ?? null;
-  const scrollTop = preserveScroll ? Number(body?.scrollTop ?? 0) : 0;
+  const scrollArea = $('detailScrollContent');
+  const scrollTop = preserveScroll ? Number(scrollArea?.scrollTop ?? 0) : 0;
   renderDetailForRow(row);
-  if (preserveScroll && body) {
-    const restore = () => { body.scrollTop = scrollTop; };
+  if (preserveScroll && scrollArea) {
+    const restore = () => { scrollArea.scrollTop = scrollTop; };
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(restore);
     else restore();
   }
@@ -277,6 +277,16 @@ function buildPendingDetailApplyRow(baseRow) {
   // SubGrid dirty state is only cleared after validation succeeds.
   applyDetailInputsToRow(working, { markSubGridCommitted: false });
   return working;
+}
+
+// Shared read-only view of the current editor draft for the F12 dirty indicator.
+// Keep access here: state.js declares detailMode/currentRows/draftRow as lexical `let`,
+// not window properties. Do NOT commit/normalize the canonical row here.
+function snapshotCurrentDetailApplyDraft() {
+  const base = detailMode === 'new' ? draftRow : currentRows?.[selectedIndex];
+  if (!base) return null;
+  const pending = buildPendingDetailApplyRow(base);
+  return pending ? JSON.stringify(pending) : null;
 }
 
 function clearRuntimeFieldDefinitionValidationMarks() {

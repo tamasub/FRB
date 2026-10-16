@@ -79,7 +79,7 @@ const $ = (id) => document.getElementById(id);
   // 旧Runtimeを起動させない。v0.18.127は別sentinelで起動する。
   window.__frbJsonUnsavedGuardInstalled = true;
 
-  const src = 'js/runtime/json_unsaved_guard.js?v=json-unsaved-guard-018127-fix';
+  const src = 'js/runtime/json_unsaved_guard.js?v=json-unsaved-guard-018127-fix-ctrlq';
   const already = Array.from(document.scripts || []).some(script =>
     String(script.src || '').includes('/js/runtime/json_unsaved_guard.js')
   );

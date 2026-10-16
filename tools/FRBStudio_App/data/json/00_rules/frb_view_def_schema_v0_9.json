@@ -18,7 +18,7 @@
         },
         "presentation": {
           "type": "object",
-          "description": "Studio標準の表示プロファイル。ViewDefで宣言し読み込み時に解決する。Data・編集・保存の処理とは独立した表示契約。実行中にStandardへ戻すメニューやプロファイル切替操作は提供しない。未宣言のViewDefは従来のStandard表示を維持する。presetから初期値を解決し、個別のdensity/theme/shell/savePlacementで上書きする。minimal shellでは保存手段を隠さないためsavePlacementはfooterとして解決する。",
+          "description": "Studio標準の表示プロファイル。ViewDefで宣言し読み込み時に解決する。Data・編集・保存の処理とは独立した表示契約。実行中にStandardへ戻すメニューやプロファイル切替操作は提供しない。未宣言のViewDefは従来のStandard表示を維持する。presetから初期値を解決し、個別のdensity/theme/shell/savePlacementで上書きする。minimal shellでsavePlacement=sidebar指定時は保存手段を隠さないようheadingに解決する。",
           "additionalProperties": false,
           "properties": {
             "preset": {
@@ -28,7 +28,7 @@
                 "compact",
                 "launcher"
               ],
-              "description": "標準表示プリセット。省略時はstandard。standard=従来の密度/ライト/標準シェル、compact=高密度、launcher=compact＋launch-dark＋minimal＋footerを初期セットとする。業務名の分岐には用いない。"
+              "description": "標準表示プリセット。省略時はstandard。standard=従来の密度/ライト/標準シェル、compact=高密度、launcher=compact＋launch-dark＋minimal＋headingを初期セットとする。業務名の分岐には用いない。"
             },
             "density": {
               "type": "string",
@@ -59,9 +59,49 @@
               "type": "string",
               "enum": [
                 "sidebar",
-                "footer"
+                "footer",
+                "heading"
               ],
-              "description": "既存の単一saveBtn要素の表示先。sidebar=従来位置、footer=固定フッター。ボタンや保存処理を複製しない。minimalではfooterに解決。"
+              "description": "既存の単一saveBtn要素の表示先。sidebar=従来位置、footer=固定フッター、heading=画面内見出し右端。ボタンや保存処理を複製しない。minimalでsidebar指定時はheadingに解決。"
+            },
+            "headingMenu": {
+              "type": "object",
+              "description": "見出し右端の「⋯」から呼び出す拡張メニュー。宣言したViewDefだけに表示し、配列順を維持する。actionIdはStudioの既存登録済みActionまたはMaintainCurrentViewDef（未保存確認付きViewDefメンテ）を指定する。",
+              "additionalProperties": false,
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "label",
+                      "actionId"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "actionId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              },
+              "required": [
+                "items"
+              ]
             }
           },
           "examples": [
@@ -70,7 +110,7 @@
               "density": "compact",
               "theme": "launch-dark",
               "shell": "minimal",
-              "savePlacement": "footer"
+              "savePlacement": "heading"
             }
           ]
         }

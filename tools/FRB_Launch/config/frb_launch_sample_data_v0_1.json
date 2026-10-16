@@ -36,7 +36,7 @@
       "description": "日付入力と定型プロンプト",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 60,
+      "sort_order": 50,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -56,7 +56,7 @@
       "description": "組織別の宛先を選択",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 90,
+      "sort_order": 70,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -76,7 +76,7 @@
       "description": "実フォルダー・ファイルを展開",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 40,
+      "sort_order": 20,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -96,7 +96,7 @@
       "description": "用途別のバッチを起動",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 80,
+      "sort_order": 60,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -282,11 +282,11 @@
       "item_id": "studio_dir",
       "page_id": "work",
       "parent_item_id": "folders",
-      "title": "FRBStudio_App",
+      "title": "FRB Studio_App",
       "description": "",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
-      "sort_order": 50,
+      "sort_order": 60,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -417,7 +417,7 @@
       "description": "スピーカーとイヤフォン",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 30,
+      "sort_order": 40,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -676,7 +676,7 @@
       "description": "特殊フォルダーと各種場所",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 40,
+      "sort_order": 50,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -905,7 +905,7 @@
       "description": "Windowsの設定を開く",
       "item_kind": "command",
       "icon_key": "settings",
-      "sort_order": 50,
+      "sort_order": 60,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -932,30 +932,10 @@
       ]
     },
     {
-      "item_id": "website",
-      "page_id": "work",
-      "parent_item_id": "",
-      "title": "お気に入りURL",
-      "description": "お気に入りWebサイト",
-      "item_kind": "category",
-      "icon_key": "category.blue",
-      "sort_order": 70,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": []
-    },
-    {
       "item_id": "frb_root_folder",
       "page_id": "work",
       "parent_item_id": "folders",
-      "title": "FRBルート",
+      "title": "FRB  Root",
       "description": "",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
@@ -1004,148 +984,14 @@
       ]
     },
     {
-      "item_id": "favorite_ai",
-      "page_id": "work",
-      "parent_item_id": "website",
-      "title": "AI",
-      "description": "AIサービス",
-      "item_kind": "category",
-      "icon_key": "category.blue",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": []
-    },
-    {
-      "item_id": "favorite_chatgpt",
-      "page_id": "work",
-      "parent_item_id": "favorite_ai",
-      "title": "ChatGPT",
-      "description": "https://chatgpt.com/",
-      "item_kind": "command",
-      "icon_key": "globe",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [
-        "ChatGPT",
-        "AI"
-      ],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_text": "",
-          "launch_target": "https://chatgpt.com/g/g-p-69b8d2efdc0c8191ac745661c4129599/project",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none",
-          "launch_browser": "chrome"
-        }
-      ]
-    },
-    {
-      "item_id": "favorite_claude",
-      "page_id": "work",
-      "parent_item_id": "favorite_ai",
-      "title": "Claude",
-      "description": "https://claude.ai/new",
-      "item_kind": "command",
-      "icon_key": "globe",
-      "sort_order": 20,
-      "enabled": true,
-      "keywords": [
-        "Claude",
-        "AI"
-      ],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_text": "",
-          "launch_target": "https://claude.ai/new",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none",
-          "launch_browser": "chrome"
-        }
-      ]
-    },
-    {
-      "item_id": "favorite_gemini",
-      "page_id": "work",
-      "parent_item_id": "favorite_ai",
-      "title": "Gemini",
-      "description": "https://gemini.google.com/app",
-      "item_kind": "command",
-      "icon_key": "globe",
-      "sort_order": 30,
-      "enabled": true,
-      "keywords": [
-        "Gemini",
-        "AI"
-      ],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_text": "",
-          "launch_target": "https://gemini.google.com/app",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none",
-          "launch_browser": "chrome"
-        }
-      ]
-    },
-    {
       "item_id": "work_files",
       "page_id": "work",
       "parent_item_id": "",
-      "title": "作業ファイル",
-      "description": "ファイルを関連付けアプリで開く",
+      "title": "One File",
+      "description": "",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 50,
+      "sort_order": 30,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1156,35 +1002,6 @@
       "launch_context_app": "",
       "launch_context_url_pattern": "",
       "launch_actions": []
-    },
-    {
-      "item_id": "experiment_overview_excel",
-      "page_id": "work",
-      "parent_item_id": "frb_files",
-      "title": "実験全体図",
-      "description": "F:\\FRB_docsExcel\\実験全体図.xlsx",
-      "item_kind": "command",
-      "icon_key": "file",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [
-        "Excel",
-        "xlsx",
-        "実験"
-      ],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "F:\\FRB_docsExcel\\実験全体図.xlsx"
-        }
-      ]
     },
     {
       "item_id": "frb_files",
@@ -1368,7 +1185,7 @@
       "description": "起動できるアプリを名前順で表示",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 20,
+      "sort_order": 30,
       "enabled": true,
       "keywords": [
         "アプリケーション",
@@ -1464,7 +1281,7 @@
       "description": "",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
-      "sort_order": 60,
+      "sort_order": 50,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1486,12 +1303,14 @@
       "parent_item_id": "folders",
       "item_id": "090c2b79-2581-42d8-9ac6-3ae17ececd99",
       "title": "F:\\",
-      "description": "F:\\",
+      "description": "",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
       "sort_order": 30,
       "enabled": true,
-      "keywords": [],
+      "keywords": [
+        "F"
+      ],
       "launch_selection_group_id": "",
       "launch_selection_value_field": "",
       "launch_selection_separator": "",
@@ -1548,7 +1367,7 @@
       "page_id": "work",
       "parent_item_id": "folders",
       "item_id": "b43442c0-4da2-4cc3-85d6-e220b3d93aa4",
-      "title": "F:\\FRB_docsExcel",
+      "title": "FRB_docsExcel",
       "description": "",
       "item_kind": "directory",
       "icon_key": "folder.yellow",
@@ -1566,31 +1385,6 @@
         {
           "launch_action_type": "Open",
           "launch_target": "F:\\FRB_docsExcel"
-        }
-      ]
-    },
-    {
-      "page_id": "work",
-      "parent_item_id": "frb_files",
-      "item_id": "4444a1c5-56d2-4be1-8784-e32edb0b727e",
-      "title": "FFT測定器構成.xlsx",
-      "description": "F:\\FRB_docsExcel\\FFT測定器構成.xlsx",
-      "item_kind": "command",
-      "icon_key": "file",
-      "sort_order": 20,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "",
-      "launch_selection_separator": "",
-      "launch_selection_result_name": "",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "F:\\FRB_docsExcel\\FFT測定器構成.xlsx"
         }
       ]
     },
@@ -1715,6 +1509,48 @@
           "launch_result_format": "none"
         }
       ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "frb_files",
+      "item_id": "6e38c5ad-8785-446d-b78b-bece804c42fc",
+      "title": "FRB_人間知覚帯域マップ_画像復元_20261015.xlsx",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB_docsExcel\\設計書\\FRB_人間知覚帯域マップ_画像復元_20261015.xlsx"
+        }
+      ]
+    },
+    {
+      "item_id": "__browser_bookmarks_root",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "ブックマーク",
+      "description": "Chrome / Edge のブックマークを自動取得",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [
+        "bookmark",
+        "お気に入り"
+      ],
+      "launch_source": "browser_bookmarks",
+      "launch_actions": []
     }
   ],
   "launch_variables": [
@@ -1819,5 +1655,6 @@
       "sort_order": 30,
       "enabled": true
     }
-  ]
+  ],
+  "bookmark_category_initialized": true
 }

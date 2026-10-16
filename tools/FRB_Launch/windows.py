@@ -10,6 +10,8 @@ if IS_WINDOWS:
     user.GetForegroundWindow.restype = w.HWND
     user.SetForegroundWindow.argtypes = [w.HWND]
     user.SetForegroundWindow.restype = w.BOOL
+    user.AllowSetForegroundWindow.argtypes = [w.DWORD]
+    user.AllowSetForegroundWindow.restype = w.BOOL
     user.GetWindowThreadProcessId.argtypes = [w.HWND, c.POINTER(w.DWORD)]
     user.GetWindowThreadProcessId.restype = w.DWORD
     user.AttachThreadInput.argtypes = [w.DWORD, w.DWORD, w.BOOL]
@@ -73,6 +75,18 @@ def activate_keyboard_window(hwnd, expected_foreground=None):
         return foreground() == hwnd
     finally:
         user.AttachThreadInput(own_thread, foreground_thread, False)
+
+
+def allow_child_foreground(pid):
+    """Let a just-started GUI process activate its own splash/window.
+
+    Must be requested while this launcher is foreground; Windows can decline
+    (and revoke permission when the user interacts with another application).
+    Never force another process to the top or make it permanently topmost.
+    """
+    if not IS_WINDOWS or not pid or int(pid) <= 0:
+        return False
+    return bool(user.AllowSetForegroundWindow(int(pid)))
 
 
 def restore(hwnd):
@@ -145,3 +159,42 @@ def open_chrome(url):
     program=chrome_path()
     if not program:raise RuntimeError('Google Chromeが見つかりません。Chromeをインストールしてください')
     subprocess.Popen([program,url])
+
+
+def edge_path():
+    """Find installed Edge without relying on the Windows default browser."""
+    import shutil
+    candidates=[]
+    if IS_WINDOWS:
+        import winreg
+        for hive in (winreg.HKEY_CURRENT_USER,winreg.HKEY_LOCAL_MACHINE):
+            for view in (winreg.KEY_WOW64_64KEY,winreg.KEY_WOW64_32KEY):
+                try:
+                    with winreg.OpenKey(hive,r"Software\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe",0,winreg.KEY_READ|view) as key:
+                        candidates.append(winreg.QueryValueEx(key,None)[0].strip('"'))
+                except OSError:pass
+    for name in ('LOCALAPPDATA','PROGRAMFILES','PROGRAMFILES(X86)'):
+        if os.environ.get(name):
+            candidates.append(os.path.join(os.environ[name],'Microsoft','Edge','Application','msedge.exe'))
+    found=shutil.which('msedge.exe')
+    if found:candidates.append(found)
+    return next((p for p in candidates if os.path.isfile(p)),None)
+
+
+def open_browser(url, browser, profile=''):
+    """Open a bookmark with its originating browser and profile."""
+    import re
+    import subprocess
+    if not IS_WINDOWS:raise RuntimeError('ブラウザ起動はWindowsで利用できます')
+    if not url.lower().startswith(('https://','http://')):
+        raise ValueError('URLはhttp/httpsのみ対応しています')
+    if browser not in ('chrome','edge'):raise ValueError('対象ブラウザが不明です')
+    program=chrome_path() if browser=='chrome' else edge_path()
+    if not program:raise RuntimeError(('Chrome' if browser=='chrome' else 'Edge')+'が見つかりません')
+    args=[program]
+    if profile:
+        if not re.fullmatch(r'(?:Default|Profile [0-9]+)',profile):
+            raise ValueError('不正なブラウザプロフィールです')
+        args.append('--profile-directory='+profile)
+    args.append(url)
+    subprocess.Popen(args)

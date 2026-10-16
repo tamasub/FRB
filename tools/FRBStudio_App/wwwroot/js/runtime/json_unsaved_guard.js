@@ -153,7 +153,7 @@
       window.setTimeout(refreshFromCanonical, 40);
     }
 
-    async function confirmNavigationAway() {
+    async function confirmNavigationAway(context = 'navigation') {
       if (!hasUnsavedChanges()) return true;
 
       const options = {
@@ -163,6 +163,10 @@
         cancelText: 'キャンセル',
         danger: true
       };
+      if (context === 'exit') {
+        options.message = '現在のJSONに未保存の変更があります。保存せずにStudioを終了しますか？';
+        options.okText = '終了する';
+      }
 
       if (typeof window.showStudioConfirmDialog === 'function') {
         return Boolean(await window.showStudioConfirmDialog(options));

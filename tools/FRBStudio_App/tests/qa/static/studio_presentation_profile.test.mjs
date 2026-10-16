@@ -20,9 +20,9 @@ test('compact density is independent of theme and shell', () => {
  const c = profileApi().resolve({app:{presentation:{preset:'compact',theme:'dark'}}});
  assert.equal(c.density,'compact');assert.equal(c.theme,'dark');assert.equal(c.shell,'standard');
 });
-test('minimal shell forces canonical footer Save, even if sidebar is explicitly requested', () => {
+test('minimal shell keeps canonical Save visible in heading if sidebar is requested', () => {
  const c=profileApi().resolve({app:{presentation:{preset:'launcher',savePlacement:'sidebar'}}});
- assert.equal(c.shell,'minimal');assert.equal(c.savePlacement,'footer');assert.equal(c.theme,'launch-dark');
+ assert.equal(c.shell,'minimal');assert.equal(c.savePlacement,'heading');assert.equal(c.theme,'launch-dark');
 });
 test('invalid profile values fallback without introducing implicit runtime modes', () => {
  const cfg=profileApi().resolve({app:{presentation:{preset:'invalid',theme:'system',shell:'fullscreen'}}});

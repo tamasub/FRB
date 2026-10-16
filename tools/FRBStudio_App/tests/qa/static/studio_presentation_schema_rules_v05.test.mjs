@@ -15,7 +15,7 @@ test('Studio standard presentation options remain typed and ViewDef-driven',()=>
   for(const [key,expected] of Object.entries({
     preset:['standard','compact','launcher'],density:['standard','compact'],
     theme:['light','dark','launch-dark'],shell:['standard','minimal'],
-    savePlacement:['sidebar','footer']
+    savePlacement:['sidebar','footer','heading']
   })) assert.deepEqual(p.properties[key].enum,expected);
   for(const item of Object.values(p.properties))assert.ok(item.description?.length>25);
   assert.ok(p.description.includes('実行中'));

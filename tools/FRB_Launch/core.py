@@ -114,23 +114,43 @@ def column_filter_match(row, query):
     return all(word in content for word in query.casefold().split())
 
 
-def searchable_rows(data, query):
+def searchable_rows(data, query, bookmark_browser=None):
+    """Search all enabled pages, but only the selected browser's bookmarks.
+
+    Browser-owned metadata (including the browser action/profile) is never
+    searchable text.  The optional scope preserves existing non-GUI callers.
+    """
+    def visible_bookmark(row):
+        return (not row.get('_browser_bookmark') or bookmark_browser is None or
+                row.get('_bookmark_browser') == bookmark_browser)
+
     items = {x['item_id']: x for x in data['items']}
     pages = {p['page_id']: p for p in data['pages']}
     words = query.casefold().split()
     result = []
     for row in data['items']:
-        if not row.get('enabled', True) or not pages[row['page_id']].get('enabled', True):
+        if (not visible_bookmark(row) or not row.get('enabled', True)
+                or not pages[row['page_id']].get('enabled', True)):
             continue
         chain = []; p = row.get('parent_item_id'); hidden = False
         while p:
             parent = items[p]
-            hidden |= not parent.get('enabled', True)
+            # The virtual bookmark root ID is shared by Chrome and Edge;
+            # its browser tag cannot determine the scope of mixed stale rows.
+            hidden |= (not parent.get('enabled', True) or
+                       (parent['item_id'] != '__browser_bookmarks_root' and
+                        not visible_bookmark(parent)))
             chain.append(parent['title']); p = parent.get('parent_item_id')
         if hidden:
             continue
         path = ' / '.join([pages[row['page_id']]['title']] + list(reversed(chain)))
-        content = json.dumps(row, ensure_ascii=False).casefold() + ' ' + path.casefold()
+        if row.get('_browser_bookmark'):
+            # Bookmark UI displays titles and hides URLs in a tooltip. Both
+            # remain useful to search; internal action/metadata must not match.
+            content = ' '.join((str(row.get('title', '')),
+                                str(row.get('description', '')), path)).casefold()
+        else:
+            content = json.dumps(row, ensure_ascii=False).casefold() + ' ' + path.casefold()
         if all(word in content for word in words):
             result.append((row, path))
     # Global search also finds individual choices of enabled selection items.

@@ -33,5 +33,5 @@ test('Standard theme retains existing related-grid light defaults', () => {
 });
 
 test('CSS cache key is bumped so desktop NativeShell loads the new theme', () => {
-  assert.match(read('wwwroot/index.html'),/studio-presentation-004-related-grid-theme/);
+  assert.match(read('wwwroot/index.html'),/studio-presentation-005-launcher-chrome/);
 });

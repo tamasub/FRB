@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918" />
+  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918&detailFooter=20261016-fixed&fullSearchRow=20261016" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -196,7 +196,7 @@
   }
 </style>
   <link rel="stylesheet" href="css/frb-studio-shell.css?v=0185p10-json-output-align" />
-  <link rel="stylesheet" href="css/studio-presentation.css?v=studio-presentation-004-related-grid-theme" />
+  <link rel="stylesheet" href="css/studio-presentation.css?v=studio-presentation-005-launcher-chrome&heading=007&fullSearchRow=20261016" />
 </head>
 <body>
   <script src="js/ui/frb_studio_shell.js?v=0185p5"></script>
@@ -370,11 +370,14 @@
           <button value="cancel" class="icon-button" aria-label="閉じる">×</button>
         </div>
       </div>
-      <div id="detailForm" class="form-grid detail-grid"></div>
-      <div id="detailComponentBodyArea" class="editor-component-slot" data-editor-component-slot="detailBody"></div>
-      <div id="childArea"></div>
-      <div id="detailComponentAfterChildArea" class="editor-component-slot" data-editor-component-slot="afterChildGrids"></div>
-      <div id="detailComponentFooterArea" class="editor-component-slot" data-editor-component-slot="detailFooter"></div>
+      <!-- Only this region scrolls. The header and F7/F8/F12 footer stay fixed. -->
+      <div class="detail-scroll-content" id="detailScrollContent">
+        <div id="detailForm" class="form-grid detail-grid"></div>
+        <div id="detailComponentBodyArea" class="editor-component-slot" data-editor-component-slot="detailBody"></div>
+        <div id="childArea"></div>
+        <div id="detailComponentAfterChildArea" class="editor-component-slot" data-editor-component-slot="afterChildGrids"></div>
+        <div id="detailComponentFooterArea" class="editor-component-slot" data-editor-component-slot="detailFooter"></div>
+      </div>
       <div class="button-row detail-footer">
         <div class="detail-roundtrip-actions" aria-label="Studio JSON Round Trip">
           <button id="copyDetailJsonBtn" type="button" class="ghost-button studio-json-roundtrip-button" title="現在の詳細画面をRow JSONとしてコピー（サブグリッド含む）">CopyJSON</button>
@@ -396,7 +399,7 @@
 
   <script src="js/core/native_host_bridge.js?v=native-related-grid-iframe-018101&startup=20261010"></script>
   <script src="js/core/studio_datetime.js?v=studio-datetime-01819"></script>
-  <script src="js/core/state.js?v=fieldtype-enumref-0152"></script>
+  <script src="js/core/state.js?v=fieldtype-enumref-0152-ctrlq"></script>
   <script src="js/core/registry.js?v=action-execute-006"></script>
   <script src="js/core/file_api.js?v=0185p8-initial-json-title"></script>
   <script src="js/core/overlay_manager.js?v=multi-overlay-gpt-fx-lab-0171"></script>
@@ -460,10 +463,10 @@
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
   <script src="js/markdown/viewdef_markdown.js?v=action-execute-006"></script>
   <script src="js/runtime/detail_subgrid_edit.js?v=subgrid-preview-f12-disabled-018108"></script>
-  <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831&live=018132"></script>
+  <script src="js/runtime/detail_save.js?v=visibility-contract-audit-01831&live=018132&detailFooter=20261016-fixed"></script>
   <script src="js/runtime/studio_json_round_trip.js?v=studio-json-round-trip-018353"></script>
   <script src="js/core/viewdef_context_contract.js?v=context-grid-preview-0165-6"></script>
-  <script src="js/ui/studio_presentation_profile.js?v=studio-presentation-002"></script>
+  <script src="js/ui/studio_presentation_profile.js?v=studio-presentation-006-launcher-save-top&heading=007"></script>
   <script src="js/runtime/load_runtime.js?v=viewdef-search-initial-018125&live=018132&startup=20261010"></script>
   <script src="js/actions/action_registry.js?v=01887-test-run-post-json-api-fix&resource=018124"></script>
   <script src="js/runtime/related_grid_view.js?v=related-grid-inline-view-id-01834b"></script>
@@ -471,5 +474,7 @@
   <script src="js/runtime/search_state.js?v=viewdef-search-initial-018125"></script>
   <script src="js/actions/action_toolbar.js?v=visible-rows-md-01861"></script>
   <script src="app.js?v=detail-dialog-expand-01836&amp;search=enter-002"></script>
+  <script src="js/runtime/studio_keyboard_standard.js?v=keyboard-standard-20261016-ctrlq"></script>
+  <script src="js/runtime/studio_detail_apply_indicator.js?v=detail-unapplied-dot-20261016"></script>
 </body>
 </html>

@@ -19,3 +19,23 @@ def start_process(program, arguments, cwd, show_console=False, log_path=None):
         finally:
             stream.close()
     return subprocess.Popen([program, *arguments], **options)
+
+
+def should_start_before_dismiss(steps):
+    """A detached GUI launch must inherit the launcher's foreground privilege.
+
+    Hiding the launcher first transfers keyboard foreground to another app;
+    Windows may then refuse to foreground the new GUI process/splash.
+    Waiting/background/console jobs retain the existing deferred execution.
+    An action can explicitly opt out with launch_foreground_on_start=False.
+    """
+    if not steps:
+        return False
+    first = steps[0]
+    return (
+        first.get('launch_action_type') == 'Run'
+        and bool(first.get('launch_program'))
+        and not first.get('launch_wait_for_exit', False)
+        and not first.get('launch_show_console', False)
+        and first.get('launch_foreground_on_start', True) is not False
+    )

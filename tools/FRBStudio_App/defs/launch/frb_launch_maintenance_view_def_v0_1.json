@@ -7,7 +7,16 @@
       "density": "compact",
       "theme": "launch-dark",
       "shell": "minimal",
-      "savePlacement": "footer"
+      "savePlacement": "heading",
+      "headingMenu": {
+        "items": [
+          {
+            "id": "maintain_viewdef",
+            "label": "ViewDefをメンテナンス",
+            "actionId": "MaintainCurrentViewDef"
+          }
+        ]
+      }
     }
   },
   "views": [
@@ -132,7 +141,7 @@
               "search": {
                 "visible": false
               },
-              "width": 255
+              "width": 217
             },
             {
               "field": "description",
@@ -147,14 +156,14 @@
               "search": {
                 "visible": false
               },
-              "width": 262
+              "width": 271
             },
             {
               "field": "item_kind",
               "caption": "項目種類",
               "type": "select",
               "grid": {
-                "visible": true
+                "visible": false
               },
               "edit": {
                 "visible": true
@@ -169,7 +178,7 @@
                 "selection"
               ],
               "defaultValue": "command",
-              "width": 118
+              "width": 80
             },
             {
               "field": "icon_key",
@@ -770,7 +779,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -784,7 +793,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -903,7 +912,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -917,7 +926,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {
@@ -946,7 +955,7 @@
                 "visible": true
               },
               "search": {
-                "visible": true
+                "visible": false
               }
             },
             {

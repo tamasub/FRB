@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -16,6 +17,9 @@ namespace FRBStudio.NativeShell
     {
         private readonly WebView2 _webView = new WebView2();
         private readonly Label _status = new Label();
+        // Frame-owned content: launcher theme gets an outer charcoal rim and
+        // an inner light line without replacing the standard WinForms title bar.
+        private readonly Panel _clientSurface = new Panel();
         private NativeShellConfig _config;
         private WorkspacePolicy _workspace;
         private NativeCommandDispatcher _dispatcher;
@@ -65,6 +69,11 @@ namespace FRBStudio.NativeShell
                     var titleText = ColorTranslator.ToWin32(Color.FromArgb(229, 235, 243));
                     DwmSetWindowAttribute(Handle, 35, ref caption, sizeof(int));
                     DwmSetWindowAttribute(Handle, 36, ref titleText, sizeof(int));
+                    // Windows 11 non-client border: dark-gray ring around the full window.
+                    var border = ColorTranslator.ToWin32(launchPalette
+                        ? Color.FromArgb(52, 60, 56)
+                        : Color.FromArgb(32, 43, 41));
+                    DwmSetWindowAttribute(Handle, 34, ref border, sizeof(int));
                 }
             }
             catch (DllNotFoundException) { /* Windows without DWM */ }
@@ -88,6 +97,17 @@ namespace FRBStudio.NativeShell
             _nativeTitleBarDark = dark;
             _nativeTitleBarLaunchPalette = dark && string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase);
             SetNativeTitleBarDark(dark, _nativeTitleBarLaunchPalette);
+            // FRB Launch has a noticeably wider rim than a DWM 1px border.
+            // Preserve the native caption/buttons, but inset the whole client area
+            // with a charcoal 5px border and a thin gray-green inner hairline.
+            // The content surface has zero padding for normal Studio themes.
+            if (_launcherPresentation && _nativeTitleBarLaunchPalette)
+            {
+                Padding = new Padding(5);
+                BackColor = Color.FromArgb(51, 62, 56);
+                _clientSurface.Padding = new Padding(1);
+                _clientSurface.BackColor = Color.FromArgb(180, 191, 180);
+            }
             if (dark)
             {
                 _status.BackColor = Color.FromArgb(23, 35, 33);
@@ -109,34 +129,109 @@ namespace FRBStudio.NativeShell
             }
         }
 
+        // Borderless splash is styled explicitly: WinForms default Font/Frame
+        // otherwise looks unrelated to the WebView2 Studio + Qt launcher.
+        private sealed class StartupSplashForm : Form
+        {
+            private const int Radius = 12;
+            private readonly Font _headlineFont = new Font("Segoe UI", 10.5f, FontStyle.Regular);
+            private readonly Font _subtitleFont = new Font("Segoe UI", 9f, FontStyle.Regular);
+
+            internal StartupSplashForm()
+            {
+                Text = "FRB Studio  起動中...";
+                FormBorderStyle = FormBorderStyle.None;
+                StartPosition = FormStartPosition.CenterScreen;
+                ClientSize = new Size(340, 112);
+                MaximizeBox = false;
+                MinimizeBox = false;
+                ControlBox = false;
+                ShowInTaskbar = true;
+                BackColor = Color.FromArgb(32, 43, 41);
+                DoubleBuffered = true;
+            }
+
+            // Add the standard Windows window shadow while keeping the rounded
+            // borderless shape (no custom activation or focus management).
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    var parameters = base.CreateParams;
+                    parameters.ClassStyle |= 0x00020000; // CS_DROPSHADOW
+                    return parameters;
+                }
+            }
+
+            private static GraphicsPath RoundedRectangle(Rectangle rect, int radius)
+            {
+                var path = new GraphicsPath();
+                var diameter = radius * 2;
+                path.AddArc(rect.Left, rect.Top, diameter, diameter, 180, 90);
+                path.AddArc(rect.Right - diameter, rect.Top, diameter, diameter, 270, 90);
+                path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+                path.AddArc(rect.Left, rect.Bottom - diameter, diameter, diameter, 90, 90);
+                path.CloseFigure();
+                return path;
+            }
+
+            protected override void OnResize(EventArgs e)
+            {
+                base.OnResize(e);
+                if (ClientSize.Width < Radius * 2 || ClientSize.Height < Radius * 2) return;
+                using (var path = RoundedRectangle(new Rectangle(0, 0, ClientSize.Width, ClientSize.Height), Radius))
+                {
+                    var previous = Region;
+                    Region = new Region(path);
+                    previous?.Dispose();
+                }
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                var outer = new Rectangle(0, 0, ClientSize.Width - 1, ClientSize.Height - 1);
+                using (var path = RoundedRectangle(outer, Radius))
+                using (var header = new LinearGradientBrush(outer,
+                    Color.FromArgb(104, 116, 107), Color.FromArgb(55, 71, 62), 90f))
+                using (var border = new Pen(Color.FromArgb(193, 203, 192)))
+                {
+                    g.FillPath(header, path);
+                    g.DrawPath(border, path);
+                }
+                var inner = Rectangle.Inflate(outer, -5, -5);
+                using (var path = RoundedRectangle(inner, Radius - 4))
+                using (var fill = new SolidBrush(Color.FromArgb(32, 43, 41)))
+                using (var outline = new Pen(Color.FromArgb(101, 122, 112)))
+                {
+                    g.FillPath(fill, path);
+                    g.DrawPath(outline, path);
+                }
+                // Align BOTH lines centrally, using Studio's Segoe UI stack;
+                // Windows supplies its normal Japanese glyph fallback.
+                var headline = new Rectangle(16, 28, ClientSize.Width - 32, 28);
+                var subtitle = new Rectangle(16, 59, ClientSize.Width - 32, 25);
+                const TextFormatFlags centered = TextFormatFlags.HorizontalCenter
+                    | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
+                TextRenderer.DrawText(g, "FRB Studio  起動中...", _headlineFont, headline,
+                    Color.FromArgb(235, 241, 238), centered);
+                TextRenderer.DrawText(g, "画面を準備しています", _subtitleFont, subtitle,
+                    Color.FromArgb(170, 188, 180), centered);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) { _headlineFont.Dispose(); _subtitleFont.Dispose(); }
+                base.Dispose(disposing);
+            }
+        }
+
         private void ShowStartupSplash()
         {
             if (!_useStartupSplash || _startupRevealed || _startupSplash != null) return;
-            _startupSplash = new Form
-            {
-                Text = "FRB Studio",
-                FormBorderStyle = FormBorderStyle.None,
-                StartPosition = FormStartPosition.CenterScreen,
-                ClientSize = new Size(330, 96),
-                MaximizeBox = false,
-                MinimizeBox = false,
-                ControlBox = false,
-                ShowInTaskbar = true,
-                Padding = new Padding(1),
-                BackColor = Color.FromArgb(82, 105, 101),
-                ForeColor = Color.FromArgb(229, 235, 243)
-            };
-            var splashContent = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(32, 43, 41) };
-            splashContent.Controls.Add(new Label
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(18, 13, 10, 8),
-                Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 11f),
-                TextAlign = ContentAlignment.MiddleLeft,
-                ForeColor = Color.FromArgb(229, 235, 243),
-                Text = "FRB Studio  起動中...\n画面を準備しています"
-            });
-            _startupSplash.Controls.Add(splashContent);
+            _startupSplash = new StartupSplashForm();
             _startupSplash.Show();
             _startupSplash.Activate();
 
@@ -167,6 +262,10 @@ namespace FRBStudio.NativeShell
             _startupSplash?.Dispose();
             _startupSplash = null;
             Activate();
+            // Mouse activation from the Qt launcher can leave the WebView2
+            // unfocused even though its outer WinForms window is foreground.
+            // Always pass keyboard focus to the content after splash removal.
+            if (_webView.CanFocus) _webView.Focus();
         }
 
         private void RevealAfterLayout()
@@ -228,8 +327,11 @@ namespace FRBStudio.NativeShell
             _status.Text = "Native Shell 初期化中...";
 
             _webView.Dock = DockStyle.Fill;
-            Controls.Add(_webView);
-            Controls.Add(_status);
+            _clientSurface.Dock = DockStyle.Fill;
+            _clientSurface.Padding = new Padding(0);
+            _clientSurface.Controls.Add(_webView);
+            _clientSurface.Controls.Add(_status);
+            Controls.Add(_clientSurface);
 
             ResizeEnd += (_, __) => {
                 if (_launcherPresentation && WindowState == FormWindowState.Normal)
@@ -239,6 +341,35 @@ namespace FRBStudio.NativeShell
                 ShowStartupSplash();
                 await EnsureInitializedAsync();
             };
+        }
+
+        // WebView2 JS handles Ctrl+Q when the page has focus.  WinForms must
+        // also route it when mouse launching left focus on the native chrome.
+        // Both routes invoke the same JS unsaved-guard before Form.Close().
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.Q)
+                && _webView.CoreWebView2 != null
+                && _webView.Source != null
+                && string.Equals(_webView.Source.AbsolutePath, "/index.html", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = RequestCloseFromNativeShortcutAsync();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private async Task RequestCloseFromNativeShortcutAsync()
+        {
+            try
+            {
+                await _webView.CoreWebView2.ExecuteScriptAsync(
+                    "window.__frbStudioRequestClose?.();");
+            }
+            catch (Exception ex)
+            {
+                _status.Text = "Studio 終了ショートカット: " + ex.Message;
+            }
         }
 
         private Task EnsureInitializedAsync()
@@ -342,6 +473,18 @@ namespace FRBStudio.NativeShell
                 // to the file/command dispatcher or synthesize a bridge response.
                 var message = new JavaScriptSerializer().DeserializeObject(e.WebMessageAsJson)
                     as Dictionary<string, object>;
+                // Ctrl+Q from the trusted Studio main page closes this WinForms form
+                // through the same Close() / OnFormClosing path as the title-bar X.
+                // The page checks the unsaved guard before sending this request.
+                if (message != null && message.TryGetValue("studio_close_request", out var closeValue)
+                    && closeValue is bool closeRequested && closeRequested
+                    && Uri.TryCreate(e.Source, UriKind.Absolute, out var closeSource)
+                    && string.Equals(closeSource.AbsolutePath, "/index.html", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!IsDisposed && IsHandleCreated)
+                        BeginInvoke(new Action(Close));
+                    return;
+                }
                 if (message != null && message.TryGetValue("studio_startup_ready", out var readyValue)
                     && readyValue is bool ready && ready)
                 {

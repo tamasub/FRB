@@ -673,10 +673,12 @@ function createDetailSubGridPreviewEditValue({ rowIndex, column, itemRow, field,
         e.stopPropagation();
         return;
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
         e.preventDefault();
         e.stopPropagation();
         commit();
+        // Child editor's draft must land in the subgrid before parent F12.
+        if (typeof applyDetail === 'function') applyDetail(e);
       }
     });
     requestAnimationFrame(() => {

@@ -6,21 +6,32 @@ import time
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match
 import windows
 import installed_apps
+import browser_bookmarks
+from frame_geometry import resize_frame
+from page_tab_theme import PAGE_TABS_QSS
+from page_tab_focus import FocusPageTabBar
+from menu_display import cascade_label
+from menu_viewport import place_popup, MENU_SCREEN_MARGIN
+from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
-from process_runner import start_process
+from process_runner import start_process, should_start_before_dismiss
 from launch_diagnostics import make_logger, wifi_transcript_arguments
 from runtime_paths import launch_home
 from desktop_double_click import DesktopDoubleClick
+
+# Limit cascade-column width; never let a long description/URL stretch across the screen.
+CASCADE_MAX_WIDTH = 560
+CASCADE_TEXT_RESERVE = 92  # icon, margins, menu indicator and style-dependent padding (px)
 
 ROOT = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent
 LAUNCH_HOME = launch_home(ROOT)
@@ -77,15 +88,181 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # Preserve the popup's original frame while local filtering hides rows.
         # Otherwise QMenu shrinks to the remaining matches on every keystroke.
         self._filter_original_minimum = None
+        self.scroll_tree = None
+        self._scroll_actions = []
+        self._scroll_action = None
+        self._scroll_original_tree_height = None
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
+        # QAction tooltips are disabled by default on some Qt styles.
+        self.setToolTipsVisible(True)
+        screen = QApplication.primaryScreen()
+        available = screen.availableGeometry().width() if screen else CASCADE_MAX_WIDTH + 80
+        self.setMaximumWidth(min(CASCADE_MAX_WIDTH, max(280, available - 80)))
         self.setStyleSheet('QMenu { menu-scrollable: 1; }')
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True)
         self.hover_timer.timeout.connect(lambda:self.open_current("hover"))
 
     def select_first(self):
+        if self.scroll_tree is not None:
+            if self.scroll_tree.topLevelItemCount():
+                item = next((self.scroll_tree.topLevelItem(i) for i in range(self.scroll_tree.topLevelItemCount())
+                             if not self.scroll_tree.topLevelItem(i).isHidden()), None)
+                self.scroll_tree.setCurrentItem(item)
+            return
         first = next((a for a in self.actions()
                       if a.isVisible() and a.isEnabled() and isinstance(a.data(), dict)), None)
         self.setActiveAction(first)
+
+    def _scroll_item_action(self, item):
+        return item.data(0, Qt.ItemDataRole.UserRole) if item is not None else None
+
+    def activeAction(self):
+        if self.scroll_tree is not None:
+            return self._scroll_item_action(self.scroll_tree.currentItem())
+        return super().activeAction()
+
+    def setActiveAction(self, action):
+        if self.scroll_tree is not None:
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                item = self.scroll_tree.topLevelItem(index)
+                if self._scroll_item_action(item) is action:
+                    self.scroll_tree.setCurrentItem(item)
+                    return
+            return
+        super().setActiveAction(action)
+
+    def actionAt(self, point):
+        if self.scroll_tree is not None:
+            viewport = self.scroll_tree.viewport()
+            item = self.scroll_tree.itemAt(viewport.mapFrom(self, point))
+            return self._scroll_item_action(item)
+        return super().actionAt(point)
+
+    def actionGeometry(self, action):
+        if self.scroll_tree is not None:
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                item = self.scroll_tree.topLevelItem(index)
+                if self._scroll_item_action(item) is action:
+                    rect = self.scroll_tree.visualItemRect(item)
+                    return QRect(self.scroll_tree.viewport().mapTo(self, rect.topLeft()), rect.size())
+        return super().actionGeometry(action)
+
+    def _scroll_activate(self, item):
+        action = self._scroll_item_action(item)
+        if action is None or not action.isEnabled():
+            return
+        if action in self.openers:
+            self.openers[action]('keyboard')
+        else:
+            action.trigger()
+
+    def _scroll_hover(self, item):
+        if item is None:
+            self.hover_timer.stop()
+            return
+        action = self._scroll_item_action(item)
+        if action is self.activeAction():
+            return
+        self.scroll_tree.setCurrentItem(item)
+        if self.child and self.child.open_mode == 'hover':
+            self.child.close()
+        self.hover_timer.stop()
+        if action in self.openers:
+            self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms', 250)))
+
+    def _enable_scroll_tree(self, height):
+        """Use a genuine Qt item-view scrollbar for oversized popup columns.
+
+        QMenu's native scroll arrows are platform/style-dependent and can leave
+        bottom actions below the Windows taskbar.  Only oversized columns use
+        this alternative; compact menus remain the original QMenu entirely.
+        """
+        if self.scroll_tree is not None:
+            return
+        original = list(self.actions())
+        if len(original) < 2:
+            return
+        original_width = self.sizeHint().width()
+        self._scroll_actions = original
+        for action in original:
+            self.removeAction(action)  # Keep QAction objects and callbacks alive.
+        tree = QTreeWidget(self)
+        tree.setObjectName('cascadeScrollView')
+        tree.setColumnCount(1)
+        tree.setHeaderHidden(True)
+        tree.setRootIsDecorated(False)
+        tree.setMouseTracking(True)
+        tree.setUniformRowHeights(True)
+        tree.setIndentation(0)
+        tree.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        tree.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        tree.verticalScrollBar().setSingleStep(34)
+        tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        tree.setStyleSheet("""
+            QTreeWidget#cascadeScrollView { background:#202b39; color:#e5ebf3;
+                border:0; outline:0; padding:0; font-family:'Yu Gothic UI'; font-size:13px; }
+            QTreeWidget#cascadeScrollView::item { height:32px; padding:0 6px; }
+            QTreeWidget#cascadeScrollView::item:selected { background:#304d70; color:white; }
+            QTreeWidget#cascadeScrollView::item:hover { background:#34475d; }
+            QScrollBar:vertical { background:#202b39; width:9px; margin:0; border:0; }
+            QScrollBar::handle:vertical { background:#929ca7; border-radius:3px;
+                min-height:28px; margin:0 2px; }
+            QScrollBar::handle:vertical:hover { background:#d3dae2; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }
+        """)
+        for action in original:
+            if action.isSeparator():
+                continue
+            item = QTreeWidgetItem([action.text()])
+            item.setData(0, Qt.ItemDataRole.UserRole, action)
+            item.setIcon(0, action.icon())
+            item.setToolTip(0, action.toolTip() or action.text())
+            if not action.isEnabled():
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
+            tree.addTopLevelItem(item)
+        tree.setFixedSize(max(200, min(self.maximumWidth() - 12, original_width)),
+                          max(90, height - 22))
+        tree.installEventFilter(self)
+        tree.viewport().installEventFilter(self)
+        tree.itemClicked.connect(self._scroll_activate)
+        tree.itemActivated.connect(self._scroll_activate)
+        tree.itemEntered.connect(self._scroll_hover)
+        widget_action = QWidgetAction(self)
+        widget_action.setDefaultWidget(tree)
+        self.addAction(widget_action)
+        self.scroll_tree = tree
+        self._scroll_action = widget_action
+        # Scrolling is a display adaptation, not a reordering operation.
+        self.order_enabled = False
+
+    def popup(self, pos, at=None):
+        screen = QApplication.screenAt(pos) or self.screen() or QApplication.primaryScreen()
+        if screen is None:
+            return super().popup(pos, at)
+        rect = screen.availableGeometry()  # Excludes the Windows taskbar.
+        raw_height = self.sizeHint().height()
+        # Some Qt styles pre-clamp QMenu.sizeHint() to a screen height even
+        # though actions beyond that height cannot be reached reliably.
+        # Count rows as well as checking Qt's own reported size.
+        row_count = sum(1 for action in self.actions() if not action.isSeparator())
+        estimated_height = row_count * max(32, self.fontMetrics().height() + 18) + 12
+        requested_height = max(raw_height, estimated_height) if not isinstance(self, AppCascadeMenu) else raw_height
+        placement = place_popup(pos.x(), pos.y(), self.sizeHint().width(), requested_height,
+                                rect.left(), rect.top(), rect.right()+1, rect.bottom()+1)
+        if placement.scroll and self.scroll_tree is None and not isinstance(self, AppCascadeMenu):
+            self._enable_scroll_tree(placement.height)
+            placement = place_popup(pos.x(), pos.y(), self.sizeHint().width(),
+                                    self.sizeHint().height(), rect.left(), rect.top(),
+                                    rect.right()+1, rect.bottom()+1)
+        target = QPoint(placement.x, placement.y)
+        return super().popup(target, at)
+
+    def setFocus(self, reason=Qt.FocusReason.OtherFocusReason):
+        if getattr(self, 'scroll_tree', None) is not None:
+            self.scroll_tree.setFocus(reason)
+        else:
+            super().setFocus(reason)
 
     def _ensure_local_filter(self):
         """Display an inline search only after the user starts typing in this column."""
@@ -135,6 +312,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.insertAction(before, action)
         else:
             self.addAction(action)
+        if self.scroll_tree is not None:
+            self._scroll_original_tree_height = self.scroll_tree.height()
+            self.scroll_tree.setFixedHeight(max(120, self.scroll_tree.height() - 48))
         self._order_enabled_before_filter = self.order_enabled
         self.order_enabled = False  # Never reorder a filtered subset as if it were complete.
         self.filter_edit.textChanged.connect(self._apply_local_filter)
@@ -149,6 +329,18 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.hover_timer.stop()
         if self.child:
             self.child.close()
+        if self.scroll_tree is not None:
+            total = self.scroll_tree.topLevelItemCount()
+            for index in range(total):
+                item = self.scroll_tree.topLevelItem(index)
+                action = self._scroll_item_action(item)
+                matches = isinstance(action.data(), dict) and column_filter_match(action.data(), query)
+                item.setHidden(not matches)
+                shown += bool(matches)
+            if self.filter_count is not None:
+                self.filter_count.setText(f'{shown}/{total}')
+            self.select_first()
+            return
         for action in self.actions():
             if action is self.filter_action:
                 continue
@@ -176,6 +368,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if self._filter_original_minimum is not None:
             self.setMinimumSize(*self._filter_original_minimum)
             self._filter_original_minimum = None
+        if self.scroll_tree is not None:
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                self.scroll_tree.topLevelItem(index).setHidden(False)
+            if self._scroll_original_tree_height is not None:
+                self.scroll_tree.setFixedHeight(self._scroll_original_tree_height)
+                self._scroll_original_tree_height = None
         for candidate in self.actions():
             if candidate is not action:
                 candidate.setVisible(True)
@@ -190,6 +388,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def _move_filtered_selection(self, increment):
+        if self.scroll_tree is not None:
+            matches = [self.scroll_tree.topLevelItem(i)
+                       for i in range(self.scroll_tree.topLevelItemCount())
+                       if not self.scroll_tree.topLevelItem(i).isHidden()]
+            if not matches:
+                return
+            current = self.scroll_tree.currentItem()
+            index = matches.index(current) if current in matches else (0 if increment > 0 else len(matches)-1)
+            self.scroll_tree.setCurrentItem(matches[max(0, min(len(matches)-1, index+increment))])
+            return
         matches = [a for a in self.actions()
                    if a is not self.filter_action and a.isVisible()
                    and a.isEnabled() and isinstance(a.data(), dict)]
@@ -201,6 +409,17 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.setActiveAction(matches[max(0, min(len(matches)-1, index+increment))])
 
     def eventFilter(self, obj, event):
+        if self.scroll_tree is not None and obj is self.scroll_tree:
+            if event.type() == QEvent.Type.KeyPress:
+                if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Home,
+                                   Qt.Key.Key_End, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
+                    return False  # Native tree navigation scrolls selection into view.
+                self.keyPressEvent(event)
+                return True
+        if self.scroll_tree is not None and obj is self.scroll_tree.viewport():
+            if event.type() == QEvent.Type.MouseMove:
+                self._scroll_hover(self.scroll_tree.itemAt(event.position().toPoint()))
+            return False
         if obj is self.filter_edit and event.type() == QEvent.Type.KeyPress:
             key = event.key()
             if key == Qt.Key.Key_Escape:
@@ -263,6 +482,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if action in self.openers:self.openers[action](mode)
 
     def keyPressEvent(self, event):
+        if self.scroll_tree is not None and event.key() in (
+                Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Home, Qt.Key.Key_End,
+                Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
+            QApplication.sendEvent(self.scroll_tree, event)
+            return
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
         if self.launcher.page_key(event):event.accept();return
@@ -280,6 +504,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if key == Qt.Key.Key_Right:
             if action in self.openers:
                 self.open_current();event.accept();return
+            # Command-only actions (e.g. "このフォルダーを開く") have no row data.
+            # They must be explicitly marked; never trigger arbitrary QWidgetActions.
+            if (action is not None and action.isEnabled() and not action.isSeparator()
+                    and action.property('launch_right_arrow_executes')):
+                action.trigger();event.accept();return
             row = action.data() if action else None
             if isinstance(row, dict):
                 self.launcher.run_menu_item(row);event.accept();return
@@ -349,6 +578,7 @@ class AppCascadeMenu(CascadeMenu):
             item=QTreeWidgetItem([row['title'],row.get('description','')])
             item.setData(0,Qt.ItemDataRole.UserRole,row)
             item.setIcon(0,self.launcher.row_icon(row));item.setToolTip(0,row['title'])
+            item.setToolTip(1,str(row.get('description','')))
             action=QAction(self);action.setData(row);item.setData(0,Qt.ItemDataRole.UserRole+1,action)
             self.tree.addTopLevelItem(item)
         self.select_first()
@@ -394,6 +624,7 @@ class Launcher(QWidget):
         self.setWindowIcon(application_icon())
         self.setMouseTracking(True)
         self.setMinimumHeight(240)
+        self.setMinimumWidth(300)
         self.frame_title = QLabel('FRB Launch', self)
         self.frame_title.setGeometry(14, 3, 220, 18)
         self.frame_title.setStyleSheet('background:transparent;color:#f2f5f2;font-size:12px;border:0;')
@@ -405,8 +636,17 @@ class Launcher(QWidget):
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
         self.page_id = self.settings.value('page', 'work')
+        self.bookmark_browser = str(self.settings.value('bookmark_browser', 'chrome')).lower()
+        if self.bookmark_browser not in browser_bookmarks.BROWSERS:self.bookmark_browser = 'chrome'
+        self.bookmark_signature = None
+        self.bookmark_profiles = []
+        self.bookmark_errors = []
+
         self.search = QLineEdit(); self.search.setPlaceholderText('検索 — 全Pageから探す'); self.search.setClearButtonEnabled(True)
-        self.tabs = QTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
+        self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
+        # Apply full tab styles (including *unselected* tabs) so Windows does
+        # not fall back to the legacy beveled/3D native QTabBar appearance.
+        self.tabs.setStyleSheet(PAGE_TABS_QSS)
         self.list = ReorderTree(self); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
         self.list.setColumnWidth(0,180); self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -419,13 +659,27 @@ class Launcher(QWidget):
         buttons.addStretch()
         self.selection_tools.hide()
         for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTabBar::tab{padding:7px 17px;color:#9eafc3;} QTabBar::tab:selected{background:#2a3b50;color:#8cbcff;border-radius:5px;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
+        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
         self.tray = QSystemTrayIcon(tray_icon(), self); self.tray.setToolTip('FRB Launch — Ctrl+Shift+;')
         traymenu = QMenu(self)
         traymenu.addAction('開く', self.summon)
         traymenu.addAction('設定フォルダーを開く', lambda:self.open_target(str(CONFIG.parent)))
         traymenu.addAction('アプリ一覧を更新', self.refresh_apps)
         traymenu.addAction('アプリ一覧JSONを開く', lambda:self.open_target(str(STATE/'apps_cache.json')))
+        browser_menu = traymenu.addMenu('ブックマークのブラウザ')
+        self.bookmark_browser_actions = {}
+        for key, title in (('chrome', 'Chrome'), ('edge', 'Edge')):
+            action = browser_menu.addAction(title)
+            action.setCheckable(True)
+            action.setChecked(self.bookmark_browser == key)
+            action.triggered.connect(lambda checked=False, name=key:self.select_bookmark_browser(name))
+            self.bookmark_browser_actions[key] = action
+        traymenu.addAction('ブックマークを更新', lambda:self.refresh_bookmarks(force=True))
+        traymenu.addAction('ブックマーク取得診断', self.show_bookmark_diagnostics)
+        traymenu.addAction('ブックマークファイルを指定（手動）', self.pick_bookmark_file)
+        self.bookmark_auto_action = traymenu.addAction(
+            '手動指定を解除（自動取得へ）', self.use_auto_bookmarks)
+        self.update_bookmark_source_action()
         traymenu.addAction('ログフォルダーを開く', lambda:self.open_target(str(STATE)))
         traymenu.addSeparator(); traymenu.addAction('終了', self.quit)
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
@@ -452,7 +706,7 @@ class Launcher(QWidget):
         QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
         self.register_key()
-        self.restore_window_height()
+        self.restore_window_size()
         position = self.settings.value('position')
         if position: self.move(position)
         else:
@@ -469,23 +723,58 @@ class Launcher(QWidget):
     def frame_hit(self, pos):
         return self.rect().contains(pos.toPoint()) and not self.frame_inner_rect().contains(pos)
 
-    def restore_window_height(self):
+    @staticmethod
+    def saved_dimension(value, default, minimum, maximum):
         try:
-            height = int(self.settings.value('window_height', 440))
+            dimension = int(value)
         except (TypeError, ValueError):
-            height = 440
-        screen = self.screen().availableGeometry()
-        self.resize(self.width(), max(self.minimumHeight(), min(height, screen.height())))
+            dimension = default
+        return max(minimum, min(dimension, maximum))
+
+    def restore_window_height(self):
+        # Kept for existing callers: restore only the vertical dimension.
+        bounds = self.screen().availableGeometry()
+        height = self.saved_dimension(self.settings.value('window_height', 440),
+                                      440, self.minimumHeight(), bounds.height())
+        self.resize(self.width(), height)
+
+    def restore_window_size(self):
+        bounds = self.screen().availableGeometry()
+        width = self.saved_dimension(self.settings.value('window_width', 390),
+                                     390, self.minimumWidth(), bounds.width())
+        height = self.saved_dimension(self.settings.value('window_height', 440),
+                                      440, self.minimumHeight(), bounds.height())
+        self.resize(width, height)
 
     def resize_edge(self, pos):
         if not self.rect().contains(pos.toPoint()): return None
-        if pos.y() < self.FRAME_WIDTH: return 'top'
-        if pos.y() >= self.height() - self.FRAME_WIDTH: return 'bottom'
-        return None
+        left = pos.x() < self.FRAME_WIDTH
+        right = pos.x() >= self.width() - self.FRAME_WIDTH
+        top = pos.y() < self.FRAME_WIDTH
+        bottom = pos.y() >= self.height() - self.FRAME_WIDTH
+        return '-'.join(edge for hit, edge in ((top, 'top'), (bottom, 'bottom'),
+                                                (left, 'left'), (right, 'right')) if hit) or None
 
-    def save_window_height(self):
+    @staticmethod
+    def edge_cursor(edge):
+        if edge in {'top-left', 'bottom-right'}:
+            return Qt.CursorShape.SizeFDiagCursor
+        if edge in {'top-right', 'bottom-left'}:
+            return Qt.CursorShape.SizeBDiagCursor
+        if edge in {'left', 'right'}:
+            return Qt.CursorShape.SizeHorCursor
+        if edge in {'top', 'bottom'}:
+            return Qt.CursorShape.SizeVerCursor
+        return Qt.CursorShape.ArrowCursor
+
+    def save_window_size(self):
+        self.settings.setValue('window_width', self.width())
         self.settings.setValue('window_height', self.height())
         self.settings.sync()
+
+    def save_window_height(self):
+        # Compatibility with existing height-setting callers.
+        self.save_window_size()
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -516,7 +805,7 @@ class Launcher(QWidget):
             self.hover_timer.stop(); self.pending_menu_item = None
             if self.menu: self.menu.close()
             self._frame_drag = None
-            self._height_drag = (edge, event.globalPosition().toPoint().y(), self.geometry())
+            self._size_drag = (edge, event.globalPosition().toPoint(), self.geometry())
             event.accept(); return
         if event.button() == Qt.MouseButton.LeftButton and self.frame_hit(event.position()):
             self.hover_timer.stop(); self.pending_menu_item = None
@@ -529,16 +818,18 @@ class Launcher(QWidget):
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        resize = getattr(self, '_height_drag', None)
+        resize = getattr(self, '_size_drag', None)
         if resize and event.buttons() & Qt.MouseButton.LeftButton:
-            edge, start_y, original = resize
-            delta = event.globalPosition().toPoint().y() - start_y
-            requested = original.height() + (delta if edge == 'bottom' else -delta)
-            height = max(self.minimumHeight(), min(requested, self.screen().availableGeometry().height()))
-            top = original.y() if edge == 'bottom' else original.y() + original.height() - height
-            self.setGeometry(original.x(), top, original.width(), height)
+            edge, origin_pointer, original = resize
+            delta = event.globalPosition().toPoint() - origin_pointer
+            bounds = self.screen().availableGeometry()
+            rect = resize_frame(edge, original.x(), original.y(),
+                                original.width(), original.height(), delta.x(), delta.y(),
+                                self.minimumWidth(), self.minimumHeight(),
+                                bounds.width(), bounds.height())
+            self.setGeometry(*rect)
             event.accept(); return
-        self.setCursor(Qt.CursorShape.SizeVerCursor if self.resize_edge(event.position()) else Qt.CursorShape.ArrowCursor)
+        self.setCursor(self.edge_cursor(self.resize_edge(event.position())))
         drag = getattr(self, '_frame_drag', None)
         if drag and event.buttons() & Qt.MouseButton.LeftButton:
             self.move(drag[1] + event.globalPosition().toPoint() - drag[0])
@@ -548,15 +839,15 @@ class Launcher(QWidget):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self._frame_drag = None
-            if getattr(self, '_height_drag', None):
-                self._height_drag = None
-                self.save_window_height()
+            if getattr(self, '_size_drag', None):
+                self._size_drag = None
+                self.save_window_size()
                 self.settings.setValue('position', self.pos())
                 self.settings.sync()
         super().mouseReleaseEvent(event)
 
     def leaveEvent(self, event):
-        if not getattr(self, '_height_drag', None): self.unsetCursor()
+        if not getattr(self, '_size_drag', None): self.unsetCursor()
         super().leaveEvent(event)
 
     def update_window_shape(self):
@@ -567,7 +858,9 @@ class Launcher(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.update_window_shape()
-        if self.isVisible() and hasattr(self, 'settings'): self.save_window_height()
+        if self.isVisible() and hasattr(self, 'settings'):
+            self.settings.setValue('window_width', self.width())
+            self.settings.setValue('window_height', self.height())
 
     def showEvent(self, event):
         if self.data is not None:self.reload()
@@ -580,6 +873,115 @@ class Launcher(QWidget):
         if key not in self.icon_cache:
             self.icon_cache[key]=self.file_icons.icon(QFileInfo(path)) if path and Path(path).is_file() else icon(row.get('icon_key','command'))
         return self.icon_cache[key]
+
+    def bookmark_manual_file(self):
+        return str(self.settings.value('bookmark_manual_' + self.bookmark_browser, '') or '')
+
+    def update_bookmark_source_action(self):
+        # The menu concerns the *selected* browser, not the other browser.
+        if hasattr(self, 'bookmark_auto_action'):
+            manual = bool(self.bookmark_manual_file())
+            self.bookmark_auto_action.setEnabled(manual)
+            self.bookmark_auto_action.setToolTip(
+                '手動指定したファイルを解除して標準のブックマーク保存先から取得します' if manual
+                else '現在、自動取得になっています')
+
+    def pick_bookmark_file(self):
+        # Support browser-native Bookmarks JSON and exported HTML.
+        path, _ = QFileDialog.getOpenFileName(
+            self, 'Chrome / Edge の Bookmarks ファイルを選択',
+            str(browser_bookmarks.user_data_directory(self.bookmark_browser) or Path.home()),
+            'Chrome / Edge のブックマーク (*.json *.html *.htm);;すべてのファイル (*)')
+        if not path:
+            return
+        # Validate before changing the saved source; an erroneous selection
+        # must not destroy the working auto-import state.
+        profiles, errors = browser_bookmarks.read(self.bookmark_browser, manual_file=path)
+        if errors or not profiles or not any(p['roots'] for p in profiles):
+            QMessageBox.warning(self, 'ブックマーク読込エラー',
+                                '指定ファイルを読み込めません。ブラウザの Bookmarks JSON またはエクスポートHTMLを指定してください。\n'
+                                + '\n'.join(errors or [path]))
+            return
+        self.settings.setValue('bookmark_manual_' + self.bookmark_browser, path)
+        self.update_bookmark_source_action()
+        self.bookmark_signature = None
+        self.refresh_bookmarks(force=True)
+
+    def use_auto_bookmarks(self):
+        if not self.bookmark_manual_file():
+            self.update_bookmark_source_action()
+            return
+        self.settings.remove('bookmark_manual_' + self.bookmark_browser)
+        self.update_bookmark_source_action()
+        self.bookmark_signature = None
+        self.refresh_bookmarks(force=True)
+
+    def show_bookmark_diagnostics(self):
+        browser = self.bookmark_browser
+        manual = self.bookmark_manual_file()
+        root = browser_bookmarks.user_data_directory(browser)
+        try:
+            files = browser_bookmarks.bookmark_files(browser, manual_file=manual)
+            profiles, errors = browser_bookmarks.read(browser, manual_file=manual)
+            total = sum(1 for p in profiles for group in p['roots'] for _ in group['children'])
+            lines = [f'ブラウザ: {browser.title()}',
+                     f'取得方式: {"指定ファイル" if manual else "自動取得"}',
+                     f'標準の保存場所: {root or "不明（LOCALAPPDATA未設定）"}',
+                     f'指定ファイル: {manual or "なし"}',
+                     f'検出したブックマークファイル（Bookmarks / AccountBookmarks）: {len(files)}件',
+                     *[str(path) for path in files],
+                     f'読込成功: {len(profiles)}プロフィール / 最上位項目: {total}件']
+            if errors:lines += ['読込エラー:', *errors]
+            if not files:
+                lines += ['保存先が見つかりません。',
+                          'ブラウザで chrome://version または edge://version を開き、',
+                          '「プロフィール パス」を確認してください。',
+                          'そのフォルダーの「Bookmarks」または「AccountBookmarks」、',
+                          'もしくはブラウザからエクスポートしたHTMLを指定できます。']
+            elif not total:
+                lines += ['読み込めましたが表示可能なブックマークが空です。',
+                          '別プロフィールや別ブラウザに保存されている可能性があります。']
+        except Exception as ex:
+            lines = [f'取得診断中にエラー: {ex}']
+        QMessageBox.information(self, 'FRB Launch ブックマーク取得診断', '\n'.join(lines))
+
+    def select_bookmark_browser(self, browser):
+        if browser not in browser_bookmarks.BROWSERS:return
+        self.bookmark_browser=browser
+        self.settings.setValue('bookmark_browser',browser)
+        self.update_bookmark_source_action()
+        for key,action in self.bookmark_browser_actions.items():
+            action.setChecked(key==browser)
+        self.bookmark_signature=None
+        self.bookmark_profiles=[]
+        self.refresh_bookmarks(force=True)
+
+    def refresh_bookmarks(self, force=False):
+        # Reads only bookmark files belonging to the selected browser.
+        try:
+            manual=self.bookmark_manual_file()
+            stamp=(manual, browser_bookmarks.signature(self.bookmark_browser,manual_file=manual))
+            if not force and stamp==self.bookmark_signature:return
+            profiles,errors=browser_bookmarks.read(self.bookmark_browser,manual_file=manual)
+            # A temporary read/JSON failure must not wipe the last good catalog.
+            if errors and not profiles and self.bookmark_profiles:
+                DIAG.warning('BOOKMARK read failed; keeping previous catalog: %s',errors)
+                return
+            self.bookmark_signature=stamp
+            self.bookmark_profiles=profiles
+            self.bookmark_errors=errors
+            if self.data is not None:
+                self.data=browser_bookmarks.attach(self.data,self.bookmark_browser,profiles)
+                if self.menu:self.menu.close();self.menu=None
+                self.render()
+            if errors:DIAG.warning('BOOKMARK partial read: %s',errors)
+            if force:
+                count=sum(1 for r in self.data['items'] if r.get('_browser_bookmark') and r.get('item_kind')=='command') if self.data else 0
+                self.footer.setText(f'{self.bookmark_browser.title()} のブックマークを更新: {count}件' if count else
+                                    f'{self.bookmark_browser.title()} の取得結果が空です。トレイの「ブックマーク取得診断」を確認')
+        except Exception as ex:
+            DIAG.exception('BOOKMARK refresh failed')
+            if force:self.error('ブックマークを取得できません: '+str(ex))
 
     def refresh_apps(self):
         if not windows.IS_WINDOWS or self.apps_proc:return
@@ -682,7 +1084,9 @@ class Launcher(QWidget):
             if not force and stamp==self.mtime and stat.st_size==self.config_size:return
             fresh=load(CONFIG)
             Expander(fresh)  # Validate timezone before swapping the active data.
-            self.data=installed_apps.attach(fresh,self.app_records);self.mtime=stamp;self.config_size=stat.st_size
+            self.data=browser_bookmarks.attach(installed_apps.attach(fresh,self.app_records),
+                                               self.bookmark_browser,self.bookmark_profiles)
+            self.mtime=stamp;self.config_size=stat.st_size
             self.tabs.blockSignals(True)
             while self.tabs.count():self.tabs.removeTab(0)
             self.pages=sorted([p for p in fresh['pages'] if p.get('enabled',True)],key=lambda p:p.get('sort_order',0))
@@ -704,7 +1108,7 @@ class Launcher(QWidget):
     def summon(self):
         if self.busy:self.error('処理の完了を待っています');return
         if self.isVisible():self.dismiss();return
-        self.target=windows.foreground();self.reload()
+        self.target=windows.foreground();self.reload();self.refresh_bookmarks()
         self.stack=[];self.selection=None;self.checked.clear();self.search.clear();self.render()
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
@@ -766,13 +1170,17 @@ class Launcher(QWidget):
         parent=row['item_id'] if row else ''
         return sorted([x for x in self.data['items'] if x.get('enabled',True) and x['page_id']==(row['page_id'] if row else self.page_id) and x.get('parent_item_id','')==parent],key=lambda x:x.get('sort_order',0))
 
+    def displayed_children(self, parent):
+        """Skip redundant singleton folder levels for browser bookmarks only."""
+        return visible_bookmark_children(parent, self.children)
+
     def render(self,*args):
         if not self.data:return
         self.hover_timer.stop();self.pending_menu_item=None
         self.selection_tools.setVisible(self.selection is not None)
         self.list.blockSignals(True);self.list.clear()
         query=self.search.text().strip()
-        self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source')=='installed_apps'))
+        self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source') in {'installed_apps','browser_bookmarks'} or self.stack[-1].get('_browser_bookmark'))) 
         self.list.order_rows=[]
         self.list.order_page=self.page_id
         self.list.order_parent=self.stack[-1]['item_id'] if self.stack else ''
@@ -780,15 +1188,18 @@ class Launcher(QWidget):
             if self.selection:
                 candidates=sorted([c for c in self.data.get('launch_choices',[]) if c.get('enabled',True) and c['group_id']==self.selection['launch_selection_group_id']],key=lambda c:c.get('sort_order',0))
                 pairs=[(c,'') for c in candidates if all(w in json.dumps(c,ensure_ascii=False).casefold() for w in query.casefold().split())]
-            elif query:pairs=searchable_rows(self.data,query)
-            else:pairs=[(x,'') for x in self.children(self.stack[-1] if self.stack else None)]
+            elif query:pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
+            else:pairs=[(x,'') for x in (self.displayed_children(self.stack[-1]) if self.stack else self.children())]
             if self.list.order_enabled:self.list.order_rows=[row for row,path in pairs]
             for row,path in pairs:
                 details = row.get('description', '') or (str(row.get('value', '')) if self.selection or row.get('_search_selection_owner') else '')
+                # URLs are available on hover, but do not fill bookmark search rows.
+                if row.get('_browser_bookmark'):
+                    details = ''
                 desc = details + ('  ·  '+path if path else '')
                 isfolder=row.get('item_kind') in {'category','directory'}
                 q=QTreeWidgetItem([row['title']+('  ›' if isfolder else ''),desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
-                q.setToolTip(0,row['title']);q.setToolTip(1,desc)
+                q.setToolTip(0,row['title']);q.setToolTip(1,row.get('description','') if row.get('_browser_bookmark') else desc)
                 q.setIcon(0,self.row_icon(row))
                 q.setForeground(1,QColor('#a6b4c7'))
                 if self.selection or row.get('_search_selection_owner'):
@@ -869,7 +1280,7 @@ class Launcher(QWidget):
     def persist_order(self, ids, page, parent, selected):
         try:
             self.data,self.mtime=save_order(CONFIG,self.mtime,page,parent,ids)
-            self.data=installed_apps.attach(self.data,self.app_records)
+            self.data=browser_bookmarks.attach(installed_apps.attach(self.data,self.app_records),self.bookmark_browser,self.bookmark_profiles)
             self.render()
             for i in range(self.list.topLevelItemCount()):
                 q=self.list.topLevelItem(i)
@@ -900,18 +1311,21 @@ class Launcher(QWidget):
     def fill_cascade(self, menu, parent):
         if isinstance(menu,AppCascadeMenu):
             menu.populate(self.children(parent));return
-        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source')!='installed_apps'
+        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source') not in {'installed_apps','browser_bookmarks'} and not parent.get('_browser_bookmark')
         menu.order_page=parent.get('page_id',self.page_id)
         menu.order_parent=parent.get('item_id','')
         menu.order_context=parent
         menu.order_rows=[]
         try:
-            for row in self.children(parent):
+            for row in self.displayed_children(parent):
                 folder = row['item_kind'] in {'category','directory'}
-                label = row['title'] + ('  ›' if folder else '')
-                if not folder and parent['item_kind']!='directory':label += '    '+row.get('description','')
-                action = menu.addAction(self.row_icon(row),label)
-                action.setToolTip(row.get('description',''))
+                metrics = menu.fontMetrics()
+                label, tooltip = cascade_label(
+                    row, parent['item_kind'], max(120, menu.maximumWidth() - CASCADE_TEXT_RESERVE),
+                    lambda text, width: metrics.elidedText(text, Qt.TextElideMode.ElideRight, width),
+                    metrics.horizontalAdvance)
+                action = menu.addAction(self.row_icon(row), label)
+                action.setToolTip(tooltip)
                 action.setData(row)
                 if menu.order_enabled:menu.order_rows.append(row)
                 if folder:
@@ -927,8 +1341,18 @@ class Launcher(QWidget):
                 else:
                     action.triggered.connect(lambda checked=False,r=row:self.run_menu_item(r))
             if parent['item_kind']=='directory':
-                menu.addSeparator();menu.addAction('このフォルダーを開く',lambda:self.run_menu_item(parent))
-            if menu.isEmpty():menu.addAction('項目なし').setEnabled(False)
+                menu.addSeparator()
+                open_folder_action = menu.addAction('このフォルダーを開く',
+                                                     lambda: self.run_menu_item(parent))
+                # Unlike regular rows, this utility action carries no item data.
+                # Right-arrow is the same explicit execution as Enter/click.
+                open_folder_action.setProperty('launch_right_arrow_executes', True)
+            if menu.isEmpty():
+                if parent.get('launch_source')=='browser_bookmarks':
+                    menu.addAction('取得結果が空です（取得診断を開く）',self.show_bookmark_diagnostics)
+                    menu.addAction('Bookmarksファイルを指定する',self.pick_bookmark_file)
+                else:
+                    menu.addAction('項目なし').setEnabled(False)
         except Exception as e:menu.addAction(str(e)).setEnabled(False)
 
     def run_menu_item(self, row):
@@ -1087,8 +1511,11 @@ class Launcher(QWidget):
             self.composing=bool(event.preeditString())
         return super().eventFilter(obj,event)
 
-    def open_target(self,target,browser=""):
-        if browser.lower()=="chrome":windows.open_chrome(target);return
+    def open_target(self,target,browser="",profile=""):
+        if browser.lower() == 'chrome' and not profile:windows.open_chrome(target);return
+        if browser.lower() in ('chrome','edge'):
+            windows.open_browser(target,browser.lower(),profile)
+            return
         if not windows.IS_WINDOWS:raise RuntimeError('起動操作はWindowsで利用できます')
         if target.lower().startswith('shell:'):
             import subprocess
@@ -1110,7 +1537,20 @@ class Launcher(QWidget):
             for raw in row.get('launch_actions',[]):
                 step={k:([ex.expand(a) for a in val] if k=='launch_arguments' else ex.expand(val) if isinstance(val,str) else val) for k,val in raw.items()}
                 self.queue.append(step)
-            self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue));self.dismiss();QTimer.singleShot(180,self.next_step)
+            self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue))
+            if should_start_before_dismiss(self.queue):
+                # A GUI child can claim foreground only if its launcher was
+                # foreground at process creation. Previously we hid first and
+                # waited 180 ms, handing foreground to another application.
+                self._foreground_handoff_pending = True
+                DIAG.info('FOREGROUND_HANDOFF launching before launcher hide')
+                self.next_step()
+                if self.busy:
+                    self.dismiss()
+            else:
+                self._foreground_handoff_pending = False
+                self.dismiss()
+                QTimer.singleShot(180,self.next_step)
         except Exception as e:
             DIAG.exception('PREPARE failed');self.error(e)
 
@@ -1125,7 +1565,8 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(step.get('launch_text',''))
                 if kind=='SendKey':windows.paste(self.target)
             elif kind=='Open':
-                if step.get('launch_browser'):self.open_target(step['launch_target'],step['launch_browser'])
+                if step.get('launch_browser_profile'):self.open_target(step['launch_target'],step.get('launch_browser',''),step['launch_browser_profile'])
+                elif step.get('launch_browser'):self.open_target(step['launch_target'],step['launch_browser'])
                 else:self.open_target(step['launch_target'])
             elif kind=='Run':
                 program=step['launch_program'];args=step.get('launch_arguments',[]);cwd=step.get('launch_working_directory') or str(ROOT)
@@ -1133,6 +1574,16 @@ class Launcher(QWidget):
                 DIAG.info('RUN program=%s cwd=%s console=%s wait=%s transcript=%s',program,cwd,step.get('launch_show_console',False),step.get('launch_wait_for_exit',False),transcript)
                 self.proc = start_process(program, args, cwd, step.get('launch_show_console',False))
                 DIAG.info('PROCESS started pid=%s',getattr(self.proc,'pid',None))
+                if getattr(self, '_foreground_handoff_pending', False):
+                    self._foreground_handoff_pending = False
+                    try:
+                        granted = windows.allow_child_foreground(getattr(self.proc, 'pid', None))
+                        DIAG.info('FOREGROUND_HANDOFF pid=%s granted=%s',
+                                  getattr(self.proc, 'pid', None), granted)
+                    except OSError as focus_error:
+                        # The child has already started. Foreground permission
+                        # is best effort: never report the launch as failed.
+                        DIAG.warning('FOREGROUND_HANDOFF denied: %s', focus_error)
                 if step.get('launch_wait_for_exit'):
                     self.timedout=False
                     self.process_started=time.monotonic()
@@ -1160,6 +1611,7 @@ class Launcher(QWidget):
         else:self.next_step()
 
     def fail(self,message):
+        self._foreground_handoff_pending = False
         self.queue=[];self.busy=False
         if hasattr(self,'process_timer'):self.process_timer.stop()
         self.error(message)

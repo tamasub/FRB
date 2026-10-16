@@ -251,6 +251,7 @@ function renderCompactGrid(gd=gridDef()) {
     const {row,index} = entry;
     const tr = document.createElement('tr');
     tr.dataset.sourceIndex = String(index);
+    tr.tabIndex = (index === selectedIndex || selectedIndex < 0 && index === filteredRows[0]?.index) ? 0 : -1;
     const rowKeyField = String(gd?.keyField ?? '').trim();
     if (rowKeyField && row?.[rowKeyField] != null) tr.dataset.rowKey = String(row[rowKeyField]);
     applyGridRowEmphasis(tr, row);
@@ -492,7 +493,15 @@ function enterDocumentGridFieldEditMode({ card, row, index, field, options, valu
       cancel();
       return;
     }
-    if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter') || (e.key === 'Enter' && editor.tagName !== 'TEXTAREA')) {
+    if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229 && (e.ctrlKey || e.shiftKey || e.metaKey)) {
+      if (editor.tagName === 'TEXTAREA') {
+        e.preventDefault();
+        editor.setRangeText('\n', editor.selectionStart, editor.selectionEnd, 'end');
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+      } else e.preventDefault();
+      return;
+    }
+    if (e.key === 'F12' || (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229)) {
       e.preventDefault();
       commit('カード編集を反映しました');
     }
@@ -610,6 +619,7 @@ function createDocumentGridCard(row, index, gd, cfg, fieldSpecs) {
   const card = document.createElement('section');
   card.className = 'document-grid-card';
   card.dataset.sourceIndex = String(index);
+  card.tabIndex = (index === selectedIndex || selectedIndex < 0 && index === filteredRows[0]?.index) ? 0 : -1;
   const rowKeyField = String(gd?.keyField ?? '').trim();
   if (rowKeyField && row?.[rowKeyField] != null) card.dataset.rowKey = String(row[rowKeyField]);
   applyGridRowEmphasis(card, row);
@@ -688,7 +698,7 @@ function renderDocumentGrid(gd=gridDef()) {
   toolbar.className = 'document-grid-toolbar';
   const note = document.createElement('div');
   note.className = 'document-grid-note';
-  note.textContent = 'Card(Document) Grid: 値をクリックするとその場で編集できます。F12 / Ctrl+Enter / blur で反映、保存値はJSON原文です。';
+  note.textContent = 'Card(Document) Grid: 値をクリックすると編集できます。Enter / F12 / blur で反映、Ctrl+Enter / Shift+Enter で改行します。';
   toolbar.appendChild(note);
   if (!launchRuntime?.readonly) {
     toolbar.appendChild(makeDocumentGridButton('＋末尾に追加', '末尾に空カードを追加', addDocumentGridRowAtEnd, 'primary-button small'));

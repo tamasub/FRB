@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 from zipfile import ZipFile, ZIP_DEFLATED
 
-EXCLUDED = {'.venv', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules', 'backups'}
+EXCLUDED = {'.venv','.venv_backup', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules', 'backups'}
 
 def make_zip(root):
     root = Path(root).resolve()

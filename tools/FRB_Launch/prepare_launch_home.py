@@ -1,4 +1,8 @@
-"""One-time migration before rebuilding; never resync from dist afterwards."""
+"""One-time migration before rebuilding; never resync from dist afterwards.
+
+The editable bookmark category belongs to the canonical configuration JSON.
+Only the actual Chrome/Edge bookmark descendants are added in-memory.
+"""
 import json,shutil
 from pathlib import Path
 from datetime import datetime
@@ -30,6 +34,8 @@ def prepare(root):
     ready=root/READY
     if ready.exists():
         if not (root/CONFIG).exists():raise RuntimeError('Canonical config is missing; restore it from backups.')
+        from browser_bookmarks import ensure_category_file
+        ensure_category_file(root/CONFIG)
         return None
     backup=root/'backups'/('launch_home_'+datetime.now().strftime('%Y%m%d_%H%M%S')+'_'+uuid4().hex[:6])
     backup.mkdir(parents=True)
@@ -48,6 +54,8 @@ def prepare(root):
             ignore=lambda _folder,names: {'Get-LaunchApps.ps1'} & set(names))
     dest=root/CONFIG;dest.parent.mkdir(parents=True,exist_ok=True)
     temp=dest.with_suffix('.migration.tmp');temp.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');temp.replace(dest)
+    from browser_bookmarks import ensure_category_file
+    ensure_category_file(dest)
     ready.write_text('Editable config/scripts are in this project root. Do not restore dist files.\n',encoding='utf-8')
     return backup
 

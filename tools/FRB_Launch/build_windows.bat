@@ -12,8 +12,10 @@ if errorlevel 1 goto fail
 if errorlevel 1 goto unsupported
 .venv\Scripts\python.exe prepare_launch_home.py
 if errorlevel 1 goto fail
-.venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
-if errorlevel 1 goto fail
+if not "%FRB_ENV_REFRESH%"=="1" (
+  .venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
+  if errorlevel 1 goto fail
+)
 .venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata --icon "assets\frb_launch.ico" --add-data "assets;assets" app.py
 if errorlevel 1 goto fail
 xcopy /E /I /Y defs dist\FRBLaunch\defs
@@ -21,9 +23,9 @@ if errorlevel 1 goto fail
 .venv\Scripts\python.exe prepare_launch_home.py --link
 if errorlevel 1 goto fail
 copy /Y README.md dist\FRBLaunch\README.md
-start "" explorer.exe "%~dp0dist\FRBLaunch"
+if not "%FRB_ENV_REFRESH%"=="1" start "" explorer.exe "%~dp0dist\FRBLaunch"
 echo Build complete: dist\FRBLaunch\FRBLaunch.exe
-pause
+if not "%FRB_ENV_REFRESH%"=="1" pause
 exit /b 0
 :unsupported
 echo This build requires standard 64-bit Python 3.10 to 3.14.
@@ -31,5 +33,5 @@ echo To choose Python 3.14 explicitly, create a fresh venv with: py -3.14 -m ven
 goto fail
 :fail
 echo Build failed. See the output above.
-pause
+if not "%FRB_ENV_REFRESH%"=="1" pause
 exit /b 1

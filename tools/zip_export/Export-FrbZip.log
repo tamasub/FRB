@@ -925,3 +925,52 @@ WARNING: ?????????????????????????????
 Windows PowerShell transcript end
 End time: 20261015191259
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20261016193433
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 7452
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+?????: D:\FRB_backups (????)
+???????: F:\FRB_backups
+
+??       : F:\FRB
+????? : 10,749 / ???? 906.1 MB / ??????? 9 ?
+  ??: .git
+  ??: bin
+  ??: tools/FRBStudio/bin
+  ??: tools/FRBStudio/obj
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/bin
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/obj
+  ??: tools/FRBStudio_App/NativeShell/bin
+  ??: tools/FRBStudio_App/NativeShell/obj
+  ??: tools/FRBStudio_App/wwwroot/js/lib/mermaid
+PS>TerminatingError(): "ZIP ??????: tools/FRBStudio_App/wwwroot/index.html"
+PS>TerminatingError(): "ZIP ??????: tools/FRBStudio_App/wwwroot/index.html"
+WARNING: F: ZIP???? [F:\FRB]: ZIP ??????: tools/FRBStudio_App/wwwroot/index.html
+
+??       : F:\FRB_docsExcel
+????? : 91 / ???? 122.6 MB / ??????? 0 ?
+F: ???ZIP?? OK: F:\FRB_backups\FRB_docsExcel_backup_20261016_193744_131.zip  (16.4 MB, 5.5 ?)
+D: ????SHA256?? OK: D:\FRB_backups\FRB_docsExcel_backup_20261016_193744_131.zip
+
+========== ???????? ==========
+F: ZIP???????: 1 / 2 ?
+D: ???: D:\FRB_backups (?ZIP?SHA256???)
+WARNING: ?????????????????????????????
+**********************
+Windows PowerShell transcript end
+End time: 20261016193751
+**********************

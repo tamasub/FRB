@@ -340,7 +340,8 @@
               },
               "options": [
                 "",
-                "installed_apps"
+                "installed_apps",
+                "browser_bookmarks"
               ]
             }
           ]
