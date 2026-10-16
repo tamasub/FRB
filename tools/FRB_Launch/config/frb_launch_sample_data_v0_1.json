@@ -1624,7 +1624,7 @@
       "keywords": [],
       "launch_selection_group_id": "se",
       "launch_selection_value_field": "value",
-      "launch_selection_separator": "; \\n",
+      "launch_selection_separator": ";\\r\\n",
       "launch_selection_result_name": "recipients",
       "launch_browse_target": "",
       "launch_context_app": "",

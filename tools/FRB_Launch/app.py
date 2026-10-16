@@ -11,7 +11,7 @@ from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
-from core import load, Expander, searchable_rows, column_filter_match
+from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 import windows
 import installed_apps
 import browser_bookmarks
@@ -1403,7 +1403,7 @@ class Launcher(QWidget):
         if not self.selection or not self.checked:return
         row=self.selection
         choices=sorted([c for c in self.data['launch_choices'] if c['choice_id'] in self.checked],key=lambda c:c.get('sort_order',0))
-        value=row.get('launch_selection_separator','; ').join(str(c.get(row.get('launch_selection_value_field','value'),'')) for c in choices)
+        value=join_selection_values(row, choices)
         self.execute(row,{row.get('launch_selection_result_name','recipients'):value})
 
     def activate_after_mouse_release(self, row, expected_foreground):

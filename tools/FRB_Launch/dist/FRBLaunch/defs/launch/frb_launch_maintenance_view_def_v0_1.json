@@ -720,6 +720,15 @@
               "備考",
               "部署",
               "Description"
+            ],
+            "group_id": [
+              "グループID",
+              "グループＩＤ",
+              "グループ",
+              "Group ID",
+              "GroupId",
+              "Group",
+              "group"
             ]
           },
           "requiredField": "value",

@@ -114,6 +114,25 @@ class Expander:
         return re.sub(r'%%|%[^%\r\n]+%', replace, str(text))
 
 
+# Escape sequences are opt-in for selection separators only.  Do not run this
+# converter on contact values, launch action text, or other arbitrary data.
+def decode_selection_separator(separator):
+    r"""Decode \n, \r, \t, and \\ typed in a selection separator field.
+
+    Unknown backslash escapes are kept verbatim. A doubled backslash is
+    treated literally and cannot start another escape within the same pass.
+    """
+    chars = {'n': '\n', 'r': '\r', 't': '\t', '\\': '\\'}
+    return re.sub(r'\\([nrt\\])', lambda m: chars[m.group(1)], str(separator))
+
+
+def join_selection_values(row, choices):
+    """Join selected values using the UI-configured separator semantics."""
+    separator = decode_selection_separator(row.get('launch_selection_separator', '; '))
+    field = row.get('launch_selection_value_field', 'value')
+    return separator.join(str(choice.get(field, '')) for choice in choices)
+
+
 
 def column_filter_match(row, query):
     """Match only one cascade column, never its ancestors' paths.
