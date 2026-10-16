@@ -9,6 +9,15 @@ if IS_WINDOWS:
     user = c.WinDLL('user32', use_last_error=True)
     user.GetForegroundWindow.restype = w.HWND
     user.SetForegroundWindow.argtypes = [w.HWND]
+    user.SetForegroundWindow.restype = w.BOOL
+    user.GetWindowThreadProcessId.argtypes = [w.HWND, c.POINTER(w.DWORD)]
+    user.GetWindowThreadProcessId.restype = w.DWORD
+    user.AttachThreadInput.argtypes = [w.DWORD, w.DWORD, w.BOOL]
+    user.AttachThreadInput.restype = w.BOOL
+    user.BringWindowToTop.argtypes = [w.HWND]
+    user.BringWindowToTop.restype = w.BOOL
+    kernel = c.WinDLL('kernel32', use_last_error=True)
+    kernel.GetCurrentThreadId.restype = w.DWORD
     user.IsWindow.argtypes = [w.HWND]
     user.RegisterHotKey.argtypes = [w.HWND, c.c_int, w.UINT, w.UINT]
     user.UnregisterHotKey.argtypes = [w.HWND, c.c_int]
@@ -21,6 +30,49 @@ if IS_WINDOWS:
 
 def foreground():
     return user.GetForegroundWindow() if IS_WINDOWS else 0
+
+
+def activate_keyboard_window(hwnd, expected_foreground=None):
+    """Activate a launcher summoned by a desktop mouse hook.
+
+    Qt's activateWindow() can leave an always-on-top Tool visible but NOT
+    keyboard-active when Explorer owns the foreground. Attach temporarily to
+    that input queue and ask Windows to activate our window. Never attach to
+    a different application that became foreground after the summon request.
+    This is not a global keyboard hook and does not synthesize key presses.
+    """
+    if not IS_WINDOWS:
+        return False
+    if not hwnd or not user.IsWindow(hwnd):
+        return False
+    current = foreground()
+    if current == hwnd:
+        return True
+    if expected_foreground is not None and current != expected_foreground:
+        return False  # User already switched to another window; don't steal focus.
+    if not current:
+        return False
+
+    user.SetForegroundWindow(hwnd)
+    if foreground() == hwnd:
+        return True
+
+    # SetForegroundWindow from a background mouse-hook process may be denied.
+    # Attach only to the foreground input queue, and detach on *every* path.
+    foreground_thread = user.GetWindowThreadProcessId(current, None)
+    own_thread = kernel.GetCurrentThreadId()
+    if not foreground_thread or not own_thread or foreground_thread == own_thread:
+        return False
+    if not user.AttachThreadInput(own_thread, foreground_thread, True):
+        return False
+    try:
+        if foreground() != current:  # The user switched during attachment.
+            return False
+        user.BringWindowToTop(hwnd)
+        user.SetForegroundWindow(hwnd)
+        return foreground() == hwnd
+    finally:
+        user.AttachThreadInput(own_thread, foreground_thread, False)
 
 
 def restore(hwnd):

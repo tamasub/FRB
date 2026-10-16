@@ -26,6 +26,13 @@ class AppsUITests(unittest.TestCase):
         sent=[];self.w.execute=lambda row,*args:sent.append(row)
         QTest.keyClick(menu,Qt.Key.Key_Return)
         self.assertEqual(sent[0]['launch_actions'][0]['launch_target'],r'shell:AppsFolder\Excel.App')
+    def test_right_launches_current_app(self):
+        QTest.keyClick(self.w.search,Qt.Key.Key_Right)
+        menu=self.w.menu
+        sent=[];self.w.execute=lambda row,*args:sent.append(row)
+        QTest.keyClick(menu,Qt.Key.Key_Right)
+        self.assertEqual(sent[0]['launch_actions'][0]['launch_target'],r'shell:AppsFolder\Excel.App')
+
     def test_global_search_and_category_reorder(self):
         self.w.search.setText('クローム');self.assertEqual(self.w.list.topLevelItemCount(),1)
         self.w.search.clear();self.w.activate(next(r for r in self.w.data['items'] if r['item_id']=='installed_apps'))

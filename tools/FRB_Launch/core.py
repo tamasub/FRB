@@ -133,4 +133,38 @@ def searchable_rows(data, query):
         content = json.dumps(row, ensure_ascii=False).casefold() + ' ' + path.casefold()
         if all(word in content for word in words):
             result.append((row, path))
+    # Global search also finds individual choices of enabled selection items.
+    # Keep the owning selection ID: a choice has no action of its own, and F12
+    # must execute the original selection item's SendKey/ClipboardCopy action.
+    for owner in data['items']:
+        if owner.get('item_kind') != 'selection' or not owner.get('enabled', True):
+            continue
+        page = pages.get(owner.get('page_id'))
+        if not page or not page.get('enabled', True):
+            continue
+        chain = []
+        parent_id = owner.get('parent_item_id')
+        hidden = False
+        while parent_id:
+            parent = items[parent_id]
+            if not parent.get('enabled', True):
+                hidden = True
+                break
+            chain.append(parent['title'])
+            parent_id = parent.get('parent_item_id')
+        if hidden:
+            continue
+        path = ' / '.join([page['title']] + list(reversed(chain)) + [owner['title']])
+        for choice in data.get('launch_choices', []):
+            if choice.get('group_id') != owner.get('launch_selection_group_id') or not choice.get('enabled', True):
+                continue
+            # Match the same searchable fields as the selection screen plus
+            # the owning item's path, so names and addresses both work.
+            content = ' '.join(str(choice.get(k, '')) for k in ('title', 'description', 'value'))
+            content += ' ' + path
+            if all(word in content.casefold() for word in words):
+                result.append(({**choice,
+                                'item_kind': 'choice',
+                                'icon_key': owner.get('icon_key', 'mail'),
+                                '_search_selection_owner': owner['item_id']}, path))
     return sorted(result, key=lambda pair: pair[0].get('sort_order', 0))

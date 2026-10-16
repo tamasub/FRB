@@ -80,6 +80,34 @@ class ColumnFilterTests(test_navigation.NavigationTests):
         self.assertIsNone(menu.filter_edit)
         self.assertEqual(len(self.visible_titles(menu)), 4)
 
+    def test_filter_does_not_shrink_popup_frame(self):
+        # Regression: filtering a long folder to a handful of matches made its
+        # menu window collapse next to an open nested menu.
+        path = Path(self.temp.name) / 'long_column_fixture'
+        path.mkdir(exist_ok=True)
+        for index in range(39):
+            (path / f'entry_{index:02}.txt').touch()
+        (path / 'tools').mkdir(exist_ok=True)
+        self.w.cascade(dict(item_kind='directory', launch_browse_target=str(path)))
+        self.app.processEvents()
+        menu = self.w.menu
+        original_size = menu.size()
+        original_minimum = menu.minimumSize()
+        QTest.keyClicks(menu, 'tools')
+        self.app.processEvents()
+        self.assertEqual(self.visible_titles(menu), ['tools'])
+        self.assertGreaterEqual(menu.height(), original_size.height())
+        self.assertGreaterEqual(menu.width(), original_size.width())
+        menu.filter_edit.setText('unmatched-search-word')
+        self.app.processEvents()
+        self.assertEqual(self.visible_titles(menu), [])
+        self.assertGreaterEqual(menu.height(), original_size.height())
+        self.assertGreaterEqual(menu.width(), original_size.width())
+        QTest.keyClick(menu.filter_edit, Qt.Key.Key_Escape)
+        self.app.processEvents()
+        self.assertEqual(menu.minimumSize(), original_minimum)
+        self.assertEqual(len(self.visible_titles(menu)), 40)
+
     def test_regular_category_and_apps_exclusion(self):
         root = next(row for row in self.w.data['items'] if row.get('item_kind')=='category'
                     and row.get('launch_source')!='installed_apps')

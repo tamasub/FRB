@@ -74,6 +74,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_edit = None
         self.filter_count = None
         self._order_enabled_before_filter = False
+        # Preserve the popup's original frame while local filtering hides rows.
+        # Otherwise QMenu shrinks to the remaining matches on every keystroke.
+        self._filter_original_minimum = None
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.setStyleSheet('QMenu { menu-scrollable: 1; }')
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True)
@@ -88,6 +91,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
         """Display an inline search only after the user starts typing in this column."""
         if self.filter_action is not None:
             return
+        # Lock the *minimum* frame size before QWidgetAction is inserted and
+        # rows are hidden. Keep the result area visually stable (including 0
+        # matches), without interfering with Qt's screen-height/scroll handling.
+        self._filter_original_minimum = (self.minimumWidth(), self.minimumHeight())
+        if self.isVisible():
+            self.setMinimumSize(max(self.minimumWidth(), self.width()),
+                                max(self.minimumHeight(), self.height()))
         # Keyboard input should keep a hover-opened menu alive even after the
         # pointer leaves the row (same promotion used by Right-arrow).
         ancestor = self
@@ -161,6 +171,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if action is None:
             return
         self.hover_timer.stop()
+        # Release the temporary frame lock before returning the full list.
+        # Never leave a fixed minimum on a reusable menu after Escape.
+        if self._filter_original_minimum is not None:
+            self.setMinimumSize(*self._filter_original_minimum)
+            self._filter_original_minimum = None
         for candidate in self.actions():
             if candidate is not action:
                 candidate.setVisible(True)
@@ -262,7 +277,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
         action=self.activeAction()
         if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter) and action and isinstance(action.data(),dict) and action.data().get('item_kind')=='directory':
             self.launcher.run_menu_item(action.data());event.accept();return
-        if key == Qt.Key.Key_Right or (key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action in self.openers):
+        if key == Qt.Key.Key_Right:
+            if action in self.openers:
+                self.open_current();event.accept();return
+            row = action.data() if action else None
+            if isinstance(row, dict):
+                self.launcher.run_menu_item(row);event.accept();return
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action in self.openers:
             self.open_current();event.accept();return
         if (mods & Qt.KeyboardModifier.ControlModifier and key==Qt.Key.Key_F):
             self.launcher.focus_search();event.accept();return
@@ -358,11 +379,10 @@ class AppCascadeMenu(CascadeMenu):
         key=event.key()
         if key in (Qt.Key.Key_Up,Qt.Key.Key_Down,Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):
             QApplication.sendEvent(self.tree,event);return
-        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter):
+        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter,Qt.Key.Key_Right):
             item=self.tree.currentItem()
             if item:self.launcher.run_menu_item(item.data(0,Qt.ItemDataRole.UserRole))
             event.accept();return
-        if key==Qt.Key.Key_Right:event.accept();return
         super().keyPressEvent(event)
 
 
@@ -690,6 +710,22 @@ class Launcher(QWidget):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
         self.show();self.raise_();self.activateWindow();self.search.setFocus()
 
+    def restore_keyboard_focus(self, expected_foreground=None, reason='open'):
+        """Make a mouse-hook-opened Tool window actually accept keyboard input."""
+        if not self.isVisible() or (self.menu and self.menu.isVisible()):
+            return
+        hwnd = int(self.winId())
+        before = windows.foreground()
+        # Native activation is needed when Qt is visible but Explorer is still
+        # receiving keys. It must never steal focus from a different new app.
+        active = (before == hwnd or windows.activate_keyboard_window(
+            hwnd, expected_foreground=expected_foreground))
+        if active:
+            self.activateWindow()
+            self.search.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+        DIAG.info('KEYBOARD_FOCUS reason=%s success=%s before=%s after=%s search_focus=%s',
+                  reason, active, before, windows.foreground(), self.search.hasFocus())
+
     def dismiss(self):
         if self.menu:self.menu.close()
         self.save_window_height()
@@ -748,26 +784,33 @@ class Launcher(QWidget):
             else:pairs=[(x,'') for x in self.children(self.stack[-1] if self.stack else None)]
             if self.list.order_enabled:self.list.order_rows=[row for row,path in pairs]
             for row,path in pairs:
-                desc=row.get('description','')+('  ·  '+path if path else '')
+                details = row.get('description', '') or (str(row.get('value', '')) if self.selection or row.get('_search_selection_owner') else '')
+                desc = details + ('  ·  '+path if path else '')
                 isfolder=row.get('item_kind') in {'category','directory'}
                 q=QTreeWidgetItem([row['title']+('  ›' if isfolder else ''),desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
                 q.setToolTip(0,row['title']);q.setToolTip(1,desc)
                 q.setIcon(0,self.row_icon(row))
                 q.setForeground(1,QColor('#a6b4c7'))
-                if self.selection:
-                    q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable);q.setCheckState(0,Qt.CheckState.Checked if row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
+                if self.selection or row.get('_search_selection_owner'):
+                    q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable)
+                    q.setCheckState(0,Qt.CheckState.Checked if self.selection and row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
                 self.list.addTopLevelItem(q)
             if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(0))
-            self.footer.setText(('Space チェック / F12 入力 / ← 戻る  選択 '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開   Enter 実行   F1〜F12 / Ctrl+PageUp/Down Page切替'))
+            self.footer.setText(('↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開/実行   Enter 実行   F1〜F12 / Ctrl+PageUp/Down Page切替'))
         except Exception as e:self.error(e)
         finally:self.list.blockSignals(False)
 
     def check_changed(self,item,col):
+        if not self.selection:
+            row = item.data(0, Qt.ItemDataRole.UserRole)
+            if row and row.get('_search_selection_owner'):
+                self.activate(row)
+            return
         if self.selection:
             key=item.data(0,Qt.ItemDataRole.UserRole)['choice_id']
             if item.checkState(0)==Qt.CheckState.Checked:self.checked.add(key)
             else:self.checked.discard(key)
-            self.footer.setText(f'Space チェック / F12 入力 / ← 戻る  選択 {len(self.checked)}件')
+            self.footer.setText(f'↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  {len(self.checked)}件')
 
     def select_all(self, selected):
         if not self.selection:return
@@ -903,6 +946,18 @@ class Launcher(QWidget):
 
     def activate(self,row):
         if not row:return
+        if not self.selection and row.get('_search_selection_owner'):
+            # Enter/Space on a global-search hit joins its original selection
+            # group. Keep the search text, so the selected person stays visible.
+            owner_id = row['_search_selection_owner']
+            owner = next((item for item in self.data['items']
+                          if item['item_id'] == owner_id and item.get('enabled', True)), None)
+            if owner is None:return
+            self.selection = owner
+            self.checked = {row['choice_id']}
+            self.render()
+            self.list.setFocus()
+            return
         if self.selection:
             q=self.list.currentItem();q.setCheckState(0,Qt.CheckState.Unchecked if q.checkState(0)==Qt.CheckState.Checked else Qt.CheckState.Checked);return
         kind=row.get('item_kind')
@@ -957,13 +1012,33 @@ class Launcher(QWidget):
             if getattr(self,'composing',False):return False
             if self.selection and ctrl and k==Qt.Key.Key_A:
                 self.select_all(not bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier));return True
+            # When typing in the main search box, Space directly selects the
+            # highlighted recipient. Do not intercept IME pre-edit/Shift+Space
+            # or ordinary searches whose current row is not a choice.
+            if (k==Qt.Key.Key_Space and obj==self.search and self.search.text().strip()
+                    and event.modifiers()==Qt.KeyboardModifier.NoModifier):
+                current=self.list.currentItem()
+                if current:
+                    hit=current.data(0,Qt.ItemDataRole.UserRole)
+                    if hit and (self.selection or hit.get('_search_selection_owner')):
+                        self.activate(hit)
+                        return True
             if k==Qt.Key.Key_Left and (self.selection or obj==self.list or not self.search.text()):
                 self.go_back();return True
+            if k==Qt.Key.Key_Right and self.selection and event.modifiers()==Qt.KeyboardModifier.NoModifier:
+                # In a recipient-choice list, Right means Enter: toggle the
+                # highlighted checkbox. Preserve cursor movement while typing
+                # a non-empty search query in QLineEdit.
+                if obj==self.list or (obj==self.search and not self.search.text()):
+                    q=self.list.currentItem()
+                    if q:self.activate(q.data(0,Qt.ItemDataRole.UserRole))
+                    event.accept();return True
             if k==Qt.Key.Key_Right and not self.selection and (obj==self.list or not self.search.text()):
                 q=self.list.currentItem()
                 if q:
                     row=q.data(0,Qt.ItemDataRole.UserRole)
                     if row.get('item_kind') in {'category','directory'}:self.cascade(row,q)
+                    else:self.activate(row)
                 return True
             if k in (Qt.Key.Key_Down,Qt.Key.Key_Up):
                 i=self.list.indexOfTopLevelItem(self.list.currentItem())
@@ -996,9 +1071,13 @@ class Launcher(QWidget):
                 if k==Qt.Key.Key_Left:
                     if self.stack:self.stack.pop();self.render()
                     return True
-                if k==Qt.Key.Key_Space and self.selection:
-                    if self.list.currentItem():self.activate(self.list.currentItem().data(0,Qt.ItemDataRole.UserRole))
-                    return True
+                if k==Qt.Key.Key_Space:
+                    current=self.list.currentItem()
+                    if current:
+                        hit=current.data(0,Qt.ItemDataRole.UserRole)
+                        if self.selection or (hit and hit.get('_search_selection_owner')):
+                            self.activate(hit)
+                            return True
                 if event.text() and not ctrl and not event.modifiers() & Qt.KeyboardModifier.AltModifier:
                     self.search.setFocus();QApplication.sendEvent(self.search,QKeyEvent(event.type(),k,event.modifiers(),event.text()));return True
                 if k==Qt.Key.Key_Backspace:self.search.setFocus();self.search.backspace();return True
@@ -1115,11 +1194,19 @@ def main():
         DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s', window.isVisible())
         if not window.isVisible():
             window.summon()
+            source_foreground = window.target
+            # Explorer got the double-click, not our Qt Tool window. Qt may
+            # raise it without gaining Windows keyboard focus; correct that on
+            # the event loop, with one short retry for mouse-up/Qt timing.
+            QTimer.singleShot(0, lambda: window.restore_keyboard_focus(
+                source_foreground, 'desktop_first'))
+            QTimer.singleShot(120, lambda: window.restore_keyboard_focus(
+                source_foreground, 'desktop_retry'))
         DIAG.info('DESKTOP_OPEN_RESULT visible=%s active=%s',
                   window.isVisible(), window.isActiveWindow())
         QTimer.singleShot(400, lambda: DIAG.info(
-            'DESKTOP_OPEN_AFTER_400MS visible=%s active=%s',
-            window.isVisible(), window.isActiveWindow()))
+            'DESKTOP_OPEN_AFTER_400MS visible=%s active=%s foreground=%s',
+            window.isVisible(), window.isActiveWindow(), windows.foreground()))
     def dismiss_from_outside_click():
         # A Tool/always-on-top window may not receive ApplicationInactive when
         # summoned from the desktop. Use the existing mouse hook as fallback.

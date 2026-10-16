@@ -26,6 +26,18 @@ class FolderEnterTests(unittest.TestCase):
                 self.assertEqual(execute.call_args.args[0]['launch_actions'][0]['launch_target'],str(Path(tmp)/'child'))
                 self.assertFalse(menu.isVisible())
             w.dismiss();w.tray.hide();w.deleteLater();self.app.processEvents()
+    def test_right_on_leaf_executes_like_enter(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            file_path=Path(tmp)/'note.txt';file_path.write_text('x',encoding='utf-8')
+            w=module.Launcher();w.show()
+            row={'item_kind':'directory','launch_browse_target':tmp}
+            w.cascade(row);menu=w.menu
+            self.assertEqual(menu.activeAction().text(),'note.txt')
+            with patch.object(w,'execute') as execute:
+                QTest.keyClick(menu,Qt.Key.Key_Right)
+                self.assertEqual(execute.call_args.args[0]['launch_actions'][0]['launch_target'],str(file_path))
+                self.assertFalse(menu.isVisible())
+            w.dismiss();w.tray.hide();w.deleteLater();self.app.processEvents()
     def test_work_file_uses_os_association(self):
         w=module.Launcher()
         row=next(r for r in w.data['items'] if r['item_id']=='experiment_overview_excel')
