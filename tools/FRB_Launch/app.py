@@ -57,6 +57,23 @@ MAIN_LIST_SCROLLBAR_QSS = """
     QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }
 """
 
+def scrollbar_qss(background='#202b29'):
+    """One scrollbar appearance for every Launcher list/popup, both axes."""
+    return MAIN_LIST_SCROLLBAR_QSS.replace('#202b29', background)
+
+
+def apply_scrollbar_theme(view, background='#202b29'):
+    """Style real scrollbar widgets; styling the tree alone can miss child bars.
+
+    QTreeWidget / QAbstractScrollArea may construct their native-looking child
+    QScrollBars separately. Give BOTH bars the same explicit theme, including
+    the initially hidden horizontal scrollbar.
+    """
+    style = scrollbar_qss(background)
+    view.verticalScrollBar().setStyleSheet(style)
+    view.horizontalScrollBar().setStyleSheet(style)
+
+
 ROOT = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent
 LAUNCH_HOME = launch_home(ROOT)
 CONFIG = LAUNCH_HOME / 'config' / 'frb_launch_sample_data_v0_1.json'
@@ -243,13 +260,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             QTreeWidget#cascadeScrollView::item { height:32px; padding:0 6px; }
             QTreeWidget#cascadeScrollView::item:selected { background:#304d70; color:white; }
             QTreeWidget#cascadeScrollView::item:hover { background:#34475d; }
-            QScrollBar:vertical { background:#202b39; width:9px; margin:0; border:0; }
-            QScrollBar::handle:vertical { background:#929ca7; border-radius:3px;
-                min-height:28px; margin:0 2px; }
-            QScrollBar::handle:vertical:hover { background:#d3dae2; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }
         """)
+        apply_scrollbar_theme(tree, '#202b39')
         for action in original:
             if action.isSeparator():
                 continue
@@ -595,15 +607,7 @@ class AppCascadeMenu(CascadeMenu):
         self.tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(35)
-        self.tree.verticalScrollBar().setStyleSheet('''
-            QScrollBar:vertical { background:#202b29; width:8px; margin:0; border:0; }
-            QScrollBar::handle:vertical { background:#929894; min-height:28px; border-radius:2px; margin:0 2px; }
-            QScrollBar::handle:vertical:hover { background:#c9d0cc; }
-            QScrollBar::handle:vertical:pressed { background:#eef2ef; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }
-            QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { width:0; height:0; background:transparent; }
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }
-        ''')
+        apply_scrollbar_theme(self.tree)
         self.tree.setMinimumSize(440,280)
         height=min(490,max(280,QApplication.primaryScreen().availableGeometry().height()-120))
         self.tree.setFixedSize(440,height)
@@ -780,6 +784,9 @@ class Launcher(QWidget):
         self.history_choices.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.history_choices.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.history_choices.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # History overlay has its own parent stylesheet: style the scrollbar
+        # widgets explicitly so Windows does not draw the legacy arrows/track.
+        apply_scrollbar_theme(self.history_choices, '#223043')
         self.history_choices.header().setStretchLastSection(False)
         self.history_choices.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         for c in (1, 2, 3):
@@ -2338,6 +2345,9 @@ class Launcher(QWidget):
 
 def main():
     app=QApplication(sys.argv);app.setQuitOnLastWindowClosed(False)
+    # Safety net for scrollbars added in future Qt widgets/menus. Existing
+    # themed views override the track color to match their own surface.
+    app.setStyleSheet(MAIN_LIST_SCROLLBAR_QSS)
     app.setWindowIcon(application_icon())
     # One user/session-local instance, independent of its installation directory.
     name='FRBLaunch-'+os.environ.get('USERNAME',os.environ.get('USER','default'))
