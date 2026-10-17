@@ -85,4 +85,14 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
     def order_surface(self):return self.viewport()
     def order_rects(self):return [self.visualItemRect(self.topLevelItem(i)) for i in range(self.topLevelItemCount())]
     def paintEvent(self,event):
-        super().paintEvent(event);self.paint_order_line()
+        super().paintEvent(event)
+        if (getattr(self.launcher, '_column_mode', None) == 'main' and
+                getattr(self.launcher, '_main_column_hover', False)):
+            # Quiet alignment guide visible only when the hidden divider is
+            # hovered/dragged; the normal main menu remains header-free.
+            x = self.columnViewportPosition(1)
+            painter = QPainter(self.viewport())
+            painter.setPen(QColor('#7296b9'))
+            painter.drawLine(x, 0, x, self.viewport().height())
+            painter.end()
+        self.paint_order_line()

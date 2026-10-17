@@ -721,8 +721,8 @@ function renderDocumentGrid(gd=gridDef()) {
 
 
 function fallbackMatchesStudioFullText(row, rawQuery) {
-  const query = String(rawQuery ?? '').trim().toLowerCase();
-  if (!query) return true;
+  const keywords = String(rawQuery ?? '').trim().toLowerCase().split(/\s+/u).filter(Boolean);
+  if (!keywords.length) return true;
 
   const values = [];
   const seen = new Set();
@@ -737,7 +737,8 @@ function fallbackMatchesStudioFullText(row, rawQuery) {
     else Object.values(value).forEach(collect);
   };
   collect(row);
-  return values.join('\n').toLowerCase().includes(query);
+  const text = values.join('\n').toLowerCase();
+  return keywords.every(keyword => text.includes(keyword));
 }
 
 function applySearch() {

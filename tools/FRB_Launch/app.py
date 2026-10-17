@@ -719,10 +719,12 @@ class Launcher(QWidget):
         header.setSectionsClickable(True)
         header.setSortIndicatorShown(False)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
-        for column, default in ((0, 180), (1, 180)):
-            saved = self.saved_dimension(self.settings.value(f'result_width_{column}', default),
-                                         default, 70, 2000)
-            self.list.setColumnWidth(column, saved)
+        # The same QTreeWidget serves two modes, but widths are independent.
+        # No visible header is needed to resize the main menu's first column.
+        self._column_mode = None
+        self._applying_column_layout = False
+        self._main_width_drag = None
+        self._main_column_hover = False
         header.sectionClicked.connect(self.sort_search_column)
         header.sectionResized.connect(self.save_result_column_width)
         self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -1437,10 +1439,132 @@ class Launcher(QWidget):
         """Skip redundant singleton folder levels for browser bookmarks only."""
         return visible_bookmark_children(parent, self.children)
 
+    def set_list_column_mode(self, searching):
+        """Use separate persistent widths for the ordinary menu and search.
+
+        The main menu has a hidden header: its first/second-column boundary
+        is a draggable grip and the second column fills the available space.
+        Search mode retains both independently draggable header sections.
+        """
+        mode = 'result' if searching else 'main'
+        if self._column_mode == mode:
+            return
+        self._column_mode = mode
+        self._main_width_drag = None
+        self._main_column_hover = False
+        self.list.viewport().unsetCursor()
+        self.list.viewport().update()
+        self._applying_column_layout = True
+        try:
+            if searching:
+                for column, default in ((0, 180), (1, 180)):
+                    saved = self.saved_dimension(
+                        self.settings.value(f'result_width_{column}', default),
+                        default, 70, 2000)
+                    self.list.setColumnWidth(column, saved)
+            else:
+                first = self.saved_dimension(self.settings.value('main_width_0', 235),
+                                             235, 70, 2000)
+                self.list.setColumnWidth(0, first)
+                self.fill_main_second_column()
+        finally:
+            self._applying_column_layout = False
+
+    def fill_main_second_column(self):
+        """Keep the main menu at two full-width columns without a header."""
+        if getattr(self, '_column_mode', None) != 'main':
+            return
+        viewport_width = self.list.viewport().width()
+        if viewport_width < 150:  # Not laid out yet (during construction).
+            return
+        minimum = 70
+        first = self.list.columnWidth(0)
+        if first > viewport_width - minimum:
+            first = max(minimum, viewport_width - minimum)
+            self.list.setColumnWidth(0, first)
+        second = max(minimum, viewport_width - first)
+        if self.list.columnWidth(1) != second:
+            self.list.setColumnWidth(1, second)
+
     def save_result_column_width(self, column, old_width, new_width):
-        # QSettings stores only presentation state, never user launch data.
-        if column in (0, 1) and new_width >= 70:
+        # Presentation settings only; never mutate the Launch DataJSON.
+        if getattr(self, '_applying_column_layout', False) or new_width < 70:
+            return
+        if self._column_mode == 'result' and column in (0, 1):
             self.settings.setValue(f'result_width_{column}', new_width)
+        elif self._column_mode == 'main' and column == 0:
+            self.settings.setValue('main_width_0', new_width)
+            self._applying_column_layout = True
+            try:
+                self.fill_main_second_column()
+            finally:
+                self._applying_column_layout = False
+
+    def _main_divider_hit(self, x):
+        if (self._column_mode != 'main' or getattr(self, 'selection', None) is not None
+                or self.list.viewport().width() < 150):
+            return False
+        divider = self.list.columnViewportPosition(1)
+        return abs(x - divider) <= 6
+
+    def handle_main_column_resize(self, event):
+        """Resize hidden-header columns by dragging the boundary in the list.
+
+        The event filter is installed on the viewport. All unrelated row
+        interactions (selection, launch, order drag) fall through unchanged.
+        """
+        kind = event.type()
+        viewport = self.list.viewport()
+        if kind == QEvent.Type.Resize:
+            if self._column_mode == 'main' and not self._applying_column_layout:
+                self._applying_column_layout = True
+                try:
+                    self.fill_main_second_column()
+                finally:
+                    self._applying_column_layout = False
+            return False
+        if kind == QEvent.Type.Leave and self._main_width_drag is None:
+            self._main_column_hover = False
+            viewport.unsetCursor()
+            viewport.update()
+            return False
+        if kind not in (QEvent.Type.MouseMove, QEvent.Type.MouseButtonPress,
+                        QEvent.Type.MouseButtonRelease, QEvent.Type.MouseButtonDblClick):
+            return False
+        x = event.position().toPoint().x()
+        dragging = self._main_width_drag is not None
+        hot = dragging or self._main_divider_hit(x)
+        if hot != self._main_column_hover:
+            self._main_column_hover = hot
+            viewport.update()
+        if hot:
+            viewport.setCursor(Qt.CursorShape.SplitHCursor)
+        else:
+            viewport.unsetCursor()
+        if kind == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton and hot:
+            self._main_width_drag = (x, self.list.columnWidth(0))
+            viewport.grabMouse()
+            self.hover_timer.stop()
+            self.pending_menu_item = None
+            event.accept()
+            return True
+        if kind == QEvent.Type.MouseMove and dragging:
+            start_x, start_width = self._main_width_drag
+            width = max(70, min(viewport.width() - 70, start_width + x - start_x))
+            if width != self.list.columnWidth(0):
+                self.list.setColumnWidth(0, width)
+            event.accept()
+            return True
+        if kind == QEvent.Type.MouseButtonRelease and dragging and event.button() == Qt.MouseButton.LeftButton:
+            self._main_width_drag = None
+            viewport.releaseMouse()
+            self.settings.setValue('main_width_0', self.list.columnWidth(0))
+            event.accept()
+            return True
+        if kind == QEvent.Type.MouseButtonDblClick and hot:
+            event.accept()
+            return True
+        return False
 
     def sort_search_column(self, column):
         if column not in (0, 1) or not self.search.text().strip():
@@ -1469,6 +1593,7 @@ class Launcher(QWidget):
         self.hover_timer.stop();self.pending_menu_item=None
         self.selection_tools.setVisible(self.selection is not None)
         query=self.search.text().strip()
+        self.set_list_column_mode(bool(query))
         self.list.setHeaderHidden(not bool(query))
         self.list.header().setSortIndicatorShown(bool(query) and self.result_sort_column >= 0)
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded if query else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -1638,7 +1763,11 @@ class Launcher(QWidget):
                         m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
                         self.fill_cascade(m.child,r)
-                        m.child.popup(m.mapToGlobal(m.actionGeometry(a).topRight()))
+                        # Anchor to the *visible parent menu's* right edge,
+                        # not actionGeometry's width (which can be stale after
+                        # a local filter or an oversized scroll adaptation).
+                        action_rect = m.actionGeometry(a)
+                        m.child.popup(m.mapToGlobal(QPoint(m.width() - 1, action_rect.top())))
                         m.child.setFocus()
                     menu.openers[action]=open_child
                     action.triggered.connect(lambda checked=False, fn=open_child:fn())
@@ -1669,7 +1798,12 @@ class Launcher(QWidget):
         self.menu=(AppCascadeMenu if row.get('launch_source')=='installed_apps' else CascadeMenu)(parent=self,launcher=self)
         self.menu.open_mode=mode;self.menu.owner_item=q or self.list.currentItem()
         self.fill_cascade(self.menu,row)
-        pos=self.list.viewport().mapToGlobal(self.list.visualItemRect(q or self.list.currentItem()).topRight())
+        # Do NOT anchor a popup to visualItemRect(...).topRight(): its right
+        # coordinate changes with hidden-header column widths and can extend
+        # beyond the launcher. The viewport's actual right edge is stable.
+        viewport = self.list.viewport()
+        rect = self.list.visualItemRect(q or self.list.currentItem())
+        pos = viewport.mapToGlobal(QPoint(viewport.width() - 1, rect.top()))
         self.menu.popup(pos);self.menu.setFocus()
 
     def activate(self,row):
@@ -1923,6 +2057,11 @@ class Launcher(QWidget):
 
     def eventFilter(self,obj,event):
         if obj is self.list.viewport():
+            # Headerless main-menu columns have an invisible draggable grip.
+            # Handle before double-click activation, but leave all other row
+            # actions to the existing event path.
+            if getattr(self, '_column_mode', None) == 'main' and self.handle_main_column_resize(event):
+                return True
             if (event.type()==QEvent.Type.MouseButtonDblClick
                     and event.button()==Qt.MouseButton.LeftButton):
                 item = self.list.itemAt(event.position().toPoint())

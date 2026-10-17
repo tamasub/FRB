@@ -1,2069 +1,1812 @@
 {
-    "title":  "FRB Launch 設定",
-    "launch_format_version":  "0.2-draft",
-    "view_def":  "launch/frb_launch_maintenance_view_def_v0_1.json",
-    "launch_hotkey":  "Ctrl+Shift+;",
-    "launch_default_page_id":  "work",
-    "launch_search_scope":  "all_pages",
-    "launch_hover_delay_ms":  250,
-    "launch_timezone":  "Asia/Tokyo",
-    "pages":  [
-                  {
-                      "page_id":  "work",
-                      "title":  "仕事",
-                      "sort_order":  10,
-                      "enabled":  true
-                  },
-                  {
-                      "page_id":  "frb",
-                      "title":  "FRB実験",
-                      "sort_order":  30,
-                      "enabled":  true
-                  },
-                  {
-                      "page_id":  "windows",
-                      "title":  "Windows",
-                      "sort_order":  20,
-                      "enabled":  true
-                  }
-              ],
-    "items":  [
-                  {
-                      "item_id":  "dates",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "日付・定型文",
-                      "description":  "日付入力と定型プロンプト",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  50,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "mail",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "メール宛先",
-                      "description":  "組織別の宛先を選択",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  70,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "folders",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "Files",
-                      "description":  "実フォルダー・ファイルを展開",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "zip",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "ZIP作成",
-                      "description":  "用途別のバッチを起動",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  60,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "yesterday",
-                      "page_id":  "work",
-                      "parent_item_id":  "dates",
-                      "title":  "昨日の日付",
-                      "description":  "日付を展開して入力",
-                      "item_kind":  "command",
-                      "icon_key":  "calendar",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "%yesterday:yyyy/MM/dd%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "today",
-                      "page_id":  "work",
-                      "parent_item_id":  "dates",
-                      "title":  "今日の日付",
-                      "description":  "日付を展開して入力",
-                      "item_kind":  "command",
-                      "icon_key":  "calendar",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "%today:yyyy/MM/dd%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "year_month",
-                      "page_id":  "work",
-                      "parent_item_id":  "dates",
-                      "title":  "年月",
-                      "description":  "日付を展開して入力",
-                      "item_kind":  "command",
-                      "icon_key":  "calendar",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "%now:yyyy/M%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "prompt",
-                      "page_id":  "work",
-                      "parent_item_id":  "dates",
-                      "title":  "文章レビュー",
-                      "description":  "クリップボードの文章をレビュー",
-                      "item_kind":  "command",
-                      "icon_key":  "message",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "以下の文章の誤字脱字と不自然な表現を修正してください。",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "sales",
-                      "page_id":  "work",
-                      "parent_item_id":  "mail",
-                      "title":  "営業部 E-MAIL",
-                      "description":  "Spaceで選択、F12で宛先を入力",
-                      "item_kind":  "selection",
-                      "icon_key":  "mail",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "sales",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "%recipients%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "studio_dir",
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "title":  "FRB Studio_App",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  60,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "%studio_root%",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "%studio_root%",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "studio_app",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "設定",
-                      "description":  "[FRB Studio] Launch設定JSONを開いて編集",
-                      "item_kind":  "command",
-                      "icon_key":  "settings",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "%studio_root%\\NativeShell\\_publish\\FRBStudio.NativeShell.exe",
-                                                 "launch_arguments":  [
-                                                                          "--open-json=%launch_data%"
-                                                                      ],
-                                                 "launch_working_directory":  "%studio_root%",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "zip_studio",
-                      "page_id":  "work",
-                      "parent_item_id":  "zip",
-                      "title":  "FRB Studio をZIP保存",
-                      "description":  "DOS窓を表示してZIPを作成（Launchは操作可能）",
-                      "item_kind":  "command",
-                      "icon_key":  "archive",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "圧縮"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "cmd.exe",
-                                                 "launch_arguments":  [
-                                                                          "/d",
-                                                                          "/c",
-                                                                          "%studio_root%\\cmd_make_FRBStudio_App_zip_v2.bat"
-                                                                      ],
-                                                 "launch_working_directory":  "%studio_root%",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  120000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_show_console":  true
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "devices",
-                      "page_id":  "frb",
-                      "parent_item_id":  "",
-                      "title":  "実験装置",
-                      "description":  "Wi-Fi接続と画面表示",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "audio",
-                      "page_id":  "windows",
-                      "parent_item_id":  "",
-                      "title":  "音声出力",
-                      "description":  "スピーカーとイヤフォン",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "fft",
-                      "page_id":  "frb",
-                      "parent_item_id":  "devices",
-                      "title":  "FRB FFT",
-                      "description":  "Wi-Fi接続を確認してから画面を開く",
-                      "item_kind":  "command",
-                      "icon_key":  "wifi",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-NoProfile",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Connect-Wifi.ps1",
-                                                                          "-ProfileName",
-                                                                          "%fft_wifi_profile%",
-                                                                          "-ProbeUrl",
-                                                                          "http://%fft_address%"
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  60000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_show_console":  true
-                                             },
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "http://%fft_address%",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_browser":  "chrome"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "cam",
-                      "page_id":  "frb",
-                      "parent_item_id":  "devices",
-                      "title":  "FRB CAM",
-                      "description":  "Wi-Fi接続を確認してから画面を開く",
-                      "item_kind":  "command",
-                      "icon_key":  "wifi",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-NoProfile",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Connect-Wifi.ps1",
-                                                                          "-ProfileName",
-                                                                          "%cam_wifi_profile%",
-                                                                          "-ProbeUrl",
-                                                                          "http://%cam_address%"
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  60000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_show_console":  true
-                                             },
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "http://%cam_address%",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_browser":  "chrome"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "wifi_home",
-                      "page_id":  "frb",
-                      "parent_item_id":  "devices",
-                      "title":  "普段のWi-Fiに戻る",
-                      "description":  "通常の接続先に戻す",
-                      "item_kind":  "command",
-                      "icon_key":  "wifi",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-NoProfile",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Connect-Wifi.ps1",
-                                                                          "-ProfileName",
-                                                                          "%home_wifi_profile%"
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  60000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none",
-                                                 "launch_show_console":  true
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "speaker",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "ディスプレイスピーカー",
-                      "description":  "初回に出力先を選んで登録。以後は選択だけで切替",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  190,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-ConfigPath",
-                                                                          "%launch_data%",
-                                                                          "-VariableId",
-                                                                          "speaker_device_id"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "earphone",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "イヤフォン",
-                      "description":  "初回に出力先を選んで登録。以後は選択だけで切替",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  200,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-ConfigPath",
-                                                                          "%launch_data%",
-                                                                          "-VariableId",
-                                                                          "earphone_device_id"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "locations",
-                      "page_id":  "windows",
-                      "parent_item_id":  "",
-                      "title":  "Windowsの場所",
-                      "description":  "特殊フォルダーと各種場所",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  50,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "d36c5d04-76b6-4003-bbf8-382fa296aef1",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "PC",
-                      "description":  "デバイスとドライブを表示",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "PC",
-                                       "コンピューター",
-                                       "ドライブ",
-                                       "This PC"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:MyComputerFolder",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "roaming",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "Roaming",
-                      "description":  "shell:AppData",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:AppData",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "local",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "Local",
-                      "description":  "shell:Local AppData",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:Local AppData",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "downloads",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "ダウンロード",
-                      "description":  "shell:Downloads",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:Downloads",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "recycle",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "ごみ箱",
-                      "description":  "shell:RecycleBinFolder",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  50,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:RecycleBinFolder",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "startup",
-                      "page_id":  "windows",
-                      "parent_item_id":  "locations",
-                      "title":  "スタートアップ",
-                      "description":  "shell:Startup",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  60,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:Startup",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "sound_settings",
-                      "page_id":  "windows",
-                      "parent_item_id":  "",
-                      "title":  "サウンド設定",
-                      "description":  "Windowsの設定を開く",
-                      "item_kind":  "command",
-                      "icon_key":  "settings",
-                      "sort_order":  60,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "ms-settings:sound",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "frb_root_folder",
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "title":  "FRB  Root",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "F:\\FRB",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "launch_source_zip",
-                      "page_id":  "work",
-                      "parent_item_id":  "zip",
-                      "title":  "FRB Launch をZIP保存",
-                      "description":  "日時付きのソース・設定ZIPを作成",
-                      "item_kind":  "command",
-                      "icon_key":  "archive",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "圧縮"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\FRB_Launch\\_make_launch_zip.bat"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "work_files",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "One File",
-                      "description":  "",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "frb_files",
-                      "page_id":  "work",
-                      "parent_item_id":  "work_files",
-                      "title":  "FRB Files",
-                      "description":  "FRB Files",
-                      "item_kind":  "category",
-                      "icon_key":  "file",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "frb"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "item_id":  "audio_list",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "音声出力デバイス一覧",
-                      "description":  "名前とIDをメモ帳で確認",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  210,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-List"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "audio_choose",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "出力先を選んで切り替え",
-                      "description":  "接続中の出力デバイスから選ぶ",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  220,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-Choose"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "speaker_register",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "スピーカーの登録し直し",
-                      "description":  "接続中の出力デバイスから選ぶ",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  230,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-ConfigPath",
-                                                                          "%launch_data%",
-                                                                          "-VariableId",
-                                                                          "speaker_device_id",
-                                                                          "-Choose"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "earphone_register",
-                      "page_id":  "windows",
-                      "parent_item_id":  "audio",
-                      "title":  "イヤフォンの登録し直し",
-                      "description":  "接続中の出力デバイスから選ぶ",
-                      "item_kind":  "command",
-                      "icon_key":  "volume",
-                      "sort_order":  240,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_program":  "powershell.exe",
-                                                 "launch_arguments":  [
-                                                                          "-NoProfile",
-                                                                          "-ExecutionPolicy",
-                                                                          "Bypass",
-                                                                          "-File",
-                                                                          "%launch_scripts%\\Set-AudioOutput.ps1",
-                                                                          "-ConfigPath",
-                                                                          "%launch_data%",
-                                                                          "-VariableId",
-                                                                          "earphone_device_id",
-                                                                          "-Choose"
-                                                                      ],
-                                                 "launch_show_console":  false,
-                                                 "launch_wait_for_exit":  true,
-                                                 "launch_timeout_ms":  600000
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "installed_apps",
-                      "page_id":  "windows",
-                      "parent_item_id":  "",
-                      "title":  "アプリ",
-                      "description":  "起動できるアプリを名前順で表示",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "アプリケーション",
-                                       "ソフト",
-                                       "installed apps"
-                                   ],
-                      "launch_source":  "installed_apps",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "work_files",
-                      "item_id":  "35316c61-4a73-46eb-826b-821d17b89995",
-                      "title":  "FRB_Tools",
-                      "description":  "FRB_Tools",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "35316c61-4a73-46eb-826b-821d17b89995",
-                      "item_id":  "0e9c564a-ee8b-409d-a8a3-ab1b2d4d35d3",
-                      "title":  "frb_camera_jpg_player",
-                      "description":  "frb_camera_jpg_player",
-                      "item_kind":  "command",
-                      "icon_key":  "command",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "file:///F:/FRB/tools/frb_camera_jpg_player/frb_camera_jpg_player.html",
-                                                 "launch_browser":  "",
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "b5d2a0e0-2e84-4524-86f4-ab053663e3cd",
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "title":  "PC",
-                      "description":  "デバイスとドライブを表示",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "PC",
-                                       "コンピューター",
-                                       "ドライブ",
-                                       "This PC"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "F:\\",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "shell:MyComputerFolder"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "item_id":  "3602dda2-b6e9-4a04-859e-56de69037470",
-                      "title":  "FRB_Launch",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  50,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "F:\\FRB\\tools\\FRB_Launch",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\FRB_Launch"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "item_id":  "090c2b79-2581-42d8-9ac6-3ae17ececd99",
-                      "title":  "F:\\",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "F"
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "F:\\",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "frb",
-                      "parent_item_id":  "",
-                      "item_id":  "cbd0a35f-07c8-499f-be3f-d614d65e70d0",
-                      "title":  "wifi List",
-                      "description":  "wifi List",
-                      "item_kind":  "command",
-                      "icon_key":  "category.blue",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_target":  "start ms-settings:network-wifi",
-                                                 "launch_text":  "",
-                                                 "launch_program":  "explorer.exe",
-                                                 "launch_arguments":  [
-                                                                          "ms-settings:network-wifi"
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_browser":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_show_console":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "item_id":  "b43442c0-4da2-4cc3-85d6-e220b3d93aa4",
-                      "title":  "FRB_docsExcel",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  70,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "F:\\FRB_docsExcel",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB_docsExcel"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "52c5c237-d89c-4e63-9355-a119e99c3bdf",
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "title":  "ダウンロード",
-                      "description":  "shell:Downloads",
-                      "item_kind":  "command",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "shell:Downloads",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "zip",
-                      "item_id":  "0eee8d4a-4e18-4ff0-9960-a43ccae54e76",
-                      "title":  "FRB Main BackUp  ZIP保存",
-                      "description":  "F:\\FRB ／　F:\\FRB_docsExcel",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\zip_export\\Export-FrbZip.bat"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "zip",
-                      "item_id":  "faeee8f3-0b4a-4344-b5f1-594902740f42",
-                      "title":  "archiveへ Zip保存",
-                      "description":  "F:\\FRB_docsExcel\\設計書 ／　実験ログ",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\archive_export\\Export-FrbDocsArchive.bat",
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "windows",
-                      "parent_item_id":  "",
-                      "item_id":  "a9bf171f-68ba-46a9-a742-b47b7e529957",
-                      "title":  "設定",
-                      "description":  "[FRB Studio] Launch設定JSONを開いて編集",
-                      "item_kind":  "command",
-                      "icon_key":  "settings",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Run",
-                                                 "launch_text":  "",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "%studio_root%\\NativeShell\\_publish\\FRBStudio.NativeShell.exe",
-                                                 "launch_arguments":  [
-                                                                          "--open-json=%launch_data%"
-                                                                      ],
-                                                 "launch_working_directory":  "%studio_root%",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "frb_files",
-                      "item_id":  "6e38c5ad-8785-446d-b78b-bece804c42fc",
-                      "title":  "FRB_人間知覚帯域マップ_画像復元_20261015.xlsx",
-                      "description":  "",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB_docsExcel\\設計書\\FRB_人間知覚帯域マップ_画像復元_20261015.xlsx"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "__browser_bookmarks_root",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "ブックマーク",
-                      "description":  "Chrome / Edge のブックマークを自動取得",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  40,
-                      "enabled":  true,
-                      "keywords":  [
-                                       "bookmark",
-                                       "お気に入り"
-                                   ],
-                      "launch_source":  "browser_bookmarks",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "frb_files",
-                      "item_id":  "47e6a2b4-d942-44f0-95d4-f29d25dea706",
-                      "title":  "Book1.xlsx",
-                      "description":  "%USERPROFILE%\\OneDrive\\ドキュメント\\Book1.xlsx",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  30,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "%USERPROFILE%\\OneDrive\\ドキュメント\\Book1.xlsx"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "9190e8c0-21e6-4606-960e-f93d2034bfc5",
-                      "page_id":  "work",
-                      "parent_item_id":  "dates",
-                      "title":  "環境変数変換テスト",
-                      "description":  "",
-                      "item_kind":  "command",
-                      "icon_key":  "message",
-                      "sort_order":  50,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "USERPROFILE：%USERPROFILE%\nAPPDATA：%APPDATA%\nLOCALAPPDATA：%LOCALAPPDATA%\nTEMP：%TEMP%\nPath：%Path%\nUSERNAME：%USERNAME%\nOneDrive：%OneDrive%\n\n----\n\nstudio_root：%studio_root%\nyesterday：%yesterday:yyyy/MM/dd%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "5f4d04f5-40e5-4b1e-b569-062073ad2540",
-                      "page_id":  "work",
-                      "parent_item_id":  "mail",
-                      "title":  "SE部 E-MAIL",
-                      "description":  "Spaceで選択、F12で宛先を入力",
-                      "item_kind":  "selection",
-                      "icon_key":  "mail",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "se",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  ";\\r\\n",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "SendKey",
-                                                 "launch_text":  "%recipients%",
-                                                 "launch_target":  "",
-                                                 "launch_program":  "",
-                                                 "launch_arguments":  [
-
-                                                                      ],
-                                                 "launch_working_directory":  "",
-                                                 "launch_wait_for_exit":  false,
-                                                 "launch_timeout_ms":  30000,
-                                                 "launch_failure_policy":  "stop",
-                                                 "launch_result_name":  "",
-                                                 "launch_result_format":  "none"
-                                             }
-                                         ]
-                  },
-                  {
-                      "item_id":  "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
-                      "page_id":  "work",
-                      "parent_item_id":  "",
-                      "title":  "APP",
-                      "description":  "",
-                      "item_kind":  "category",
-                      "icon_key":  "category.blue",
-                      "sort_order":  35,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "value",
-                      "launch_selection_separator":  "; ",
-                      "launch_selection_result_name":  "recipients",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
-                      "item_id":  "465d2504-07de-485c-9fcc-99e3f5c3c090",
-                      "title":  "Visual Studio Code",
-                      "description":  "VSCord",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  10,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "\"C:\\Users\\tsub-\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\""
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
-                      "item_id":  "1d8f95a1-c67a-40bc-84d8-ebc17c9336be",
-                      "title":  "サクラエディタ",
-                      "description":  "sakura",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "\"C:\\Program Files (x86)\\sakura\\sakura.exe\""
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "folders",
-                      "item_id":  "f0628e81-c03f-4573-820c-4b56f8dcbe37",
-                      "title":  "FRBStudio_App\\data\\json",
-                      "description":  "",
-                      "item_kind":  "directory",
-                      "icon_key":  "folder.yellow",
-                      "sort_order":  80,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "F:\\FRB\\tools\\FRBStudio_App\\data\\json",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\FRBStudio_App\\data"
-                                             }
-                                         ]
-                  },
-                  {
-                      "page_id":  "work",
-                      "parent_item_id":  "frb_files",
-                      "item_id":  "ec081c95-0490-4928-b6b7-d6756073cfe1",
-                      "title":  "_studio_work_incident_data_v2.json",
-                      "description":  "",
-                      "item_kind":  "command",
-                      "icon_key":  "file",
-                      "sort_order":  20,
-                      "enabled":  true,
-                      "keywords":  [
-
-                                   ],
-                      "launch_selection_group_id":  "",
-                      "launch_selection_value_field":  "",
-                      "launch_selection_separator":  "",
-                      "launch_selection_result_name":  "",
-                      "launch_browse_target":  "",
-                      "launch_context_app":  "",
-                      "launch_context_url_pattern":  "",
-                      "launch_actions":  [
-                                             {
-                                                 "launch_action_type":  "Open",
-                                                 "launch_target":  "F:\\FRB\\tools\\FRBStudio_App\\data\\json\\01_main\\_studio_work_incident_data_v2.json"
-                                             }
-                                         ]
-                  }
-              ],
-    "launch_variables":  [
-                             {
-                                 "variable_id":  "studio_root",
-                                 "title":  "Studioのフォルダー",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "F:\\FRB\\tools\\FRBStudio_App",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "fft_wifi_profile",
-                                 "title":  "FFT接続プロファイル",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "ESP32_FFT 2",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "fft_address",
-                                 "title":  "FFTアドレス",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "192.168.4.1",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "cam_wifi_profile",
-                                 "title":  "CAM接続プロファイル",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "FRB_CAM 2",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "cam_address",
-                                 "title":  "CAMアドレス",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "192.168.4.1",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "home_wifi_profile",
-                                 "title":  "通常Wi-Fiプロファイル",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "REPLACE_HOME_PROFILE_zz",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "speaker_device_id",
-                                 "title":  "スピーカー識別子",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "{0.0.0.00000000}.{109ee0cd-51b6-4d02-ba0e-f9757f7add1c}",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             },
-                             {
-                                 "variable_id":  "earphone_device_id",
-                                 "title":  "イヤフォン識別子",
-                                 "launch_variable_type":  "literal",
-                                 "launch_value":  "{0.0.0.00000000}.{69c420db-8723-4604-8f97-3024a8900d9f}",
-                                 "launch_date_offset_days":  0,
-                                 "launch_date_format":  "",
-                                 "enabled":  true
-                             }
-                         ],
-    "launch_choices":  [
-                           {
-                               "group_id":  "sales",
-                               "enabled":  true,
-                               "title":  "田中（サンプル）",
-                               "value":  "tanaka@example.invalid",
-                               "description":  "tanaka@example.invalid",
-                               "choice_id":  "import_mail_000001",
-                               "sort_order":  10
-                           },
-                           {
-                               "group_id":  "sales",
-                               "enabled":  true,
-                               "title":  "佐藤（サンプル）",
-                               "value":  "sato@example.invalid",
-                               "description":  "sato@example.invalid",
-                               "choice_id":  "import_mail_000002",
-                               "sort_order":  20
-                           },
-                           {
-                               "group_id":  "sales",
-                               "enabled":  true,
-                               "title":  "鈴木（サンプル）",
-                               "value":  "suzuki@example.invalid",
-                               "description":  "suzuki@example.invalid",
-                               "choice_id":  "import_mail_000003",
-                               "sort_order":  30
-                           },
-                           {
-                               "group_id":  "se",
-                               "enabled":  true,
-                               "title":  "se001",
-                               "value":  "se001@example.invalid",
-                               "description":  "se001@example.invalid",
-                               "choice_id":  "import_mail_000004",
-                               "sort_order":  40
-                           },
-                           {
-                               "group_id":  "se",
-                               "enabled":  true,
-                               "title":  "se002",
-                               "value":  "se002@example.invalid",
-                               "description":  "se002@example.invalid",
-                               "choice_id":  "import_mail_000005",
-                               "sort_order":  50
-                           },
-                           {
-                               "group_id":  "se",
-                               "enabled":  true,
-                               "title":  "se003",
-                               "value":  "se003@example.invalid",
-                               "description":  "se003@example.invalid",
-                               "choice_id":  "import_mail_000006",
-                               "sort_order":  60
-                           },
-                           {
-                               "group_id":  "se",
-                               "enabled":  true,
-                               "title":  "se004",
-                               "value":  "se004@example.invalid",
-                               "description":  "se004@example.invalid",
-                               "choice_id":  "import_mail_000007",
-                               "sort_order":  70
-                           }
-                       ],
-    "bookmark_category_initialized":  true
+  "title": "FRB Launch 設定",
+  "launch_format_version": "0.2-draft",
+  "view_def": "launch/frb_launch_maintenance_view_def_v0_1.json",
+  "launch_hotkey": "Ctrl+Shift+;",
+  "launch_default_page_id": "work",
+  "launch_search_scope": "all_pages",
+  "launch_hover_delay_ms": 250,
+  "launch_timezone": "Asia/Tokyo",
+  "pages": [
+    {
+      "page_id": "work",
+      "title": "仕事",
+      "sort_order": 10,
+      "enabled": true
+    },
+    {
+      "page_id": "frb",
+      "title": "FRB実験",
+      "sort_order": 30,
+      "enabled": true
+    },
+    {
+      "page_id": "windows",
+      "title": "Windows",
+      "sort_order": 20,
+      "enabled": true
+    }
+  ],
+  "items": [
+    {
+      "item_id": "dates",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "日付・定型文",
+      "description": "日付入力と定型プロンプト",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "mail",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "メール宛先",
+      "description": "組織別の宛先を選択",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 80,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "folders",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "Files",
+      "description": "実フォルダー・ファイルを展開",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "zip",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "ZIP作成",
+      "description": "用途別のバッチを起動",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "yesterday",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "昨日の日付",
+      "description": "日付を展開して入力",
+      "item_kind": "command",
+      "icon_key": "calendar",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%yesterday:yyyy/MM/dd%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "today",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "今日の日付",
+      "description": "日付を展開して入力",
+      "item_kind": "command",
+      "icon_key": "calendar",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%today:yyyy/MM/dd%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "year_month",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "年月",
+      "description": "日付を展開して入力",
+      "item_kind": "command",
+      "icon_key": "calendar",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%now:yyyy/M%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "prompt",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "文章レビュー",
+      "description": "クリップボードの文章をレビュー",
+      "item_kind": "command",
+      "icon_key": "message",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "以下の文章の誤字脱字と不自然な表現を修正してください。",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "sales",
+      "page_id": "work",
+      "parent_item_id": "mail",
+      "title": "営業部 E-MAIL",
+      "description": "Spaceで選択、F12で宛先を入力",
+      "item_kind": "selection",
+      "icon_key": "mail",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "sales",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%recipients%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "studio_dir",
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "title": "FRB Studio_App",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 60,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "%studio_root%",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "%studio_root%",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "studio_app",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "設定",
+      "description": "[FRB Studio] Launch設定JSONを開いて編集",
+      "item_kind": "command",
+      "icon_key": "settings",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "%studio_root%\\NativeShell\\_publish\\FRBStudio.NativeShell.exe",
+          "launch_arguments": [
+            "--open-json=%launch_data%"
+          ],
+          "launch_working_directory": "%studio_root%",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "zip_studio",
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "title": "FRB Studio をZIP保存",
+      "description": "DOS窓を表示してZIPを作成（Launchは操作可能）",
+      "item_kind": "command",
+      "icon_key": "archive",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [
+        "圧縮"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "cmd.exe",
+          "launch_arguments": [
+            "/d",
+            "/c",
+            "%studio_root%\\cmd_make_FRBStudio_App_zip_v2.bat"
+          ],
+          "launch_working_directory": "%studio_root%",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 120000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_show_console": true
+        }
+      ]
+    },
+    {
+      "item_id": "devices",
+      "page_id": "frb",
+      "parent_item_id": "",
+      "title": "実験装置",
+      "description": "Wi-Fi接続と画面表示",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "audio",
+      "page_id": "windows",
+      "parent_item_id": "",
+      "title": "音声出力",
+      "description": "スピーカーとイヤフォン",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "fft",
+      "page_id": "frb",
+      "parent_item_id": "devices",
+      "title": "FRB FFT",
+      "description": "Wi-Fi接続を確認してから画面を開く",
+      "item_kind": "command",
+      "icon_key": "wifi",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-ExecutionPolicy",
+            "Bypass",
+            "-NoProfile",
+            "-File",
+            "%launch_scripts%\\Connect-Wifi.ps1",
+            "-ProfileName",
+            "%fft_wifi_profile%",
+            "-ProbeUrl",
+            "http://%fft_address%"
+          ],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 60000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_show_console": true
+        },
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "http://%fft_address%",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_browser": "chrome"
+        }
+      ]
+    },
+    {
+      "item_id": "cam",
+      "page_id": "frb",
+      "parent_item_id": "devices",
+      "title": "FRB CAM",
+      "description": "Wi-Fi接続を確認してから画面を開く",
+      "item_kind": "command",
+      "icon_key": "wifi",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-ExecutionPolicy",
+            "Bypass",
+            "-NoProfile",
+            "-File",
+            "%launch_scripts%\\Connect-Wifi.ps1",
+            "-ProfileName",
+            "%cam_wifi_profile%",
+            "-ProbeUrl",
+            "http://%cam_address%"
+          ],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 60000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_show_console": true
+        },
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "http://%cam_address%",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_browser": "chrome"
+        }
+      ]
+    },
+    {
+      "item_id": "wifi_home",
+      "page_id": "frb",
+      "parent_item_id": "devices",
+      "title": "普段のWi-Fiに戻る",
+      "description": "通常の接続先に戻す",
+      "item_kind": "command",
+      "icon_key": "wifi",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-ExecutionPolicy",
+            "Bypass",
+            "-NoProfile",
+            "-File",
+            "%launch_scripts%\\Connect-Wifi.ps1",
+            "-ProfileName",
+            "%home_wifi_profile%"
+          ],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 60000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none",
+          "launch_show_console": true
+        }
+      ]
+    },
+    {
+      "item_id": "speaker",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "ディスプレイスピーカー",
+      "description": "初回に出力先を選んで登録。以後は選択だけで切替",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 190,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-ConfigPath",
+            "%launch_data%",
+            "-VariableId",
+            "speaker_device_id"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "earphone",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "イヤフォン",
+      "description": "初回に出力先を選んで登録。以後は選択だけで切替",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 200,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-ConfigPath",
+            "%launch_data%",
+            "-VariableId",
+            "earphone_device_id"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "locations",
+      "page_id": "windows",
+      "parent_item_id": "",
+      "title": "Windowsの場所",
+      "description": "特殊フォルダーと各種場所",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "d36c5d04-76b6-4003-bbf8-382fa296aef1",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "PC",
+      "description": "デバイスとドライブを表示",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "PC",
+        "コンピューター",
+        "ドライブ",
+        "This PC"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:MyComputerFolder",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "roaming",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "Roaming",
+      "description": "shell:AppData",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:AppData",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "local",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "Local",
+      "description": "shell:Local AppData",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:Local AppData",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "downloads",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "ダウンロード",
+      "description": "shell:Downloads",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:Downloads",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "recycle",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "ごみ箱",
+      "description": "shell:RecycleBinFolder",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:RecycleBinFolder",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "startup",
+      "page_id": "windows",
+      "parent_item_id": "locations",
+      "title": "スタートアップ",
+      "description": "shell:Startup",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 60,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:Startup",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "sound_settings",
+      "page_id": "windows",
+      "parent_item_id": "",
+      "title": "サウンド設定",
+      "description": "Windowsの設定を開く",
+      "item_kind": "command",
+      "icon_key": "settings",
+      "sort_order": 60,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "ms-settings:sound",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "frb_root_folder",
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "title": "FRB  Root",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "F:\\FRB",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB"
+        }
+      ]
+    },
+    {
+      "item_id": "launch_source_zip",
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "title": "FRB Launch をZIP保存",
+      "description": "日時付きのソース・設定ZIPを作成",
+      "item_kind": "command",
+      "icon_key": "archive",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "圧縮"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\_make_launch_zip.bat"
+        }
+      ]
+    },
+    {
+      "item_id": "work_files",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "One File",
+      "description": "",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 70,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "audio_list",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "音声出力デバイス一覧",
+      "description": "名前とIDをメモ帳で確認",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 210,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-List"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "audio_choose",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "出力先を選んで切り替え",
+      "description": "接続中の出力デバイスから選ぶ",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 220,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-Choose"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "speaker_register",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "スピーカーの登録し直し",
+      "description": "接続中の出力デバイスから選ぶ",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 230,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-ConfigPath",
+            "%launch_data%",
+            "-VariableId",
+            "speaker_device_id",
+            "-Choose"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "earphone_register",
+      "page_id": "windows",
+      "parent_item_id": "audio",
+      "title": "イヤフォンの登録し直し",
+      "description": "接続中の出力デバイスから選ぶ",
+      "item_kind": "command",
+      "icon_key": "volume",
+      "sort_order": 240,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_program": "powershell.exe",
+          "launch_arguments": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "%launch_scripts%\\Set-AudioOutput.ps1",
+            "-ConfigPath",
+            "%launch_data%",
+            "-VariableId",
+            "earphone_device_id",
+            "-Choose"
+          ],
+          "launch_show_console": false,
+          "launch_wait_for_exit": true,
+          "launch_timeout_ms": 600000
+        }
+      ]
+    },
+    {
+      "item_id": "installed_apps",
+      "page_id": "windows",
+      "parent_item_id": "",
+      "title": "アプリ",
+      "description": "起動できるアプリを名前順で表示",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [
+        "アプリケーション",
+        "ソフト",
+        "installed apps"
+      ],
+      "launch_source": "installed_apps",
+      "launch_actions": []
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "work_files",
+      "item_id": "35316c61-4a73-46eb-826b-821d17b89995",
+      "title": "FRB_Tools",
+      "description": "FRB_Tools",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "35316c61-4a73-46eb-826b-821d17b89995",
+      "item_id": "0e9c564a-ee8b-409d-a8a3-ab1b2d4d35d3",
+      "title": "frb_camera_jpg_player",
+      "description": "frb_camera_jpg_player",
+      "item_kind": "command",
+      "icon_key": "command",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "file:///F:/FRB/tools/frb_camera_jpg_player/frb_camera_jpg_player.html",
+          "launch_browser": "",
+          "launch_failure_policy": "stop",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "b5d2a0e0-2e84-4524-86f4-ab053663e3cd",
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "title": "PC",
+      "description": "デバイスとドライブを表示",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [
+        "PC",
+        "コンピューター",
+        "ドライブ",
+        "This PC"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "F:\\",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "shell:MyComputerFolder"
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "item_id": "3602dda2-b6e9-4a04-859e-56de69037470",
+      "title": "FRB_Launch",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "F:\\FRB\\tools\\FRB_Launch",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch"
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "item_id": "090c2b79-2581-42d8-9ac6-3ae17ececd99",
+      "title": "F:\\",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [
+        "F"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "F:\\",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "cbd0a35f-07c8-499f-be3f-d614d65e70d0",
+      "title": "wifi List",
+      "description": "wifi List",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_target": "start ms-settings:network-wifi",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "item_id": "b43442c0-4da2-4cc3-85d6-e220b3d93aa4",
+      "title": "FRB_docsExcel",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 70,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "F:\\FRB_docsExcel",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB_docsExcel"
+        }
+      ]
+    },
+    {
+      "item_id": "52c5c237-d89c-4e63-9355-a119e99c3bdf",
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "title": "ダウンロード",
+      "description": "shell:Downloads",
+      "item_kind": "command",
+      "icon_key": "folder.yellow",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_text": "",
+          "launch_target": "shell:Downloads",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "item_id": "0eee8d4a-4e18-4ff0-9960-a43ccae54e76",
+      "title": "FRB Main BackUp  ZIP保存",
+      "description": "F:\\FRB ／　F:\\FRB_docsExcel",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\zip_export\\Export-FrbZip.bat"
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "item_id": "faeee8f3-0b4a-4344-b5f1-594902740f42",
+      "title": "archiveへ Zip保存",
+      "description": "F:\\FRB_docsExcel\\設計書 ／　実験ログ",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\archive_export\\Export-FrbDocsArchive.bat",
+          "launch_failure_policy": "stop",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "windows",
+      "parent_item_id": "",
+      "item_id": "a9bf171f-68ba-46a9-a742-b47b7e529957",
+      "title": "設定",
+      "description": "[FRB Studio] Launch設定JSONを開いて編集",
+      "item_kind": "command",
+      "icon_key": "settings",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Run",
+          "launch_text": "",
+          "launch_target": "",
+          "launch_program": "%studio_root%\\NativeShell\\_publish\\FRBStudio.NativeShell.exe",
+          "launch_arguments": [
+            "--open-json=%launch_data%"
+          ],
+          "launch_working_directory": "%studio_root%",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "__browser_bookmarks_root",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "ブックマーク",
+      "description": "Chrome / Edge のブックマークを自動取得",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [
+        "bookmark",
+        "お気に入り"
+      ],
+      "launch_source": "browser_bookmarks",
+      "launch_actions": []
+    },
+    {
+      "item_id": "9190e8c0-21e6-4606-960e-f93d2034bfc5",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "環境変数変換テスト",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "message",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "USERPROFILE：%USERPROFILE%\nAPPDATA：%APPDATA%\nLOCALAPPDATA：%LOCALAPPDATA%\nTEMP：%TEMP%\nPath：%Path%\nUSERNAME：%USERNAME%\nOneDrive：%OneDrive%\n\n----\n\nstudio_root：%studio_root%\nyesterday：%yesterday:yyyy/MM/dd%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "5f4d04f5-40e5-4b1e-b569-062073ad2540",
+      "page_id": "work",
+      "parent_item_id": "mail",
+      "title": "SE部 E-MAIL",
+      "description": "Spaceで選択、F12で宛先を入力",
+      "item_kind": "selection",
+      "icon_key": "mail",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "se",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": ";\\r\\n",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%recipients%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
+      "page_id": "work",
+      "parent_item_id": "",
+      "title": "APP",
+      "description": "",
+      "item_kind": "category",
+      "icon_key": "category.blue",
+      "sort_order": 60,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
+      "item_id": "465d2504-07de-485c-9fcc-99e3f5c3c090",
+      "title": "Visual Studio Code",
+      "description": "VSCord",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "\"C:\\Users\\tsub-\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\""
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "b643045e-5fed-4322-b2a6-9bc5f45a8a64",
+      "item_id": "1d8f95a1-c67a-40bc-84d8-ebc17c9336be",
+      "title": "サクラエディタ",
+      "description": "sakura",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "\"C:\\Program Files (x86)\\sakura\\sakura.exe\""
+        }
+      ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "folders",
+      "item_id": "f0628e81-c03f-4573-820c-4b56f8dcbe37",
+      "title": "FRBStudio_App\\data\\json",
+      "description": "",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 80,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "F:\\FRB\\tools\\FRBStudio_App\\data\\json",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRBStudio_App\\data"
+        }
+      ]
+    }
+  ],
+  "launch_variables": [
+    {
+      "variable_id": "studio_root",
+      "title": "Studioのフォルダー",
+      "launch_variable_type": "literal",
+      "launch_value": "F:\\FRB\\tools\\FRBStudio_App",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "fft_wifi_profile",
+      "title": "FFT接続プロファイル",
+      "launch_variable_type": "literal",
+      "launch_value": "ESP32_FFT 2",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "fft_address",
+      "title": "FFTアドレス",
+      "launch_variable_type": "literal",
+      "launch_value": "192.168.4.1",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "cam_wifi_profile",
+      "title": "CAM接続プロファイル",
+      "launch_variable_type": "literal",
+      "launch_value": "FRB_CAM 2",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "cam_address",
+      "title": "CAMアドレス",
+      "launch_variable_type": "literal",
+      "launch_value": "192.168.4.1",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "home_wifi_profile",
+      "title": "通常Wi-Fiプロファイル",
+      "launch_variable_type": "literal",
+      "launch_value": "REPLACE_HOME_PROFILE_zz",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "speaker_device_id",
+      "title": "スピーカー識別子",
+      "launch_variable_type": "literal",
+      "launch_value": "{0.0.0.00000000}.{109ee0cd-51b6-4d02-ba0e-f9757f7add1c}",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    },
+    {
+      "variable_id": "earphone_device_id",
+      "title": "イヤフォン識別子",
+      "launch_variable_type": "literal",
+      "launch_value": "{0.0.0.00000000}.{69c420db-8723-4604-8f97-3024a8900d9f}",
+      "launch_date_offset_days": 0,
+      "launch_date_format": "",
+      "enabled": true
+    }
+  ],
+  "launch_choices": [
+    {
+      "group_id": "sales",
+      "enabled": true,
+      "title": "田中（サンプル）",
+      "value": "tanaka@example.invalid",
+      "description": "tanaka@example.invalid",
+      "choice_id": "import_mail_000001",
+      "sort_order": 10
+    },
+    {
+      "group_id": "sales",
+      "enabled": true,
+      "title": "佐藤（サンプル）",
+      "value": "sato@example.invalid",
+      "description": "sato@example.invalid",
+      "choice_id": "import_mail_000002",
+      "sort_order": 20
+    },
+    {
+      "group_id": "sales",
+      "enabled": true,
+      "title": "鈴木（サンプル）",
+      "value": "suzuki@example.invalid",
+      "description": "suzuki@example.invalid",
+      "choice_id": "import_mail_000003",
+      "sort_order": 30
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se001",
+      "value": "se001@example.invalid",
+      "description": "se001@example.invalid",
+      "choice_id": "import_mail_000004",
+      "sort_order": 40
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se002",
+      "value": "se002@example.invalid",
+      "description": "se002@example.invalid",
+      "choice_id": "import_mail_000005",
+      "sort_order": 50
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se003",
+      "value": "se003@example.invalid",
+      "description": "se003@example.invalid",
+      "choice_id": "import_mail_000006",
+      "sort_order": 60
+    },
+    {
+      "group_id": "se",
+      "enabled": true,
+      "title": "se004",
+      "value": "se004@example.invalid",
+      "description": "se004@example.invalid",
+      "choice_id": "import_mail_000007",
+      "sort_order": 70
+    }
+  ],
+  "bookmark_category_initialized": true
 }

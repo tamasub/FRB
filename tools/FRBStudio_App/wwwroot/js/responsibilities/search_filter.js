@@ -329,9 +329,11 @@ var SearchFilter = (function () {
   }
 
   function matchesFullText(row, rawQuery) {
-    const query = String(rawQuery ?? '').trim().toLowerCase();
-    if (!query) return true;
-    return buildFullText(row).includes(query);
+    // 全文検索では空白区切りの語をAND判定する。子Grid/詳細など行内の別フィールドに分散していてもよい。
+    const keywords = String(rawQuery ?? '').trim().toLowerCase().split(/\s+/u).filter(Boolean);
+    if (!keywords.length) return true;
+    const text = buildFullText(row);
+    return keywords.every(keyword => text.includes(keyword));
   }
 
   function normalizeRows(rows = []) {
