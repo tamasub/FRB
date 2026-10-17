@@ -1,0 +1,27 @@
+{
+  "view_def": "sqlite/studio_sample_master_view_def_v0_1.json",
+  "title": "SQLiteマスタメンテ（サンプル）",
+  "data_source": {
+    "type": "sqlite",
+    "database_path": "data/sqlite/studio_sample_master_v0_1.db",
+    "access_mode": "read_write",
+    "tables": [
+      {
+        "table": "employees",
+        "data_path": "$.employees",
+        "load": {
+          "on_open": true,
+          "limit": 100
+        }
+      },
+      {
+        "table": "departments",
+        "data_path": "$.departments",
+        "load": {
+          "on_open": true,
+          "limit": 100
+        }
+      }
+    ]
+  }
+}

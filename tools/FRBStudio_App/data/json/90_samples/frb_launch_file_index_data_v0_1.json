@@ -1,0 +1,35 @@
+{
+  "view_def": "sqlite/frb_launch_file_index_view_def_v0_1.json",
+  "title": "FRB Launch ファイル索引（参照専用）",
+  "data_source": {
+    "type": "sqlite",
+    "database_path": "%LOCALAPPDATA%\\FRBLaunch\\file_index.db",
+    "access_mode": "read_only",
+    "tables": [
+      {
+        "table": "files",
+        "data_path": "$.files",
+        "load": {
+          "on_open": true,
+          "limit": 2000
+        }
+      },
+      {
+        "table": "index_roots",
+        "data_path": "$.index_roots",
+        "load": {
+          "on_open": true,
+          "limit": 2000
+        }
+      },
+      {
+        "table": "metadata",
+        "data_path": "$.metadata",
+        "load": {
+          "on_open": true,
+          "limit": 2000
+        }
+      }
+    ]
+  }
+}

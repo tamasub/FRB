@@ -1,0 +1,356 @@
+{
+  "app": {
+    "name": "FRB Studio / FRB Launch file_index.db",
+    "version": "sqlite-viewer-v0.1"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "frb_launch_file_index",
+      "caption": "FRB Launch ファイル索引（参照専用）",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "files_grid",
+          "caption": "ファイル一覧 / files",
+          "type": "grid",
+          "dataPath": "$.files",
+          "keyField": "path",
+          "fields": [
+            {
+              "field": "name",
+              "caption": "ファイル名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "extension",
+              "caption": "拡張子",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 100
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "directory",
+              "caption": "フォルダー",
+              "type": "text",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              },
+              "width": 256
+            },
+            {
+              "field": "path",
+              "caption": "フルパス",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 480
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "root_key",
+              "caption": "索引ルート",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 185
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "name_fold",
+              "caption": "検索用小文字",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "index_roots_grid",
+          "caption": "更新ルート / index_roots",
+          "type": "grid",
+          "dataPath": "$.index_roots",
+          "keyField": "root_key",
+          "fields": [
+            {
+              "field": "root_path",
+              "caption": "対象フォルダー",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 380
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "count",
+              "caption": "登録数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "excluded",
+              "caption": "除外数",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "checked_at",
+              "caption": "最終チェック",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "updated_at",
+              "caption": "最終更新",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 210
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "root_key",
+              "caption": "ルート識別子",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 240
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "digest",
+              "caption": "一覧ハッシュ",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "options_digest",
+              "caption": "設定ハッシュ",
+              "type": "text",
+              "grid": {
+                "visible": false,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": false,
+                "operator": "contains"
+              }
+            }
+          ]
+        },
+        {
+          "id": "metadata_grid",
+          "caption": "メタデータ / metadata",
+          "type": "grid",
+          "dataPath": "$.metadata",
+          "keyField": "key",
+          "fields": [
+            {
+              "field": "key",
+              "caption": "項目",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "value",
+              "caption": "値（JSON文字列）",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 650
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            }
+          ]
+        }
+      ],
+      "sectionGroups": [
+        {
+          "id": "files_grid",
+          "caption": "ファイル一覧",
+          "sectionIds": [
+            "files_grid"
+          ]
+        },
+        {
+          "id": "index_roots_grid",
+          "caption": "更新ルート",
+          "sectionIds": [
+            "index_roots_grid"
+          ]
+        },
+        {
+          "id": "metadata_grid",
+          "caption": "メタデータ",
+          "sectionIds": [
+            "metadata_grid"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -93,6 +93,7 @@
 
       const error = new Error(String(response?.error?.message ?? `Native command failed: ${slot.command}`));
       error.code = String(response?.error?.code ?? 'NATIVE_COMMAND_FAILED');
+      error.details = response?.error?.details ?? null;
       error.nativeResponse = response;
       slot.reject(error);
     });
@@ -119,8 +120,8 @@
     });
   }
 
-  function errorResponse(status, code, message) {
-    return jsonResponse({ error: code, message }, status);
+  function errorResponse(status, code, message, details = null) {
+    return jsonResponse({ error: code, message, ...(details ? { details } : {}) }, status);
   }
 
   function normalizedRelativePath(value) {
@@ -485,10 +486,23 @@
         const workspacePath = studioDataWorkspacePath(relative);
         if (method === 'GET') {
           const result = await invoke('file.readText', { path: workspacePath });
-          return textResponse(result?.content ?? '', 'application/json; charset=utf-8');
+          const raw = result?.content ?? '';
+          // SQLite rows are projected into memory; the DataJSON on disk stays a connection definition.
+          if (JSON.parse(raw)?.data_source?.type === 'sqlite') {
+            const loaded = await invoke('sqlite.documentLoad', { document_path: workspacePath }, { timeoutMs: 120000 });
+            return textResponse(JSON.stringify(loaded.document), 'application/json; charset=utf-8');
+          }
+          return textResponse(raw, 'application/json; charset=utf-8');
         }
         if (method === 'POST') {
           const body = await parseJsonBody(input, init);
+          // Check the persisted descriptor, not the caller's editable body: never let a
+          // damaged in-memory document overwrite the SQLite connection DataJSON.
+          const persisted = await invoke('file.readText', { path: workspacePath });
+          if (JSON.parse(persisted?.content ?? '{}')?.data_source?.type === 'sqlite') {
+            const saved = await invoke('sqlite.documentSave', { document_path: workspacePath, content: JSON.stringify(body) }, { timeoutMs: 120000 });
+            return jsonResponse(saved);
+          }
           await invoke('file.writeText', { path: workspacePath, content: prettyJson(body), create_directories: true });
           return jsonResponse({ saved: relative });
         }
@@ -605,7 +619,7 @@
       return errorResponse(404, 'NATIVE_API_NOT_MAPPED', `${method} ${path} is not mapped by Native Shell Phase A.`);
     } catch (error) {
       const status = error?.code === 'WORKSPACE_PATH_DENIED' ? 403 : 500;
-      return errorResponse(status, String(error?.code ?? 'NATIVE_BRIDGE_ERROR'), String(error?.message ?? error));
+      return errorResponse(status, String(error?.code ?? 'NATIVE_BRIDGE_ERROR'), String(error?.message ?? error), error?.details);
     }
   }
 

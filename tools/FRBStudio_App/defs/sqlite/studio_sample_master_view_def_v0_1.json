@@ -1,0 +1,196 @@
+{
+  "app": {
+    "name": "FRB Studio / SQLite Sample",
+    "version": "sqlite-v0.1"
+  },
+  "fieldTypeSources": [
+    "common/common_types_v0_1.json"
+  ],
+  "views": [
+    {
+      "id": "sqlite_sample_master",
+      "caption": "SQLite マスタメンテナンス（サンプル）",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "employee_grid",
+          "caption": "社員マスタ / employees",
+          "type": "grid",
+          "dataPath": "$.employees",
+          "keyField": "employee_id",
+          "fields": [
+            {
+              "field": "employee_id",
+              "caption": "社員ID",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 105
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "employee_name",
+              "caption": "社員名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 190
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "department_id",
+              "caption": "部門ID",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 110
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "email",
+              "caption": "E-MAIL",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 260
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            }
+          ]
+        },
+        {
+          "id": "department_grid",
+          "caption": "部門マスタ / departments",
+          "type": "grid",
+          "dataPath": "$.departments",
+          "keyField": "department_id",
+          "fields": [
+            {
+              "field": "department_id",
+              "caption": "部門ID",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 115
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "readonly": true,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            },
+            {
+              "field": "department_name",
+              "caption": "部門名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "contains"
+              }
+            },
+            {
+              "field": "enabled",
+              "caption": "有効",
+              "type": "number",
+              "grid": {
+                "visible": true,
+                "width": 75
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "readonly": false,
+              "search": {
+                "visible": true,
+                "operator": "equals"
+              }
+            }
+          ]
+        }
+      ],
+      "sectionGroups": [
+        {
+          "id": "employees",
+          "caption": "社員マスタ",
+          "sectionIds": [
+            "employee_grid"
+          ]
+        },
+        {
+          "id": "departments",
+          "caption": "部門マスタ",
+          "sectionIds": [
+            "department_grid"
+          ]
+        }
+      ]
+    }
+  ]
+}

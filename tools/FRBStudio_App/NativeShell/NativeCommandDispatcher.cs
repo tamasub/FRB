@@ -21,6 +21,7 @@ namespace FRBStudio.NativeShell
         private string _startupDocumentId;
         private readonly WorkspacePolicy _workspace;
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+        private SqliteDataAdapter _sqlite => new SqliteDataAdapter(_workspace, _config.SqliteReadOnlyExternalFiles);
         private readonly Dictionary<string, WorkspacePolicy> _folderGrants = new Dictionary<string, WorkspacePolicy>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _documentGrants = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _persistedFolderGrantPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -97,6 +98,15 @@ namespace FRBStudio.NativeShell
             {
                 return SerializeError(requestId, command, "USER_CANCELLED", "Operation cancelled by user.");
             }
+            catch (SqliteDataError ex)
+            {
+                return SerializeError(requestId, command, ex.ErrorCode, ex.Message, ex.Details());
+            }
+            catch (Microsoft.Data.Sqlite.SqliteException ex)
+            {
+                var sqliteError = SqliteDataError.FromSqlite(ex);
+                return SerializeError(requestId, command, sqliteError.ErrorCode, sqliteError.Message, sqliteError.Details());
+            }
             catch (Exception ex)
             {
                 var code = ex.Message != null && ex.Message.StartsWith("WORKSPACE_PATH_DENIED", StringComparison.Ordinal)
@@ -126,6 +136,8 @@ namespace FRBStudio.NativeShell
 
                 case "startupJson.write":
                     ReadStartupJson(); // Revalidate the exact CLI-selected file before writing.
+                    if (SqliteDataAdapter.IsSqliteDocument(File.ReadAllText(Path.GetFullPath(_startupJsonPath))))
+                        return _sqlite.Save(Path.GetFullPath(_startupJsonPath), RequiredString(payload, "content"));
                     var content = RequiredString(payload, "content");
                     if (!(_serializer.DeserializeObject(content) is IDictionary<string, object>))
                         throw new InvalidDataException("Startup JSON must contain an object.");
@@ -134,6 +146,12 @@ namespace FRBStudio.NativeShell
                         ["document_id"] = _startupDocumentId,
                         ["content"] = content
                     });
+
+                case "sqlite.documentLoad":
+                    return new Dictionary<string, object> { ["document"] = _sqlite.Load(ResolveSqliteDataDocument(payload)) };
+
+                case "sqlite.documentSave":
+                    return _sqlite.Save(ResolveSqliteDataDocument(payload), RequiredString(payload, "content"));
 
                 case "workspace.getCurrent":
                     return new Dictionary<string, object> { ["root_path"] = _workspace.RootPath };
@@ -201,6 +219,15 @@ namespace FRBStudio.NativeShell
                 default:
                     throw new InvalidOperationException("UNKNOWN_COMMAND: command is not implemented by this Native Shell.");
             }
+        }
+
+        private string ResolveSqliteDataDocument(IDictionary<string, object> payload)
+        {
+            var relative = RequiredString(payload, "document_path").Replace('\\', '/');
+            if (!relative.StartsWith("data/json/", StringComparison.OrdinalIgnoreCase) ||
+                !relative.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("SQLite documents must be Workspace data/json/*.json files.");
+            return _workspace.ResolveRelativePath(relative);
         }
 
         // A grant is possible only for the path explicitly selected by the host CLI.
@@ -675,6 +702,7 @@ namespace FRBStudio.NativeShell
                 throw new InvalidDataException("Startup file must be JSON.");
             if (!File.Exists(full)) throw new FileNotFoundException("Startup JSON not found.", full);
             var content = File.ReadAllText(full, Encoding.UTF8);
+            if (SqliteDataAdapter.IsSqliteDocument(content)) content = _serializer.Serialize(_sqlite.Load(full));
             if (!(_serializer.DeserializeObject(content) is IDictionary<string, object>))
                 throw new InvalidDataException("Startup JSON must contain an object.");
             if (_startupDocumentId == null) _startupDocumentId = RegisterDocumentGrant(full);
@@ -1104,7 +1132,8 @@ namespace FRBStudio.NativeShell
             return "\"" + text.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
         }
 
-        private string SerializeError(string requestId, string command, string code, string message)
+        private string SerializeError(string requestId, string command, string code, string message,
+            IDictionary<string, object> details = null)
         {
             return _serializer.Serialize(new Dictionary<string, object>
             {
@@ -1116,7 +1145,8 @@ namespace FRBStudio.NativeShell
                 ["error"] = new Dictionary<string, object>
                 {
                     ["code"] = code,
-                    ["message"] = message ?? string.Empty
+                    ["message"] = message ?? string.Empty,
+                    ["details"] = details
                 }
             });
         }

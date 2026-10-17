@@ -87,7 +87,13 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
     updateCurrentLoadedDataTitleFromViewDef(defObj, sourceData);
   }
   const loadedStatusText = (typeof currentLoadedDataStatusText === 'function') ? currentLoadedDataStatusText() : '';
-  setStatus(loadedStatusText || label, { toast: false, sticky: true });
+  // Quietly disclose partial reads. Local filtering only sees loaded rows in v0.1.
+  const sqliteMeta = dataObj?.data_source?.type === 'sqlite' ? dataObj.__sqlite_meta : null;
+  const limited = sqliteMeta && Object.values(sqliteMeta).filter(info => info?.limit_hit);
+  const limitNotice = limited?.length
+    ? ' / SQLite取得上限: ' + limited.map(info => `${info.table} ${info.loaded}件`).join(', ') + '（検索対象は取得済み行のみ）'
+    : '';
+  setStatus((loadedStatusText || label) + limitNotice, { toast: false, sticky: true });
 }
 
 async function loadFromFiles() {

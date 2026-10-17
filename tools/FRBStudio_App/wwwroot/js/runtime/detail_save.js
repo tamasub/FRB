@@ -681,7 +681,27 @@ async function saveOverwriteJson() {
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
+    if (saveDocument?.data_source?.type === 'sqlite') {
+      let payload = null;
+      try { payload = JSON.parse(text); } catch { /* non-JSON server response */ }
+      // Preserve raw provider diagnostics in the developer console only.
+      console.error('SQLite save failed:', { status: res.status, error: payload ?? text });
+      const translate = window.FRBStudioSqliteErrorMessages?.toUserMessage;
+      if (typeof translate === 'function') throw new Error(translate(payload));
+      throw new Error('データベースを保存できませんでした。詳細はログを確認してください。');
+    }
     throw new Error(`保存に失敗しました (${res.status}) ${text}`);
+  }
+
+  // SQLite save returns a DB-refreshed snapshot. Never overwrite the descriptor DataJSON.
+  if (saveDocument?.data_source?.type === 'sqlite') {
+    const result = await res.json();
+    if (!result?.document) throw new Error('SQLite保存応答に更新後データがありません');
+    sourceData = result.document;
+    loadRows();
+    renderGrid();
+    setStatus(`SQLite保存完了: ${result.changed_rows ?? 0}行 / ${currentDataApiUrl}`, { toast: false });
+    return true;
   }
 
   if (currentDataSourceKind === 'viewdef' && typeof invalidateDefinitionTargetViewDefCache === 'function') {

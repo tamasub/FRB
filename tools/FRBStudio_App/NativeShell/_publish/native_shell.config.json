@@ -37,7 +37,9 @@
     "startupMarkdown.open",
     "startupJson.read",
     "startupJson.write",
-    "file.describeDrop"
+    "file.describeDrop",
+    "sqlite.documentLoad",
+    "sqlite.documentSave"
   ],
   "process_profiles": [
     {
@@ -160,5 +162,8 @@
   ],
   "writable_files": [
     "wwwroot/config/app_settings.json"
+  ],
+  "sqlite_readonly_external_files": [
+    "%LOCALAPPDATA%\\FRBLaunch\\file_index.db"
   ]
 }
