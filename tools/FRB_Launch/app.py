@@ -158,6 +158,42 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.setStyleSheet('QMenu { menu-scrollable: 1; }')
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True)
         self.hover_timer.timeout.connect(lambda:self.open_current("hover"))
+        # A folder's first click must not let QMenu dismiss itself. Delay
+        # expansion until the double-click window has passed, so double-click
+        # can instead open the actual folder in Explorer.
+        self.folder_click_timer = QTimer(self)
+        self.folder_click_timer.setSingleShot(True)
+        self.folder_click_timer.timeout.connect(self._finish_folder_single_click)
+        self._folder_click_action = None
+        self._folder_double_click_row = None
+
+    @staticmethod
+    def _consume_unused_right_click(event):
+        """Right-click has no action yet; keep the folder popup visible.
+
+        QMenu handles mouse presses/releases itself (sometimes dismissing the
+        popup).  Its embedded QTreeWidget variants receive events on their
+        viewports instead, so both paths must be intercepted *before* Qt's
+        default handlers run.  A native context menu can be added later as
+        an explicit action without changing the left-button behavior.
+        """
+        if event.type() == QEvent.Type.ContextMenu:
+            event.accept()
+            return True
+        if event.type() in (QEvent.Type.MouseButtonPress,
+                            QEvent.Type.MouseButtonRelease,
+                            QEvent.Type.MouseButtonDblClick):
+            if event.button() == Qt.MouseButton.RightButton:
+                event.accept()
+                return True
+        return False
+
+    def event(self, event):
+        # QMenu may close on a right-button press *or* release, even when no
+        # context menu is configured.  Filter before QMenu.event dispatches it.
+        if self._consume_unused_right_click(event):
+            return True
+        return super().event(event)
 
     def select_first(self):
         if self.scroll_tree is not None:
@@ -204,14 +240,64 @@ class CascadeMenu(OrderDragMixin,QMenu):
                     return QRect(self.scroll_tree.viewport().mapTo(self, rect.topLeft()), rect.size())
         return super().actionGeometry(action)
 
+    @staticmethod
+    def _folder_row(action):
+        row = action.data() if action is not None else None
+        return row if isinstance(row, dict) and row.get('item_kind') == 'directory' else None
+
+    def _folder_container_row(self):
+        row = getattr(self, 'order_context', None)
+        return row if isinstance(row, dict) and row.get('item_kind') == 'directory' else None
+
+    def _queue_folder_single_click(self, action):
+        self.hover_timer.stop()
+        self._folder_click_action = action
+        self.setActiveAction(action)
+        # QMenu closes on a normal QAction mouse release; bypassing that
+        # release and waiting for the double-click interval keeps the popup
+        # alive for the second click.
+        interval = QApplication.instance().doubleClickInterval()
+        self.folder_click_timer.start(max(1, interval + 15))
+
+    def _finish_folder_single_click(self):
+        action = self._folder_click_action
+        self._folder_click_action = None
+        if action is None or not self.isVisible() or action not in self.openers:
+            return
+        if self.child and self.child.isVisible() and self.child.owner_action is action:
+            # A hover expansion already opened this folder.
+            self.child.open_mode = 'keyboard'
+            self.child.outside_since = None
+            return
+        self.openers[action]('keyboard')
+
+    def _open_folder_after_release(self):
+        row = self._folder_double_click_row
+        self._folder_double_click_row = None
+        if row is not None:
+            # The second mouse-up must reach Windows before a new Explorer
+            # window is created (same foreground handoff rule as the launcher).
+            QTimer.singleShot(0, lambda r=row: self.launcher.run_menu_item(r))
+
     def _scroll_activate(self, item):
         action = self._scroll_item_action(item)
         if action is None or not action.isEnabled():
             return
-        if action in self.openers:
+        if self._folder_row(action) is not None:
+            self._queue_folder_single_click(action)
+        elif action in self.openers:
             self.openers[action]('keyboard')
         else:
             action.trigger()
+
+    def _scroll_double_clicked(self, item, column):
+        action = self._scroll_item_action(item)
+        row = self._folder_row(action)
+        if row is None:
+            return
+        self.folder_click_timer.stop()
+        self._folder_click_action = None
+        self._folder_double_click_row = row
 
     def _scroll_hover(self, item):
         if item is None:
@@ -278,7 +364,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         tree.installEventFilter(self)
         tree.viewport().installEventFilter(self)
         tree.itemClicked.connect(self._scroll_activate)
-        tree.itemActivated.connect(self._scroll_activate)
+        # itemActivated also fires on a mouse double-click, prematurely
+        # expanding the submenu instead of launching the directory.
+        tree.itemDoubleClicked.connect(self._scroll_double_clicked)
         tree.itemEntered.connect(self._scroll_hover)
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(tree)
@@ -457,6 +545,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.setActiveAction(next_wrapped(matches, current, increment))
 
     def eventFilter(self, obj, event):
+        # A long folder/app list is a child widget of this QMenu.  Events
+        # targeting its viewport bypass CascadeMenu.event(), so stop them
+        # here too.  The small inline filter receives the same protection.
+        right_click_child = (obj is getattr(self, 'filter_edit', None)
+                             or (self.scroll_tree is not None and obj in (
+                                 self.scroll_tree, self.scroll_tree.viewport()))
+                             or (getattr(self, 'tree', None) is not None and obj in (
+                                 self.tree, self.tree.viewport())))
+        if right_click_child and self._consume_unused_right_click(event):
+            return True
         if self.scroll_tree is not None and obj is self.scroll_tree:
             if event.type() == QEvent.Type.KeyPress:
                 if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
@@ -469,6 +567,21 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self.keyPressEvent(event)
                 return True
         if self.scroll_tree is not None and obj is self.scroll_tree.viewport():
+            if (event.type() == QEvent.Type.MouseButtonDblClick
+                    and event.button() == Qt.MouseButton.LeftButton
+                    and self.scroll_tree.itemAt(event.position().toPoint()) is None
+                    and self._folder_container_row() is not None):
+                self.folder_click_timer.stop()
+                self._folder_click_action = None
+                self._folder_double_click_row = self._folder_container_row()
+                event.accept()
+                return True
+            if (event.type() == QEvent.Type.MouseButtonRelease
+                    and event.button() == Qt.MouseButton.LeftButton
+                    and self._folder_double_click_row is not None):
+                self._open_folder_after_release()
+                event.accept()
+                return True
             if event.type() == QEvent.Type.MouseMove:
                 self._scroll_hover(self.scroll_tree.itemAt(event.position().toPoint()))
             return False
@@ -498,6 +611,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
     def hideEvent(self, event):
         self.hover_timer.stop()
+        self.folder_click_timer.stop()
+        self._folder_click_action = None
+        self._folder_double_click_row = None
         if self.child:self.child.close()
         super().hideEvent(event)
 
@@ -508,8 +624,41 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def mousePressEvent(self,event):
         self.order_press=(event.position().toPoint(),self.actionAt(event.position().toPoint())) if event.button()==Qt.MouseButton.LeftButton else None
         super().mousePressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            action = self.actionAt(event.position().toPoint())
+            row = self._folder_row(action)
+            if action is None:
+                # Double-clicking unused space within a real folder popup
+                # opens the currently displayed folder itself.
+                row = self._folder_container_row()
+            if row is not None:
+                self.folder_click_timer.stop()
+                self._folder_click_action = None
+                self._folder_double_click_row = row
+                event.accept()
+                return
+        super().mouseDoubleClickEvent(event)
+
     def mouseReleaseEvent(self,event):
-        self.order_press=None;super().mouseReleaseEvent(event)
+        action = self.actionAt(event.position().toPoint()) if event.button()==Qt.MouseButton.LeftButton else None
+        press_action = self.order_press[1] if self.order_press is not None else None
+        self.order_press = None
+        if event.button()==Qt.MouseButton.LeftButton and self._folder_double_click_row is not None:
+            self._open_folder_after_release()
+            event.accept()
+            return
+        if (action is press_action and action in self.openers
+                and self._folder_row(action) is not None):
+            self._queue_folder_single_click(action)
+            event.accept()
+            return
+        if action is None and press_action is None and self._folder_container_row() is not None:
+            # A click on unused popup space is not an instruction to close.
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
     def mouseMoveEvent(self, event):
         if self.order_enabled and self.order_press and event.buttons() & Qt.MouseButton.LeftButton:
             pos,action=self.order_press
@@ -519,6 +668,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         before = self.activeAction()
         super().mouseMoveEvent(event)
         if self.activeAction() != before:
+            if self.folder_click_timer.isActive():
+                self.folder_click_timer.stop()
+                self._folder_click_action = None
             if self.child and self.child.open_mode=="hover":self.child.close()
             self.hover_timer.stop()
             if self.activeAction() in self.openers:
