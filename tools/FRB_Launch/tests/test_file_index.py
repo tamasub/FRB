@@ -43,7 +43,7 @@ class FileIndexTests(unittest.TestCase):
         self.assertEqual(loaded['extensions'],['.md','.txt'])
         self.assertEqual(loaded['search_limit'],12)
         p.write_text(json.dumps({'update_mode':'auto'}),encoding='utf8')
-        with self.assertRaises(ValueError):load_options(p)
+        self.assertEqual(load_options(p)['update_mode'], 'auto')
 
     def test_minimize_registered_roots(self):
         roots,warnings=registered_roots(self.config,lambda x:x)
@@ -70,17 +70,36 @@ class FileIndexTests(unittest.TestCase):
         self.assertEqual(search_index(self.out,'view_def'),[])
         self.assertEqual([x['name'] for x in search_index(self.out,'report')],['report.xlsx'])
         self.assertEqual([x['name'] for x in search_index(self.out,'folder-name-only-is-in-path')], ['folder-name-only-is-in-path.xlsx'])
-        self.assertEqual(search_index(self.out,'sub'),[])
+        self.assertEqual(len(search_index(self.out,'sub')),7)
+        # AND terms may match in different parts of the full file path.
+        self.assertEqual([x['name'] for x in search_index(self.out,'report sub')], ['report.xlsx'])
+        self.assertEqual([x['name'] for x in search_index(self.out,'sub report*.xlsx')], ['report.xlsx'])
+
+    def test_existing_index_can_search_paths_without_rebuild(self):
+        # Database schema from prior file-index releases already stores path.
+        with sqlite3.connect(self.out) as db:
+            db.execute('CREATE TABLE files(path TEXT PRIMARY KEY COLLATE NOCASE, name TEXT NOT NULL, name_fold TEXT NOT NULL, directory TEXT NOT NULL, extension TEXT NOT NULL)')
+            path = r'F:\FRB\tools\zip_app\make_FRB.ps1'
+            db.execute('INSERT INTO files VALUES (?, ?, ?, ?, ?)',
+                       (path, 'make_FRB.ps1', 'make_frb.ps1', r'F:\FRB\tools\zip_app', '.ps1'))
+        hits = search_index(self.out, 'make zip_app')
+        self.assertEqual([hit['path'] for hit in hits], [path])
+        self.assertEqual([hit['path'] for hit in search_index(self.out, r'FRB\tools *.ps1')], [path])
 
     def test_view_def_always_excluded_even_if_optional_list_is_cleared(self):
         opts = {**self.options, 'exclude_name_contains': []}
         build_index(self.out, [str(self.source)], opts)
         self.assertEqual(search_index(self.out, 'view_def'), [])
 
-    def test_no_accidental_path_matches(self):
+    def test_full_path_search_with_and_terms(self):
         (self.folder / 'plain.md').write_text('hello',encoding='utf8')
         build_index(self.out,[str(self.source)],self.options)
-        self.assertEqual(search_index(self.out,self.source.name),[])
+        # Folder-only keywords now match, but can be narrowed by filename.
+        self.assertEqual(len(search_index(self.out,self.source.name)),8)
+        self.assertEqual([hit['name'] for hit in search_index(self.out,'sub plain')], ['plain.md'])
+        self.assertEqual([hit['name'] for hit in search_index(self.out,'SUB *.MD')], ['notes.md', 'plain.md'])
+        self.assertEqual([hit['name'] for hit in search_index(self.out,'sub plain*.ps1')], [])
+        # SQL wildcards retain their literal meaning in user input.
         self.assertEqual(search_index(self.out,'foo%'),[])
         self.assertEqual(search_index(self.out,'foo_'),[])
 

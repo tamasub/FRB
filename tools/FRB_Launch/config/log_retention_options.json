@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "process_logs_keep_each": 5,
+  "process_logs_min_age_minutes": 10,
+  "audio_config_backups_keep": 5
+}

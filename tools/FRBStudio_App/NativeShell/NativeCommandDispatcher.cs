@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,6 +17,7 @@ namespace FRBStudio.NativeShell
     {
         private readonly NativeShellConfig _config;
         private readonly string _startupJsonPath;
+        private readonly string _startupMarkdownPath;
         private string _startupDocumentId;
         private readonly WorkspacePolicy _workspace;
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
@@ -25,10 +26,11 @@ namespace FRBStudio.NativeShell
         private readonly Dictionary<string, string> _persistedFolderGrantPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string _persistedFolderGrantStorePath;
 
-        public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace, string startupJsonPath = null)
+        public NativeCommandDispatcher(NativeShellConfig config, WorkspacePolicy workspace, string startupJsonPath = null, string startupMarkdownPath = null)
         {
             _config = config;
             _startupJsonPath = startupJsonPath;
+            _startupMarkdownPath = startupMarkdownPath;
             _workspace = workspace;
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _persistedFolderGrantStorePath = Path.Combine(localAppData, "FRBStudio", "folder_grants.json");
@@ -116,6 +118,9 @@ namespace FRBStudio.NativeShell
                         ["workspace_root"] = _workspace.RootPath
                     };
 
+                case "startupMarkdown.open":
+                    return OpenStartupMarkdown();
+
                 case "startupJson.read":
                     return ReadStartupJson();
 
@@ -196,6 +201,21 @@ namespace FRBStudio.NativeShell
                 default:
                     throw new InvalidOperationException("UNKNOWN_COMMAND: command is not implemented by this Native Shell.");
             }
+        }
+
+        // A grant is possible only for the path explicitly selected by the host CLI.
+        // Never accept an absolute file path supplied by JavaScript here.
+        private object OpenStartupMarkdown()
+        {
+            if (string.IsNullOrWhiteSpace(_startupMarkdownPath))
+                throw new InvalidOperationException("No startup Markdown was specified.");
+            var fullPath = Path.GetFullPath(_startupMarkdownPath);
+            if (!fullPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase) || !File.Exists(fullPath))
+                throw new FileNotFoundException("Startup Markdown was not found.", fullPath);
+            var folder = Path.GetDirectoryName(fullPath);
+            var result = (Dictionary<string, object>)ActivateFolderGrant(new WorkspacePolicy(folder), null, false);
+            result["file_name"] = Path.GetFileName(fullPath);
+            return result;
         }
 
         private object SelectWorkspace()

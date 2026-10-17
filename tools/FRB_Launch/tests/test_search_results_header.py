@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 try:
-    from PySide6.QtCore import Qt
+    from PySide6.QtCore import Qt, QPoint
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
     import test_navigation
@@ -62,6 +62,28 @@ class SearchHeaderTests(test_navigation.NavigationTests if test_navigation else 
         self.w.search.clear()
         self.assertTrue(self.w.list.isHeaderHidden())
         self.assertTrue(self.w.list.order_enabled)
+
+    def test_actual_header_mouse_click_sorts_both_columns(self):
+        """Regression: setSortingEnabled(False) must not swallow header clicks."""
+        self.w.search.setText('SORT_FIX')
+        self.app.processEvents()
+        header = self.w.list.header()
+        self.assertTrue(header.sectionsClickable())
+
+        def click(column):
+            x = header.sectionViewportPosition(column) + header.sectionSize(column) // 2
+            QTest.mouseClick(header.viewport(), Qt.MouseButton.LeftButton,
+                             pos=QPoint(x, header.height() // 2))
+            self.app.processEvents()
+
+        click(0)  # title ascending
+        self.assertEqual(self.listed_titles(), ['SORT_FIX_a', 'SORT_FIX_m', 'SORT_FIX_z'])
+        click(0)  # title descending
+        self.assertEqual(self.listed_titles(), ['SORT_FIX_z', 'SORT_FIX_m', 'SORT_FIX_a'])
+        click(1)  # description ascending
+        self.assertEqual(self.listed_titles(), ['SORT_FIX_z', 'SORT_FIX_m', 'SORT_FIX_a'])
+        click(1)  # description descending
+        self.assertEqual(self.listed_titles(), ['SORT_FIX_a', 'SORT_FIX_m', 'SORT_FIX_z'])
 
     def test_resized_column_width_persists_in_settings(self):
         self.w.search.setText('SORT_FIX')

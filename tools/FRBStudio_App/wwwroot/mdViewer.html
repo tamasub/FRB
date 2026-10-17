@@ -7894,16 +7894,26 @@ syncMarkdownArticleFocusButton();
 
   try {
     const requestedFile = requestedFileRaw ? normalizeLaunchMarkdownName(requestedFileRaw) : '';
-    await refreshManagedMarkdownList(requestedFile || '');
-    if (requestedFile) {
-      await loadManagedMarkdown(requestedFile);
+    // NativeShell CLI --open-md uses a one-file, host-authorized startup grant.
+    // Do not accept file paths from URL params (untrusted web input).
+    if (params.get('startupMd') === '1') {
+      if (!nativeMarkdownHostAvailable()) throw new Error('NativeShell が必要です。');
+      const startup = await window.FRBStudioNativeHost.invoke('startupMarkdown.open', {});
+      if (!await applyMarkdownWorkspaceGrant(startup, { announce: false }))
+        throw new Error('Markdown Workspaceを準備できませんでした。');
+      await loadWorkspaceMarkdown(startup.file_name);
     } else {
+      await refreshManagedMarkdownList(requestedFile || '');
+      if (requestedFile) {
+        await loadManagedMarkdown(requestedFile);
+      } else {
       currentManagedMarkdownName = "";
       managedMdSelect.value = "";
       updateManagedMarkdownClearButton();
       resetMarkdownCommentSidecarForLocal("empty.md");
       showMarkdownInitialGuide("Markdownを選択、URL読込、ローカルファイルDrop、またはRaw Markdown編集から開始してください。初期表示では自動ロードしません。");
       applyMarkdownReadonlyLaunchControls();
+      }
     }
   } catch (err) {
     console.error(err);

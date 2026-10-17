@@ -1,8 +1,30 @@
 {
   "enabled": true,
-  "extensions": [".bat",".ps1", ".json", ".xlsx", ".md"],
-  "exclude_name_contains": ["view_def"],
-  "exclude_directories": [".venv", ".git", "node_modules", "__pycache__", "build", "dist", "System Volume Information", "$RECYCLE.BIN"],
+  "extensions": [
+    ".bat",
+    ".ps1",
+    ".json",
+    ".xlsx",
+    ".md"
+  ],
+  "exclude_name_contains": [
+    "view_def"
+  ],
+  "exclude_directories": [
+    ".venv",
+    ".git",
+    "node_modules",
+    "__pycache__",
+    "build",
+    "dist",
+    "System Volume Information",
+    "$RECYCLE.BIN"
+  ],
   "search_limit": 100,
-  "update_mode": "manual"
+  "update_mode": "auto",
+  "auto_update": {
+    "startup_delay_seconds": 90,
+    "check_interval_minutes": 30,
+    "max_scan_workers": 2
+  }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace FRBStudio.NativeShell
@@ -7,6 +7,7 @@ namespace FRBStudio.NativeShell
     {
         public string InitialPage { get; private set; }
         public string InitialJsonPath { get; private set; }
+        public string InitialMarkdownPath { get; private set; }
 
         public static NativeLaunchOptions Parse(string[] args)
         {
@@ -22,6 +23,14 @@ namespace FRBStudio.NativeShell
                     if (!Path.IsPathRooted(path) || !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("--open-json requires an absolute .json file path.");
                     options.InitialJsonPath = Path.GetFullPath(path);
+                    continue;
+                }
+                if (arg.StartsWith("--open-md=", StringComparison.OrdinalIgnoreCase))
+                {
+                    var path = arg.Substring("--open-md=".Length).Trim();
+                    if (!Path.IsPathRooted(path) || !path.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+                        throw new ArgumentException("--open-md requires an absolute .md file path.");
+                    options.InitialMarkdownPath = Path.GetFullPath(path);
                     continue;
                 }
                 if (arg.StartsWith("--launch=", StringComparison.OrdinalIgnoreCase))
@@ -51,6 +60,10 @@ namespace FRBStudio.NativeShell
                     }
                 }
             }
+            if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath) && !string.IsNullOrWhiteSpace(options.InitialJsonPath))
+                throw new ArgumentException("--open-json and --open-md cannot be combined.");
+            if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath))
+                options.InitialPage = "mdViewer.html?startupMd=1";
             if (!string.IsNullOrWhiteSpace(options.InitialJsonPath))
                 options.InitialPage = "index.html?startupJson=1";
             return options;

@@ -9,11 +9,13 @@ from ctypes import wintypes
 import ctypes
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QObject, Signal
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text
+from search_result_order import display_columns, sort_search_pairs
+from search_history import SearchHistory, normalize_keyword
 import windows
 import installed_apps
 import browser_bookmarks
@@ -29,6 +31,8 @@ from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
 from process_runner import start_process, should_start_before_dismiss
 from launch_diagnostics import make_logger, wifi_transcript_arguments
+from log_retention import cleanup as cleanup_diagnostics
+from logging.handlers import RotatingFileHandler
 from runtime_paths import launch_home
 from desktop_double_click import DesktopDoubleClick
 
@@ -41,8 +45,23 @@ LAUNCH_HOME = launch_home(ROOT)
 CONFIG = LAUNCH_HOME / 'config' / 'frb_launch_sample_data_v0_1.json'
 STATE = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'FRBLaunch'
 STATE.mkdir(parents=True, exist_ok=True)
-logging.basicConfig(filename=str(STATE / 'error.log'), encoding='utf-8', level=logging.WARNING)
+logging.basicConfig(handlers=[RotatingFileHandler(STATE / 'error.log', maxBytes=1024*1024,
+                                                  backupCount=2, encoding='utf-8')], level=logging.WARNING)
 DIAG = make_logger(STATE)
+LOG_RETENTION_OPTIONS = LAUNCH_HOME / 'config' / 'log_retention_options.json'
+
+
+def prune_diagnostics():
+    try:
+        deleted = cleanup_diagnostics(STATE, LOG_RETENTION_OPTIONS)
+        if any(deleted.values()):
+            DIAG.info('LOG_RETENTION removed wifi_process=%s audio_process=%s audio_config_backups=%s',
+                      deleted['wifi_process'], deleted['audio_process'], deleted['audio_config'])
+    except Exception:
+        DIAG.exception('LOG_RETENTION cleanup failed')
+
+
+prune_diagnostics()
 DIAG.info('START root=%s config=%s', ROOT, CONFIG)
 
 
@@ -641,6 +660,8 @@ class Launcher(QWidget):
         self.file_index_options_path = LAUNCH_HOME / 'config' / 'file_index_options.json'
         self.file_index_db = STATE / 'file_index.db'
         self.file_index_busy = False
+        self._file_index_manual = False
+        self._file_index_cancel = threading.Event()
         self.file_index_signals = FileIndexSignals(self)
         self.file_index_signals.finished.connect(self.file_index_finished)
         self.file_index_signals.failed.connect(self.file_index_failed)
@@ -667,7 +688,17 @@ class Launcher(QWidget):
         self.bookmark_profiles = []
         self.bookmark_errors = []
 
-        self.search = QLineEdit(); self.search.setPlaceholderText('検索 — 全Pageから探す'); self.search.setClearButtonEnabled(True)
+        self.search_history = SearchHistory(STATE / 'search_history.json')
+        self._previous_search_text = ''
+        self._history_search_full_text = ''
+        self.search = QLineEdit(); self.search.setPlaceholderText('検索 — 全Page（/ 履歴）'); self.search.setClearButtonEnabled(True)
+        # A small trailing chevron makes the '/' history shortcut discoverable.
+        chevron = QPixmap(14, 14); chevron.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(chevron); painter.setPen(QPen(QColor('#a9bed2'), 1.7))
+        painter.drawLine(3, 5, 7, 9); painter.drawLine(7, 9, 11, 5); painter.end()
+        self.history_action = self.search.addAction(QIcon(chevron), QLineEdit.ActionPosition.TrailingPosition)
+        self.history_action.setToolTip('検索履歴を表示 (/)')
+        self.history_action.triggered.connect(self.toggle_history_popup)
         self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
         # Apply full tab styles (including *unselected* tabs) so Windows does
         # not fall back to the legacy beveled/3D native QTabBar appearance.
@@ -675,16 +706,18 @@ class Launcher(QWidget):
         self.list = ReorderTree(self); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
         self.list.setHeaderLabels(['タイトル', '説明・場所'])
         header = self.list.header()
-        header.setSectionsClickable(True)
         header.setSectionsMovable(False)
         header.setStretchLastSection(False)  # both columns must be user-resizable
         header.setMinimumSectionSize(70)
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
-        header.setSortIndicatorShown(False)
         header.setToolTip('境界をドラッグ：列幅変更 / 見出しクリック：昇順・降順')
-        # Always leave actual sorting disabled on non-search views.
+        # QTreeView.setSortingEnabled(False) ALSO disables header clicks.
+        # Enable clickable sections AFTER it, then sort our search pairs only.
+        # Native Qt sorting must stay disabled to preserve manual menu order.
         self.list.setSortingEnabled(False)
+        header.setSectionsClickable(True)
+        header.setSortIndicatorShown(False)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
         for column, default in ((0, 180), (1, 180)):
             saved = self.saved_dimension(self.settings.value(f'result_width_{column}', default),
@@ -703,6 +736,37 @@ class Launcher(QWidget):
         self.selection_tools.hide()
         for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
         self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
+        # Child overlay: no separate top-level Popup window and no Windows
+        # focus handoff, which is important for this frameless Tool launcher.
+        self.history_popup = QFrame(self)
+        self.history_popup.setObjectName('historyPopup')
+        self.history_popup.setStyleSheet('''QFrame#historyPopup{background:#223043;border:1px solid #58718c;border-radius:7px;}
+            QTreeWidget#historyChoices{background:#223043;color:#e8f1fa;border:0;outline:0;}
+            QTreeWidget#historyChoices::item{height:31px;padding:2px 6px;}
+            QTreeWidget#historyChoices::item:selected{background:#365778;color:#ffffff;}
+            QTreeWidget#historyChoices::item:hover{background:#344b63;}''')
+        history_layout = QVBoxLayout(self.history_popup)
+        history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
+        self.history_choices = QTreeWidget(self.history_popup)
+        self.history_choices.setObjectName('historyChoices')
+        self.history_choices.setColumnCount(4)
+        self.history_choices.setHeaderHidden(True)
+        self.history_choices.setRootIsDecorated(False)
+        self.history_choices.setIndentation(0)
+        self.history_choices.setSortingEnabled(False)
+        self.history_choices.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.history_choices.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.history_choices.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.history_choices.header().setStretchLastSection(False)
+        self.history_choices.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for c in (1, 2, 3):
+            self.history_choices.header().setSectionResizeMode(c, QHeaderView.ResizeMode.Fixed)
+            self.history_choices.setColumnWidth(c, 31)
+        self.history_choices.itemClicked.connect(self.history_row_clicked)
+        history_layout.addWidget(self.history_choices)
+        self.history_popup.hide()
+        self.history_choices.installEventFilter(self)
+        self.history_choices.viewport().installEventFilter(self)
         self.tray = QSystemTrayIcon(tray_icon(), self); self.tray.setToolTip('FRB Launch — Ctrl+Shift+;')
         traymenu = QMenu(self)
         traymenu.addAction('開く', self.summon)
@@ -710,7 +774,7 @@ class Launcher(QWidget):
         traymenu.addAction('アプリ一覧を更新', self.refresh_apps)
         traymenu.addAction('アプリ一覧JSONを開く', lambda:self.open_target(str(STATE/'apps_cache.json')))
         traymenu.addSeparator()
-        self.file_index_refresh_action = traymenu.addAction('ファイル索引を更新（手動）', self.refresh_file_index)
+        self.file_index_refresh_action = traymenu.addAction('ファイル索引を今すぐ更新', lambda: self.refresh_file_index(manual=True))
         traymenu.addAction('ファイル索引の状態を表示', self.show_file_index_status)
         traymenu.addAction('ファイル索引の設定JSONを開く',
                            lambda: self.open_target(str(self.file_index_options_path)))
@@ -733,7 +797,7 @@ class Launcher(QWidget):
         traymenu.addSeparator(); traymenu.addAction('終了', self.quit)
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
         self.tray.show()
-        self.search.textChanged.connect(self.render)
+        self.search.textChanged.connect(self.search_text_changed)
         self.tabs.currentChanged.connect(self.page_changed)
         self.list.itemActivated.connect(lambda item,col:self.activate(item.data(0,Qt.ItemDataRole.UserRole)))
         self.list.itemChanged.connect(self.check_changed)
@@ -752,6 +816,13 @@ class Launcher(QWidget):
         self.hover_watch = QTimer(self);self.hover_watch.setInterval(60)
         self.hover_watch.timeout.connect(self.check_hover_menus);self.hover_watch.start()
         self.reload(True)
+        self.file_index_check_timer = QTimer(self)
+        interval = self.file_index_settings['auto_update']['check_interval_minutes']
+        self.file_index_check_timer.setInterval(interval * 60 * 1000)
+        self.file_index_check_timer.timeout.connect(self.auto_refresh_file_index)
+        self.file_index_check_timer.start()
+        delay = self.file_index_settings['auto_update']['startup_delay_seconds']
+        QTimer.singleShot(delay * 1000, self.auto_refresh_file_index)
         QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
         self.register_key()
@@ -907,6 +978,8 @@ class Launcher(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.update_window_shape()
+        if getattr(self, 'history_popup', None) and self.history_popup.isVisible():
+            self.position_history_popup()
         if self.isVisible() and hasattr(self, 'settings'):
             self.settings.setValue('window_width', self.width())
             self.settings.setValue('window_height', self.height())
@@ -1035,71 +1108,124 @@ class Launcher(QWidget):
     def _index_expanse(self, value):
         return self.expander().expand(value)
 
-    def refresh_file_index(self):
-        """Manual-only update; keep the UI responsive while scanning drives."""
+    def auto_refresh_file_index(self):
+        """Lightweight timer; filesystem enumeration runs only in a worker."""
+        self.refresh_file_index(manual=False)
+
+    def refresh_file_index(self, manual=True):
+        """Refresh independent minimal roots asynchronously; never block the GUI."""
+        if self._file_index_cancel.is_set():
+            return
         if self.file_index_busy:
-            self.tray.showMessage('FRB Launch', 'ファイル索引は更新中です',
-                                  QSystemTrayIcon.MessageIcon.Information, 3500)
+            if manual:
+                self.tray.showMessage('FRB Launch', 'ファイル索引は更新中です',
+                                      QSystemTrayIcon.MessageIcon.Information, 3500)
             return
         try:
             opts = file_index.load_options(self.file_index_options_path)
-            if not opts.get('enabled', True):
-                raise ValueError('ファイル索引は設定JSONで無効になっています')
             self.file_index_settings = opts
-            roots, warnings = file_index.registered_roots(self.data, self._index_expanse)
+            new_interval = opts['auto_update']['check_interval_minutes'] * 60000
+            if self.file_index_check_timer.interval() != new_interval:
+                self.file_index_check_timer.setInterval(new_interval)
+            if not opts.get('enabled', True):
+                if manual:
+                    raise ValueError('ファイル索引は設定JSONで無効になっています')
+                return
+            if not manual and opts['update_mode'] != 'auto':
+                return
+            # Unavailable registered roots must remain in the desired set:
+            # they cannot be mistaken for removed configuration and deleted.
+            # Read the latest authored config even if Studio changed it while
+            # the launcher stays hidden in the system tray.
+            index_data = load(CONFIG)
+            roots, warnings = file_index.registered_roots(
+                index_data, Expander(index_data).expand, include_unavailable=True)
             if not roots:
-                raise ValueError('有効な「実フォルダー展開先」がありません。設定を確認してください')
+                if manual:
+                    raise ValueError('有効な「実フォルダー展開先」がありません。設定を確認してください')
+                DIAG.warning('FILE_INDEX auto skipped: no registered roots')
+                return
             self.file_index_busy = True
+            self._file_index_manual = manual
             self.file_index_refresh_action.setEnabled(False)
-            DIAG.info('FILE_INDEX start roots=%s extensions=%s warnings=%s', roots, opts['extensions'], warnings)
-            self.tray.showMessage('FRB Launch', 'ファイル索引を更新中…（ランチャー操作は継続できます）',
-                                  QSystemTrayIcon.MessageIcon.Information, 4500)
+            DIAG.info('FILE_INDEX start mode=%s roots=%s extensions=%s warnings=%s',
+                      'manual' if manual else 'auto', roots, opts['extensions'], warnings)
+            if manual:
+                self.tray.showMessage('FRB Launch', 'ファイル索引を更新中…（ランチャー操作は継続できます）',
+                                      QSystemTrayIcon.MessageIcon.Information, 4500)
 
             def run_index():
                 try:
-                    stats = file_index.build_index(self.file_index_db, roots, opts, root_warnings=warnings)
+                    stats = file_index.refresh_index(
+                        self.file_index_db, roots, opts, force=False,
+                        root_warnings=warnings,
+                        cancelled=self._file_index_cancel.is_set,
+                        on_root=lambda root, result: DIAG.info(
+                            'FILE_INDEX root=%s result=%s', root, result))
                     self.file_index_signals.finished.emit(stats)
                 except Exception as exc:
                     DIAG.exception('FILE_INDEX failed')
                     self.file_index_signals.failed.emit(str(exc))
             threading.Thread(target=run_index, name='FRBFileIndex', daemon=True).start()
         except Exception as exc:
-            self.error('ファイル索引を開始できません: '+str(exc))
+            if manual:
+                self.error('ファイル索引を開始できません: '+str(exc))
+            else:
+                DIAG.warning('FILE_INDEX auto start failed: %s', exc)
 
     def file_index_finished(self, stats):
         self.file_index_busy = False
         self.file_index_refresh_action.setEnabled(True)
-        DIAG.info('FILE_INDEX complete count=%s excluded=%s', stats['count'], stats['excluded'])
-        self.tray.showMessage('FRB Launch',
-                              f"ファイル索引更新完了: {stats['count']:,}件登録 / {stats['excluded']:,}件除外",
-                              QSystemTrayIcon.MessageIcon.Information, 6000)
-        if self.isVisible() and self.search.text().strip() and not self.selection:
+        DIAG.info('FILE_INDEX complete count=%s changed=%s unchanged=%s failed=%s applied=%s',
+                  stats['count'], len(stats['changed_roots']),
+                  len(stats['unchanged_roots']), len(stats['failed_roots']), stats['applied'])
+        if self._file_index_manual:
+            summary = (f"ファイル索引: {stats['count']:,}件 / 更新{len(stats['changed_roots'])}ルート"
+                       f" / 変更なし{len(stats['unchanged_roots'])}ルート"
+                       f" / 失敗{len(stats['failed_roots'])}ルート")
+            self.tray.showMessage('FRB Launch', summary,
+                                  QSystemTrayIcon.MessageIcon.Information, 6000)
+        if stats['scan_warnings']:
+            DIAG.warning('FILE_INDEX warnings: %s', stats['scan_warnings'])
+        if stats['changed_roots'] and self.isVisible() and self.search.text().strip() and not self.selection:
             self.render()
 
     def file_index_failed(self, message):
         self.file_index_busy = False
         self.file_index_refresh_action.setEnabled(True)
-        self.error('ファイル索引の更新に失敗（旧索引は維持）: ' + message)
+        if self._file_index_manual:
+            self.error('ファイル索引の更新に失敗（旧索引は維持）: ' + message)
+        else:
+            DIAG.warning('FILE_INDEX automatic refresh failed (old index retained): %s', message)
 
     def show_file_index_status(self):
         status = file_index.index_status(self.file_index_db)
         if status is None:
-            message = 'まだ索引がありません。トレイの「ファイル索引を更新」を実行してください。'
+            message = 'まだ索引がありません。トレイの「ファイル索引を今すぐ更新」を実行してください。'
         else:
             roots = '\n'.join(status.get('roots', []))
             warnings = '\n'.join(status.get('warnings', []))
-            message = (f"最終更新: {status['updated_at']}\n"
+            message = (f"最終確認/更新: {status['updated_at']}\n"
                        f"登録: {status['count']:,}件  /  除外: {status['excluded']:,}件\n"
-                       f"対象フォルダー:\n{roots}")
+                       f"自動更新: {'ON' if self.file_index_settings.get('update_mode') == 'auto' else 'OFF'}\n"
+                       f"対象ルート:\n{roots}")
+            detail = file_index.index_root_status(self.file_index_db)
+            if detail:
+                message += '\nルート別状態:'
+                for row in detail[:15]:
+                    message += (f"\n{row['root_path']}: {row['count']}件"
+                                f" / 最終チェック {row['checked_at']}")
+                if len(detail)>15:
+                    message += f'\nほか {len(detail)-15}ルート'
             if warnings:
-                message += '\n一部の登録フォルダーは対象外:\n' + warnings
+                message += '\n警告（前回チェック時）:\n' + warnings
         QMessageBox.information(self, 'ファイル索引の状態', message)
 
-    def run_indexed_file(self, row):
-        """Enter/Right both lead to the standard launch executor."""
-        path = row['_indexed_file']
+    def run_file_path(self, row, path):
+        """Index results and expanded folder entries share launch rules."""
+
         if not os.path.isfile(path):
-            self.error('ファイルが見つかりません。ファイル索引を更新してください: '+path)
+            self.error('ファイルが見つかりません。パスを確認してください: '+path)
             return
         try:
             studio = self.expander().values.get('studio_root', '')
@@ -1240,6 +1366,7 @@ class Launcher(QWidget):
         if self.busy:self.error('処理の完了を待っています');return
         if self.isVisible():self.dismiss();return
         self.target=windows.foreground();self.reload();self.refresh_bookmarks()
+        self.hide_history_popup()
         self.stack=[];self.selection=None;self.checked.clear();self.search.clear();self.render()
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
@@ -1263,6 +1390,8 @@ class Launcher(QWidget):
 
     def dismiss(self):
         # Never carry a half-finished double-click into the next summon.
+        self.remember_search()
+        self.hide_history_popup()
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
         if self.menu:self.menu.close()
@@ -1299,7 +1428,7 @@ class Launcher(QWidget):
             path=Path(self.expander().expand(row['launch_browse_target']))
             result=[]
             for p in sorted(path.iterdir(),key=lambda p:(not p.is_dir(),p.name.casefold())):
-                result.append(dict(item_id=str(p),title=p.name,description=str(p),item_kind='directory' if p.is_dir() else 'command',icon_key='folder.yellow' if p.is_dir() else 'file',launch_browse_target=str(p),launch_actions=[{'launch_action_type':'Open','launch_target':str(p)}],_file=str(p)))
+                result.append(dict(item_id=str(p),title=p.name,description=str(p),item_kind='directory' if p.is_dir() else 'command',icon_key='folder.yellow' if p.is_dir() else 'file',launch_browse_target=str(p),launch_actions=[{'launch_action_type':'Open','launch_target':str(p)}],_file=str(p),**({'_browse_file': str(p)} if p.is_file() else {})))
             return result
         parent=row['item_id'] if row else ''
         return sorted([x for x in self.data['items'] if x.get('enabled',True) and x['page_id']==(row['page_id'] if row else self.page_id) and x.get('parent_item_id','')==parent],key=lambda x:x.get('sort_order',0))
@@ -1323,7 +1452,9 @@ class Launcher(QWidget):
             self.result_sort_desc = False
         self.settings.setValue('result_sort_column', column)
         self.settings.setValue('result_sort_desc', self.result_sort_desc)
-        self.apply_search_sort()
+        # Never rely on QTreeWidget.sortItems() while Qt sorting is disabled.
+        # Rebuild from explicitly sorted visible column values.
+        self.render()
 
     def apply_search_sort(self):
         if self.result_sort_column < 0 or not self.search.text().strip():
@@ -1331,7 +1462,7 @@ class Launcher(QWidget):
         order = (Qt.SortOrder.DescendingOrder if self.result_sort_desc
                  else Qt.SortOrder.AscendingOrder)
         self.list.header().setSortIndicator(self.result_sort_column, order)
-        self.list.sortItems(self.result_sort_column, order)
+        # Items are already sorted by sort_search_pairs() before insertion.
 
     def render(self,*args):
         if not self.data:return
@@ -1361,15 +1492,13 @@ class Launcher(QWidget):
                                    _indexed_file=hit['path'], _file=hit['path'])
                         pairs.append((row, 'ファイル索引'))
             else:pairs=[(x,'') for x in (self.displayed_children(self.stack[-1]) if self.stack else self.children())]
+            if query and self.result_sort_column in (0, 1):
+                pairs = sort_search_pairs(pairs, self.result_sort_column,
+                                          self.result_sort_desc, selection=bool(self.selection))
             if self.list.order_enabled:self.list.order_rows=[row for row,path in pairs]
             for row,path in pairs:
-                details = row.get('description', '') or (str(row.get('value', '')) if self.selection or row.get('_search_selection_owner') else '')
-                # URLs are available on hover, but do not fill bookmark search rows.
-                if row.get('_browser_bookmark'):
-                    details = ''
-                desc = details + ('  ·  '+path if path else '')
-                isfolder=row.get('item_kind') in {'category','directory'}
-                q=QTreeWidgetItem([row['title']+('  ›' if isfolder else ''),desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
+                title, desc = display_columns(row, path, selection=bool(self.selection))
+                q=QTreeWidgetItem([title,desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
                 q.setToolTip(0,row['title']);q.setToolTip(1,row.get('description','') if row.get('_browser_bookmark') else desc)
                 q.setIcon(0,self.row_icon(row))
                 q.setForeground(1,QColor('#a6b4c7'))
@@ -1477,6 +1606,7 @@ class Launcher(QWidget):
             self.error('表示順を保存できません: '+str(e));return False
 
     def focus_search(self, select=True):
+        self.hide_history_popup()
         self.hover_timer.stop();self.pending_menu_item=None
         if self.menu:self.menu.close()
         self.activateWindow();self.search.setFocus()
@@ -1544,8 +1674,10 @@ class Launcher(QWidget):
 
     def activate(self,row):
         if not row:return
-        if row.get('_indexed_file'):
-            self.run_indexed_file(row)
+        self.remember_search()
+        file_path = row.get('_indexed_file') or row.get('_browse_file')
+        if file_path:
+            self.run_file_path(row, file_path)
             return
         if not self.selection and row.get('_search_selection_owner'):
             # Enter/Space on a global-search hit joins its original selection
@@ -1570,6 +1702,7 @@ class Launcher(QWidget):
 
     def confirm_selection(self):
         if not self.selection or not self.checked:return
+        self.remember_search()
         row=self.selection
         choices=sorted([c for c in self.data['launch_choices'] if c['choice_id'] in self.checked],key=lambda c:c.get('sort_order',0))
         value=join_selection_values(row, choices)
@@ -1594,6 +1727,199 @@ class Launcher(QWidget):
                 DIAG.info('MOUSE_LAUNCH_FOCUS before=%s expected=%s restored=%s after=%s',
                           before, expected_foreground, restored, windows.foreground())
         self.activate(row)
+
+    def remember_search(self, value=None):
+        """Store only completed queries, never intermediate live-search keystrokes."""
+        text = self.search.text() if value is None else value
+        try:
+            if self.search_history.remember(text):
+                DIAG.info('SEARCH_HISTORY saved keyword=%s', normalize_keyword(text))
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY save failed')
+
+    def search_text_changed(self, value):
+        # Slash is reserved for the history popup, even for clipboard pastes.
+        if '/' in value:
+            cursor = self.search.cursorPosition()
+            cleaned = value.replace('/', '')
+            self.search.setText(cleaned)
+            self.search.setCursorPosition(max(0, cursor - value[:max(0, cursor)].count('/')))
+            return
+        previous = self._previous_search_text
+        self._previous_search_text = value
+        # When Backspace is held to erase an entire query, preserve the full
+        # word, not just the final one-character fragment before it cleared.
+        if value.strip():
+            if (not previous or not previous.startswith(value)
+                    or len(value) > len(self._history_search_full_text)):
+                self._history_search_full_text = value
+        else:
+            if previous.strip():
+                self.remember_search(self._history_search_full_text or previous)
+            self._history_search_full_text = ''
+        self.render()
+
+    def position_history_popup(self):
+        if not hasattr(self, 'history_popup'):
+            return
+        x = self.search.x()
+        y = self.search.geometry().bottom() + 4
+        height = min(300, max(88, self.height() - y - 12))
+        self.history_popup.setGeometry(x, y, self.search.width(), height)
+
+    def populate_history_popup(self, selected=None):
+        self.history_choices.blockSignals(True)
+        self.history_choices.clear()
+        keywords = self.search_history.keywords
+        if not keywords:
+            row = QTreeWidgetItem(['（履歴はありません）', '', '', ''])
+            row.setFlags(Qt.ItemFlag.NoItemFlags)
+            self.history_choices.addTopLevelItem(row)
+        else:
+            for index, keyword in enumerate(keywords):
+                row = QTreeWidgetItem([keyword, '▲' if index else '',
+                                       '▼' if index < len(keywords)-1 else '', '×'])
+                for col in (1, 2, 3):
+                    row.setTextAlignment(col, Qt.AlignmentFlag.AlignCenter)
+                row.setToolTip(0, keyword + '  — クリックで検索')
+                row.setToolTip(1, '1つ上へ移動')
+                row.setToolTip(2, '1つ下へ移動')
+                row.setToolTip(3, '履歴を削除')
+                self.history_choices.addTopLevelItem(row)
+            target = next((i for i, k in enumerate(keywords) if k == selected), 0)
+            self.history_choices.setCurrentItem(self.history_choices.topLevelItem(target))
+        self.history_choices.blockSignals(False)
+
+    def show_history_popup(self):
+        if not self.isVisible():
+            return
+        if self.menu:
+            self.menu.close()
+        self.hover_timer.stop(); self.pending_menu_item = None
+        self.populate_history_popup()
+        self.position_history_popup()
+        self.history_popup.show()
+        self.history_popup.raise_()
+        self.history_choices.setFocus(Qt.FocusReason.ShortcutFocusReason)
+
+    def hide_history_popup(self, focus_search=False):
+        if not hasattr(self, 'history_popup'):
+            return
+        was_visible = self.history_popup.isVisible()
+        self.history_popup.hide()
+        if was_visible and focus_search and self.isVisible():
+            self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
+
+    def toggle_history_popup(self):
+        if self.history_popup.isVisible():
+            self.hide_history_popup(focus_search=True)
+        else:
+            self.show_history_popup()
+
+    def select_history_keyword(self):
+        row = self.history_choices.currentItem()
+        if row is None or not self.search_history.keywords:
+            return
+        keyword = row.text(0)
+        if keyword not in self.search_history.keywords:
+            return
+        self.hide_history_popup()
+        self.search.setText(keyword)  # Existing live textChanged search is the only search path.
+        self.search.setCursorPosition(len(keyword))
+        if self.list.topLevelItemCount():
+            self.list.setCurrentItem(self.list.topLevelItem(0))
+        self.list.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        DIAG.info('SEARCH_HISTORY selected keyword=%s', keyword)
+
+    def change_history_row(self, value, action):
+        try:
+            if action == 'delete':
+                index = self.search_history.keywords.index(value)
+                if not self.search_history.remove(value):
+                    return
+                remaining = self.search_history.keywords
+                selected = remaining[min(index, len(remaining)-1)] if remaining else None
+            elif action in ('up', 'down'):
+                if not self.search_history.move(value, -1 if action == 'up' else 1):
+                    return
+                selected = value
+            else:
+                return
+            self.populate_history_popup(selected)
+            self.history_choices.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        except (OSError, ValueError):
+            DIAG.exception('SEARCH_HISTORY update failed')
+
+    def history_row_clicked(self, item, column):
+        if not self.search_history.keywords:
+            return
+        value = item.text(0)
+        if column == 0:
+            self.history_choices.setCurrentItem(item)
+            self.select_history_keyword()
+        elif column == 1:
+            self.change_history_row(value, 'up')
+        elif column == 2:
+            self.change_history_row(value, 'down')
+        elif column == 3:
+            self.change_history_row(value, 'delete')
+
+    def handle_history_event(self, obj, event):
+        # Keep popup key handling ahead of the launcher's Enter/Right handlers:
+        # the first Enter must search, the NEXT Enter may activate a result.
+        popup_input = obj in (self.history_choices, self.history_choices.viewport())
+        if event.type() == QEvent.Type.MouseButtonPress and obj in (
+                self.search, self.list.viewport(), self.tabs) and self.history_popup.isVisible():
+            self.hide_history_popup()
+            return False
+        if event.type() != QEvent.Type.KeyPress:
+            return False
+        key = event.key()
+        modifiers = event.modifiers()
+        if getattr(self, 'composing', False):
+            return False
+        if (obj in (self.search, self.list, self.tabs) or popup_input) and (
+                event.text() == '/' or (key == Qt.Key.Key_Slash and not event.text())) and modifiers in (
+                    Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier):
+            self.toggle_history_popup()
+            event.accept()
+            return True
+        if not popup_input or not self.history_popup.isVisible():
+            return False
+        if key == Qt.Key.Key_Escape:
+            self.hide_history_popup(focus_search=True)
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Right, Qt.Key.Key_Tab):
+            self.select_history_keyword()
+        elif key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            row = self.history_choices.currentItem()
+            count = len(self.search_history.keywords)
+            if row is not None and count:
+                offset = -1 if key == Qt.Key.Key_Up else 1
+                if modifiers & Qt.KeyboardModifier.AltModifier:
+                    self.change_history_row(row.text(0), 'up' if offset == -1 else 'down')
+                else:
+                    index = self.history_choices.indexOfTopLevelItem(row)
+                    next_index = max(0, min(count-1, index + offset))
+                    self.history_choices.setCurrentItem(self.history_choices.topLevelItem(next_index))
+                    self.history_choices.scrollToItem(self.history_choices.currentItem())
+        elif key == Qt.Key.Key_Delete:
+            row = self.history_choices.currentItem()
+            if row is not None and self.search_history.keywords:
+                self.change_history_row(row.text(0), 'delete')
+        elif key == Qt.Key.Key_Backspace:
+            self.hide_history_popup()
+            self.search.setFocus()
+            self.search.backspace()
+        else:
+            # No typing into the history list; return to searching on a normal key.
+            if event.text() and not (modifiers & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
+                self.hide_history_popup()
+                self.search.setFocus()
+                QApplication.sendEvent(self.search, QKeyEvent(event.type(), key, modifiers, event.text()))
+            else:
+                return False
+        event.accept()
+        return True
 
     def eventFilter(self,obj,event):
         if obj is self.list.viewport():
@@ -1626,6 +1952,9 @@ class Launcher(QWidget):
                                   self.activate_after_mouse_release(r,fg))
                 event.accept()
                 return True
+        # Legacy mouse-event test stubs reuse this method without a full UI.
+        if getattr(self, 'handle_history_event', None) and self.handle_history_event(obj, event):
+            return True
         if obj==self.tabs:
             if event.type()==QEvent.Type.KeyPress and event.modifiers()==Qt.KeyboardModifier.NoModifier:
                 key=event.key()
@@ -1751,9 +2080,14 @@ class Launcher(QWidget):
             ex=self.expander(values)
             # Resolve all values before any side effects.
             self.queue=[]
+            studio_root = getattr(ex, 'values', {}).get('studio_root', '')
             for raw in row.get('launch_actions',[]):
                 step={k:([ex.expand(a) for a in val] if k=='launch_arguments' else ex.expand(val) if isinstance(val,str) else val) for k,val in raw.items()}
-                self.queue.append(step)
+                # Directly registered local files must behave exactly like
+                # file-index hits and expanded-folder files. In particular, a
+                # Studio-managed JSON opens via --open-json instead of the OS
+                # file association. Authored Run/browser actions remain intact.
+                self.queue.extend(file_index.route_registered_open_step(step, studio_root))
             self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue))
             if should_start_before_dismiss(self.queue):
                 # A GUI child can claim foreground only if its launcher was
@@ -1822,6 +2156,7 @@ class Launcher(QWidget):
                 self.error('タイムアウトしました。後続処理を中止し、実行中の処理が終了するまで待ちます')
             return
         DIAG.info('PROCESS exited code=%s timedout=%s',code,self.timedout)
+        prune_diagnostics()
         self.process_timer.stop()
         if self.timedout:self.busy=False;return
         if code!=0:self.fail(f'外部処理の終了コード: {code}（トレイの「ログフォルダーを開く」で詳細を確認）')
@@ -1835,6 +2170,7 @@ class Launcher(QWidget):
 
     def closeEvent(self,event):event.ignore();self.dismiss()
     def quit(self):
+        self._file_index_cancel.set()
         if self.apps_proc:
             self.apps_proc.kill();self.apps_proc.wait();self.apps_output.unlink(missing_ok=True)
         windows.unhotkey(int(self.winId()));self.dismiss();self.tray.hide();QApplication.quit()

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -28,6 +28,7 @@ namespace FRBStudio.NativeShell
         private readonly string _initialUri;
         private readonly string _initialPage;
         private readonly string _initialJsonPath;
+        private readonly string _initialMarkdownPath;
         private readonly string _initialWorkspaceRoot;
         private readonly CoreWebView2Environment _sharedEnvironment;
         private readonly bool _deferInitialNavigation;
@@ -295,11 +296,13 @@ namespace FRBStudio.NativeShell
             string initialJsonPath = null,
             string initialWorkspaceRoot = null,
             CoreWebView2Environment sharedEnvironment = null,
-            bool deferInitialNavigation = false)
+            bool deferInitialNavigation = false,
+            string initialMarkdownPath = null)
         {
             _initialUri = initialUri;
             _initialPage = initialPage;
             _initialJsonPath = initialJsonPath;
+            _initialMarkdownPath = initialMarkdownPath;
             _initialWorkspaceRoot = initialWorkspaceRoot;
             _sharedEnvironment = sharedEnvironment;
             _deferInitialNavigation = deferInitialNavigation;
@@ -398,7 +401,7 @@ namespace FRBStudio.NativeShell
                     !string.IsNullOrWhiteSpace(_initialWorkspaceRoot) && Directory.Exists(_initialWorkspaceRoot)
                         ? _initialWorkspaceRoot
                         : _appRoot);
-                _dispatcher = new NativeCommandDispatcher(_config, _workspace, _initialJsonPath);
+                _dispatcher = new NativeCommandDispatcher(_config, _workspace, _initialJsonPath, _initialMarkdownPath);
 
                 var webRoot = Path.Combine(_appRoot, "wwwroot");
                 if (!File.Exists(Path.Combine(webRoot, _config.StartPage)))

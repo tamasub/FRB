@@ -34,6 +34,7 @@
     "folderGrant.move",
     "folderGrant.describePath",
     "document.writeText",
+    "startupMarkdown.open",
     "startupJson.read",
     "startupJson.write",
     "file.describeDrop"

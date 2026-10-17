@@ -72,6 +72,27 @@ class WildcardSearchTests(unittest.TestCase):
             self.assertNotIn('view_def.md', find('*'))
             self.assertTrue(find('*'))
 
+    def test_file_index_path_and_filename_terms_use_and(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            folder = root / 'zip_app'
+            folder.mkdir()
+            other = root / 'docs'
+            other.mkdir()
+            (folder / 'make_FRB.ps1').write_text('sample', encoding='utf8')
+            (folder / 'not_make.md').write_text('sample', encoding='utf8')
+            (other / 'make_FRB.ps1').write_text('sample', encoding='utf8')
+            (folder / 'view_def_make.json').write_text('sample', encoding='utf8')
+            db = root / 'file_index.db'
+            build_index(db, [str(root)], load_options(root / 'missing.json'))
+            find = lambda q: {hit['path'] for hit in search_index(db, q)}
+            self.assertEqual(find('make zip_app'), {str(folder/'make_FRB.ps1'), str(folder/'not_make.md')})
+            self.assertEqual(find('zip_app *.ps1'), {str(folder/'make_FRB.ps1')})
+            self.assertEqual(find('ZIP_APP MAKE*.PS1'), {str(folder/'make_FRB.ps1')})
+            self.assertEqual(find('docs make'), {str(other/'make_FRB.ps1')})
+            self.assertEqual(find('zip_app missing'), set())
+            self.assertNotIn(str(folder/'view_def_make.json'), find('zip_app'))
+
 
 if __name__ == '__main__':
     unittest.main()

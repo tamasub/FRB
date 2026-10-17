@@ -15,6 +15,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from process_runner import should_start_before_dismiss
+import file_index
 
 
 def method_body(name):
@@ -54,7 +55,8 @@ class ForegroundLaunchTests(unittest.TestCase):
                    windows=win, start_process=start,
                    wifi_transcript_arguments=lambda p, a, state:(a, None),
                    STATE=ROOT, ROOT=ROOT,
-                   QApplication=SimpleNamespace(clipboard=lambda:None))
+                   QApplication=SimpleNamespace(clipboard=lambda:None),
+                   file_index=file_index)
         for name in ('execute','next_step'):
             exec(method_body(name), env)
         subject = LauncherStub(env)
