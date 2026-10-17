@@ -1,6 +1,6 @@
 """Shared navigation regression: no Qt required."""
 import unittest
-from navigation_wrap import next_wrapped, move_tree_selection
+from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
 
 
 class StubItem:
@@ -52,6 +52,29 @@ class WrapNavigationTests(unittest.TestCase):
         self.assertIsNone(next_wrapped([], None, 1))
         self.assertEqual(next_wrapped(['only'], 'only', -1), 'only')
         self.assertEqual(next_wrapped(['only'], 'only', 1), 'only')
+
+    def test_root_page_tab_is_between_endpoints(self):
+        rows = ['first', 'middle', 'last']
+        self.assertEqual(next_page_ring_target(rows, 'first', -1), ('tab', None))
+        self.assertEqual(next_page_ring_target(rows, 'last', 1), ('tab', None))
+        self.assertEqual(next_page_ring_target(rows, 'last', -1), ('row', 'middle'))
+        self.assertEqual(next_page_ring_target(rows, 'first', 1), ('row', 'middle'))
+
+    def test_from_page_tab_enters_first_or_last_row(self):
+        rows = ['first', 'middle', 'last']
+        self.assertEqual(next_page_ring_target(rows, 'middle', 1, on_tab=True), ('row', 'first'))
+        self.assertEqual(next_page_ring_target(rows, 'middle', -1, on_tab=True), ('row', 'last'))
+
+    def test_empty_page_and_single_entry(self):
+        self.assertEqual(next_page_ring_target([], None, 1), ('tab', None))
+        self.assertEqual(next_page_ring_target([], None, -1, on_tab=True), ('tab', None))
+        self.assertEqual(next_page_ring_target(['one'], 'one', -1), ('tab', None))
+        self.assertEqual(next_page_ring_target(['one'], 'one', 1), ('tab', None))
+        self.assertEqual(next_page_ring_target(['one'], 'one', 1, on_tab=True), ('row', 'one'))
+
+    def test_search_and_popup_wrap_rule_is_unmodified(self):
+        self.assertEqual(next_wrapped(['first', 'last'], 'first', -1), 'last')
+        self.assertEqual(next_wrapped(['first', 'last'], 'last', 1), 'first')
 
     def test_hidden_and_disabled_items_are_skipped(self):
         a = StubItem('a')

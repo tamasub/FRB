@@ -15,7 +15,7 @@ from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text
 from search_result_order import display_columns, sort_search_pairs
-from navigation_wrap import next_wrapped, move_tree_selection
+from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
 from search_history import SearchHistory, normalize_keyword
 import windows
 import installed_apps
@@ -2103,6 +2103,26 @@ class Launcher(QWidget):
         event.accept()
         return True
 
+    def in_root_page_navigation(self):
+        """Only the unfiltered Page root includes its tab in Up/Down travel."""
+        return (not self.search.text().strip() and not self.stack
+                and self.selection is None)
+
+    def move_root_page_selection(self, direction, *, from_tab=False):
+        """Page tab -> rows -> Page tab, without changing the selected Page."""
+        selectable = [self.list.topLevelItem(i)
+                      for i in range(self.list.topLevelItemCount())
+                      if not self.list.topLevelItem(i).isHidden()
+                      and not self.list.topLevelItem(i).isDisabled()]
+        destination, row = next_page_ring_target(
+            selectable, self.list.currentItem(), direction, on_tab=from_tab)
+        if destination == 'tab':
+            self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+        else:
+            self.list.setCurrentItem(row)
+            self.list.scrollToItem(row)
+            self.list.setFocus(Qt.FocusReason.TabFocusReason)
+
     def eventFilter(self,obj,event):
         if obj is self.list.viewport():
             # Headerless main-menu columns have an invisible draggable grip.
@@ -2143,22 +2163,22 @@ class Launcher(QWidget):
         if getattr(self, 'handle_history_event', None) and self.handle_history_event(obj, event):
             return True
         if obj==self.tabs:
-            if event.type()==QEvent.Type.KeyPress and event.modifiers()==Qt.KeyboardModifier.NoModifier:
+            if (event.type()==QEvent.Type.KeyPress
+                    and event.modifiers()==Qt.KeyboardModifier.NoModifier):
                 key=event.key()
-                if key==Qt.Key.Key_Up:
-                    if self.list.topLevelItemCount():
-                        self.list.setCurrentItem(self.list.topLevelItem(self.list.topLevelItemCount()-1));self.list.setFocus(Qt.FocusReason.TabFocusReason);self.list.scrollToItem(self.list.currentItem())
+                if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                    direction = 1 if key == Qt.Key.Key_Down else -1
+                    if self.in_root_page_navigation():
+                        self.move_root_page_selection(direction, from_tab=True)
+                    else:
+                        # Search / submenus retain list-only wrap navigation.
+                        move_tree_selection(self.list, direction)
+                        self.list.setFocus(Qt.FocusReason.TabFocusReason)
                     event.accept();return True
                 if key in (Qt.Key.Key_Left,Qt.Key.Key_Right):
                     index=max(0,min(self.tabs.count()-1,self.tabs.currentIndex()+(1 if key==Qt.Key.Key_Right else -1)))
                     if self.tabs.count():self.tabs.setCurrentIndex(index)
                     event.accept();return True
-            if event.type()==QEvent.Type.KeyPress and event.key()==Qt.Key.Key_Down:
-                if self.list.topLevelItemCount():
-                    self.list.setCurrentItem(self.list.topLevelItem(0))
-                self.list.setFocus(Qt.FocusReason.TabFocusReason)
-                if self.list.currentItem():self.list.scrollToItem(self.list.currentItem())
-                event.accept();return True
             return super().eventFilter(obj,event)
         if event.type()==QEvent.Type.KeyPress:
             k=event.key();ctrl=bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
@@ -2198,11 +2218,16 @@ class Launcher(QWidget):
                     else:self.activate(row)
                 return True
             if k in (Qt.Key.Key_Down, Qt.Key.Key_Up):
-                # Search results and the normal main menu share this rule.
-                # At either edge, continue from the opposite edge instead of
-                # moving focus to the page tabs.
-                move_tree_selection(self.list, 1 if k == Qt.Key.Key_Down else -1)
-                self.list.setFocus()
+                direction = 1 if k == Qt.Key.Key_Down else -1
+                if self.in_root_page_navigation():
+                    # Main Page navigation includes the current Page tab as
+                    # one stop between the first and last menu entries.
+                    self.move_root_page_selection(direction)
+                else:
+                    # Search results, selection screens and submenus loop
+                    # only within their visible list rows.
+                    move_tree_selection(self.list, direction)
+                    self.list.setFocus()
                 event.accept()
                 return True
             if k==Qt.Key.Key_Escape:

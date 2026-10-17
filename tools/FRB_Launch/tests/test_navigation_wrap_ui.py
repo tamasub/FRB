@@ -31,23 +31,74 @@ class WrapNavigationGuiTests(unittest.TestCase):
         self.w.deleteLater()
         self.qt.processEvents()
 
-    def test_main_and_search_results_wrap_with_real_key_events(self):
+    def test_main_root_navigation_includes_current_page_tab(self):
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
-        for search in ('', 'a'):
-            self.w.search.setText(search)
-            self.qt.processEvents()
-            tree = self.w.list
-            count = tree.topLevelItemCount()
-            if count < 2:
-                continue
-            tree.setCurrentItem(tree.topLevelItem(0))
-            tree.setFocus()
-            QTest.keyClick(tree, Qt.Key.Key_Up)
-            self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), count-1)
-            QTest.keyClick(tree, Qt.Key.Key_Down)
-            self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), 0)
-            self.assertTrue(tree.hasFocus())
+        self.w.search.clear()
+        self.qt.processEvents()
+        tree = self.w.list
+        count = tree.topLevelItemCount()
+        self.assertGreater(count, 0)
+        page_index = self.w.tabs.currentIndex()
+        tree.setCurrentItem(tree.topLevelItem(0))
+        tree.setFocus()
+        QTest.keyClick(tree, Qt.Key.Key_Up)
+        self.assertTrue(self.w.tabs.hasFocus())
+        self.assertEqual(self.w.tabs.currentIndex(), page_index)
+        QTest.keyClick(self.w.tabs, Qt.Key.Key_Up)
+        self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), count-1)
+        self.assertTrue(tree.hasFocus())
+        QTest.keyClick(tree, Qt.Key.Key_Down)
+        self.assertTrue(self.w.tabs.hasFocus())
+        QTest.keyClick(self.w.tabs, Qt.Key.Key_Down)
+        self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), 0)
+        self.assertTrue(tree.hasFocus())
+        self.assertEqual(self.w.tabs.currentIndex(), page_index)
+        # Once the Page tab has keyboard focus, Left/Right still switches Page.
+        QTest.keyClick(tree, Qt.Key.Key_Up)
+        self.assertTrue(self.w.tabs.hasFocus())
+        QTest.keyClick(self.w.tabs, Qt.Key.Key_Right)
+        self.assertEqual(self.w.tabs.currentIndex(), min(page_index + 1, self.w.tabs.count() - 1))
+        self.assertTrue(self.w.tabs.hasFocus())
+        QTest.keyClick(self.w.tabs, Qt.Key.Key_Down)
+        self.assertTrue(tree.hasFocus())
+        self.assertIs(tree.currentItem(), tree.topLevelItem(0))
+
+    def test_search_results_still_wrap_without_page_tab(self):
+        from PySide6.QtCore import Qt
+        from PySide6.QtTest import QTest
+        self.w.search.setText('a')
+        self.qt.processEvents()
+        tree = self.w.list
+        count = tree.topLevelItemCount()
+        if count < 2:
+            self.skipTest('Search produced fewer than two rows')
+        tree.setCurrentItem(tree.topLevelItem(0))
+        tree.setFocus()
+        QTest.keyClick(tree, Qt.Key.Key_Up)
+        self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), count-1)
+        self.assertTrue(tree.hasFocus())
+        QTest.keyClick(tree, Qt.Key.Key_Down)
+        self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), 0)
+        self.assertTrue(tree.hasFocus())
+
+    def test_nested_main_submenu_remains_list_only(self):
+        from PySide6.QtCore import Qt
+        from PySide6.QtTest import QTest
+        self.w.search.clear()
+        group = next((row for row in self.w.children()
+                      if row.get('item_kind') == 'category' and len(self.w.children(row)) > 1), None)
+        if group is None:
+            self.skipTest('No group with two or more entries')
+        self.w.stack.append(group)
+        self.w.render()
+        tree = self.w.list
+        count = tree.topLevelItemCount()
+        tree.setCurrentItem(tree.topLevelItem(0))
+        tree.setFocus()
+        QTest.keyClick(tree, Qt.Key.Key_Up)
+        self.assertEqual(tree.indexOfTopLevelItem(tree.currentItem()), count-1)
+        self.assertTrue(tree.hasFocus())
 
     def test_short_directory_actions_wrap(self):
         from PySide6.QtCore import Qt
