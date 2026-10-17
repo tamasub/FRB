@@ -11,13 +11,15 @@ class RefreshCycleTests(unittest.TestCase):
     setUpClass=classmethod(apps_ui.AppsUITests.setUpClass.__func__)
     setUp=apps_ui.AppsUITests.setUp
     tearDown=apps_ui.AppsUITests.tearDown
-    def test_up_and_down_cycle_through_tabs(self):
+    def test_up_and_down_wrap_inside_list_without_switching_to_tabs(self):
         w=self.w;count=w.list.topLevelItemCount();self.assertGreater(count,0)
         w.list.setCurrentItem(w.list.topLevelItem(0));w.list.setFocus()
-        QTest.keyClick(w.list,Qt.Key.Key_Up);self.assertEqual(QApplication.focusWidget(),w.tabs)
-        QTest.keyClick(w.tabs,Qt.Key.Key_Up);self.assertEqual(w.list.indexOfTopLevelItem(w.list.currentItem()),count-1)
-        QTest.keyClick(w.list,Qt.Key.Key_Down);self.assertEqual(QApplication.focusWidget(),w.tabs)
-        QTest.keyClick(w.tabs,Qt.Key.Key_Down);self.assertEqual(w.list.indexOfTopLevelItem(w.list.currentItem()),0)
+        QTest.keyClick(w.list,Qt.Key.Key_Up)
+        self.assertEqual(QApplication.focusWidget(),w.list)
+        self.assertEqual(w.list.indexOfTopLevelItem(w.list.currentItem()),count-1)
+        QTest.keyClick(w.list,Qt.Key.Key_Down)
+        self.assertEqual(QApplication.focusWidget(),w.list)
+        self.assertEqual(w.list.indexOfTopLevelItem(w.list.currentItem()),0)
     def test_reload_on_show_and_skip_unchanged(self):
         path=Path(self.temp.name)/'settings.json';data=json.loads(module.CONFIG.read_text(encoding='utf-8-sig'));path.write_text(json.dumps(data),encoding='utf-8')
         with patch.object(module,'CONFIG',path):

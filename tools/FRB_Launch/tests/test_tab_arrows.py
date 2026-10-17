@@ -8,16 +8,12 @@ class TabArrowTests(unittest.TestCase):
     setUpClass=classmethod(apps_ui.AppsUITests.setUpClass.__func__)
     setUp=apps_ui.AppsUITests.setUp
     tearDown=apps_ui.AppsUITests.tearDown
-    def test_first_item_up_to_tabs_then_last_item(self):
+    def test_first_item_up_wraps_to_last_and_down_to_first(self):
         self.w.list.setCurrentItem(self.w.list.topLevelItem(0));self.w.list.setFocus()
         QTest.keyClick(self.w.list,Qt.Key.Key_Up)
-        self.assertEqual(QApplication.focusWidget(),self.w.tabs)
-        QTest.keyClick(self.w.tabs,Qt.Key.Key_Up)
         self.assertEqual(QApplication.focusWidget(),self.w.list)
         self.assertEqual(self.w.list.indexOfTopLevelItem(self.w.list.currentItem()),self.w.list.topLevelItemCount()-1)
         QTest.keyClick(self.w.list,Qt.Key.Key_Down)
-        self.assertEqual(QApplication.focusWidget(),self.w.tabs)
-        QTest.keyClick(self.w.tabs,Qt.Key.Key_Down)
         self.assertEqual(QApplication.focusWidget(),self.w.list)
         self.assertEqual(self.w.list.indexOfTopLevelItem(self.w.list.currentItem()),0)
     def test_tab_arrows_change_page_keep_focus_and_stop_at_edges(self):

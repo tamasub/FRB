@@ -33,7 +33,7 @@
               },
               "readonly": true,
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -51,7 +51,7 @@
               },
               "readonly": true,
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -68,7 +68,7 @@
               },
               "readonly": true,
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               },
               "width": 256
@@ -87,7 +87,7 @@
               },
               "readonly": true,
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },
@@ -105,7 +105,7 @@
               },
               "readonly": true,
               "search": {
-                "visible": true,
+                "visible": false,
                 "operator": "contains"
               }
             },

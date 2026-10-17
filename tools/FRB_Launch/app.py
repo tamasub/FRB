@@ -15,6 +15,7 @@ from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text
 from search_result_order import display_columns, sort_search_pairs
+from navigation_wrap import next_wrapped, move_tree_selection
 from search_history import SearchHistory, normalize_keyword
 import windows
 import installed_apps
@@ -440,14 +441,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
     def _move_filtered_selection(self, increment):
         if self.scroll_tree is not None:
-            matches = [self.scroll_tree.topLevelItem(i)
-                       for i in range(self.scroll_tree.topLevelItemCount())
-                       if not self.scroll_tree.topLevelItem(i).isHidden()]
-            if not matches:
-                return
-            current = self.scroll_tree.currentItem()
-            index = matches.index(current) if current in matches else (0 if increment > 0 else len(matches)-1)
-            self.scroll_tree.setCurrentItem(matches[max(0, min(len(matches)-1, index+increment))])
+            move_tree_selection(self.scroll_tree, increment,
+                                usable=lambda item: not item.isHidden()
+                                and not item.isDisabled()
+                                and self._scroll_item_action(item) is not None
+                                and self._scroll_item_action(item).isEnabled())
             return
         matches = [a for a in self.actions()
                    if a is not self.filter_action and a.isVisible()
@@ -456,15 +454,18 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.setActiveAction(None)
             return
         current = self.activeAction()
-        index = matches.index(current) if current in matches else (0 if increment > 0 else len(matches)-1)
-        self.setActiveAction(matches[max(0, min(len(matches)-1, index+increment))])
+        self.setActiveAction(next_wrapped(matches, current, increment))
 
     def eventFilter(self, obj, event):
         if self.scroll_tree is not None and obj is self.scroll_tree:
             if event.type() == QEvent.Type.KeyPress:
-                if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Home,
-                                   Qt.Key.Key_End, Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
-                    return False  # Native tree navigation scrolls selection into view.
+                if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                    self._move_filtered_selection(1 if event.key() == Qt.Key.Key_Down else -1)
+                    event.accept()
+                    return True
+                if event.key() in (Qt.Key.Key_Home, Qt.Key.Key_End,
+                                   Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
+                    return False  # Native page/home/end behavior is unchanged.
                 self.keyPressEvent(event)
                 return True
         if self.scroll_tree is not None and obj is self.scroll_tree.viewport():
@@ -540,6 +541,20 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
+        if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            # QMenu normally stops at its edges.  Use the shared wrap rule
+            # for folder/bookmark cascades, including the "open folder" action.
+            direction = 1 if key == Qt.Key.Key_Down else -1
+            if self.filter_action is not None:
+                self._move_filtered_selection(direction)
+            else:
+                actions = [a for a in self.actions()
+                           if a.isVisible() and a.isEnabled() and not a.isSeparator()
+                           and (isinstance(a.data(), dict)
+                                or bool(a.property('launch_right_arrow_executes')))]
+                self.setActiveAction(next_wrapped(actions, self.activeAction(), direction))
+            event.accept()
+            return
         if self.launcher.page_key(event):event.accept();return
         if key == Qt.Key.Key_Escape and self.filter_action is not None:
             self.clear_local_filter();event.accept();return
@@ -636,7 +651,11 @@ class AppCascadeMenu(CascadeMenu):
     def eventFilter(self, obj, event):
         if obj==self.tree and event.type()==QEvent.Type.KeyPress:
             key=event.key()
-            if key in (Qt.Key.Key_Up,Qt.Key.Key_Down,Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):return False
+            if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                move_tree_selection(self.tree, 1 if key == Qt.Key.Key_Down else -1)
+                event.accept()
+                return True
+            if key in (Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):return False
             self.keyPressEvent(event);return True
         if obj==self.tree and event.type()==QEvent.Type.InputMethod:
             self.inputMethodEvent(event);return True
@@ -650,7 +669,11 @@ class AppCascadeMenu(CascadeMenu):
 
     def keyPressEvent(self, event):
         key=event.key()
-        if key in (Qt.Key.Key_Up,Qt.Key.Key_Down,Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):
+        if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            move_tree_selection(self.tree, 1 if key == Qt.Key.Key_Down else -1)
+            event.accept()
+            return
+        if key in (Qt.Key.Key_PageUp,Qt.Key.Key_PageDown,Qt.Key.Key_Home,Qt.Key.Key_End):
             QApplication.sendEvent(self.tree,event);return
         if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter,Qt.Key.Key_Right):
             item=self.tree.currentItem()
@@ -2060,10 +2083,7 @@ class Launcher(QWidget):
                 if modifiers & Qt.KeyboardModifier.AltModifier:
                     self.change_history_row(row.text(0), 'up' if offset == -1 else 'down')
                 else:
-                    index = self.history_choices.indexOfTopLevelItem(row)
-                    next_index = max(0, min(count-1, index + offset))
-                    self.history_choices.setCurrentItem(self.history_choices.topLevelItem(next_index))
-                    self.history_choices.scrollToItem(self.history_choices.currentItem())
+                    move_tree_selection(self.history_choices, offset)
         elif key == Qt.Key.Key_Delete:
             row = self.history_choices.currentItem()
             if row is not None and self.search_history.keywords:
@@ -2177,16 +2197,14 @@ class Launcher(QWidget):
                     if row.get('item_kind') in {'category','directory'}:self.cascade(row,q)
                     else:self.activate(row)
                 return True
-            if k in (Qt.Key.Key_Down,Qt.Key.Key_Up):
-                i=self.list.indexOfTopLevelItem(self.list.currentItem())
-                if k==Qt.Key.Key_Up and obj==self.list and i<=0:
-                    self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
-                    event.accept();return True
-                if k==Qt.Key.Key_Down and obj==self.list and i>=self.list.topLevelItemCount()-1:
-                    self.tabs.setFocus(Qt.FocusReason.TabFocusReason);event.accept();return True
-                i=max(0,min(self.list.topLevelItemCount()-1,i+(1 if k==Qt.Key.Key_Down else -1)))
-                if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(i))
-                self.list.setFocus();return True
+            if k in (Qt.Key.Key_Down, Qt.Key.Key_Up):
+                # Search results and the normal main menu share this rule.
+                # At either edge, continue from the opposite edge instead of
+                # moving focus to the page tabs.
+                move_tree_selection(self.list, 1 if k == Qt.Key.Key_Down else -1)
+                self.list.setFocus()
+                event.accept()
+                return True
             if k==Qt.Key.Key_Escape:
                 if self.search.text():self.search.clear()
                 elif self.selection:self.selection=None;self.render()
