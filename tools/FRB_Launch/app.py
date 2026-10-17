@@ -3,18 +3,21 @@ import os
 import json
 import logging
 import time
+import threading
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QObject, Signal
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
+from search_matching import matches_search_text
 import windows
 import installed_apps
 import browser_bookmarks
+import file_index
 from frame_geometry import resize_frame
 from page_tab_theme import PAGE_TABS_QSS
 from page_tab_focus import FocusPageTabBar
@@ -616,6 +619,11 @@ class AppCascadeMenu(CascadeMenu):
         super().keyPressEvent(event)
 
 
+class FileIndexSignals(QObject):
+    finished = Signal(object)
+    failed = Signal(str)
+
+
 class Launcher(QWidget):
     CORNER_RADIUS = 10  # Main window corner radius in logical pixels.
     def __init__(self):
@@ -630,6 +638,13 @@ class Launcher(QWidget):
         self.frame_title.setStyleSheet('background:transparent;color:#f2f5f2;font-size:12px;border:0;')
         self.frame_title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.app_records=installed_apps.read_cache(STATE/'apps_cache.json');self.apps_proc=None;self.apps_log=STATE/'apps.log'
+        self.file_index_options_path = LAUNCH_HOME / 'config' / 'file_index_options.json'
+        self.file_index_db = STATE / 'file_index.db'
+        self.file_index_busy = False
+        self.file_index_signals = FileIndexSignals(self)
+        self.file_index_signals.finished.connect(self.file_index_finished)
+        self.file_index_signals.failed.connect(self.file_index_failed)
+        self.file_index_settings = file_index.load_options(self.file_index_options_path)
         self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
         self.data = None; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
         # A Qt item activation on double-click happens on the second DOWN.
@@ -640,6 +655,11 @@ class Launcher(QWidget):
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
+        # Search-only sort state; non-search lists keep their configured order
+        # and drag-to-reorder behavior.  A value of -1 means unsorted.
+        sort_col = str(self.settings.value('result_sort_column', -1))
+        self.result_sort_column = int(sort_col) if sort_col in ('0', '1') else -1
+        self.result_sort_desc = str(self.settings.value('result_sort_desc', 'false')).lower() in ('true', '1')
         self.page_id = self.settings.value('page', 'work')
         self.bookmark_browser = str(self.settings.value('bookmark_browser', 'chrome')).lower()
         if self.bookmark_browser not in browser_bookmarks.BROWSERS:self.bookmark_browser = 'chrome'
@@ -653,8 +673,26 @@ class Launcher(QWidget):
         # not fall back to the legacy beveled/3D native QTabBar appearance.
         self.tabs.setStyleSheet(PAGE_TABS_QSS)
         self.list = ReorderTree(self); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
+        self.list.setHeaderLabels(['タイトル', '説明・場所'])
+        header = self.list.header()
+        header.setSectionsClickable(True)
+        header.setSectionsMovable(False)
+        header.setStretchLastSection(False)  # both columns must be user-resizable
+        header.setMinimumSectionSize(70)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        header.setSortIndicatorShown(False)
+        header.setToolTip('境界をドラッグ：列幅変更 / 見出しクリック：昇順・降順')
+        # Always leave actual sorting disabled on non-search views.
+        self.list.setSortingEnabled(False)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel);self.list.verticalScrollBar().setSingleStep(35)
-        self.list.setColumnWidth(0,180); self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        for column, default in ((0, 180), (1, 180)):
+            saved = self.saved_dimension(self.settings.value(f'result_width_{column}', default),
+                                         default, 70, 2000)
+            self.list.setColumnWidth(column, saved)
+        header.sectionClicked.connect(self.sort_search_column)
+        header.sectionResized.connect(self.save_result_column_width)
+        self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.footer = QLabel('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
         layout = QVBoxLayout(self); layout.setContentsMargins(14,32,14,14); layout.setSpacing(8)
         self.selection_tools = QWidget()
@@ -664,13 +702,19 @@ class Launcher(QWidget):
         buttons.addStretch()
         self.selection_tools.hide()
         for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
+        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;}''')
         self.tray = QSystemTrayIcon(tray_icon(), self); self.tray.setToolTip('FRB Launch — Ctrl+Shift+;')
         traymenu = QMenu(self)
         traymenu.addAction('開く', self.summon)
         traymenu.addAction('設定フォルダーを開く', lambda:self.open_target(str(CONFIG.parent)))
         traymenu.addAction('アプリ一覧を更新', self.refresh_apps)
         traymenu.addAction('アプリ一覧JSONを開く', lambda:self.open_target(str(STATE/'apps_cache.json')))
+        traymenu.addSeparator()
+        self.file_index_refresh_action = traymenu.addAction('ファイル索引を更新（手動）', self.refresh_file_index)
+        traymenu.addAction('ファイル索引の状態を表示', self.show_file_index_status)
+        traymenu.addAction('ファイル索引の設定JSONを開く',
+                           lambda: self.open_target(str(self.file_index_options_path)))
+        traymenu.addSeparator()
         browser_menu = traymenu.addMenu('ブックマークのブラウザ')
         self.bookmark_browser_actions = {}
         for key, title in (('chrome', 'Chrome'), ('edge', 'Edge')):
@@ -988,6 +1032,88 @@ class Launcher(QWidget):
             DIAG.exception('BOOKMARK refresh failed')
             if force:self.error('ブックマークを取得できません: '+str(ex))
 
+    def _index_expanse(self, value):
+        return self.expander().expand(value)
+
+    def refresh_file_index(self):
+        """Manual-only update; keep the UI responsive while scanning drives."""
+        if self.file_index_busy:
+            self.tray.showMessage('FRB Launch', 'ファイル索引は更新中です',
+                                  QSystemTrayIcon.MessageIcon.Information, 3500)
+            return
+        try:
+            opts = file_index.load_options(self.file_index_options_path)
+            if not opts.get('enabled', True):
+                raise ValueError('ファイル索引は設定JSONで無効になっています')
+            self.file_index_settings = opts
+            roots, warnings = file_index.registered_roots(self.data, self._index_expanse)
+            if not roots:
+                raise ValueError('有効な「実フォルダー展開先」がありません。設定を確認してください')
+            self.file_index_busy = True
+            self.file_index_refresh_action.setEnabled(False)
+            DIAG.info('FILE_INDEX start roots=%s extensions=%s warnings=%s', roots, opts['extensions'], warnings)
+            self.tray.showMessage('FRB Launch', 'ファイル索引を更新中…（ランチャー操作は継続できます）',
+                                  QSystemTrayIcon.MessageIcon.Information, 4500)
+
+            def run_index():
+                try:
+                    stats = file_index.build_index(self.file_index_db, roots, opts, root_warnings=warnings)
+                    self.file_index_signals.finished.emit(stats)
+                except Exception as exc:
+                    DIAG.exception('FILE_INDEX failed')
+                    self.file_index_signals.failed.emit(str(exc))
+            threading.Thread(target=run_index, name='FRBFileIndex', daemon=True).start()
+        except Exception as exc:
+            self.error('ファイル索引を開始できません: '+str(exc))
+
+    def file_index_finished(self, stats):
+        self.file_index_busy = False
+        self.file_index_refresh_action.setEnabled(True)
+        DIAG.info('FILE_INDEX complete count=%s excluded=%s', stats['count'], stats['excluded'])
+        self.tray.showMessage('FRB Launch',
+                              f"ファイル索引更新完了: {stats['count']:,}件登録 / {stats['excluded']:,}件除外",
+                              QSystemTrayIcon.MessageIcon.Information, 6000)
+        if self.isVisible() and self.search.text().strip() and not self.selection:
+            self.render()
+
+    def file_index_failed(self, message):
+        self.file_index_busy = False
+        self.file_index_refresh_action.setEnabled(True)
+        self.error('ファイル索引の更新に失敗（旧索引は維持）: ' + message)
+
+    def show_file_index_status(self):
+        status = file_index.index_status(self.file_index_db)
+        if status is None:
+            message = 'まだ索引がありません。トレイの「ファイル索引を更新」を実行してください。'
+        else:
+            roots = '\n'.join(status.get('roots', []))
+            warnings = '\n'.join(status.get('warnings', []))
+            message = (f"最終更新: {status['updated_at']}\n"
+                       f"登録: {status['count']:,}件  /  除外: {status['excluded']:,}件\n"
+                       f"対象フォルダー:\n{roots}")
+            if warnings:
+                message += '\n一部の登録フォルダーは対象外:\n' + warnings
+        QMessageBox.information(self, 'ファイル索引の状態', message)
+
+    def run_indexed_file(self, row):
+        """Enter/Right both lead to the standard launch executor."""
+        path = row['_indexed_file']
+        if not os.path.isfile(path):
+            self.error('ファイルが見つかりません。ファイル索引を更新してください: '+path)
+            return
+        try:
+            studio = self.expander().values.get('studio_root', '')
+            steps = file_index.launch_steps(path, studio_root=studio)
+            # Literal paths can contain percent signs. Preserve Expander semantics.
+            protected = []
+            for step in steps:
+                protected.append({key: ([v.replace('%', '%%') for v in value] if isinstance(value, list)
+                                        else value.replace('%', '%%') if isinstance(value, str) else value)
+                                  for key, value in step.items()})
+            self.execute({**row, 'launch_actions': protected})
+        except Exception as exc:
+            self.error('索引ファイルを開けません: '+str(exc))
+
     def refresh_apps(self):
         if not windows.IS_WINDOWS or self.apps_proc:return
         if not self.data or not any(r.get('launch_source')=='installed_apps' for r in self.data['items']):return
@@ -1182,12 +1308,40 @@ class Launcher(QWidget):
         """Skip redundant singleton folder levels for browser bookmarks only."""
         return visible_bookmark_children(parent, self.children)
 
+    def save_result_column_width(self, column, old_width, new_width):
+        # QSettings stores only presentation state, never user launch data.
+        if column in (0, 1) and new_width >= 70:
+            self.settings.setValue(f'result_width_{column}', new_width)
+
+    def sort_search_column(self, column):
+        if column not in (0, 1) or not self.search.text().strip():
+            return
+        if self.result_sort_column == column:
+            self.result_sort_desc = not self.result_sort_desc
+        else:
+            self.result_sort_column = column
+            self.result_sort_desc = False
+        self.settings.setValue('result_sort_column', column)
+        self.settings.setValue('result_sort_desc', self.result_sort_desc)
+        self.apply_search_sort()
+
+    def apply_search_sort(self):
+        if self.result_sort_column < 0 or not self.search.text().strip():
+            return
+        order = (Qt.SortOrder.DescendingOrder if self.result_sort_desc
+                 else Qt.SortOrder.AscendingOrder)
+        self.list.header().setSortIndicator(self.result_sort_column, order)
+        self.list.sortItems(self.result_sort_column, order)
+
     def render(self,*args):
         if not self.data:return
         self.hover_timer.stop();self.pending_menu_item=None
         self.selection_tools.setVisible(self.selection is not None)
-        self.list.blockSignals(True);self.list.clear()
         query=self.search.text().strip()
+        self.list.setHeaderHidden(not bool(query))
+        self.list.header().setSortIndicatorShown(bool(query) and self.result_sort_column >= 0)
+        self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded if query else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list.blockSignals(True);self.list.clear()
         self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source') in {'installed_apps','browser_bookmarks'} or self.stack[-1].get('_browser_bookmark'))) 
         self.list.order_rows=[]
         self.list.order_page=self.page_id
@@ -1195,8 +1349,17 @@ class Launcher(QWidget):
         try:
             if self.selection:
                 candidates=sorted([c for c in self.data.get('launch_choices',[]) if c.get('enabled',True) and c['group_id']==self.selection['launch_selection_group_id']],key=lambda c:c.get('sort_order',0))
-                pairs=[(c,'') for c in candidates if all(w in json.dumps(c,ensure_ascii=False).casefold() for w in query.casefold().split())]
-            elif query:pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
+                pairs=[(c,'') for c in candidates if matches_search_text(json.dumps(c,ensure_ascii=False), query)]
+            elif query:
+                pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
+                if self.file_index_settings.get('enabled', True):
+                    for hit in file_index.search_index(self.file_index_db, query,
+                                                       self.file_index_settings['search_limit']):
+                        row = dict(item_id='__file_index_'+hit['path'],
+                                   title=hit['name'], description=hit['directory'],
+                                   item_kind='command', icon_key='file',
+                                   _indexed_file=hit['path'], _file=hit['path'])
+                        pairs.append((row, 'ファイル索引'))
             else:pairs=[(x,'') for x in (self.displayed_children(self.stack[-1]) if self.stack else self.children())]
             if self.list.order_enabled:self.list.order_rows=[row for row,path in pairs]
             for row,path in pairs:
@@ -1214,6 +1377,9 @@ class Launcher(QWidget):
                     q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable)
                     q.setCheckState(0,Qt.CheckState.Checked if self.selection and row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
                 self.list.addTopLevelItem(q)
+            # Sort only matched search results.  Ordinary groups retain their
+            # persisted manual sort_order and mouse drag operations.
+            if query:self.apply_search_sort()
             if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(0))
             self.footer.setText(('↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開/実行   Enter 実行   F1〜F12 / Ctrl+PageUp/Down Page切替'))
         except Exception as e:self.error(e)
@@ -1378,6 +1544,9 @@ class Launcher(QWidget):
 
     def activate(self,row):
         if not row:return
+        if row.get('_indexed_file'):
+            self.run_indexed_file(row)
+            return
         if not self.selection and row.get('_search_selection_owner'):
             # Enter/Space on a global-search hit joins its original selection
             # group. Keep the search text, so the selected person stays visible.

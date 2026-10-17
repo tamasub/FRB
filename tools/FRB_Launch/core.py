@@ -4,6 +4,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from search_matching import matches_search_text
 
 TYPES = {'SendKey', 'ClipboardCopy', 'Open', 'Run'}
 
@@ -144,7 +145,7 @@ def column_filter_match(row, query):
     if not row.get('_file'):
         text += ' ' + str(row.get('description', ''))
     content = text.casefold()
-    return all(word in content for word in query.casefold().split())
+    return matches_search_text(content, query)
 
 
 def searchable_rows(data, query, bookmark_browser=None):
@@ -159,7 +160,6 @@ def searchable_rows(data, query, bookmark_browser=None):
 
     items = {x['item_id']: x for x in data['items']}
     pages = {p['page_id']: p for p in data['pages']}
-    words = query.casefold().split()
     result = []
     for row in data['items']:
         if (not visible_bookmark(row) or not row.get('enabled', True)
@@ -183,8 +183,18 @@ def searchable_rows(data, query, bookmark_browser=None):
             content = ' '.join((str(row.get('title', '')),
                                 str(row.get('description', '')), path)).casefold()
         else:
-            content = json.dumps(row, ensure_ascii=False).casefold() + ' ' + path.casefold()
-        if all(word in content for word in words):
+            # Search the fields users can recognize, not serialized JSON.
+            # Most rows contain keys such as `launch_actions` and
+            # `launch_target`; searching JSON keys would make a query like
+            # "launch" match nearly every installed app regardless of name.
+            keywords = row.get('keywords', [])
+            if isinstance(keywords, (list, tuple)):
+                keywords = ' '.join(map(str, keywords))
+            content = ' '.join(map(str, (
+                row.get('title', ''), row.get('description', ''),
+                keywords, path,
+            ))).casefold()
+        if matches_search_text(content, query):
             result.append((row, path))
     # Global search also finds individual choices of enabled selection items.
     # Keep the owning selection ID: a choice has no action of its own, and F12
@@ -215,7 +225,7 @@ def searchable_rows(data, query, bookmark_browser=None):
             # the owning item's path, so names and addresses both work.
             content = ' '.join(str(choice.get(k, '')) for k in ('title', 'description', 'value'))
             content += ' ' + path
-            if all(word in content.casefold() for word in words):
+            if matches_search_text(content, query):
                 result.append(({**choice,
                                 'item_kind': 'choice',
                                 'icon_key': owner.get('icon_key', 'mail'),

@@ -42,7 +42,7 @@
       "item_id": "decision_axis_good_over_gain",
       "item_type": "DECISION_AXIS",
       "title": "損得より善悪",
-      "statement": "損得より善悪を優先する。ｘｘ",
+      "statement": "損得より善悪を優先する。",
       "reason": "短期的な便益・効率・損失回避よりも、行為として正しいか、説明責任を果たせるかを先に判断するため。",
       "scope": "document",
       "priority": "high",
