@@ -19,7 +19,7 @@ test('NativeShell parses --launch=markdown and opens Markdown Studio directly', 
   assert.match(launchOptions, /string\.Equals\(value, "markdown", StringComparison\.OrdinalIgnoreCase\)/);
   assert.match(launchOptions, /options\.InitialPage = "mdViewer\.html"/);
   assert.match(program, /launchOptions = NativeLaunchOptions\.Parse\(args\)/);
-  assert.match(program, /Application\.Run\(new NativeShellForm\(initialPage: launchOptions\.InitialPage, initialJsonPath: launchOptions\.InitialJsonPath, initialMarkdownPath: launchOptions\.InitialMarkdownPath\)\)/);
+  assert.match(program, /Application\.Run\(new NativeShellForm\(initialPage: launchOptions\.InitialPage, initialJsonPath: launchOptions\.InitialJsonPath, initialMarkdownPath: launchOptions\.InitialMarkdownPath, startupTheme: launchOptions\.StudioTheme\)\)/);
   assert.match(shellForm, /private readonly string _initialPage;/);
   assert.match(shellForm, /requestedPageUri = !string\.IsNullOrWhiteSpace\(_initialPage\)/);
   assert.match(shellForm, /_allowedOrigin \+ "\/" \+ _initialPage\.TrimStart\('\/'\)/);

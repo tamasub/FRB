@@ -17,7 +17,7 @@ test('splash uses distinct light and dark palettes without altering visibility a
   assert.match(form, /internal StartupSplashForm\(bool light\)/);
   assert.match(form, /_light \? Color\.FromArgb\(246, 250, 247\) : Color\.FromArgb\(32, 43, 41\)/);
   assert.match(form, /internal void SetAppearance\(bool light\)/);
-  assert.match(form, /\(_startupSplash as StartupSplashForm\)\?\.SetAppearance\(!dark\)/);
+  assert.match(form, /if \(launcher\)\s*\(_startupSplash as StartupSplashForm\)\?\.SetAppearance\(!dark\)/);
   assert.match(form, /ShowStartupSplash\(\);\s*await EnsureInitializedAsync\(\);/);
   assert.match(form, /_startupSplash\?\.Close\(\)/);
   assert.match(form, /ClientSize = new Size\(340, 112\)/);

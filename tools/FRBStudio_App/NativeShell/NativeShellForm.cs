@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -99,9 +99,11 @@ namespace FRBStudio.NativeShell
             var dark = string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase);
             var launchLight = launcher && string.Equals(theme, "launch-light", StringComparison.OrdinalIgnoreCase);
-            // The loaded ViewDef is authoritative once it arrives. The CLI hint
-            // selects the initial splash palette before WebView2 can load it.
-            (_startupSplash as StartupSplashForm)?.SetAppearance(!dark);
+            // Startup hint / saved preference colors the splash before WebView2.
+            // Ignore intermediate standard ViewDef renders while the launcher
+            // document is loading; they must not briefly repaint the splash light.
+            if (launcher)
+                (_startupSplash as StartupSplashForm)?.SetAppearance(!dark);
             // Before launcher ViewDef loads, an ordinary startup ViewDef must not
             // lock the window's size, caption, or palette.
             if (!launcher && !dark) return;
@@ -523,6 +525,17 @@ namespace FRBStudio.NativeShell
                     && readyValue is bool ready && ready)
                 {
                     RevealAfterLayout();
+                    return;
+                }
+                // Persist only intentional launcher-palette changes. Untrusted/unrelated
+                // commands never enter the file/command dispatcher.
+                if (message != null && message.TryGetValue("studio_theme_preference", out var preferenceValue)
+                    && preferenceValue is Dictionary<string, object> preference
+                    && Uri.TryCreate(e.Source, UriKind.Absolute, out var preferenceSource)
+                    && string.Equals(preferenceSource.AbsolutePath, "/index.html", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (preference.TryGetValue("theme", out var value) && value is string theme)
+                        NativeStudioThemePreference.TrySave(theme);
                     return;
                 }
                 if (message != null && message.TryGetValue("studio_presentation", out var profileValue)

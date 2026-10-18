@@ -13,6 +13,11 @@ function mockPage() {
     append(...nodes) {for (const item of nodes) { if (item.parent) item.parent.children=item.parent.children.filter(x=>x!==item); this.children.push(item); item.parent=this; } }
     prepend(item) { if (item.parent) item.parent.children=item.parent.children.filter(x=>x!==item); this.children.unshift(item); item.parent=this; }
     setAttribute(name,value) {this.attributes[name]=value;}
+    addEventListener(name,callback) { (this.listeners ||= {})[name]=callback; }
+    querySelectorAll() { return []; }
+    replaceChildren(...nodes) { for (const item of this.children) item.parent=null; this.children=[]; this.append(...nodes); }
+    contains(target) { return target===this || this.children.some(e=>e.contains(target)); }
+    focus() {}
     querySelector(selector) { return selector==='.studio-viewer-dock' ? null : null; }
   }
   function make(id) { const e = new E(); e.id=id; all.push(e); return e; }
@@ -23,6 +28,7 @@ function mockPage() {
   const body=new E('body');
   const doc={body,title:'',createElement:t=>{const e=new E(t);all.push(e);return e;},
     getElementById:id=>all.find(e=>e.id===id)||null,
+    addEventListener() {},
     querySelector:selector=>({'.json-studio-main-pane':pane,'.json-studio-workspace':workspace,'.loader-panel':loader})[selector]||null};
   return {doc,pane,loader,save,all};
 }
@@ -44,14 +50,14 @@ test('Save is moved, not cloned; repeated apply preserves button and heading tit
   assert.equal(save.parent,headingActions);
   assert.equal(doc.getElementById('studioPresentationTitle').textContent,'FRB Launch 設定メンテナンス');
   assert.equal(doc.body.dataset.studioSavePlacement,'heading');
-  assert.equal(headingActions.children.length,1);
+  assert.equal(headingActions.children.length,2, 'Save and appearance overflow');
   p.apply(launcher,doc);
-  assert.equal(headingActions.children.length,1);
+  assert.equal(headingActions.children.length,2, 'Save and appearance overflow');
   assert.equal(all.filter(e=>e.id==='saveBtn').length,1);
   p.apply({app:{name:'Ordinary Studio'}},doc);
   assert.equal(save.parent,loader);
   assert.equal(doc.getElementById('studioPresentationTitle').textContent,'Ordinary Studio');
-  assert.equal(headingActions.children.length,0);
+  assert.equal(headingActions.children.filter(e=>!e.hidden).length,0, 'ordinary Studio hides the launcher overflow');
 });
 test('Launcher-only chrome, native outer border and dark root scrollbar',()=>{
  const css=read('wwwroot/css/studio-presentation.css');

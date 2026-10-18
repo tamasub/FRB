@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace FRBStudio.NativeShell
@@ -15,8 +15,10 @@ namespace FRBStudio.NativeShell
 
         public static NativeLaunchOptions Parse(string[] args)
         {
-            var options = new NativeLaunchOptions();
+            // Saved preference has lower priority than an explicit command-line override.
+            var options = new NativeLaunchOptions { StudioTheme = NativeStudioThemePreference.TryLoad() };
             if (args == null) return options;
+            var explicitThemeArgument = false;
 
             foreach (var raw in args)
             {
@@ -28,6 +30,7 @@ namespace FRBStudio.NativeShell
                         !string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("--studio-theme requires light or dark.");
                     options.StudioTheme = theme.ToLowerInvariant();
+                    explicitThemeArgument = true;
                     continue;
                 }
                 if (arg.StartsWith("--launch-item-id=", StringComparison.OrdinalIgnoreCase))
@@ -116,13 +119,17 @@ namespace FRBStudio.NativeShell
                     page += "&launchPageId=" + Uri.EscapeDataString(options.LaunchPageId);
                 options.InitialPage = page;
             }
-            // Startup appearance is deliberately process-scoped, not saved into ViewDef.
-            // Only the JSON Object Studio page consumes this launch hint.
+            // The startup hint comes from the user preference (or an explicit CLI override).
+            // It only affects launcher presentation, never writes to Data or ViewDef.
+            // WebView and splash consume the same resolved value.
             if (options.StudioTheme != null)
             {
-                if (string.IsNullOrWhiteSpace(options.InitialPage))
+                // Preserve a normal no-argument launch (home.html). Only an
+                // explicit CLI theme retains the old "open index" behavior.
+                if (string.IsNullOrWhiteSpace(options.InitialPage) && explicitThemeArgument)
                     options.InitialPage = "index.html";
-                if (options.InitialPage.StartsWith("index.html", StringComparison.OrdinalIgnoreCase))
+                if (options.InitialPage != null &&
+                    options.InitialPage.StartsWith("index.html", StringComparison.OrdinalIgnoreCase))
                     options.InitialPage += (options.InitialPage.Contains("?") ? "&" : "?")
                         + "studioTheme=" + options.StudioTheme;
             }

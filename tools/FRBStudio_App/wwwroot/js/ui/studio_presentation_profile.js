@@ -1,5 +1,5 @@
 // Studio standard: ViewDef-driven presentation, independent of Data/Edit/Save contracts.
-// ViewDef owns density/shell; an opt-in launcher session may switch palette only.
+// ViewDef owns density/shell; launcher palette is a separate persisted user preference.
 (function (global) {
   'use strict';
   const VALID = Object.freeze({
@@ -9,13 +9,29 @@
     shell: ['standard', 'minimal'],
     savePlacement: ['sidebar', 'footer', 'heading']
   });
-  // The CLI hint arrives in the main page URL and is not written to Data or ViewDef.
+  // NativeShell reads the OS user preference before showing its splash and
+  // forwards that same palette to the page. Browser-only use falls back to
+  // localStorage. Neither source modifies Data nor ViewDef.
+  const THEME_STORAGE_KEY = 'frb.studio.launcher.theme';
   const initialTheme = (() => {
     try {
       const value = new URLSearchParams(global.location?.search || '').get('studioTheme');
-      return value === 'light' ? 'launch-light' : value === 'dark' ? 'launch-dark' : null;
-    } catch (_) { return null; }
+      if (value === 'light' || value === 'dark') return 'launch-' + value;
+    } catch (_) { /* Browser-only or test host */ }
+    try {
+      const value = global.localStorage?.getItem(THEME_STORAGE_KEY);
+      if (value === 'light' || value === 'dark') return 'launch-' + value;
+    } catch (_) { /* Browser may deny storage access */ }
+    return null;
   })();
+  function saveThemePreference(theme) {
+    const value = theme === 'launch-light' ? 'light' : 'dark';
+    try { global.localStorage?.setItem(THEME_STORAGE_KEY, value); }
+    catch (_) { /* Optional browser fallback */ }
+    try {
+      global.chrome?.webview?.postMessage?.({studio_theme_preference:{theme:value}});
+    } catch (_) { /* Standalone browser has no native host */ }
+  }
   let sessionTheme = null;
   function isLauncher(config) {
     return config.preset === 'launcher' && config.shell === 'minimal';
@@ -185,7 +201,7 @@
   }
   function renderHeadingMenu(doc, widgets, config, def) {
     const entries = config.savePlacement === 'heading' ? [...(config.headingMenuItems || [])] : [];
-    if (config.savePlacement === 'heading' && isLauncher(config) && initialTheme) {
+    if (config.savePlacement === 'heading' && isLauncher(config)) {
       entries.push({
         id: 'launcher_theme_switch',
         label: config.theme === 'launch-dark' ? '☀ ライトモードに切替' : '☾ ダークモードに切替',
@@ -212,6 +228,7 @@
         if (entry.actionId === 'ToggleLauncherTheme') {
           // Only the theme changes; never reload Data or re-create the Save button.
           sessionTheme = config.theme === 'launch-dark' ? 'launch-light' : 'launch-dark';
+          saveThemePreference(sessionTheme);
           apply(def, doc);
           doc.getElementById('studioHeadingMenuButton')?.focus();
           return;

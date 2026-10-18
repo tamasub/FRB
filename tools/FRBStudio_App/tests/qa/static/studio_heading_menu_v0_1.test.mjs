@@ -73,7 +73,7 @@ test('render: one Save followed by one overflow; reuse same elements across appl
   const menu=doc.getElementById('studioHeadingMenu');
   assert.deepEqual(actions.children.map(x=>x.id),['saveBtn','studioHeadingMenuWrap']);
   assert.equal(wrap.hidden,false);
-  assert.equal(menu.children.length,1);
+  assert.equal(menu.children.length,2, 'launcher always exposes appearance choice');
   trigger.click();
   assert.equal(menu.hidden,false);
   menu.children[0].click();
@@ -88,7 +88,7 @@ test('render: one Save followed by one overflow; reuse same elements across appl
   profile.apply(viewdef,doc);
   assert.deepEqual(actions.children.map(x=>x.id),['saveBtn','studioHeadingMenuWrap']);
   assert.equal(doc.getElementById('saveBtn'),save);
-  assert.equal(menu.children.length,1);
+  assert.equal(menu.children.length,2);
   profile.apply({app:{name:'Plain'}},doc);
   assert.equal(wrap.hidden,true);
   assert.equal(doc.getElementById('saveBtn'),save);
@@ -142,5 +142,37 @@ test('launcher light session toggles only the palette and not ViewDef, density, 
   menu.children[1].click();
   assert.equal(doc.body.dataset.studioTheme,'launch-light');
   assert.equal(profile.resolve(viewdef).theme,'launch-dark', 'authored ViewDef must not be changed');
-  assert.deepEqual(sent.map(x=>x.theme),['launch-light','launch-dark','launch-light']);
+  assert.deepEqual(sent.filter(Boolean).map(x=>x.theme),['launch-light','launch-dark','launch-light']);
+});
+
+
+test('launcher palette persists through localStorage and sends NativeShell a preference update',()=>{
+  const storage = new Map();
+  const host = {location:{search:''},localStorage:{
+    getItem:key=>storage.get(key) || null,
+    setItem:(key,value)=>storage.set(key,value)
+  }};
+  vm.runInNewContext(read('wwwroot/js/ui/studio_presentation_profile.js'),{window:host,console,URLSearchParams});
+  const {doc}=fakeDoc();
+  const messages=[];
+  host.document=doc;
+  host.chrome={webview:{postMessage:value=>messages.push(value)}};
+  host.StudioPresentationProfile.apply(viewdef,doc);
+  assert.equal(doc.body.dataset.studioTheme,'launch-dark', 'default is from ViewDef');
+  const menu=doc.getElementById('studioHeadingMenu');
+  assert.equal(menu.children.length,2);
+  menu.children[1].click();
+  assert.equal(doc.body.dataset.studioTheme,'launch-light');
+  assert.equal(storage.get('frb.studio.launcher.theme'),'light');
+  assert.deepEqual(JSON.parse(JSON.stringify(messages[1])),{studio_theme_preference:{theme:'light'}});
+  // Separate process/window simulated using same persisted browser profile.
+  const nextHost={location:{search:''},localStorage:host.localStorage};
+  vm.runInNewContext(read('wwwroot/js/ui/studio_presentation_profile.js'),{window:nextHost,console,URLSearchParams});
+  assert.equal(nextHost.StudioPresentationProfile.resolveSession(viewdef).theme,'launch-light');
+  // NativeShell-provided preference overrides stale browser storage and is also
+  // the palette used for the splash before WebView2 initialization.
+  nextHost.location.search='?studioTheme=dark';
+  const nativeHost={location:{search:'?studioTheme=dark'},localStorage:host.localStorage};
+  vm.runInNewContext(read('wwwroot/js/ui/studio_presentation_profile.js'),{window:nativeHost,console,URLSearchParams});
+  assert.equal(nativeHost.StudioPresentationProfile.resolveSession(viewdef).theme,'launch-dark');
 });
