@@ -278,7 +278,7 @@ function createSubGridCellControl({ value, column, editable, field, multilineEdi
   } else if (multilineEditor) {
     // v0.18.105-subgrid-preview-multiline-enter:
     // SubGrid一覧は引き続き1行inputのままにするが、Preview Editの長文編集だけは
-    // 本物のtextareaを使う。Enter / Shift+Enter は改行、Ctrl/Cmd+Enter はPreview内反映。F12はPreview内では無効。
+    // 本物のtextareaを使う。Enter は反映、Ctrl/Cmd/Shift+Enter は改行。F12はPreview内では無効。
     input = document.createElement('textarea');
     input.value = subGridCellText(value);
     const lineCount = String(input.value ?? '').split('\n').length;
@@ -323,6 +323,17 @@ function createSubGridCellControl({ value, column, editable, field, multilineEdi
     markDetailSubGridDirty(input.closest('.detail-subgrid-edit'));
   });
   input.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && input.tagName === 'TEXTAREA') {
+      // Multiline: explicit newline before the document-level shortcut handler.
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.isComposing && e.keyCode !== 229) {
+        input.setRangeText('\n', input.selectionStart, input.selectionEnd, 'end');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      return;
+    }
+    // Single-line SubGrid controls retain their existing shortcut.
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       if (typeof applyDetail === 'function') applyDetail(e);

@@ -2466,7 +2466,7 @@
     {
       "group_id": "sales",
       "enabled": true,
-      "title": "鈴木（サンプル）",
+      "title": "鈴木（サンプル）xx",
       "value": "suzuki@example.invalid",
       "description": "suzuki@example.invalid",
       "choice_id": "import_mail_000003",

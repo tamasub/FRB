@@ -16,15 +16,19 @@ test('SubGrid Preview Edit uses a real textarea for long/multiline editor fields
   assert.match(runtime, /createSubGridCellControl\(\{[\s\S]{0,260}multilineEditor: true[\s\S]{0,80}\}\)/);
 });
 
-test('multiline textarea keeps Enter and Shift+Enter as newline, Ctrl/Cmd+Enter commits, and F12 is disabled inside Preview Edit', () => {
+test('multiline textarea commits on plain Enter, inserts newline on Ctrl/Cmd+Enter, and blocks F12 inside Preview Edit', () => {
   const previewStart = runtime.indexOf('function createDetailSubGridPreviewEditValue');
   const previewEnd = runtime.indexOf('function showDetailSubGridCardEditor', previewStart);
   const previewBlock = runtime.slice(previewStart, previewEnd);
 
   assert.match(previewBlock, /if \(e\.key === 'F12'\) \{[\s\S]{0,220}e\.preventDefault\(\);[\s\S]{0,220}e\.stopPropagation\(\);[\s\S]{0,120}return;/);
-  assert.match(previewBlock, /if \(\(e\.ctrlKey \|\| e\.metaKey\) && e\.key === 'Enter'\) \{[\s\S]{0,220}e\.preventDefault\(\);[\s\S]{0,220}e\.stopPropagation\(\);[\s\S]{0,120}commit\(\);/);
-  assert.doesNotMatch(previewBlock, /if \(e\.key === 'Enter'\)\s*\{[\s\S]{0,120}e\.preventDefault\(\)/);
-  assert.doesNotMatch(previewBlock, /e\.shiftKey[\s\S]{0,100}e\.key === 'Enter'[\s\S]{0,100}preventDefault/);
+  assert.match(previewBlock, /if \(e\.key === 'Enter' && !e\.ctrlKey && !e\.metaKey && !e\.shiftKey/);
+  assert.match(previewBlock, /e\.stopPropagation\(\);\s*commit\(\);/);
+  const controlBlock = runtime.slice(runtime.indexOf('function createSubGridCellControl'), runtime.indexOf('function createSubGridActionButton'));
+  assert.match(controlBlock, /e\.key === 'Enter' && input\.tagName === 'TEXTAREA'/);
+  assert.match(controlBlock, /input\.setRangeText\('\\n'/);
+  assert.match(controlBlock, /e\.stopPropagation\(\)/);
+  assert.doesNotMatch(previewBlock, /Ctrl\/Cmd\+Enter はPreview内反映/);
 });
 
 test('SubGrid list view stays visually single-line but preserves canonical multiline raw value', () => {

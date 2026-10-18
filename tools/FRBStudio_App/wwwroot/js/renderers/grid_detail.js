@@ -475,6 +475,7 @@ function enterDocumentGridFieldEditMode({ card, row, index, field, options, valu
     done = true;
     const nextValue = readDocumentGridEditorValue(field, editor);
     setByPath(row, field.field, nextValue);
+    if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
     applySearch();
     renderGrid();
     setStatus(`${message}: ${field.caption ?? field.field}`);
@@ -563,6 +564,8 @@ function makeDocumentGridButton(label, title, onClick, className='ghost-button s
 }
 
 function refreshAfterDocumentGridRowMutation(message) {
+  window.FrbJsonObjectUnsavedGuard?.refresh?.();
+  if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
   applySearch();
   renderGrid();
   setStatus(message);
@@ -969,6 +972,10 @@ async function deleteSelectedRow() {
   });
   if (!ok) return;
   currentRows.splice(selectedIndex, 1);
+  // The confirmation dialog is asynchronous; click-capture dirty checks run
+  // *before* this splice. Refresh after the canonical JSON actually changes.
+  window.FrbJsonObjectUnsavedGuard?.refresh?.();
+  if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
   selectedIndex = -1;
   applySearch();
   setStatus('1行削除しました');
@@ -1178,6 +1185,13 @@ function setControlValue(el, value) {
 
 function isControlReadonly(el) {
   if (el.disabled) return true;
+  // A Markdown Reading View is *visually* contenteditable=false in preview mode.
+  // That does NOT make its backing ViewDef field readonly. Clicking F12 blurs the
+  // editor before the click handler runs; treating that preview as readonly
+  // silently drops the new rawValue and commits an old detailVisibilityDraft.
+  if (el.dataset?.markdownDisplay === 'true') {
+    return Boolean(el.classList?.contains('readonly'));
+  }
   if (el.hasAttribute('contenteditable')) return el.getAttribute('contenteditable') === 'false';
   return false;
 }
@@ -1316,7 +1330,20 @@ function moveDetail(delta) {
   if (detailMode === 'new') return;
   const pos = currentFilteredPosition();
   const nextPos = pos + delta;
-  if (pos < 0 || nextPos < 0 || nextPos >= filteredRows.length) return;
+  if (pos < 0) return;
+  if (nextPos < 0 || nextPos >= filteredRows.length) {
+    // In a related Grid, even F7/F8 at the first/last row commits the draft.
+    // Keep the normal Studio's navigation behavior unchanged.
+    if (typeof relatedGridChildIsDirty === 'function' && relatedGridChildRuntime &&
+        typeof tryCommitCurrentDetailEdits === 'function') {
+      if (!tryCommitCurrentDetailEdits({ source: 'navigation' })) return;
+      renderGrid();
+      if (typeof rebindDetailAfterCanonicalCommit === 'function') {
+        rebindDetailAfterCanonicalCommit(currentRows[selectedIndex], { preserveScroll: true });
+      }
+    }
+    return;
+  }
   if (typeof tryCommitCurrentDetailEdits === 'function') {
     if (!tryCommitCurrentDetailEdits({ source: 'navigation' })) return;
   } else {

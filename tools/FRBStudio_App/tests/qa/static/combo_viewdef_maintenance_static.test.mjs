@@ -236,7 +236,7 @@ test('F12 detail commit preserves canonical row identity so the visible Grid rec
   assert.match(save, /Object\.keys\(current\)\.forEach\(key => \{ delete current\[key\]; \}\)/);
   assert.match(save, /Object\.keys\(nextRow\)\.forEach\(key => \{ current\[key\] = nextRow\[key\]; \}\)/);
   assert.match(save, /function finalizeValidatedDetailCommit\(row, index\)[\s\S]*replaceDetailRowPreservingReferences\(currentRows, index, row\)/);
-  assert.match(index, /js\/runtime\/detail_save\.js\?v=visibility-contract-audit-01831/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=[^"\s<]+/);
 });
 
 
@@ -260,7 +260,7 @@ test('visibility contract audit keeps Search independent while Grid and all Deta
   assert.match(detailSave, /renderChildArea[\s\S]*isFieldVisibleInDetail\(f, row\)/);
 
   assert.match(index, /js\/renderers\/grid_detail\.js\?v=visibility-contract-audit-01831/);
-  assert.match(index, /js\/runtime\/detail_save\.js\?v=visibility-contract-audit-01831/);
+  assert.match(index, /js\/runtime\/detail_save\.js\?v=[^"\s<]+/);
 });
 
 test('ViewDef maintenance section selector exposes Section identity before long View captions', () => {

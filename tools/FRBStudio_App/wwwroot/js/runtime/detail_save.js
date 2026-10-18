@@ -479,6 +479,7 @@ function tryCommitCurrentDetailEdits(options={}) {
   }
 
   finalizeValidatedDetailCommit(pending, selectedIndex);
+  if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
   return true;
 }
 
@@ -506,6 +507,7 @@ function applyDetail(e) {
     clearRuntimeFieldDefinitionValidationMarks();
 
     currentRows.push(pending);
+    if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
     selectedIndex = currentRows.length - 1;
     detailMode = 'edit';
     draftRow = null;
@@ -720,15 +722,33 @@ async function writeBackVirtualDataEdits() {
   }
 
   const saved = [];
+  // Snapshot before the first asynchronous adapter POST. Edits arriving later
+  // must not be acknowledged as persisted by an older writeBack response.
+  const writeBackSavedRevision = window.FrbJsonObjectUnsavedGuard?.captureSaveState?.();
   for (const item of touched.values()) {
     if (!item.updated) continue;
     const posted = await postDataSourceJsonByKey(item.source);
     saved.push({ ...item, ...(posted ?? { key: item.source, name: '(current)' }) });
   }
+  saved.savedRevision = writeBackSavedRevision;
   return saved;
 }
 
+let saveOverwriteJsonInFlight = null;
 async function saveOverwriteJson() {
+  if (saveOverwriteJsonInFlight) return saveOverwriteJsonInFlight;
+  const request = runSaveOverwriteJson();
+  saveOverwriteJsonInFlight = request;
+  try { return await request; }
+  finally { if (saveOverwriteJsonInFlight === request) saveOverwriteJsonInFlight = null; }
+}
+
+async function runSaveOverwriteJson() {
+  // A child can still have queued postMessage APPLY operations after F12.
+  // Build the save document only when every connected related Grid has ACKed.
+  if (typeof awaitRelatedGridSyncBeforeSave === 'function') {
+    await awaitRelatedGridSyncBeforeSave();
+  }
   applyHeaderEdits();
   // v0.18.58:
   // Row selection / ViewDef row-order operations can change selectedIndex while the
@@ -750,7 +770,8 @@ async function saveOverwriteJson() {
     const names = writeBackSaved.map(x => `${x.name}: ${x.updated}件`).join(' / ');
     setStatus(`主対象JSONを上書き保存しました: ${names}`);
     renderGrid();
-    return;
+    window.FrbJsonObjectUnsavedGuard?.markSavedState?.(writeBackSaved.savedRevision);
+    return true;
   }
 
   if (!currentDataApiUrl) {
@@ -775,10 +796,14 @@ async function saveOverwriteJson() {
     saveDocument = prepared.document;
   }
 
+  const savePayload = JSON.stringify(saveDocument);
+  const saveGuard = window.FrbJsonObjectUnsavedGuard;
+  const savedRevision = saveGuard?.captureSaveState?.();
+  // The payload is immutable: edits made during the network request must stay dirty.
   const res = await fetch(currentDataApiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(saveDocument)
+    body: savePayload
   });
 
   if (!res.ok) {
@@ -802,6 +827,7 @@ async function saveOverwriteJson() {
     sourceData = result.document;
     loadRows();
     renderGrid();
+    saveGuard?.markSaved?.();
     setStatus(`SQLite保存完了: ${result.changed_rows ?? 0}行 / ${currentDataApiUrl}`, { toast: false });
     return true;
   }
@@ -811,7 +837,15 @@ async function saveOverwriteJson() {
   }
   if (systemAppSettingsMode && saveDocument?.updated_at) {
     sourceData.updated_at = saveDocument.updated_at;
+    if (savedRevision?.serialized) {
+      // Mirror only the timestamp written by the settings adapter in the
+      // acknowledged baseline; preserve concurrent user edits as dirty.
+      const acknowledged = JSON.parse(savedRevision.serialized);
+      acknowledged.updated_at = saveDocument.updated_at;
+      savedRevision.serialized = JSON.stringify(acknowledged);
+    }
   }
+  saveGuard?.markSavedState?.(savedRevision);
   if (systemAppSettingsMode && typeof window?.FrbStudioShell?.refreshLaunchShortcuts === 'function') {
     void window.FrbStudioShell.refreshLaunchShortcuts();
   }
@@ -821,6 +855,7 @@ async function saveOverwriteJson() {
       virtualDataJoinBaselines.set(path, cloneData(getByPath(sourceData, path)));
     }
   }
+  saveGuard?.refresh?.();
   setStatus(`${systemAppSettingsMode ? 'Studio設定を' : (currentDataSourceKind === 'viewdef' ? 'ViewDefを' : '')}上書き保存しました: ${currentDataApiUrl}`);
   return true;
 }

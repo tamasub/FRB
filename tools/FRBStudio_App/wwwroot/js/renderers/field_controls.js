@@ -659,18 +659,18 @@ function markdownPreviewRawValue(el) {
 }
 
 function syncMarkdownRawToRow(el, rawValue) {
-  // Readable Textarea is also used in Header / 基本情報. Header values follow the
-  // existing applyHeaderEdits lifecycle, so blur must not accidentally write them
-  // into the currently opened Detail row.
+  // Blur is just a transition from raw editing to Reading View. It must NEVER
+  // commit to sourceData/currentRows. F12/F7/F8 run validation and own that
+  // commit; writing the canonical row here could race with an in-flight
+  // related-Grid apply and leave detailVisibilityDraft out of sync.
+  // Preserve edits in the detached Editor draft if the UI is redrawn before F12.
   if (String(el?.dataset?.prefix ?? '') !== 'detail') return;
   const fieldName = el?.dataset?.field;
-  if (!fieldName) return;
-  const row = currentDetailRow();
-  if (!row) return;
+  if (!fieldName || typeof detailVisibilityDraft === 'undefined' || !detailVisibilityDraft) return;
   const gd = gridDef();
   const field = (gd?.fields ?? []).find(f => f.field === fieldName);
-  const type = field?.type ?? el.dataset.type ?? 'textarea';
-  setByPath(row, fieldName, convertValue(type, rawValue));
+  if (!field || field.readonly || field.edit?.readonly || el.classList?.contains('readonly')) return;
+  setByPath(detailVisibilityDraft, fieldName, convertValue(field.type ?? 'textarea', rawValue));
 }
 
 function restoreMarkdownPreviewElement(el, mdCfg, rawValue, options={}) {
@@ -819,15 +819,7 @@ function createChatMessageElement(field, msg, row, gd, prefix, options={}) {
     });
   }
 
-  bubble.addEventListener('keydown', (e) => {
-    // contenteditable内ではF12/F7/F8だけ親の詳細操作へ渡す。
-    if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
-    // Ctrl+Enter は反映のショートカット。改行は Enter で通常通り入力できる。
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      applyDetail(e);
-    }
-  });
+  // Enterで反映、Ctrl/Cmd+Enterで改行する共通ルールは studio_keyboard_standard が処理。
   item.appendChild(bubble);
 
   // Markdown previewは入力中/編集中の専用UIとして扱う。
@@ -995,13 +987,7 @@ function createMarkdownTextareaDisplayElement({ field, value, readonly }) {
     displayClass: 'markdown-editable-display'
   });
 
-  box.addEventListener('keydown', (e) => {
-    if (e.key === 'F7' || e.key === 'F8' || e.key === 'F12') return;
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      applyDetail(e);
-    }
-  });
+  // Markdown長文も同じ共通キーボード規約に委譲する。
 
   return box;
 }

@@ -74,7 +74,7 @@ test('replacement is all-or-nothing: parse produces a new array, not an in-place
   assert.equal(incoming.length, 1);
   assert.notEqual(incoming[0].choice_id, existing[0].choice_id);
 });
-test('ViewDef-driven button, confirm-before-set, parent apply behavior and script loading', () => {
+test('ViewDef-driven CSV import confirms destructive replace and automatically synchronizes the parent', () => {
   const related = readFileSync(path.join(root, 'wwwroot/js/runtime/related_grid_view.js'), 'utf8');
   const html = readFileSync(path.join(root, 'wwwroot/index.html'), 'utf8');
   assert.match(html, /js\/responsibilities\/csv_importer\.js/);
@@ -83,6 +83,7 @@ test('ViewDef-driven button, confirm-before-set, parent apply behavior and scrip
   const button = related.slice(related.indexOf('async () => {\n    const file = picker.files'));
   assert.ok(button.indexOf('CsvGridImporter.buildRows') < button.indexOf('window.confirm'));
   assert.ok(button.indexOf('window.confirm') < button.indexOf('setByPath(sourceData, relatedGridChildRuntime.dataPath, importedRows)'));
-  assert.match(related, /親画面へ反映/);
+  assert.match(button, /queueRelatedGridAutoApply\(\)/);
+  assert.doesNotMatch(related, /function ensureRelatedGridApplyButton\(/);
   assert.match(related, /relatedGridChildRuntime\.dataPath/);
 });

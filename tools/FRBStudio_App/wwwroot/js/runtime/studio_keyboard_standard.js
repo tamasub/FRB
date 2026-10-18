@@ -112,7 +112,7 @@
       if (isSearchInput || isEditor) {
         // Modified Enter means newline *only* in multiline text controls.
         if (event.ctrlKey || event.shiftKey || event.metaKey) {
-          if (isMultiline(target) && (event.ctrlKey || event.shiftKey) && !event.altKey) {
+          if (isMultiline(target) && (event.ctrlKey || event.shiftKey || event.metaKey) && !event.altKey) {
             event.preventDefault();
             event.stopImmediatePropagation();
             insertNewline(target);

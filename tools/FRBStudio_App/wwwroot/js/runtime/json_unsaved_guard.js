@@ -19,7 +19,7 @@
     let headerDraftDirty = false;
     let detailDraftDirty = false;
     let navigationAwayConfirmed = false;
-    let saveWatchToken = 0;
+    let draftRevision = 0;
     const bypassClickOnce = new WeakSet();
 
     function currentSourceData() {
@@ -133,14 +133,34 @@
       refreshSaveButton();
     }
 
+    // Capture the exact revision sent to persistence, not the state that exists
+    // when its asynchronous HTTP response eventually arrives.
+    function captureSaveState() {
+      return { sourceRef: currentSourceData(), serialized: currentSerialized(), draftRevision };
+    }
+
+    function markSavedState(saved) {
+      if (!saved || currentSourceData() !== saved.sourceRef) return;
+      baselineSerialized = saved.serialized;
+      lastSourceDataRef = saved.sourceRef;
+      if (draftRevision === saved.draftRevision) {
+        headerDraftDirty = false;
+        detailDraftDirty = false;
+      }
+      navigationAwayConfirmed = false;
+      refreshSaveButton();
+    }
+
     function markHeaderDraftDirty() {
       if (!hasLoadedDocument() || isReadonly()) return;
+      draftRevision += 1;
       headerDraftDirty = true;
       refreshSaveButton();
     }
 
     function markDetailDraftDirty() {
       if (!hasLoadedDocument() || isReadonly()) return;
+      draftRevision += 1;
       detailDraftDirty = true;
       refreshSaveButton();
     }
@@ -321,9 +341,10 @@
       });
 
       wrapGlobalFunction('saveOverwriteJson', original => async function (...args) {
-        const result = await original.apply(this, args);
-        if (result !== false) markSavedBaseline();
-        return result;
+        // Persistence explicitly acknowledges its captured snapshot. Never treat
+        // any old status text or a later in-memory revision as already saved.
+        try { return await original.apply(this, args); }
+        finally { refreshSaveButton(); }
       });
 
       wrapGlobalFunction('applyHeaderEdits', original => function (...args) {
@@ -349,36 +370,11 @@
       });
     }
 
-    function saveSucceededStatus(text) {
-      return /(?:上書き保存しました|主対象JSONを上書き保存しました|保存しました)/.test(
-        String(text || '')
-      );
-    }
-
     function watchSaveButtonFallback() {
+      // Visual refresh only. Status text may describe an earlier successful
+      // request and is not reliable evidence for the current save operation.
       const saveBtn = document.getElementById('saveBtn');
-      if (!saveBtn) return;
-
-      saveBtn.addEventListener('click', () => {
-        const token = ++saveWatchToken;
-        const startedAt = Date.now();
-
-        const check = () => {
-          if (token !== saveWatchToken) return;
-
-          const statusText = String(document.getElementById('status')?.textContent || '');
-          if (saveSucceededStatus(statusText)) {
-            markSavedBaseline();
-            return;
-          }
-
-          if (Date.now() - startedAt < 12000) {
-            window.setTimeout(check, 120);
-          }
-        };
-
-        window.setTimeout(check, 80);
-      });
+      saveBtn?.addEventListener('click', () => window.setTimeout(refreshSaveButton, 0));
     }
 
     function installSourceReplacementFallback() {
@@ -423,6 +419,8 @@
       hasUnsavedChanges,
       refresh: refreshSaveButton,
       markSaved: markSavedBaseline,
+      captureSaveState,
+      markSavedState,
       confirmNavigationAway
     });
 

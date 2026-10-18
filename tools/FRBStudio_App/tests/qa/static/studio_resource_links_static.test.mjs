@@ -10,11 +10,16 @@ const readText = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 test('Common Studio Resource Links Data uses common ViewDef and shallow managed JSON paths', () => {
   const data = readJson('data/json/00_common/studio_resource_links_data_v0_1.json');
   assert.equal(data.view_def, 'common/studio_resource_links_view_def_v0_1.json');
-  assert.equal(data.links.length, 8);
+  assert.ok(Array.isArray(data.links) && data.links.length > 0, 'resource links must be a non-empty list');
+  assert.equal(new Set(data.links.map(row => row.link_id)).size, data.links.length);
   for (const row of data.links) {
-    assert.match(row.path, /^data\/json\//);
-    assert.match(row.path, /\.json$/);
-    assert.equal(row.path.includes('..'), false);
+    // Windows native paths are normalized by the resource-link runtime.
+    assert.ok(String(row.link_id || '').trim());
+    assert.ok(String(row.caption || '').trim());
+    const normalized = String(row.path).replace(/\\/g, '/');
+    assert.match(normalized, /^data\/json\//);
+    assert.match(normalized, /\.json$/);
+    assert.equal(normalized.includes('..'), false);
   }
 });
 

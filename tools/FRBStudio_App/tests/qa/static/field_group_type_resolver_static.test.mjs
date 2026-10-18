@@ -9,6 +9,10 @@ import assert from 'node:assert/strict';
 
 const context = {
   console,
+  window: {
+    __frbJsonObjectUnsavedGuardLoaderInstalled: true,
+    __frbResponsibilityPatternDefTraceLoaderInstalled: true
+  },
   location: {
     protocol: 'http:',
     hostname: 'localhost',

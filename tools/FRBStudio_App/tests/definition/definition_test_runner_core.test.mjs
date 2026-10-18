@@ -209,8 +209,12 @@ test('Definition Test Runner stays UI-independent and TestRunner.ps1 exposes a w
     'data/json/03_tests/contracts/definition_test_runner_cross_field_operator_matrix_v0_1/diff/definition_test_runner.diff.json'
   );
 
-  const program = readText('Program.cs/Program.cs');
-  assert.match(program, /"definition_test_runner"/);
-  assert.match(program, /"definition_test_runner_cross_field_operator_matrix"/);
-  assert.match(program, /definition_test_runner_cross_field_operator_matrix_v0_1\/diff\/definition_test_runner\.diff\.json/);
+  // NativeShell delegates TestRunnerId allowlists to its config; Program.cs does not own runner IDs.
+  const nativeCommands = readJson('NativeShell/native_shell.config.json');
+  const runnerCommand = nativeCommands.process_profiles.find(command => command.id === 'test_runner');
+  assert.ok(runnerCommand);
+  const runnerId = runnerCommand.parameters.find(parameter => parameter.key === 'test_runner_id');
+  assert.ok(runnerId.allowed_values.includes('definition_test_runner'));
+  assert.ok(runnerId.allowed_values.includes('definition_test_runner_cross_field_operator_matrix'));
+  assert.match(runnerCommand.fixed_arguments.join(' '), /tools\/test\/TestRunner\.ps1/);
 });

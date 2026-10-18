@@ -6,6 +6,7 @@
 
 const RELATED_GRID_MESSAGE_NS = 'frb-studio-related-grid-v0.18.28';
 const relatedGridParentSessions = new Map();
+let relatedGridSaveRequestSeq = 0;
 let relatedGridChildRuntime = null;
 let relatedGridChildInitResolve = null;
 let relatedGridChildInitReject = null;
@@ -163,7 +164,16 @@ function closeRelatedGridModal(channel, options={}) {
   const session = relatedGridParentSessions.get(channel);
   if (!session?.modalOverlay) return false;
   if (!options.force && relatedGridModalIsDirty(session)) {
-    const ok = window.confirm('親画面へ未反映の変更があります。閉じると変更は失われます。閉じますか？');
+    // A successfully committed F12 may still be waiting for postMessage ACK.
+    // Wait for all queued versions rather than making users operate an extra button.
+    const pending = Boolean(session.child?.relatedGridChildApplyPending?.());
+    const started = pending ? true : Boolean(session.child?.queueRelatedGridAutoApply?.());
+    if (started) {
+      session.closeRequested = true;
+      return false;
+    }
+    // Only an actual sync failure leaves a choice to discard changes.
+    const ok = window.confirm('変更を同期できていません。閉じると変更は失われます。閉じますか？');
     if (!ok) return false;
   }
   try { session.child?.approveRelatedGridChildClose?.(); } catch {}
@@ -296,20 +306,50 @@ function relatedGridChildIsDirty() {
   return stableRelatedGridJson(rows) !== relatedGridChildRuntime.baseline;
 }
 
-function ensureRelatedGridApplyButton() {
-  const actions = document.querySelector('.grid-actions');
-  if (!actions || !relatedGridChildRuntime) return null;
-  const button = document.createElement('button');
-  button.id = 'relatedGridApplyToParentBtn';
-  button.type = 'button';
-  button.className = 'primary-button small related-grid-apply-button';
-  button.textContent = '親画面へ反映';
-  button.title = 'このGrid配列だけを親StudioのDataへ反映します。ファイル保存は親画面で行います。';
-  const addButton = $('addRowBtn');
-  if (addButton && addButton.parentElement === actions) actions.insertBefore(button, addButton);
-  else actions.appendChild(button);
-  button.addEventListener('click', () => applyRelatedGridToParent(button));
-  return button;
+// The related Grid is an editable projection owned by its parent Studio.
+// F12/F7/F8 commit the editor draft locally; this queue then propagates the
+// canonical array without exposing another "apply to parent" user action.
+// Only one APPLY is in flight. Changes made while awaiting ACK are sent after
+// the ACK, using the updated baseline, so fast navigation cannot lose edits.
+function relatedGridChildApplyPending() {
+  return Boolean(relatedGridChildRuntime?.applyPending);
+}
+
+function queueRelatedGridAutoApply() {
+  const runtime = relatedGridChildRuntime;
+  if (!runtime?.loaded || runtime.syncBlocked) return false;
+  const rows = relatedGridChildRows();
+  if (!Array.isArray(rows)) return false;
+  if (runtime.applyPending) return true;
+  if (stableRelatedGridJson(rows) === runtime.baseline) return false;
+
+  const parentWindow = relatedGridParentWindow();
+  if (!parentWindow) {
+    runtime.syncBlocked = true;
+    setStatus('親Studio画面との接続が切れました。変更は子画面に残っています。', {
+      kind: 'error', title: '同期エラー', sticky: true
+    });
+    return false;
+  }
+  runtime.applyPending = true;
+  try {
+    parentWindow.postMessage({
+      namespace: RELATED_GRID_MESSAGE_NS,
+      type: 'APPLY',
+      channel: runtime.channel,
+      dataPath: runtime.dataPath,
+      rows: cloneData(rows),
+      baseline: runtime.baseline
+    }, relatedGridTargetOrigin());
+  } catch (error) {
+    runtime.applyPending = false;
+    runtime.syncBlocked = true;
+    setStatus(`親Studioへの通信に失敗しました: ${error.message}`, {
+      kind: 'error', title: '同期エラー', sticky: true
+    });
+    return false;
+  }
+  return true;
 }
 
 // CSV import is available only when the active ViewDef explicitly declares
@@ -360,7 +400,7 @@ function ensureRelatedGridCsvImportButton() {
       const oldCount = previousRows.length;
       const message = `CSV全件置換の確認\n\n既存の${oldCount}件をすべて削除してから、CSVの${importedRows.length}件を取り込みます。\n` +
         '既存のグループIDも引き継ぎません。\n\n' +
-        '取り込み後は「親画面へ反映」→ 親画面の「保存」が必要です。\n\n続行しますか？';
+        '取り込み後の最終保存は親Studio画面で行ってください。\n\n続行しますか？';
       if (!window.confirm(message)) {
         setStatus('CSV取込をキャンセルしました。既存データは変更していません。', { toast: false });
         return;
@@ -378,8 +418,8 @@ function ensureRelatedGridCsvImportButton() {
         try { loadRows(); renderGrid(); } catch { /* preserve original error */ }
         throw renderError;
       }
-      setRelatedGridShellStatus(`CSV取込済み / ${oldCount}件を削除 → ${importedRows.length}件（親画面へ未反映）`, 'warn');
-      setStatus(`CSV ${importedRows.length}件を取り込みました。親画面へ反映後、保存してください。`, {
+      queueRelatedGridAutoApply();
+      setStatus(`CSV ${importedRows.length}件を取り込みました。最終保存は親Studio画面で行ってください。`, {
         kind: 'success', title: 'CSV取込', toast: false, sticky: true
       });
     } catch (error) {
@@ -399,7 +439,6 @@ function renderRelatedGridLaunchButtons() {
   removeRelatedGridButtons();
   if (!viewDef || !sourceData) return;
   if (relatedGridChildRuntime) {
-    ensureRelatedGridApplyButton();
     ensureRelatedGridCsvImportButton();
     return;
   }
@@ -407,31 +446,6 @@ function renderRelatedGridLaunchButtons() {
     const rows = relatedGridArrayFor(definition);
     if (rows) ensureRelatedGridButton(definition, rows);
   });
-}
-
-function applyRelatedGridToParent(button) {
-  if (!relatedGridChildRuntime) return;
-  const rows = relatedGridChildRows();
-  if (!Array.isArray(rows)) {
-    setStatus(`反映対象がArrayではありません: ${relatedGridChildRuntime.dataPath}`, { kind: 'error', title: '別Grid反映エラー' });
-    return;
-  }
-  const parentWindow = relatedGridParentWindow();
-  if (!parentWindow) {
-    setStatus('親Studio画面が閉じられているため反映できません', { kind: 'error', title: '親画面なし' });
-    return;
-  }
-  if (button) button.disabled = true;
-  relatedGridChildRuntime.applyPending = true;
-  setRelatedGridShellStatus('親画面へ反映中', 'info');
-  parentWindow.postMessage({
-    namespace: RELATED_GRID_MESSAGE_NS,
-    type: 'APPLY',
-    channel: relatedGridChildRuntime.channel,
-    dataPath: relatedGridChildRuntime.dataPath,
-    rows: cloneData(rows),
-    baseline: relatedGridChildRuntime.baseline
-  }, relatedGridTargetOrigin());
 }
 
 function relatedGridShellBannerText(payload) {
@@ -456,7 +470,7 @@ function ensureRelatedGridShellBanner(payload) {
   const title = document.createElement('strong');
   title.textContent = relatedGridShellBannerText(payload) || '別Grid';
   const note = document.createElement('span');
-  note.textContent = '編集後は「親画面へ反映」を押し、最終保存は親Studio画面で行ってください。';
+  note.textContent = '変更は自動で同期されます。ファイルの最終保存は親Studio画面で行ってください。';
   const status = document.createElement('span');
   status.id = 'relatedGridShellStatus';
   status.className = 'related-grid-shell-status';
@@ -538,12 +552,16 @@ async function loadRelatedGridChildPayload(payload) {
       : normalizeRelatedGridViewStaticPath(payload.parentViewDefName || ''),
     fileParam: ''
   };
+  const pendingSaveRequests = relatedGridChildRuntime?.pendingSaveRequests || [];
   relatedGridChildRuntime = {
     channel: String(payload.channel ?? ''),
     config,
     dataPath: config.dataPath,
     baseline: stableRelatedGridJson(rows),
-    applyPending: false
+    applyPending: false,
+    syncBlocked: false,
+    loaded: true,
+    pendingSaveRequests
   };
 
   document.body.classList.add('studio-grid-only-shell');
@@ -566,8 +584,76 @@ async function loadRelatedGridChildPayload(payload) {
     $('saveBtn').textContent = '親画面で保存';
   }
   renderRelatedGridLaunchButtons();
-  setRelatedGridShellStatus(`親画面から受信済み / ${rows.length}件`, 'success');
+  setRelatedGridShellStatus('親画面に接続済み', 'success');
   setStatus(`${config.caption}: 親画面から受信済み`, { toast: false, sticky: true });
+}
+
+// The parent must not persist an older snapshot while a child APPLY is in flight.
+// A save barrier asks each open child to flush its committed rows and explicitly
+// acknowledge the latest revision. No synchronous iframe reads are required.
+function awaitRelatedGridSessionSaveReady(session, timeoutMs=12000) {
+  return new Promise((resolve, reject) => {
+    if (!session.child || session.child.closed) {
+      reject(new Error(`別Grid「${session.definition.caption}」との接続がありません。保存を中断しました`));
+      return;
+    }
+    const requestId = `save_${++relatedGridSaveRequestSeq}`;
+    if (!session.saveWaiters) session.saveWaiters = new Map();
+    const timer = window.setTimeout(() => {
+      session.saveWaiters.delete(requestId);
+      reject(new Error(`別Grid「${session.definition.caption}」の同期確認がタイムアウトしました。保存は実行していません`));
+    }, timeoutMs);
+    session.saveWaiters.set(requestId, result => {
+      window.clearTimeout(timer);
+      if (result.ok) resolve();
+      else reject(new Error(result.message || `別Grid「${session.definition.caption}」を同期できません。保存を中断しました`));
+    });
+    try {
+      session.child.postMessage({
+        namespace: RELATED_GRID_MESSAGE_NS,
+        type: 'PREPARE_SAVE',
+        channel: session.channel,
+        requestId
+      }, relatedGridTargetOrigin());
+    } catch (error) {
+      session.saveWaiters.delete(requestId);
+      window.clearTimeout(timer);
+      reject(error);
+    }
+  });
+}
+
+async function awaitRelatedGridSyncBeforeSave() {
+  const sessions = [...relatedGridParentSessions.values()].filter(
+    session => session.sourceDataRef === sourceData && !session.child?.closed
+  );
+  // All child snapshots must reach the parent before a save request is built.
+  await Promise.all(sessions.map(session => awaitRelatedGridSessionSaveReady(session)));
+}
+
+function settleRelatedGridChildSaveRequests(ok, message='') {
+  const runtime = relatedGridChildRuntime;
+  if (!runtime?.pendingSaveRequests?.length) return;
+  const parentWindow = relatedGridParentWindow();
+  if (!parentWindow) return;
+  for (const requestId of runtime.pendingSaveRequests.splice(0)) {
+    parentWindow.postMessage({
+      namespace: RELATED_GRID_MESSAGE_NS,
+      type: 'SAVE_READY', channel: runtime.channel, requestId, ok, message
+    }, relatedGridTargetOrigin());
+  }
+}
+
+function flushRelatedGridChildSaveRequests() {
+  const runtime = relatedGridChildRuntime;
+  if (!runtime?.pendingSaveRequests?.length) return;
+  if (runtime.syncBlocked) {
+    settleRelatedGridChildSaveRequests(false, '別Gridの同期が失敗しています。再読込してから保存してください');
+    return;
+  }
+  if (runtime.applyPending) return;
+  const queued = queueRelatedGridAutoApply();
+  if (!queued && !relatedGridChildIsDirty()) settleRelatedGridChildSaveRequests(true);
 }
 
 function sendRelatedGridReady() {
@@ -596,8 +682,10 @@ function initializeRelatedGridChildFromQuery(params=relatedGridQueryParams()) {
     dataPath: '',
     baseline: '',
     applyPending: false,
+    syncBlocked: false,
     initializing: false,
-    loaded: false
+    loaded: false,
+    pendingSaveRequests: []
   };
   ensureRelatedGridShellBanner({ config: { caption: '別Grid' } });
   setRelatedGridShellStatus('親画面からDataを受信中', 'info');
@@ -655,6 +743,20 @@ function handleParentRelatedGridMessage(event, message) {
     return;
   }
 
+  if (message.type === 'SAVE_READY') {
+    const notify = session.saveWaiters?.get(message.requestId);
+    if (notify) {
+      session.saveWaiters.delete(message.requestId);
+      notify(message);
+    }
+    return;
+  }
+  if (message.type === 'SYNC_IDLE') {
+    if (session.closeRequested && session.modalOverlay && !relatedGridModalIsDirty(session)) {
+      closeRelatedGridModal(session.channel, { force: true });
+    }
+    return;
+  }
   if (message.type !== 'APPLY') return;
   if (sourceData !== session.sourceDataRef) {
     sendRelatedGridApplyResult(session.child, session.channel, {
@@ -701,14 +803,11 @@ function handleParentRelatedGridMessage(event, message) {
     loadRows();
     renderGrid();
   }
-  setStatus(`${session.definition.caption} ${nextRows.length}件を親Dataへ反映しました。保存は親画面で実行してください`, {
-    kind: 'success', title: '別Grid反映', toast: false, sticky: true
-  });
   sendRelatedGridApplyResult(session.child, session.channel, {
     ok: true,
     baseline: session.baseline,
     count: nextRows.length,
-    message: `親Dataへ${nextRows.length}件を反映しました。最終保存は親画面で行ってください。`
+    message: ''
   });
 }
 
@@ -726,6 +825,7 @@ async function handleChildRelatedGridMessage(event, message) {
       await loadRelatedGridChildPayload(message);
       relatedGridChildRuntime.initializing = false;
       relatedGridChildRuntime.loaded = true;
+      flushRelatedGridChildSaveRequests();
       const resolve = relatedGridChildInitResolve;
       relatedGridChildInitResolve = null;
       relatedGridChildInitReject = null;
@@ -742,20 +842,41 @@ async function handleChildRelatedGridMessage(event, message) {
     return;
   }
 
+  if (message.type === 'PREPARE_SAVE') {
+    relatedGridChildRuntime.pendingSaveRequests ||= [];
+    if (!relatedGridChildRuntime.loaded) {
+      relatedGridChildRuntime.pendingSaveRequests.push(message.requestId);
+      return;
+    }
+    relatedGridChildRuntime.pendingSaveRequests.push(message.requestId);
+    flushRelatedGridChildSaveRequests();
+    return;
+  }
+
   if (message.type === 'APPLY_RESULT') {
+    if (!relatedGridChildRuntime.applyPending) return;
     relatedGridChildRuntime.applyPending = false;
-    const button = $('relatedGridApplyToParentBtn');
-    if (button) button.disabled = false;
     if (message.ok) {
       relatedGridChildRuntime.baseline = String(message.baseline ?? stableRelatedGridJson(relatedGridChildRows()));
-      setRelatedGridShellStatus(message.message || '親Dataへ反映しました', 'success');
-      setStatus(message.message || '親Dataへ反映しました', { kind: 'success', title: '別Grid反映', toast: false, sticky: true });
+      // The user may have pressed F7/F8 or F12 again before this ACK.
+      // Flush the latest snapshot only after the parent accepted the last one.
+      const queued = queueRelatedGridAutoApply();
+      if (!queued && !relatedGridChildIsDirty()) {
+        flushRelatedGridChildSaveRequests();
+        parentWindow.postMessage({
+          namespace: RELATED_GRID_MESSAGE_NS,
+          type: 'SYNC_IDLE',
+          channel: relatedGridChildRuntime.channel
+        }, relatedGridTargetOrigin());
+      }
     } else {
-      setRelatedGridShellStatus(message.message || '親Dataへ反映できませんでした', message.conflict ? 'warn' : 'error');
-      setStatus(message.message || '親Dataへ反映できませんでした', {
+      // Never keep silently retrying an out-of-date baseline on a conflict.
+      relatedGridChildRuntime.syncBlocked = true;
+      flushRelatedGridChildSaveRequests();
+      setRelatedGridShellStatus('同期できませんでした', 'error');
+      setStatus(message.message || '親Studioへの同期に失敗しました。変更はこの画面に残っています。', {
         kind: message.conflict ? 'warn' : 'error',
-        title: message.conflict ? '競合を検知' : '別Grid反映エラー',
-        sticky: true
+        title: message.conflict ? '競合を検知' : '同期エラー', sticky: true
       });
     }
   }

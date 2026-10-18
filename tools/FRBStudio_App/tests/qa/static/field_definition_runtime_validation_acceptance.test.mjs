@@ -89,6 +89,8 @@ function createF12Runtime() {
     getStudioJsonRoundTripDraftRow: () => null,
     discardStudioJsonRoundTripDraft: () => {},
     markDetailSubGridEditsCommitted: () => { context.subgridCommitted = true; },
+    studioTreeProtect: pending => pending,
+    studioTreeValidateKind: () => true,
     renderGrid: () => { context.renderCount = (context.renderCount ?? 0) + 1; },
     updateDetailNavButtons: () => {},
     registerRenderer: () => {},

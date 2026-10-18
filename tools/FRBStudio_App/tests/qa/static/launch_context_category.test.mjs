@@ -52,6 +52,7 @@ test('ordinary startup does not invoke new-category', () => {
 });
 
 test('startupJson reload applies existing focus and the new-category route', () => {
-  assert.match(code, /applyLaunchNewCategoryFromQuery\(params\).*applyLaunchFocusFromQuery\(params\)/);
+  assert.match(code, /if \(!applyLaunchNewCategoryFromQuery\(params\) && !applyLaunchPageFromQuery\(params\)\)/);
+  assert.match(code, /applyLaunchFocusFromQuery\(params\)/);
   assert.match(code, /await loadFromObjects\(resolved\.defObj, dataObj, '起動指定JSONを読み込みました'/);
 });

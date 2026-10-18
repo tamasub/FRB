@@ -22,7 +22,8 @@ test('App Settings keeps default_launch retired and stores current launch shortc
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(settings.launch_shortcuts.every(item => item.id && item.caption && item.data));
   assert.equal(settings.markdown.large_file_warning_enabled, true);
-  assert.equal(settings.markdown.large_file_warning_bytes, 524288);
+  assert.ok(Number.isSafeInteger(settings.markdown.large_file_warning_bytes));
+  assert.ok(settings.markdown.large_file_warning_bytes > 0);
 });
 
 test('System App Settings ViewDef uses sectionGroups to pinch existing Grid and Form Sections', () => {

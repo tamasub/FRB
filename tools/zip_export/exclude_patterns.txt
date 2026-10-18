@@ -22,6 +22,7 @@ obj
 Debug
 Release
 .vs
+.zip
 
 # Node.js
 node_modules
@@ -47,4 +48,6 @@ tools/FRBStudio_App/wwwroot/js/lib/mermaid
 
 # tools/FRBStudio_App 配下の zip ファイル（サブフォルダー含めて全部）
 tools/FRBStudio_App/*.zip
+tools/FRB_Launch/app_zip
+tools/FRBStudio_App/app_zip
 
