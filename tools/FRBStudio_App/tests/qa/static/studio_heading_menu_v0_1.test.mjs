@@ -6,9 +6,9 @@ import vm from 'node:vm';
 const read=path=>fs.readFileSync(path,'utf8');
 const viewdef=JSON.parse(read('defs/launch/frb_launch_maintenance_view_def_v0_1.json'));
 const schema=JSON.parse(read('data/json/00_rules/frb_view_def_schema_v0_9.json'));
-function loadProfile() {
-  const host={};
-  vm.runInNewContext(read('wwwroot/js/ui/studio_presentation_profile.js'),{window:host,console});
+function loadProfile(search='') {
+  const host={location:{search}};
+  vm.runInNewContext(read('wwwroot/js/ui/studio_presentation_profile.js'),{window:host,console,URLSearchParams});
   return { host,profile:host.StudioPresentationProfile };
 }
 
@@ -118,4 +118,29 @@ test('CSS is scoped and HTML caches new presentation assets',()=>{
   assert.match(css,/\.studio-heading-menu-wrap\[hidden\]/);
   assert.match(index,/heading=007/);
   assert.equal((index.match(/id="saveBtn"/g)||[]).length,1);
+});
+
+
+test('launcher light session toggles only the palette and not ViewDef, density, or Save',()=>{
+  const {profile,host}=loadProfile('?startupJson=1&studioTheme=light');
+  const {doc,save}=fakeDoc();
+  const sent=[];
+  host.document=doc;
+  host.chrome={webview:{postMessage:message=>sent.push(message.studio_presentation)}};
+  profile.apply(viewdef,doc);
+  const menu=doc.getElementById('studioHeadingMenu');
+  assert.equal(doc.body.dataset.studioTheme,'launch-light');
+  assert.equal(doc.body.dataset.studioDensity,'compact');
+  assert.equal(doc.body.dataset.studioShell,'minimal');
+  assert.equal(menu.children.length,2);
+  assert.equal(menu.children[1].textContent,'☾ ダークモードに切替');
+  menu.children[1].click();
+  assert.equal(doc.body.dataset.studioTheme,'launch-dark');
+  assert.equal(doc.body.dataset.studioDensity,'compact');
+  assert.equal(doc.getElementById('saveBtn'),save);
+  assert.equal(menu.children[1].textContent,'☀ ライトモードに切替');
+  menu.children[1].click();
+  assert.equal(doc.body.dataset.studioTheme,'launch-light');
+  assert.equal(profile.resolve(viewdef).theme,'launch-dark', 'authored ViewDef must not be changed');
+  assert.deepEqual(sent.map(x=>x.theme),['launch-light','launch-dark','launch-light']);
 });

@@ -480,3 +480,60 @@ body.frb-page-json-object[data-studio-save-placement="heading"] .studio-heading-
 body.frb-page-json-object[data-studio-save-placement="heading"] .studio-heading-menu-item:hover,
 body.frb-page-json-object[data-studio-save-placement="heading"] .studio-heading-menu-item:focus-visible { background:#344c46; }
 body.frb-page-json-object[data-studio-save-placement="heading"] .studio-heading-menu-item:disabled {opacity:.45;cursor:default;}
+
+/* 2026-10-18: Launcher compact + light palette. Density/shell unchanged.
+   Overrides only launcher-specific chrome; ordinary Studio light stays as-is. */
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] {
+  --bg:#f1f5f2; --bg2:#f8faf8; --panel:#fff; --panel-solid:#fff;
+  --line:#cbd9d0; --line-soft:#e3ebe6; --text:#20332b; --muted:#60736a;
+  --row-alt:#f6faf7; --row-hover:#e9f4ed; --selected:#d9e9df;
+  --readonly:#f2f5f2; --accent:#28734b; --accent2:#437a61;
+  --frb-canvas:#f1f5f2; --frb-surface:#fff; --frb-text:#20332b;
+  --frb-muted:#60736a; --frb-line:#cbd9d0;
+  background:#f1f5f2; color:#20332b; color-scheme:light;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-heading {
+  justify-content:space-between; gap:12px;
+  background:linear-gradient(180deg,#fbfdfb 0%,#e8f0eb 100%);
+  color:#20372d; border-bottom:1px solid #c4d5c9;
+  box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(27,62,42,.07);
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-heading::before {color:#348d62;}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-title {
+  flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-heading-actions {
+  display:flex; flex:0 0 auto; align-items:center; justify-content:flex-end; gap:8px;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] #studioPresentationHeading #saveBtn {
+  flex:0 0 auto; width:auto; min-width:55px; min-height:31px;
+  margin:0; padding:5px 11px; border-radius:5px; font-size:12px; font-weight:700; line-height:1.35;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-footer {
+  background:#edf4ef; color:#536d5f; border-top:1px solid #cbdcd0;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-presentation-info {color:#587365;}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"][data-studio-save-placement="heading"] .studio-presentation-footer {
+  min-height:28px; padding:4px 11px;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] #searchSection .studio-full-text-search-label {color:#4f6e5c;}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu-button {
+  background:linear-gradient(180deg,#fff,#edf4ef); color:#385748; border-color:#9ebbac;
+  box-shadow:inset 0 1px 0 #fff;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu-button:hover,
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu-button[aria-expanded="true"] {
+  background:#dceee1; border-color:#6e9b80;
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu {
+  background:#fff; color:#20332b; border-color:#b8d0bf;
+  box-shadow:0 8px 24px rgba(30,59,42,.19);
+}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu-item:hover,
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .studio-heading-menu-item:focus-visible {background:#e8f4eb;}
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] #dataGrid,
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] .table-wrap {background:#fff; color:#20332b;}
+html:has(> body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"]),
+body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] {
+  color-scheme:light; scrollbar-color:#a8bfb0 #e8efe9; scrollbar-width:thin;
+}

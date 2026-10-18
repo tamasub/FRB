@@ -57,7 +57,7 @@ test('Native Shell matches the launcher gray title bar only in launch-dark theme
  const native=read('NativeShell/NativeShellForm.cs');
  assert.match(native,/Color\.FromArgb\(85, 97, 90\)/);
  assert.match(native,/Color\.FromArgb\(32, 43, 41\)/);
- assert.match(native,/_nativeTitleBarLaunchPalette = dark && string\.Equals\(theme, "launch-dark"/);
- assert.match(native,/SetNativeTitleBarDark\(_nativeTitleBarDark, _nativeTitleBarLaunchPalette\)/);
+ assert.match(native,/_nativeTitleBarLaunchPalette = launcher && dark/);
+ assert.match(native,/SetNativeTitleBarDark\(_nativeTitleBarDark, _nativeTitleBarLaunchPalette, _nativeTitleBarLaunchLightPalette\)/);
  assert.match(native,/DwmSetWindowAttribute\(Handle, 35, ref caption/);
 });

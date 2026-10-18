@@ -6,7 +6,7 @@ const form = fs.readFileSync('NativeShell/NativeShellForm.cs', 'utf8');
 const keyboard = fs.readFileSync('wwwroot/js/runtime/studio_keyboard_standard.js', 'utf8');
 
 test('launcher adds 5px outer rim plus 1px inner line without changing default Studio', () => {
-  assert.match(form, /if \(_launcherPresentation && _nativeTitleBarLaunchPalette\)\s*\{\s*Padding = new Padding\(5\)/);
+  assert.match(form, /if \(launcher\)\s*\{\s*Padding = new Padding\(5\)/);
   assert.match(form, /_clientSurface\.Padding = new Padding\(1\)/);
   assert.match(form, /_clientSurface\.Controls\.Add\(_webView\)/);
   assert.match(form, /_clientSurface\.Controls\.Add\(_status\)/);

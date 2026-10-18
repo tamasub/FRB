@@ -44,7 +44,7 @@ test('NativeShell receives a presentation notification from the loaded ViewDef',
 test('launcher dimensions persist independently of standard studio window',()=>{
   const native=read('NativeShell/NativeShellForm.cs');
   const bounds=read('NativeShell/NativeShellWindowBounds.cs');
-  assert.match(native,/if \(!_launcherPresentation\) return/);
+  assert.match(native,/if \(!launcher \|\| !firstPresentation\) return/);
   assert.match(native,/NativeShellWindowBounds\.TryLoad/);
   assert.match(native,/NativeShellWindowBounds\.TrySave/);
   assert.match(native,/ResizeEnd \+=/);

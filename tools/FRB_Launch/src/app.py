@@ -36,6 +36,7 @@ from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
 from process_runner import start_process, should_start_before_dismiss
+from studio_theme_launch import studio_launch_arguments
 from launch_diagnostics import make_logger, wifi_transcript_arguments
 from log_retention import cleanup as cleanup_diagnostics
 from logging.handlers import RotatingFileHandler
@@ -2909,7 +2910,7 @@ class Launcher(QWidget):
                 elif step.get('launch_browser'):self.open_target(step['launch_target'],step['launch_browser'])
                 else:self.open_target(step['launch_target'])
             elif kind=='Run':
-                program=step['launch_program'];args=step.get('launch_arguments',[]);cwd=step.get('launch_working_directory') or str(ROOT)
+                program=step['launch_program'];args=studio_launch_arguments(program, step.get('launch_arguments',[]));cwd=step.get('launch_working_directory') or str(ROOT)
                 args,transcript=wifi_transcript_arguments(program,args,STATE)
                 DIAG.info('RUN program=%s cwd=%s console=%s wait=%s transcript=%s',program,cwd,step.get('launch_show_console',False),step.get('launch_wait_for_exit',False),transcript)
                 self.proc = start_process(program, args, cwd, step.get('launch_show_console',False))

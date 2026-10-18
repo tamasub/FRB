@@ -21,7 +21,7 @@ test('native window only appears after profile sizing and web app initialization
   assert.match(form, /ApplyNativePresentation\(get\("preset"\), get\("theme"\), get\("shell"\)\)/);
   assert.match(form, /BeginInvoke\(new Action\(RevealMainWindow\)\)/);
   assert.match(form, /PerformLayout\(\);\s*_webView\.PerformLayout\(\);\s*Opacity = 1;/);
-  assert.match(form, /SetNativeTitleBarDark\(_nativeTitleBarDark, _nativeTitleBarLaunchPalette\)/);
+  assert.match(form, /SetNativeTitleBarDark\(_nativeTitleBarDark, _nativeTitleBarLaunchPalette, _nativeTitleBarLaunchLightPalette\)/);
   assert.match(form, /NativeShellWindowBounds\.TryLoad\(out var bounds\)/);
   assert.match(bounds, /launcher_window_bounds\.json/);
 });
@@ -37,8 +37,8 @@ test('startup splash closes on success or errors; non-index tools are not left i
   assert.match(form, /catch \(Exception ex\)\s*\{\s*\/\/ Close the splash before opening a modal error dialog\.\s*RevealMainWindow\(\);\s*_status\.Text = "起動失敗/);
 });
 
-test('launcher retains fixed presentation with no runtime Standard switch', () => {
+test('launcher keeps compact bounds on theme changes, without a Standard layout switch', () => {
   assert.doesNotMatch(app, /通常表示に戻す/);
-  assert.match(form, /if \(_presentationReceived\) return;/);
-  assert.match(form, /if \(!_launcherPresentation\) return;/);
+  assert.match(form, /if \(_presentationReceived && \(!_launcherPresentation \|\| !launcher\)\) return;/);
+  assert.match(form, /if \(!launcher \|\| !firstPresentation\) return;/);
 });

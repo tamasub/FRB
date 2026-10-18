@@ -11,6 +11,7 @@ namespace FRBStudio.NativeShell
         public string LaunchItemId { get; private set; }
         public string LaunchNewCategoryPage { get; private set; }
         public string LaunchPageId { get; private set; }
+        public string StudioTheme { get; private set; }
 
         public static NativeLaunchOptions Parse(string[] args)
         {
@@ -20,6 +21,15 @@ namespace FRBStudio.NativeShell
             foreach (var raw in args)
             {
                 var arg = raw ?? string.Empty;
+                if (arg.StartsWith("--studio-theme=", StringComparison.OrdinalIgnoreCase))
+                {
+                    var theme = arg.Substring("--studio-theme=".Length).Trim();
+                    if (!string.Equals(theme, "light", StringComparison.OrdinalIgnoreCase) &&
+                        !string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase))
+                        throw new ArgumentException("--studio-theme requires light or dark.");
+                    options.StudioTheme = theme.ToLowerInvariant();
+                    continue;
+                }
                 if (arg.StartsWith("--launch-item-id=", StringComparison.OrdinalIgnoreCase))
                 {
                     options.LaunchItemId = arg.Substring("--launch-item-id=".Length).Trim();
@@ -105,6 +115,16 @@ namespace FRBStudio.NativeShell
                 if (options.LaunchPageId != null)
                     page += "&launchPageId=" + Uri.EscapeDataString(options.LaunchPageId);
                 options.InitialPage = page;
+            }
+            // Startup appearance is deliberately process-scoped, not saved into ViewDef.
+            // Only the JSON Object Studio page consumes this launch hint.
+            if (options.StudioTheme != null)
+            {
+                if (string.IsNullOrWhiteSpace(options.InitialPage))
+                    options.InitialPage = "index.html";
+                if (options.InitialPage.StartsWith("index.html", StringComparison.OrdinalIgnoreCase))
+                    options.InitialPage += (options.InitialPage.Contains("?") ? "&" : "?")
+                        + "studioTheme=" + options.StudioTheme;
             }
             return options;
         }

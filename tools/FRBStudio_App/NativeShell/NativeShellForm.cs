@@ -38,6 +38,7 @@ namespace FRBStudio.NativeShell
         private bool _launcherPresentation;
         private bool _nativeTitleBarDark;
         private bool _nativeTitleBarLaunchPalette;
+        private bool _nativeTitleBarLaunchLightPalette;
         // The main WinForms host must never flash its default (1500x950) bounds.
         // Keep it transparent until the ViewDef applies its final presentation.
         private readonly bool _useStartupSplash;
@@ -48,7 +49,7 @@ namespace FRBStudio.NativeShell
         [DllImport("dwmapi.dll", PreserveSig = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
-        private void SetNativeTitleBarDark(bool dark, bool launchPalette)
+        private void SetNativeTitleBarDark(bool dark, bool launchPalette, bool launchLightPalette = false)
         {
             if (!IsHandleCreated) return;
             var enabled = dark ? 1 : 0;
@@ -76,6 +77,15 @@ namespace FRBStudio.NativeShell
                         : Color.FromArgb(32, 43, 41));
                     DwmSetWindowAttribute(Handle, 34, ref border, sizeof(int));
                 }
+                else if (launchLightPalette)
+                {
+                    var caption = ColorTranslator.ToWin32(Color.FromArgb(235, 242, 238));
+                    var titleText = ColorTranslator.ToWin32(Color.FromArgb(29, 51, 44));
+                    var border = ColorTranslator.ToWin32(Color.FromArgb(173, 191, 181));
+                    DwmSetWindowAttribute(Handle, 35, ref caption, sizeof(int));
+                    DwmSetWindowAttribute(Handle, 36, ref titleText, sizeof(int));
+                    DwmSetWindowAttribute(Handle, 34, ref border, sizeof(int));
+                }
             }
             catch (DllNotFoundException) { /* Windows without DWM */ }
             catch (EntryPointNotFoundException) { /* older Windows */ }
@@ -83,41 +93,45 @@ namespace FRBStudio.NativeShell
 
         private void ApplyNativePresentation(string preset, string theme, string shell)
         {
-            // ViewDef loading fixes the mode; do not expose a runtime switch.
-            if (_presentationReceived) return;
-            // A startup/default ViewDef may be loaded before the requested one.
-            // It must not lock out the later launcher presentation.
-            if (!string.Equals(preset, "launcher", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase)) return;
-            _presentationReceived = true;
-            _launcherPresentation = string.Equals(preset, "launcher", StringComparison.OrdinalIgnoreCase)
+            var launcher = string.Equals(preset, "launcher", StringComparison.OrdinalIgnoreCase)
                 && string.Equals(shell, "minimal", StringComparison.OrdinalIgnoreCase);
             var dark = string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase);
+            var launchLight = launcher && string.Equals(theme, "launch-light", StringComparison.OrdinalIgnoreCase);
+            // Before launcher ViewDef loads, an ordinary startup ViewDef must not
+            // lock the window's size, caption, or palette.
+            if (!launcher && !dark) return;
+            // Only a launcher presentation may be recolored after initial sizing.
+            if (_presentationReceived && (!_launcherPresentation || !launcher)) return;
+            var firstPresentation = !_presentationReceived;
+            _presentationReceived = true;
+            _launcherPresentation = launcher;
             _nativeTitleBarDark = dark;
-            _nativeTitleBarLaunchPalette = dark && string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase);
-            SetNativeTitleBarDark(dark, _nativeTitleBarLaunchPalette);
-            // FRB Launch has a noticeably wider rim than a DWM 1px border.
-            // Preserve the native caption/buttons, but inset the whole client area
-            // with a charcoal 5px border and a thin gray-green inner hairline.
-            // The content surface has zero padding for normal Studio themes.
-            if (_launcherPresentation && _nativeTitleBarLaunchPalette)
+            _nativeTitleBarLaunchPalette = launcher && dark;
+            _nativeTitleBarLaunchLightPalette = launchLight;
+            SetNativeTitleBarDark(dark, _nativeTitleBarLaunchPalette, launchLight);
+            if (launcher)
             {
                 Padding = new Padding(5);
-                BackColor = Color.FromArgb(51, 62, 56);
                 _clientSurface.Padding = new Padding(1);
-                _clientSurface.BackColor = Color.FromArgb(180, 191, 180);
+                if (launchLight)
+                {
+                    BackColor = Color.FromArgb(185, 202, 193);
+                    _clientSurface.BackColor = Color.FromArgb(246, 250, 247);
+                }
+                else
+                {
+                    BackColor = Color.FromArgb(51, 62, 56);
+                    _clientSurface.BackColor = Color.FromArgb(180, 191, 180);
+                }
             }
-            if (dark)
-            {
-                _status.BackColor = Color.FromArgb(23, 35, 33);
-                _status.ForeColor = Color.FromArgb(172, 188, 185);
-            }
-            if (!_launcherPresentation) return;
+            _status.BackColor = dark ? Color.FromArgb(23, 35, 33) : Color.FromArgb(245, 249, 246);
+            _status.ForeColor = dark ? Color.FromArgb(172, 188, 185) : Color.FromArgb(76, 96, 88);
+            if (!launcher || !firstPresentation) return;
             Text = "FRB Launch — 設定";
             _status.Height = 20;
-            // First launch: compact. Subsequent launches: restore manually resized bounds.
+            // Preserve the existing compact bounds contract. A palette click
+            // must never resize the native window or overwrite saved bounds.
             if (NativeShellWindowBounds.TryLoad(out var bounds))
             {
                 StartPosition = FormStartPosition.Manual;
@@ -258,7 +272,7 @@ namespace FRBStudio.NativeShell
             Opacity = 1;
             ShowInTaskbar = true;
             // Changing ShowInTaskbar may recreate the HWND and clear DWM attrs.
-            SetNativeTitleBarDark(_nativeTitleBarDark, _nativeTitleBarLaunchPalette);
+            SetNativeTitleBarDark(_nativeTitleBarDark, _nativeTitleBarLaunchPalette, _nativeTitleBarLaunchLightPalette);
             _startupSplash?.Close();
             _startupSplash?.Dispose();
             _startupSplash = null;

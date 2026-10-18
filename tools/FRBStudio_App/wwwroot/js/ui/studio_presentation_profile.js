@@ -1,14 +1,30 @@
 // Studio standard: ViewDef-driven presentation, independent of Data/Edit/Save contracts.
-// Applied when a ViewDef is loaded. No in-session profile switch UI is provided.
+// ViewDef owns density/shell; an opt-in launcher session may switch palette only.
 (function (global) {
   'use strict';
   const VALID = Object.freeze({
     preset: ['standard', 'compact', 'launcher'],
     density: ['standard', 'compact'],
-    theme: ['light', 'dark', 'launch-dark'],
+    theme: ['light', 'dark', 'launch-dark', 'launch-light'],
     shell: ['standard', 'minimal'],
     savePlacement: ['sidebar', 'footer', 'heading']
   });
+  // The CLI hint arrives in the main page URL and is not written to Data or ViewDef.
+  const initialTheme = (() => {
+    try {
+      const value = new URLSearchParams(global.location?.search || '').get('studioTheme');
+      return value === 'light' ? 'launch-light' : value === 'dark' ? 'launch-dark' : null;
+    } catch (_) { return null; }
+  })();
+  let sessionTheme = null;
+  function isLauncher(config) {
+    return config.preset === 'launcher' && config.shell === 'minimal';
+  }
+  function resolveSession(def) {
+    const config = resolve(def);
+    if (isLauncher(config)) config.theme = sessionTheme || initialTheme || config.theme;
+    return config;
+  }
   function resolve(def) {
     const raw = def?.app?.presentation || {};
     const preset = VALID.preset.includes(raw.preset) ? raw.preset : 'standard';
@@ -167,8 +183,15 @@
     return global.executeStudioAction(actionId,
       typeof global.currentStudioActionContext === 'function' ? global.currentStudioActionContext() : {});
   }
-  function renderHeadingMenu(doc, widgets, config) {
-    const entries = config.savePlacement === 'heading' ? (config.headingMenuItems || []) : [];
+  function renderHeadingMenu(doc, widgets, config, def) {
+    const entries = config.savePlacement === 'heading' ? [...(config.headingMenuItems || [])] : [];
+    if (config.savePlacement === 'heading' && isLauncher(config) && initialTheme) {
+      entries.push({
+        id: 'launcher_theme_switch',
+        label: config.theme === 'launch-dark' ? '☀ ライトモードに切替' : '☾ ダークモードに切替',
+        actionId: 'ToggleLauncherTheme'
+      });
+    }
     // Existing ViewDefs without a header menu keep their original DOM untouched.
     if (!entries.length && !doc.getElementById('studioHeadingMenuWrap')) return;
     const wrap = ensureHeadingMenu(doc, widgets);
@@ -186,6 +209,13 @@
       button.textContent = entry.label;
       button.addEventListener('click', async () => {
         wrap._studioCloseMenu();
+        if (entry.actionId === 'ToggleLauncherTheme') {
+          // Only the theme changes; never reload Data or re-create the Save button.
+          sessionTheme = config.theme === 'launch-dark' ? 'launch-light' : 'launch-dark';
+          apply(def, doc);
+          doc.getElementById('studioHeadingMenuButton')?.focus();
+          return;
+        }
         try { await executeHeadingMenuAction(entry.actionId); }
         catch (error) {
           console.error(error);
@@ -199,7 +229,7 @@
 
   let observers = [];
   function apply(def, doc=global.document) {
-    const config = resolve(def);
+    const config = resolveSession(def);
     const body = doc?.body;
     const widgets = ensureScaffold(doc);
     if (!body || !widgets) return config;
@@ -212,7 +242,7 @@
     widgets.headingTitle.textContent = name;
     doc.title = name;
     // Notify the trusted NativeShell host about the resolved ViewDef presentation.
-    // The browser-only Studio ignores this, and there is no runtime mode switch.
+    // Browser-only Studio ignores this. NativeShell also follows live palette switches.
     try {
       if (global.chrome?.webview?.postMessage && doc === global.document) {
         global.chrome.webview.postMessage({ studio_presentation: {
@@ -230,7 +260,7 @@
       if (dock) original.insertBefore(save, dock);
       else original.append(save);
     }
-    renderHeadingMenu(doc, widgets, config);
+    renderHeadingMenu(doc, widgets, config, def);
     // Keep the overflow to the right of the single canonical Save button.
     const menuWrap = doc.getElementById('studioHeadingMenuWrap');
     if (menuWrap) widgets.headingActions.append(menuWrap);
@@ -248,5 +278,5 @@
     }
     return config;
   }
-  global.StudioPresentationProfile = Object.freeze({ resolve, apply });
+  global.StudioPresentationProfile = Object.freeze({ resolve, resolveSession, apply });
 })(typeof window !== 'undefined' ? window : globalThis);
