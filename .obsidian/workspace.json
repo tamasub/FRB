@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "9a7cfdcf1af6707b",
+        "id": "13376435f6dea028",
         "type": "tabs",
         "children": [
           {
-            "id": "3f09ef4e3590a3de",
+            "id": "3b2393a47328a469",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "FRB_Blog/_testマークダウン.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "_testマークダウン"
+              "title": "新規タブ"
             }
           }
         ]
@@ -80,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 277.5
   },
   "right": {
     "id": "6e6a7add4646855a",
@@ -156,7 +152,6 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "FRB_Blog/_testマークダウン.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -170,7 +165,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 224.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -183,8 +178,14 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "3f09ef4e3590a3de",
+  "active": "3b2393a47328a469",
   "lastOpenFiles": [
+    "tools/FRB_Launch/tests/test_launch_appearance.py",
+    "tools/FRB_Launch/src/launch_appearance.py",
+    "2026-10-18.md",
+    "無題のファイル.canvas",
+    "FRB_Blog/AI協働039_ActionForm構想.md",
+    "FRB_Blog/Ai_collaboration_All_merged.md",
     "FRB_Blog/AI協働032_ループ_Claude Code責任者のBorisが「もうエージェント（AIの作業役）に指示は出してない」.md",
     "ObsidianVault/wiki/index.md",
     "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_V2_1_20260906_153204.json",
@@ -196,7 +197,6 @@
     "FRB_FFT_App20260905_145354.zip",
     "FRB_FFT_App20260905_142731.zip",
     "FRB_FFT_App20260905_140607.zip",
-    "data/陜難ｽｺ雋・戟髯ｺ陷肴坩豬ｹ繝ｻ蝣､・ｨ・ｮ.mp3",
     "tools/FRBStudio_App/data/ESP32_FFT_Monitor_Help.md",
     "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
     "ObsidianVault/wiki/hot.md",
@@ -217,11 +217,6 @@
     "ObsidianVault/wiki/sources/AI協働031_責務定義とテスト設計.md",
     "2026-08-15.md",
     "無題のファイル 1.canvas",
-    "2026-08-05.md",
-    "無題のファイル.canvas",
-    "FRB_Blog/AI協働016_RAG_ベクトル検索_戦略的設計パターン.md",
-    "articles/invisible-visualization-structuring-culture.md",
-    "tools/FRBStudio/wwwroot/README.md",
-    "tools/FRBStudio/schema_RULES/FRB_VIEW_DEF_GENERATION_RULES.md"
+    "2026-08-05.md"
   ]
 }

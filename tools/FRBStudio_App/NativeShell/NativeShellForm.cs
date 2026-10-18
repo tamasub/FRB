@@ -45,6 +45,7 @@ namespace FRBStudio.NativeShell
         private Form _startupSplash;
         private Timer _startupDeadline;
         private bool _startupRevealed;
+        private readonly bool _startupSplashLight;
 
         [DllImport("dwmapi.dll", PreserveSig = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
@@ -98,6 +99,9 @@ namespace FRBStudio.NativeShell
             var dark = string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(theme, "launch-dark", StringComparison.OrdinalIgnoreCase);
             var launchLight = launcher && string.Equals(theme, "launch-light", StringComparison.OrdinalIgnoreCase);
+            // The loaded ViewDef is authoritative once it arrives. The CLI hint
+            // selects the initial splash palette before WebView2 can load it.
+            (_startupSplash as StartupSplashForm)?.SetAppearance(!dark);
             // Before launcher ViewDef loads, an ordinary startup ViewDef must not
             // lock the window's size, caption, or palette.
             if (!launcher && !dark) return;
@@ -149,11 +153,13 @@ namespace FRBStudio.NativeShell
         private sealed class StartupSplashForm : Form
         {
             private const int Radius = 12;
+            private bool _light;
             private readonly Font _headlineFont = new Font("Segoe UI", 10.5f, FontStyle.Regular);
             private readonly Font _subtitleFont = new Font("Segoe UI", 9f, FontStyle.Regular);
 
-            internal StartupSplashForm()
+            internal StartupSplashForm(bool light)
             {
+                _light = light;
                 Text = "FRB Studio  起動中...";
                 FormBorderStyle = FormBorderStyle.None;
                 StartPosition = FormStartPosition.CenterScreen;
@@ -162,8 +168,16 @@ namespace FRBStudio.NativeShell
                 MinimizeBox = false;
                 ControlBox = false;
                 ShowInTaskbar = true;
-                BackColor = Color.FromArgb(32, 43, 41);
+                BackColor = light ? Color.FromArgb(246, 250, 247) : Color.FromArgb(32, 43, 41);
                 DoubleBuffered = true;
+            }
+
+            internal void SetAppearance(bool light)
+            {
+                if (_light == light) return;
+                _light = light;
+                BackColor = light ? Color.FromArgb(246, 250, 247) : Color.FromArgb(32, 43, 41);
+                Invalidate();
             }
 
             // Add the standard Windows window shadow while keeping the rounded
@@ -210,16 +224,17 @@ namespace FRBStudio.NativeShell
                 var outer = new Rectangle(0, 0, ClientSize.Width - 1, ClientSize.Height - 1);
                 using (var path = RoundedRectangle(outer, Radius))
                 using (var header = new LinearGradientBrush(outer,
-                    Color.FromArgb(104, 116, 107), Color.FromArgb(55, 71, 62), 90f))
-                using (var border = new Pen(Color.FromArgb(193, 203, 192)))
+                    _light ? Color.FromArgb(222, 237, 227) : Color.FromArgb(104, 116, 107),
+                    _light ? Color.FromArgb(183, 205, 190) : Color.FromArgb(55, 71, 62), 90f))
+                using (var border = new Pen(_light ? Color.FromArgb(167, 191, 177) : Color.FromArgb(193, 203, 192)))
                 {
                     g.FillPath(header, path);
                     g.DrawPath(border, path);
                 }
                 var inner = Rectangle.Inflate(outer, -5, -5);
                 using (var path = RoundedRectangle(inner, Radius - 4))
-                using (var fill = new SolidBrush(Color.FromArgb(32, 43, 41)))
-                using (var outline = new Pen(Color.FromArgb(101, 122, 112)))
+                using (var fill = new SolidBrush(_light ? Color.FromArgb(246, 250, 247) : Color.FromArgb(32, 43, 41)))
+                using (var outline = new Pen(_light ? Color.FromArgb(187, 206, 193) : Color.FromArgb(101, 122, 112)))
                 {
                     g.FillPath(fill, path);
                     g.DrawPath(outline, path);
@@ -231,9 +246,9 @@ namespace FRBStudio.NativeShell
                 const TextFormatFlags centered = TextFormatFlags.HorizontalCenter
                     | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
                 TextRenderer.DrawText(g, "FRB Studio  起動中...", _headlineFont, headline,
-                    Color.FromArgb(235, 241, 238), centered);
+                    _light ? Color.FromArgb(36, 74, 59) : Color.FromArgb(235, 241, 238), centered);
                 TextRenderer.DrawText(g, "画面を準備しています", _subtitleFont, subtitle,
-                    Color.FromArgb(170, 188, 180), centered);
+                    _light ? Color.FromArgb(89, 119, 104) : Color.FromArgb(170, 188, 180), centered);
             }
 
             protected override void Dispose(bool disposing)
@@ -246,7 +261,7 @@ namespace FRBStudio.NativeShell
         private void ShowStartupSplash()
         {
             if (!_useStartupSplash || _startupRevealed || _startupSplash != null) return;
-            _startupSplash = new StartupSplashForm();
+            _startupSplash = new StartupSplashForm(_startupSplashLight);
             _startupSplash.Show();
             _startupSplash.Activate();
 
@@ -311,8 +326,10 @@ namespace FRBStudio.NativeShell
             string initialWorkspaceRoot = null,
             CoreWebView2Environment sharedEnvironment = null,
             bool deferInitialNavigation = false,
-            string initialMarkdownPath = null)
+            string initialMarkdownPath = null,
+            string startupTheme = null)
         {
+            _startupSplashLight = string.Equals(startupTheme, "light", StringComparison.OrdinalIgnoreCase);
             _initialUri = initialUri;
             _initialPage = initialPage;
             _initialJsonPath = initialJsonPath;

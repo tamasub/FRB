@@ -14,6 +14,11 @@ from PySide6.QtWidgets import QTabBar
 class FocusPageTabBar(QTabBar):
     """A normal QTabBar with a visible inner outline on its focused tab."""
 
+    def set_light_theme(self, light):
+        """Make keyboard focus visible over either Page-tab palette."""
+        self._light_theme = bool(light)
+        self.update()
+
     def focusInEvent(self, event):
         super().focusInEvent(event)
         self.update()
@@ -36,7 +41,7 @@ class FocusPageTabBar(QTabBar):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.setBrush(QColor(0, 0, 0, 0))
-        painter.setPen(QPen(QColor('#d2e6ff'), 1.5))
+        painter.setPen(QPen(QColor('#82958c' if getattr(self, '_light_theme', False) else '#d2e6ff'), 1.8))
         inner = QRectF(tab_rect).adjusted(3.5, 3.5, -3.5, -4.5)
         if inner.width() > 0 and inner.height() > 0:
             painter.drawRoundedRect(inner, 4, 4)

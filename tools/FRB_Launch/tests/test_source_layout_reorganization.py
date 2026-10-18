@@ -15,7 +15,9 @@ class SourceLayoutTests(unittest.TestCase):
         self.assertFalse(list(ROOT.glob('*.py')))
         self.assertTrue((SRC / 'app.py').is_file())
         self.assertTrue((SRC / 'prepare_launch_home.py').is_file())
-        self.assertEqual(set(EXPECTED_SHA256), {p.name for p in SRC.glob('*.py')} - {'source_layout_migration.py'})
+        # The migration manifest covers legacy root sources, not new src-only modules.
+        self.assertTrue(set(EXPECTED_SHA256).issubset(
+            {p.name for p in SRC.glob('*.py')} - {'source_layout_migration.py'}))
 
     def test_entrypoint_scripts_point_into_src(self):
         batches = ['_build_windows.bat', 'run_windows.bat', '_make_launch_zip.bat', 'update_python_env.bat']
@@ -23,7 +25,8 @@ class SourceLayoutTests(unittest.TestCase):
             script = (ROOT / name).read_text(encoding='utf-8')
             self.assertIn('src\\', script, name)
         spec = (ROOT / 'FRBLaunch.spec').read_text(encoding='utf-8')
-        self.assertIn("['src/app.py']", spec)
+        # PyInstaller on Windows serializes src\\app.py with backslashes.
+        self.assertIn("['src/app.py']", spec.replace('\\\\', '/'))
 
     def test_legacy_source_relocation_is_verified_and_backed_up(self):
         with TemporaryDirectory() as directory:

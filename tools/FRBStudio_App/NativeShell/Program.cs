@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
@@ -37,7 +37,7 @@ namespace FRBStudio.NativeShell
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new NativeShellForm(initialPage: launchOptions.InitialPage, initialJsonPath: launchOptions.InitialJsonPath, initialMarkdownPath: launchOptions.InitialMarkdownPath));
+            Application.Run(new NativeShellForm(initialPage: launchOptions.InitialPage, initialJsonPath: launchOptions.InitialJsonPath, initialMarkdownPath: launchOptions.InitialMarkdownPath, startupTheme: launchOptions.StudioTheme));
         }
     }
 }

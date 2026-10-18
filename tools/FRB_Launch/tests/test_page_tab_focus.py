@@ -16,7 +16,7 @@ class FocusTabSourceTests(unittest.TestCase):
         self.assertIn('self.tabs.setStyleSheet(PAGE_TABS_QSS)', source)
 
     def test_focus_ring_depends_on_actual_keyboard_focus(self):
-        source = (ROOT / 'page_tab_focus.py').read_text(encoding='utf-8')
+        source = (ROOT / 'src/page_tab_focus.py').read_text(encoding='utf-8')
         self.assertIn('not self.hasFocus()', source)
         self.assertIn('self.tabRect(index)', source)
         self.assertIn('def focusInEvent(', source)
@@ -37,7 +37,7 @@ class FocusTabGuiTests(unittest.TestCase):
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QLineEdit, QVBoxLayout, QWidget
-        sys.path.insert(0, str(ROOT))
+        sys.path.insert(0, str(ROOT / 'src'))
         from page_tab_focus import FocusPageTabBar
         from page_tab_theme import PAGE_TABS_QSS
         root = QWidget()

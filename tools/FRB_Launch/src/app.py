@@ -23,6 +23,9 @@ import browser_bookmarks
 import file_index
 from frame_geometry import resize_frame
 from page_tab_theme import PAGE_TABS_QSS
+from launch_appearance import (normalize_theme, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
+    LIGHT_HISTORY_QSS, LIGHT_MENU_QSS, LIGHT_CASCADE_TREE_QSS,
+    LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss)
 from page_tab_focus import FocusPageTabBar
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
@@ -495,11 +498,15 @@ class CascadeMenu(OrderDragMixin,QMenu):
         widget_action.setDefaultWidget(tree)
         self.addAction(widget_action)
         self.scroll_tree = tree
+        if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
+            self.launcher.style_cascade_menu(self)
         self._scroll_action = widget_action
         # Scrolling is a display adaptation, not a reordering operation.
         self.order_enabled = False
 
     def popup(self, pos, at=None):
+        if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
+            self.launcher.style_cascade_menu(self)
         screen = QApplication.screenAt(pos) or self.screen() or QApplication.primaryScreen()
         if screen is None:
             return super().popup(pos, at)
@@ -570,6 +577,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         action = QWidgetAction(self)
         action.setDefaultWidget(container)
         self.filter_action = action
+        if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
+            self.launcher.style_cascade_menu(self)
         before = self.actions()[0] if self.actions() else None
         if before is not None:
             self.insertAction(before, action)
@@ -938,6 +947,8 @@ class AppCascadeMenu(CascadeMenu):
         self.widget_action=QWidgetAction(self);self.widget_action.setDefaultWidget(self.tree)
         self.addAction(self.widget_action)
         self.tree.itemActivated.connect(lambda item,col:self.launcher.run_menu_item(item.data(0,Qt.ItemDataRole.UserRole)))
+        if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
+            self.launcher.style_cascade_menu(self)
 
     def populate(self, rows):
         for row in rows:
@@ -1028,6 +1039,7 @@ class Launcher(QWidget):
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
+        self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
         sort_col = str(self.settings.value('result_sort_column', -1))
@@ -1051,6 +1063,29 @@ class Launcher(QWidget):
         self.history_action = self.search.addAction(QIcon(chevron), QLineEdit.ActionPosition.TrailingPosition)
         self.history_action.setToolTip('検索履歴を表示 (/)')
         self.history_action.triggered.connect(self.toggle_history_popup)
+        # Keep the history chevron inside the search field, with the theme
+        # switch as a separate button immediately to its right.
+        self.search_bar = QWidget(self)
+        self.search_bar.setObjectName('searchBar')
+        search_row = QHBoxLayout(self.search_bar)
+        search_row.setContentsMargins(0, 0, 0, 0)
+        search_row.setSpacing(6)
+        search_row.addWidget(self.search, 1)
+        self.search.setMinimumHeight(32)
+        self.theme_button = QPushButton('⋯', self.search_bar)
+        self.theme_button.setObjectName('themeButton')
+        self.theme_button.setFixedSize(34, 32)
+        self.theme_button.setToolTip('色合いを切り替える（ダーク／ライト）')
+        self.theme_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        search_row.addWidget(self.theme_button)
+        self.theme_menu = QMenu(self)
+        self.light_theme_action = self.theme_menu.addAction('ライトモード')
+        self.dark_theme_action = self.theme_menu.addAction('ダークモード')
+        for action in (self.light_theme_action, self.dark_theme_action):
+            action.setCheckable(True)
+        self.light_theme_action.triggered.connect(lambda checked=False: self.set_color_theme('light'))
+        self.dark_theme_action.triggered.connect(lambda checked=False: self.set_color_theme('dark'))
+        self.theme_button.clicked.connect(self.open_theme_menu)
         self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
         # Apply full tab styles (including *unselected* tabs) so Windows does
         # not fall back to the legacy beveled/3D native QTabBar appearance.
@@ -1088,8 +1123,8 @@ class Launcher(QWidget):
             button = QPushButton(title); button.clicked.connect(callback); buttons.addWidget(button)
         buttons.addStretch()
         self.selection_tools.hide()
-        for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}''')
+        for w in (self.search_bar,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
+        self._dark_main_qss = '''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}'''
         # Search mode may show both scroll axes.  Keep their look consistent
         # with the slim cascade scrollbar; do not change their policies or sorting.
         self.list.verticalScrollBar().setStyleSheet(MAIN_LIST_SCROLLBAR_QSS)
@@ -1098,11 +1133,11 @@ class Launcher(QWidget):
         # focus handoff, which is important for this frameless Tool launcher.
         self.history_popup = QFrame(self)
         self.history_popup.setObjectName('historyPopup')
-        self.history_popup.setStyleSheet('''QFrame#historyPopup{background:#223043;border:1px solid #58718c;border-radius:7px;}
+        self._dark_history_qss = '''QFrame#historyPopup{background:#223043;border:1px solid #58718c;border-radius:7px;}
             QTreeWidget#historyChoices{background:#223043;color:#e8f1fa;border:0;outline:0;}
             QTreeWidget#historyChoices::item{height:31px;padding:2px 6px;}
             QTreeWidget#historyChoices::item:selected{background:#365778;color:#ffffff;}
-            QTreeWidget#historyChoices::item:hover{background:#344b63;}''')
+            QTreeWidget#historyChoices::item:hover{background:#344b63;}'''
         history_layout = QVBoxLayout(self.history_popup)
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
         self.history_choices = QTreeWidget(self.history_popup)
@@ -1156,6 +1191,8 @@ class Launcher(QWidget):
         self.update_bookmark_source_action()
         traymenu.addAction('ログフォルダーを開く', lambda:self.open_target(str(STATE)))
         traymenu.addSeparator(); traymenu.addAction('終了', self.quit)
+        self.tray_menu = traymenu
+        self.apply_color_theme()
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
         self.tray.show()
         self.search.textChanged.connect(self.search_text_changed)
@@ -1192,6 +1229,94 @@ class Launcher(QWidget):
         if position: self.move(position)
         else:
             screen=QApplication.primaryScreen().availableGeometry();self.move(screen.center()-self.rect().center())
+
+    def open_theme_menu(self):
+        """Only visual appearance changes; never write to Launch DataJSON."""
+        self.close_cascade_for_main_interaction()
+        self.hide_history_popup()
+        self.light_theme_action.setChecked(self.color_theme == 'light')
+        self.dark_theme_action.setChecked(self.color_theme == 'dark')
+        position = self.theme_button.mapToGlobal(QPoint(0, self.theme_button.height() + 3))
+        self.theme_menu.popup(position)
+
+    def set_color_theme(self, theme):
+        resolved = normalize_theme(theme)
+        if resolved != self.color_theme:
+            self.color_theme = resolved
+            self.settings.setValue('appearance_theme', resolved)
+            self.settings.sync()
+            self.apply_color_theme()
+        # Do not leave keyboard navigation on a hidden popup/menu button.
+        if self.isVisible():
+            self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
+
+    def style_cascade_menu(self, menu):
+        """Match both normal and long scrollable child menus to main palette."""
+        if self.color_theme != 'light':
+            return  # The existing dark popup appearance remains intact.
+        menu.setStyleSheet(LIGHT_MENU_QSS)
+        tree = getattr(menu, 'scroll_tree', None)
+        if tree is not None:
+            tree.setStyleSheet(LIGHT_CASCADE_TREE_QSS)
+            for bar in (tree.verticalScrollBar(), tree.horizontalScrollBar()):
+                bar.setStyleSheet(light_scrollbar_qss('#ffffff'))
+        app_tree = getattr(menu, 'tree', None)
+        if app_tree is not None:
+            app_tree.setObjectName('appCascadeTree')
+            app_tree.setStyleSheet(LIGHT_CASCADE_TREE_QSS.replace('cascadeScrollView', 'appCascadeTree'))
+            for bar in (app_tree.verticalScrollBar(), app_tree.horizontalScrollBar()):
+                bar.setStyleSheet(light_scrollbar_qss('#ffffff'))
+        edit = getattr(menu, 'filter_edit', None)
+        if edit is not None:
+            edit.parentWidget().setStyleSheet(LIGHT_COLUMN_FILTER_QSS)
+
+    def update_history_chevron(self):
+        """The inline history arrow needs contrast on white and dark inputs."""
+        pix = QPixmap(14, 14)
+        pix.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pix)
+        painter.setPen(QPen(QColor('#557667' if self.color_theme == 'light'
+                                   else '#a9bed2'), 1.7))
+        painter.drawLine(3, 5, 7, 9)
+        painter.drawLine(7, 9, 11, 5)
+        painter.end()
+        self.history_action.setIcon(QIcon(pix))
+
+    def apply_color_theme(self):
+        """Restyle existing widgets without rebuilding search results or pages."""
+        light = self.color_theme == 'light'
+        self.setStyleSheet(LIGHT_MAIN_QSS if light else self._dark_main_qss)
+        self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
+        self.tabs.set_light_theme(light)
+        self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
+        self.update_history_chevron()
+        self.frame_title.setStyleSheet('background:transparent;color:%s;font-size:12px;border:0;'
+                                       % FRAME_COLORS[self.color_theme][-1])
+        self.theme_button.setStyleSheet('' if light else '''
+            QPushButton#themeButton { background:#263532; color:#e5ebf3;
+                border:1px solid #405e55; border-radius:6px; font-size:19px;
+                font-weight:bold; padding:0; }
+            QPushButton#themeButton:hover { background:#334746; border-color:#699684; }
+            QPushButton#themeButton:pressed { background:#415e53; }
+        ''')
+        self.theme_menu.setStyleSheet(LIGHT_MENU_QSS if light else '')
+        if hasattr(self, 'tray_menu'):
+            self.tray_menu.setStyleSheet(LIGHT_MENU_QSS if light else '')
+        QApplication.instance().setStyleSheet(light_scrollbar_qss('#edf5f0') if light
+                                              else MAIN_LIST_SCROLLBAR_QSS)
+        for view, dark_bg in ((self.list, '#202b29'),
+                              (self.history_choices, '#223043')):
+            if light:
+                light_bg = '#ffffff' if view is self.history_choices else '#f8fbf8'
+                for bar in (view.verticalScrollBar(), view.horizontalScrollBar()):
+                    bar.setStyleSheet(light_scrollbar_qss(light_bg))
+            else:
+                apply_scrollbar_theme(view, dark_bg)
+        # Data and selected index remain untouched; recolor only description.
+        for index in range(self.list.topLevelItemCount()):
+            self.list.topLevelItem(index).setForeground(
+                1, QColor('#647f71' if light else '#a6b4c7'))
+        self.update()
 
     FRAME_WIDTH = 6
     FRAME_TOP = 24
@@ -1263,20 +1388,21 @@ class Launcher(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         outer = QRectF(self.rect()).adjusted(.5, .5, -.5, -.5)
         gradient = QLinearGradient(0, 0, 0, self.FRAME_TOP)
-        gradient.setColorAt(0, QColor('#6b756e'))
-        gradient.setColorAt(1, QColor('#43524b'))
+        top, bottom, outer_line, inner_line, fill, content_line, fine_line, _ = FRAME_COLORS[self.color_theme]
+        gradient.setColorAt(0, QColor(top))
+        gradient.setColorAt(1, QColor(bottom))
         painter.setBrush(gradient)
-        painter.setPen(QPen(QColor('#d0d7cf'), 1))
+        painter.setPen(QPen(QColor(outer_line), 1))
         painter.drawRoundedRect(outer, self.CORNER_RADIUS, self.CORNER_RADIUS)
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.setPen(QPen(QColor('#27362e'), 1))
+        painter.setPen(QPen(QColor(inner_line), 1))
         painter.drawRoundedRect(outer.adjusted(1, 1, -1, -1), self.CORNER_RADIUS - 1, self.CORNER_RADIUS - 1)
         inner = self.frame_inner_rect()
-        painter.setBrush(QColor('#202b29'))
-        painter.setPen(QPen(QColor('#abb5ab'), 1))
+        painter.setBrush(QColor(fill))
+        painter.setPen(QPen(QColor(content_line), 1))
         painter.drawRoundedRect(inner, 3, 3)
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.setPen(QPen(QColor('#101a17'), 1))
+        painter.setPen(QPen(QColor(fine_line), 1))
         painter.drawRoundedRect(inner.adjusted(1, 1, -1, -1), 2, 2)
         painter.end()
 
@@ -1991,7 +2117,7 @@ class Launcher(QWidget):
                 q=QTreeWidgetItem([title,desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
                 q.setToolTip(0,row['title']);q.setToolTip(1,row.get('description','') if row.get('_browser_bookmark') else desc)
                 q.setIcon(0,self.row_icon(row))
-                q.setForeground(1,QColor('#a6b4c7'))
+                q.setForeground(1,QColor('#647f71' if self.color_theme == 'light' else '#a6b4c7'))
                 if self.selection or row.get('_search_selection_owner'):
                     q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable)
                     q.setCheckState(0,Qt.CheckState.Checked if self.selection and row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
@@ -2306,8 +2432,9 @@ class Launcher(QWidget):
     def position_history_popup(self):
         if not hasattr(self, 'history_popup'):
             return
-        x = self.search.x()
-        y = self.search.geometry().bottom() + 4
+        # QLineEdit is nested in searchBar; map back to Launcher coordinates.
+        anchor = self.search.mapTo(self, QPoint(0, self.search.height() + 4))
+        x, y = anchor.x(), anchor.y()
         height = min(300, max(88, self.height() - y - 12))
         self.history_popup.setGeometry(x, y, self.search.width(), height)
 
@@ -2788,6 +2915,8 @@ class Launcher(QWidget):
         # closed/deleted. Hover polling must not ask a deleted QMenu if visible.
         if hasattr(menu, 'aboutToHide'):
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+        if getattr(self, 'color_theme', 'dark') == 'light':
+            menu.setStyleSheet(LIGHT_MENU_QSS)
         menu.popup(global_pos)
         return True
 
