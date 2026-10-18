@@ -25,6 +25,7 @@ from frame_geometry import resize_frame
 from page_tab_theme import PAGE_TABS_QSS
 from page_tab_focus import FocusPageTabBar
 from menu_display import cascade_label
+from cascade_properties import authored_cascade_row
 from menu_viewport import place_popup, MENU_SCREEN_MARGIN
 from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
@@ -132,6 +133,15 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def __init__(self, title='', parent=None, launcher=None):
         super().__init__(title, parent)
         self.launcher = launcher or parent
+        # Qt.Popup grabs mouse input: a right-click on the launcher while a
+        # cascade is open merely dismisses the popup and never reaches the
+        # launcher.  These are launcher-owned *tool* columns, not modal menus.
+        # Keep QMenu's actions/keyboard semantics without its popup mouse grab.
+        # Consequently, the launcher can close the cascade first on the same
+        # right-button press and handle the context menu on button release.
+        self.setWindowFlags(Qt.WindowType.Tool |
+                            Qt.WindowType.FramelessWindowHint |
+                            Qt.WindowType.WindowStaysOnTopHint)
         self.child = None
         self.open_mode = "keyboard"; self.owner_item = None; self.owner_action = None; self.outside_since = None
         self.setup_order_drag();self.order_press=None
@@ -166,16 +176,75 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.folder_click_timer.timeout.connect(self._finish_folder_single_click)
         self._folder_click_action = None
         self._folder_double_click_row = None
+        self._right_context_row = None
+
+    def _authored_context_row(self, row):
+        data = getattr(self.launcher, 'data', None) or {}
+        return authored_cascade_row(row, data.get('items', []))
+
+    def _right_click_row(self, event, source=None):
+        """Resolve the item from the receiving menu/widget, never from the cursor."""
+        if source is None or source is self:
+            action = self.actionAt(event.position().toPoint())
+            row = action.data() if action is not None else None
+        elif self.scroll_tree is not None and source is self.scroll_tree.viewport():
+            action = self._scroll_item_action(
+                self.scroll_tree.itemAt(event.position().toPoint()))
+            row = action.data() if action is not None else None
+        elif (getattr(self, 'tree', None) is not None
+              and source is self.tree.viewport()):
+            item = self.tree.itemAt(event.position().toPoint())
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item is not None else None
+        else:
+            return None
+        return self._authored_context_row(row)
+
+    def _handle_right_click_properties(self, event, source=None):
+        """Right mouse up on one authored row opens Launch's existing Properties.
+
+        Defer popup creation until Qt has dispatched mouse release.  The launcher
+        closes its tool cascade before showing the separate context QMenu.
+        """
+        kind = event.type()
+        if kind not in (QEvent.Type.MouseButtonPress,
+                        QEvent.Type.MouseButtonRelease,
+                        QEvent.Type.MouseButtonDblClick):
+            return False
+        if event.button() != Qt.MouseButton.RightButton:
+            return False
+        if kind == QEvent.Type.MouseButtonPress:
+            self.hover_timer.stop()
+            self._right_context_row = self._right_click_row(event, source)
+        elif kind == QEvent.Type.MouseButtonRelease:
+            row = self._right_click_row(event, source)
+            pressed = self._right_context_row
+            self._right_context_row = None
+            if (row is not None and pressed is not None
+                    and row.get('item_id') == pressed.get('item_id')):
+                pos = event.globalPosition().toPoint()
+                QTimer.singleShot(0, lambda r=row, p=pos: self._open_context_properties(r, p))
+        else:
+            self._right_context_row = None
+        event.accept()
+        return True
+
+    def _open_context_properties(self, row, pos):
+        if self.launcher is None or not self.launcher.isVisible():
+            return
+        # Unlike a right-click on the main launcher, a right-click *inside*
+        # the cascade must preserve its column and highlighted row.  Closing
+        # the cascade here made only a detached Properties popup visible.
+        # Parent the context menu to the source tool-window so it stacks above
+        # the column while reusing the existing Studio item-editor route.
+        self.launcher.show_launch_context_menu(pos, row, context_parent=self)
 
     @staticmethod
     def _consume_unused_right_click(event):
-        """Right-click has no action yet; keep the folder popup visible.
+        """Keep right-clicks on generated/utility rows from dismissing menus.
 
-        QMenu handles mouse presses/releases itself (sometimes dismissing the
-        popup).  Its embedded QTreeWidget variants receive events on their
-        viewports instead, so both paths must be intercepted *before* Qt's
-        default handlers run.  A native context menu can be added later as
-        an explicit action without changing the left-button behavior.
+        Editable authored rows are handled by _handle_right_click_properties
+        first. This fallback swallows Qt native menu events and clicks on
+        runtime-only items without affecting left-button actions.
         """
         if event.type() == QEvent.Type.ContextMenu:
             event.accept()
@@ -191,6 +260,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def event(self, event):
         # QMenu may close on a right-button press *or* release, even when no
         # context menu is configured.  Filter before QMenu.event dispatches it.
+        if self._handle_right_click_properties(event, self):
+            return True
         if self._consume_unused_right_click(event):
             return True
         return super().event(event)
@@ -553,6 +624,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
                                  self.scroll_tree, self.scroll_tree.viewport()))
                              or (getattr(self, 'tree', None) is not None and obj in (
                                  self.tree, self.tree.viewport())))
+        if right_click_child and self._handle_right_click_properties(event, obj):
+            return True
         if right_click_child and self._consume_unused_right_click(event):
             return True
         if self.scroll_tree is not None and obj is self.scroll_tree:
@@ -614,6 +687,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.folder_click_timer.stop()
         self._folder_click_action = None
         self._folder_double_click_row = None
+        self._right_context_row = None
         if self.child:self.child.close()
         super().hideEvent(event)
 
@@ -717,8 +791,23 @@ class CascadeMenu(OrderDragMixin,QMenu):
             else:self.launcher.list.setFocus()
             event.accept();return
         action=self.activeAction()
-        if key in (Qt.Key.Key_Return,Qt.Key.Key_Enter) and action and isinstance(action.data(),dict) and action.data().get('item_kind')=='directory':
-            self.launcher.run_menu_item(action.data());event.accept();return
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action is not None and action.isEnabled():
+            # QMenu's native Return handling works for real QAction rows, but
+            # scrollable columns replace them with a QWidgetAction/QTreeWidget.
+            # Trigger the actual selected row explicitly in *both* modes.
+            row = action.data()
+            if isinstance(row, dict) and row.get('item_kind') == 'directory':
+                self.launcher.run_menu_item(row)
+            elif action in self.openers:
+                self.open_current()
+            elif isinstance(row, dict):
+                self.launcher.run_menu_item(row)
+            elif action.property('launch_right_arrow_executes'):
+                action.trigger()
+            else:
+                super().keyPressEvent(event)
+            event.accept()
+            return
         if key == Qt.Key.Key_Right:
             if action in self.openers:
                 self.open_current();event.accept();return
@@ -730,8 +819,6 @@ class CascadeMenu(OrderDragMixin,QMenu):
             row = action.data() if action else None
             if isinstance(row, dict):
                 self.launcher.run_menu_item(row);event.accept();return
-        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action in self.openers:
-            self.open_current();event.accept();return
         if (mods & Qt.KeyboardModifier.ControlModifier and key==Qt.Key.Key_F):
             self.launcher.focus_search();event.accept();return
         if not isinstance(self, AppCascadeMenu):
@@ -1125,6 +1212,8 @@ class Launcher(QWidget):
         painter.end()
 
     def mousePressEvent(self, event):
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
+            self.close_cascade_for_main_interaction()
         edge = self.resize_edge(event.position())
         if event.button() == Qt.MouseButton.LeftButton and edge:
             self.hover_timer.stop(); self.pending_menu_item = None
@@ -2275,17 +2364,72 @@ class Launcher(QWidget):
             self.list.scrollToItem(row)
             self.list.setFocus(Qt.FocusReason.TabFocusReason)
 
+    def visible_cascade_for_keyboard(self):
+        """Deepest open column, used when a Qt.Tool menu did not gain focus.
+
+        Tool windows intentionally do not grab the mouse, but on Windows they
+        may leave keyboard focus on the main QTreeWidget.  Route those keys to
+        the visible cascade rather than executing the main-window selection.
+        """
+        menu = getattr(self, 'menu', None)
+        if menu is None or not menu.isVisible():
+            return None
+        while menu.child is not None and menu.child.isVisible():
+            menu = menu.child
+        return menu
+
+    def close_cascade_for_main_interaction(self):
+        """ESC-equivalent dismissal, without fabricating key or mouse events.
+
+        With tool-window cascade columns, the launcher receives the original
+        press even if a column is open; no global hit-test or event replay is
+        needed. Closing here lets the *same* right-click open Properties.
+        """
+        self.hover_timer.stop()
+        self.pending_menu_item = None
+        if self.menu is not None and self.menu.isVisible():
+            self.menu.close()  # CascadeMenu.hideEvent also closes all children.
+
     def eventFilter(self,obj,event):
         if (obj is self.list.viewport() and
-                event.type() == getattr(QEvent.Type, "ContextMenu", None)):
-            item = self.list.itemAt(event.pos())
-            row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
-            if self.show_launch_context_menu(event.globalPos(), row):
+                event.type() == getattr(QEvent.Type, 'MouseButtonPress', None) and
+                event.button() in (Qt.MouseButton.LeftButton,
+                                   Qt.MouseButton.RightButton)):
+            self.close_cascade_for_main_interaction()
+        if obj is self.list.viewport():
+            # Qt/Windows sometimes delivers ContextMenu to the parent, rather
+            # than the tree's viewport. Capture the right-button interaction
+            # here and hit-test the actual row on the *first* click.
+            if (event.type() in (getattr(QEvent.Type, 'MouseButtonPress', None),
+                                   QEvent.Type.MouseButtonRelease)
+                    and event.button() == getattr(Qt.MouseButton, 'RightButton', None)):
+                if event.type() == getattr(QEvent.Type, 'MouseButtonPress', None):
+                    self._launcher_context_press = True
+                elif getattr(self, '_launcher_context_press', False):
+                    self._launcher_context_press = False
+                    item = self.list.itemAt(event.position().toPoint())
+                    row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+                    if item is not None and row is not None:
+                        self.list.setCurrentItem(item)
+                    self.show_launch_context_menu(event.globalPosition().toPoint(), row)
                 event.accept()
                 return True
-            # No OS menu on virtual / generated results.
-            event.accept()
-            return True
+            if event.type() == getattr(QEvent.Type, 'ContextMenu', None):
+                # No duplicate menu after handling the mouse button release.
+                # Virtual search results never invoke Windows's OS menu.
+                event.accept()
+                return True
+        # Qt.Tool cascade columns do not monopolize keyboard focus.  On some
+        # Windows setups the key event still lands in the main list/search/tabs
+        # after the user selects a cascade row.  Give visible columns keyboard
+        # ownership without changing their non-grabbing mouse behavior.
+        if (event.type() == getattr(QEvent.Type, 'KeyPress', None)
+                and obj in (self.list, self.tabs, self.search)):
+            column = self.visible_cascade_for_keyboard()
+            if column is not None and QApplication.activePopupWidget() is None:
+                column.keyPressEvent(event)
+                event.accept()
+                return True
         if obj is self.list.viewport():
             # Headerless main-menu columns have an invisible draggable grip.
             # Handle before double-click activation, but leave all other row
@@ -2429,7 +2573,8 @@ class Launcher(QWidget):
             self.composing=bool(event.preeditString())
         return super().eventFilter(obj,event)
 
-    def launch_configuration_studio(self, *, item_id=None, new_category=False):
+    def launch_configuration_studio(self, *, item_id=None, new_category=False,
+                                    page_properties=False):
         """Open the authored Launch DataJSON.  UI never edits the JSON itself."""
         if not self.data:
             return
@@ -2441,6 +2586,10 @@ class Launcher(QWidget):
         args = ['--open-json=' + str(CONFIG)]
         if new_category:
             args.append('--launch-new-category=' + str(self.page_id))
+        elif page_properties:
+            # Page is a virtual group header in Studio's ordinary item grid,
+            # NOT a menu item and NOT the separate Page editor.
+            args.append('--launch-page-id=' + str(self.page_id))
         elif item_id:
             args.append('--launch-item-id=' + str(item_id))
         else:
@@ -2457,7 +2606,7 @@ class Launcher(QWidget):
             }]
         })
 
-    def show_launch_context_menu(self, global_pos, row=None):
+    def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None):
         """Right-click in the launcher: use Studio for authored configuration only."""
         if not self.data or self.selection or self.stack or self.search.text().strip():
             # Search hits can still expose the original authored item properties.
@@ -2466,12 +2615,14 @@ class Launcher(QWidget):
             }:
                 return False
         authored_ids = {item.get('item_id') for item in self.data.get('items', [])}
-        menu = QMenu(self)
+        menu = QMenu(context_parent if context_parent is not None else self)
         if row is None:
             if self.selection or self.stack or self.search.text().strip():
                 return False
             menu.addAction('新規作成（カテゴリー）',
                            lambda: self.launch_configuration_studio(new_category=True))
+            menu.addAction('プロパティ',
+                           lambda: self.launch_configuration_studio(page_properties=True))
         elif row.get('item_id') in authored_ids:
             menu.addAction('プロパティ',
                            lambda item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))

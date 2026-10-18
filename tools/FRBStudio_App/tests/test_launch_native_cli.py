@@ -13,10 +13,18 @@ class NativeCliContractTests(unittest.TestCase):
     def test_new_category_only_with_explicit_data_json(self):
         self.assertIn('--launch-new-category=',OPT)
         self.assertIn('&launchNewCategory=1&newCategoryPage=',OPT)
-        self.assertIn('if (options.LaunchItemId != null && options.LaunchNewCategoryPage != null)',OPT)
+        self.assertIn('if (launchTargets > 1)',OPT)
 
     def test_startup_load_and_focus(self):
-        self.assertIn('if (!applyLaunchNewCategoryFromQuery(params)) applyLaunchFocusFromQuery(params);',RUNTIME)
+        self.assertIn('!applyLaunchNewCategoryFromQuery(params) && !applyLaunchPageFromQuery(params)',RUNTIME)
+
+    def test_page_group_target_does_not_invoke_details(self):
+        self.assertIn('--launch-page-id=', OPT)
+        self.assertIn('&launchPageId=', OPT)
+        self.assertIn("state.selectedGroup = pageId", RUNTIME)
+        self.assertIn("viewport.scrollTop = Math.max(0", RUNTIME)
+        self.assertIn("selectedIndex = -1", RUNTIME)
+        self.assertIn("row.focus({ preventScroll: true })", RUNTIME)
 
     def test_jumplist_cache_invalidation(self):
         self.assertIn('CurrentFingerprint()',JL)

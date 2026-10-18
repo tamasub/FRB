@@ -260,6 +260,55 @@ function applyLaunchFocusFromQuery(params) {
 }
 
 
+// Open the existing item tree at the selected Page *group header*.
+// Page headers are virtual tree roots, not rows in $.items. Never open the
+// Page-only editor or change the underlying JSON order here.
+function applyLaunchPageFromQuery(params) {
+  const pageId = String(params.get('launchPageId') ?? '').trim();
+  if (!pageId) return false;
+  const c = typeof studioTreeConfig === 'function' ? studioTreeConfig() : null;
+  const gd = typeof gridDef === 'function' ? gridDef() : null;
+  const pages = Array.isArray(sourceData?.pages) ? sourceData.pages : [];
+  if (gd?.dataPath !== '$.items' || !c?.groupRoots || !pages.some(p => String(p.page_id) === pageId)) {
+    setStatus(`Pageが見つかりません: ${pageId}`,
+      { kind: 'warn', title: 'Pageプロパティ', toast: false });
+    return false;
+  }
+  const state = studioTreeState();
+  state.flat = false;
+  state.collapsed.delete('group:' + pageId);
+  state.selectedGroup = pageId;
+  selectedIndex = -1;
+  renderGrid();
+  const row = Array.from(document.querySelectorAll('#dataGrid tr[data-group-id]'))
+    .find(tr => tr.dataset.groupId === pageId);
+  if (!row) return false;
+  // Align the Page header to the first visible row whenever possible.
+  // For the last Page there may not be enough rows below it; in that case,
+  // show the grid's final row at the bottom instead of stopping halfway.
+  // Recheck after layout so lazy/variable-height rows do not leave a gap.
+  const alignPageGroup = () => {
+    if (!row.isConnected && typeof row.isConnected === 'boolean') return;
+    const viewport = row.closest('.table-wrap');
+    if (!viewport) {
+      row.scrollIntoView({ block: 'start', inline: 'nearest' });
+      return;
+    }
+    const header = document.querySelector('#dataGrid thead');
+    const headerHeight = header ? header.getBoundingClientRect().height : 0;
+    const offset = row.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
+    const desired = Math.max(0, viewport.scrollTop + offset - headerHeight);
+    const maxScroll = Math.max(0, (viewport.scrollHeight || 0) - (viewport.clientHeight || 0));
+    viewport.scrollTop = Math.min(desired, maxScroll);
+  };
+  alignPageGroup();
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(alignPageGroup));
+  }
+  row.focus({ preventScroll: true });
+  return true;
+}
+
 // Launch context-menu creation: use the authored ViewDef and its normal New Detail path.
 // The launcher supplies only page_id; the UI controls the new-row defaults.
 function applyLaunchNewCategoryFromQuery(params) {
@@ -638,7 +687,8 @@ async function autoLoadFromQuery() {
       if ($('defNameInput')) $('defNameInput').value = resolved.defName;
       await loadFromObjects(resolved.defObj, dataObj, '起動指定JSONを読み込みました',
         '/api/data/__startup_document__.json', document.path);
-      if (!applyLaunchNewCategoryFromQuery(params)) applyLaunchFocusFromQuery(params);
+      if (!applyLaunchNewCategoryFromQuery(params) && !applyLaunchPageFromQuery(params))
+        applyLaunchFocusFromQuery(params);
     } catch (err) {
       console.error(err);
       setStatus('起動指定JSON読込エラー: ' + err.message, { kind: 'error', title: '起動指定JSON読込エラー', sticky: true });

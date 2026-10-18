@@ -10,6 +10,7 @@ namespace FRBStudio.NativeShell
         public string InitialMarkdownPath { get; private set; }
         public string LaunchItemId { get; private set; }
         public string LaunchNewCategoryPage { get; private set; }
+        public string LaunchPageId { get; private set; }
 
         public static NativeLaunchOptions Parse(string[] args)
         {
@@ -24,6 +25,13 @@ namespace FRBStudio.NativeShell
                     options.LaunchItemId = arg.Substring("--launch-item-id=".Length).Trim();
                     if (string.IsNullOrWhiteSpace(options.LaunchItemId))
                         throw new ArgumentException("--launch-item-id requires an item ID.");
+                    continue;
+                }
+                if (arg.StartsWith("--launch-page-id=", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.LaunchPageId = arg.Substring("--launch-page-id=".Length).Trim();
+                    if (string.IsNullOrWhiteSpace(options.LaunchPageId))
+                        throw new ArgumentException("--launch-page-id requires a page ID.");
                     continue;
                 }
                 if (arg.StartsWith("--launch-new-category=", StringComparison.OrdinalIgnoreCase))
@@ -76,10 +84,13 @@ namespace FRBStudio.NativeShell
                     }
                 }
             }
-            if (options.LaunchItemId != null && options.LaunchNewCategoryPage != null)
-                throw new ArgumentException("Cannot open item properties and new category at the same time.");
-            if ((options.LaunchItemId != null || options.LaunchNewCategoryPage != null) && options.InitialJsonPath == null)
-                throw new ArgumentException("Launch item edit requires --open-json.");
+            int launchTargets = (options.LaunchItemId != null ? 1 : 0)
+                + (options.LaunchNewCategoryPage != null ? 1 : 0)
+                + (options.LaunchPageId != null ? 1 : 0);
+            if (launchTargets > 1)
+                throw new ArgumentException("Launch edit targets cannot be combined.");
+            if (launchTargets > 0 && options.InitialJsonPath == null)
+                throw new ArgumentException("Launch edit requires --open-json.");
             if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath) && !string.IsNullOrWhiteSpace(options.InitialJsonPath))
                 throw new ArgumentException("--open-json and --open-md cannot be combined.");
             if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath))
@@ -91,6 +102,8 @@ namespace FRBStudio.NativeShell
                     page += "&focusField=item_id&focusValue=" + Uri.EscapeDataString(options.LaunchItemId) + "&openDetail=true";
                 if (options.LaunchNewCategoryPage != null)
                     page += "&launchNewCategory=1&newCategoryPage=" + Uri.EscapeDataString(options.LaunchNewCategoryPage);
+                if (options.LaunchPageId != null)
+                    page += "&launchPageId=" + Uri.EscapeDataString(options.LaunchPageId);
                 options.InitialPage = page;
             }
             return options;
