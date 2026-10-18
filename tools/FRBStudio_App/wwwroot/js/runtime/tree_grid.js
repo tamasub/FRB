@@ -84,6 +84,8 @@ function studioTreeDecorate(tr,entry,fields){
 function studioTreeToggle(entry){const s=studioTreeState(),id=String(entry.row[studioTreeConfig().idField]);s.collapsed.has(id)?s.collapsed.delete(id):s.collapsed.add(id);renderGrid();}
 function studioTreeProtect(pending,original){const c=studioTreeConfig();if(c&&original)[c.idField,c.parentField,c.groupField,c.orderField].filter(Boolean).forEach(f=>pending[f]=original[f]);return pending;}
 function studioTreeDetailContext(form,row){
+ // Legacy fallback only: a ViewDef-driven detail header replaces the old body placement line.
+ if (typeof detailHeaderTitleConfig === 'function' && detailHeaderTitleConfig(gridDef())) return;
  const c=studioTreeConfig();if(!c)return;
  const line=document.createElement('p');line.style.gridColumn='1 / -1';
  try{const m=studioTreeModel(),p=m.ids.get(String(row[c.parentField]??''));line.textContent='配置先: '+(studioTreeGroups(c).get(String(row[c.groupField]))||'最上位')+(p?' › '+studioTreeLabel(p,c):'');}catch(e){line.textContent=e.message;}

@@ -501,7 +501,8 @@ async function materializeVirtualDataForViewDef(defObj, dataObj) {
   const configs = virtualDataArrayConfigOf(defObj);
   if (!configs.length) return dataObj;
 
-  const sources = await loadConfiguredDataSources(defObj);
+  virtualDataJoinBaselines = new Map();
+  const sources = await loadConfiguredDataSources(defObj, dataObj);
   const metas = [];
 
   for (const config of configs) {
@@ -510,6 +511,9 @@ async function materializeVirtualDataForViewDef(defObj, dataObj) {
 
     const cards = buildVirtualDatasetByConfig({ config, dataObj, sources });
     setVirtualByPath(dataObj, targetPath, cards);
+    if (virtualDataBuilderName(config) === 'left_join') {
+      virtualDataJoinBaselines.set(targetPath, cloneData(cards));
+    }
     metas.push({
       builder: config.builder ?? config.type ?? config.kind ?? 'relation_axis_cards',
       target_path: targetPath,

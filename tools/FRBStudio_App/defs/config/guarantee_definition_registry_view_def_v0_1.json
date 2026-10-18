@@ -292,8 +292,7 @@
               "caption": "保証内容",
               "type": "textarea",
               "grid": {
-                "visible": true,
-                "width": 440
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -302,7 +301,8 @@
               },
               "search": {
                 "visible": true
-              }
+              },
+              "width": 450
             },
             {
               "field": "observable_result",

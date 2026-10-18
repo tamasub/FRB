@@ -90,14 +90,14 @@
               "edit": {
                 "visible": true,
                 "readonly": false,
-                "step": "0.001"
+                "step": 0.001
               },
               "search": {
                 "visible": true,
                 "operator": "gte"
               },
               "format": "#.000",
-              "defaultValue": 0,
+              "defaultValue": "0",
               "width": 113
             },
             {
@@ -174,8 +174,7 @@
                 "WEED"
               ],
               "grid": {
-                "visible": true,
-                "width": 110
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -185,7 +184,8 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": "IDLE"
+              "defaultValue": "IDLE",
+              "width": 225
             },
             {
               "field": "attackState",
@@ -197,8 +197,7 @@
                 "STRONG"
               ],
               "grid": {
-                "visible": true,
-                "width": 90
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -208,15 +207,15 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "defaultValue": "NO"
+              "defaultValue": "NO",
+              "width": 180
             },
             {
               "field": "melodyNote",
               "caption": "Note",
               "type": "text",
               "grid": {
-                "visible": true,
-                "width": 80
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -226,7 +225,8 @@
                 "visible": true,
                 "operator": "contains"
               },
-              "defaultValue": ""
+              "defaultValue": "",
+              "width": 156
             },
             {
               "field": "bandA.b0",
@@ -306,6 +306,43 @@
                 "editor": "childGrid"
               },
               "defaultValue": []
+            }
+          ],
+          "fieldSets": [
+            {
+              "id": "fft_time_input",
+              "caption": "時刻・入力",
+              "fields": [
+                "t",
+                "inputHz"
+              ]
+            },
+            {
+              "id": "fft_peak_response",
+              "caption": "ピーク・振動応答",
+              "fields": [
+                "peakAHz",
+                "fluxA",
+                "peakMoveA"
+              ]
+            },
+            {
+              "id": "fft_phase_state",
+              "caption": "Phase2・アタリ状態",
+              "fields": [
+                "phase2State",
+                "attackState",
+                "melodyNote"
+              ]
+            },
+            {
+              "id": "fft_band_a",
+              "caption": "周波数帯 A",
+              "fields": [
+                "bandA.b0",
+                "bandA.b1",
+                "bandA.b2"
+              ]
             }
           ]
         }

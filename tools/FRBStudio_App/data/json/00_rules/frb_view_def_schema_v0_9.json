@@ -611,6 +611,9 @@
         },
         "tree": {
           "$ref": "#/$defs/treeOptions"
+        },
+        "detailHeader": {
+          "$ref": "#/$defs/detailHeader"
         }
       },
       "required": [
@@ -1446,7 +1449,23 @@
         "source": {
           "type": "string"
         },
-        "inline": true
+        "inline": true,
+        "adapter": {
+          "type": "string",
+          "description": "DataSourceの読み込みAdapter識別子。readonly_external_json等の登録済みAdapterを選択する。"
+        },
+        "pathFromData": {
+          "type": "string",
+          "description": "readonly_external_json: 正本DataからキャッシュPathを取得するJSON path。"
+        },
+        "defaultPath": {
+          "type": "string",
+          "description": "readonly_external_json: データにPathがなければ使用する既定値（環境変数展開可）。"
+        },
+        "persistDefaultPath": {
+          "type": "boolean",
+          "description": "readonly_external_json: defaultPathをData内pathFromDataに補うか。"
+        }
       }
     },
     "dataSources": {
@@ -1561,6 +1580,19 @@
         },
         "write_back": {
           "$ref": "#/$defs/virtualDataWriteBack"
+        },
+        "left": {
+          "$ref": "#/$defs/virtualJoinSide"
+        },
+        "right": {
+          "$ref": "#/$defs/virtualJoinSide"
+        },
+        "keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/virtualJoinKey"
+          }
         }
       }
     },
@@ -2187,6 +2219,14 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/virtualJoinWriteBackTarget"
+          },
+          "description": "left_join builderの更新先配列。現行Runtimeは1件のみを実行し、複数更新は将来対応。"
         }
       }
     },
@@ -3644,6 +3684,134 @@
           }
         }
       }
+    },
+    "detailHeader": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "標準Editorの大きな見出しを動的に解決する宣言。Section単位。未指定時は従来の「詳細」。Header Titleは表示専用で保存Dataへ含めない。",
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/detailHeaderTitle"
+        }
+      },
+      "required": [
+        "title"
+      ]
+    },
+    "detailHeaderTitle": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "template内の{row.<fieldPath>}または{tree.groupLabel}/{tree.ancestorPath}/{tree.parentPath}を表示時に展開する。未解決時はfallbackを採用し、HTMLとして解釈しない。",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "template"
+          ]
+        },
+        "template": {
+          "type": "string",
+          "minLength": 1,
+          "description": "例: 配置先: {tree.parentPath} / 社員情報: {row.employee_name}。許可されるトークンはrow.*とtree.groupLabel/tree.ancestorPath/tree.parentPath。"
+        },
+        "fallback": {
+          "type": "string",
+          "default": "詳細",
+          "description": "未解決・不正・空のときの見出し。省略時は詳細。"
+        }
+      },
+      "required": [
+        "mode",
+        "template"
+      ],
+      "examples": [
+        {
+          "mode": "template",
+          "template": "配置先: {tree.parentPath}",
+          "fallback": "詳細"
+        }
+      ]
+    },
+    "virtualJoinSide": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "left_joinの一辺。sourceは登録DataSourceの名前または$current、pathは配列へのJSON path。fieldsは出力名→元フィールド名の対応。",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "source",
+        "path"
+      ]
+    },
+    "virtualJoinKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "left": {
+          "type": "string",
+          "minLength": 1
+        },
+        "right": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ]
+    },
+    "virtualJoinWriteBackTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "left_join WriteBackの1件分。v1は$currentの単一更新先のみ、targets配列は将来複数更新を可能にするための契約。",
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "keyFields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "insertWhenMissing": {
+          "type": "boolean"
+        },
+        "deleteWhenBlank": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "path",
+        "keyFields",
+        "fields"
+      ]
     }
   }
 }

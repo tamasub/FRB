@@ -22,10 +22,12 @@ class LauncherStudioContextTests(unittest.TestCase):
 
     def test_item_properties_by_stable_item_id(self):
         self.assertIn("'--launch-item-id=' + str(item_id)", SOURCE)
-        self.assertIn("row.get('item_id') in authored_ids", SOURCE)
+        self.assertIn("elif origin == 'studio':", SOURCE)
+        self.assertIn('resolve_context_target(row, self.authored_items)', SOURCE)
 
     def test_exclude_virtual_search_results(self):
-        self.assertIn("{item.get('item_id') for item in self.data.get('items', [])}", SOURCE)
+        self.assertIn("self.authored_items = fresh['items']", SOURCE)
+        self.assertIn("elif origin in ('file', 'folder'):", SOURCE)
 
     def test_launches_studio_native_shell_without_touching_json(self):
         self.assertIn("'launch_action_type': 'Run'", SOURCE)

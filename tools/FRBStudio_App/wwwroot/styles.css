@@ -443,6 +443,9 @@ td.boolean { text-align:center; }
   backdrop-filter: blur(10px);
 }
 .dialog-title-row h2 { margin-bottom:0; }
+/* Dynamic Detail Header: keep window controls in place for long declarative titles. */
+#detailDialog .dialog-title-row > div:first-child { min-width:0; flex:1 1 auto; }
+#detailDialog #detailTitle { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .detail-dialog-window-actions {
   display: inline-flex;
   align-items: center;
@@ -482,8 +485,14 @@ td.boolean { text-align:center; }
 }
 #detailDialog.detail-dialog-expanded .dialog-body {
   height: 100%;
-  max-height: none;
+  max-height: 100%;
   box-sizing: border-box;
+}
+/* In the expanded Editor the scrolling belongs to #detailScrollContent only.
+   Suppress the underlying page scrollbar, not the Editor's content scrollbar. */
+html:has(#detailDialog[open].detail-dialog-expanded),
+body:has(#detailDialog[open].detail-dialog-expanded) {
+  overflow-y: hidden;
 }
 #detailDialog.detail-dialog-expanded .detail-window-icon::before {
   inset: 4px 1px 1px 4px;

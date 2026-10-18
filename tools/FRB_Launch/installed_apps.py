@@ -26,10 +26,25 @@ def normalize(records):
         result.append({'name':name,'target':target,'kind':kind,'icon_path':str(r.get('icon_path',''))})
     return sorted(result,key=lambda r:unicodedata.normalize('NFKC',r['name']).casefold())
 
+def alias_by_identity(data):
+    """User-authored sparse search aliases. Only (kind,target) identifies an app."""
+    result = {}
+    for row in data.get('app_aliases', []):
+        if not isinstance(row, dict):
+            continue
+        kind = str(row.get('kind', '')).strip()
+        target = str(row.get('target', '')).strip()
+        alias = str(row.get('alias', '')).strip()
+        if kind in ('aumid', 'shortcut') and target and alias:
+            result[(kind, target.casefold())] = alias
+    return result
+
+
 def attach(data, records):
     result=copy.deepcopy(data)
     result['items']=[r for r in result['items'] if not r.get('_installed_app')]
     used={r['item_id'] for r in result['items']}
+    custom_aliases=alias_by_identity(data)
     for parent in list(result['items']):
         if parent.get('launch_source')!='installed_apps' or parent['item_kind']!='category':continue
         for index,r in enumerate(normalize(records),1):
@@ -38,6 +53,8 @@ def attach(data, records):
             if id in used:continue
             used.add(id)
             keywords=[a for term,aliases in ALIASES.items() if term in r['name'].casefold() for a in aliases]
+            custom=custom_aliases.get((r['kind'],r['target'].casefold()),'')
+            if custom: keywords.append(custom)
             # AUMIDs can contain %; escape them for the launcher's variable expander.
             target=('shell:AppsFolder\\'+r['target'] if r['kind']=='aumid' else r['target']).replace('%','%%')
             result['items'].append(dict(item_id=id,page_id=parent['page_id'],parent_item_id=parent['item_id'],

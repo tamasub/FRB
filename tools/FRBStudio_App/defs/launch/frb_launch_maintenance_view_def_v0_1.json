@@ -141,7 +141,7 @@
               "search": {
                 "visible": false
               },
-              "width": 217
+              "width": 535
             },
             {
               "field": "description",
@@ -156,7 +156,7 @@
               "search": {
                 "visible": false
               },
-              "width": 271
+              "width": 535
             },
             {
               "field": "item_kind",
@@ -178,7 +178,7 @@
                 "selection"
               ],
               "defaultValue": "command",
-              "width": 80
+              "width": 159
             },
             {
               "field": "icon_key",
@@ -193,7 +193,8 @@
               "search": {
                 "visible": false
               },
-              "valueVocabularyRef": "launch.icon_key"
+              "valueVocabularyRef": "launch.icon_key",
+              "width": 139
             },
             {
               "field": "sort_order",
@@ -658,11 +659,27 @@
               "rootChoose": "追加先のPage",
               "rootToggle": "Pageを展開・折りたたみ"
             }
+          },
+          "detailHeader": {
+            "title": {
+              "mode": "template",
+              "template": "配置先: {tree.parentPath}",
+              "fallback": "詳細"
+            }
           }
         }
       ],
       "toolbar": {
         "relatedGridViews": [
+          {
+            "id": "app_alias_catalog",
+            "caption": "アプリ別名",
+            "dataPath": "$.app_alias_catalog_view",
+            "viewId": "app_alias_catalog_view",
+            "action": "OpenRelatedGridView",
+            "launchMode": "modal",
+            "shellMode": "grid_only"
+          },
           {
             "id": "launch_variables",
             "caption": "変数",
@@ -1141,9 +1158,144 @@
           ]
         }
       ]
+    },
+    {
+      "id": "app_alias_catalog_view",
+      "caption": "アプリ検索別名",
+      "layout": "header-search-grid-detail",
+      "sections": [
+        {
+          "id": "app_alias_catalog",
+          "caption": "アプリ別名（別名だけ編集可能）",
+          "type": "grid",
+          "dataPath": "$.app_alias_catalog_view",
+          "keyField": "target",
+          "fields": [
+            {
+              "field": "name",
+              "caption": "アプリ名",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 270
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "kind",
+              "caption": "種類",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "target",
+              "caption": "起動ID / Path",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 290
+              },
+              "edit": {
+                "visible": true,
+                "readonly": true
+              },
+              "search": {
+                "visible": true
+              }
+            },
+            {
+              "field": "alias",
+              "caption": "検索別名（スペース区切り検索も可）",
+              "type": "text",
+              "grid": {
+                "visible": true,
+                "width": 250
+              },
+              "edit": {
+                "visible": true,
+                "readonly": false
+              },
+              "search": {
+                "visible": true
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "valueVocabularySources": [
     "config/launch_enums_v0_1.json"
-  ]
+  ],
+  "dataSources": {
+    "apps_cache": {
+      "adapter": "readonly_external_json",
+      "pathFromData": "$.app_catalog.cache_path",
+      "defaultPath": "%LOCALAPPDATA%\\FRBLaunch\\apps_cache.json",
+      "persistDefaultPath": true
+    }
+  },
+  "virtualData": {
+    "builder": "left_join",
+    "targetPath": "$.app_alias_catalog_view",
+    "left": {
+      "source": "apps_cache",
+      "path": "$.apps",
+      "fields": {
+        "name": "name",
+        "kind": "kind",
+        "target": "target"
+      }
+    },
+    "right": {
+      "source": "$current",
+      "path": "$.app_aliases",
+      "fields": {
+        "alias": "alias"
+      }
+    },
+    "keys": [
+      {
+        "left": "kind",
+        "right": "kind"
+      },
+      {
+        "left": "target",
+        "right": "target"
+      }
+    ],
+    "writeBack": {
+      "enabled": true,
+      "targets": [
+        {
+          "source": "$current",
+          "path": "$.app_aliases",
+          "keyFields": [
+            "kind",
+            "target"
+          ],
+          "fields": {
+            "alias": "alias"
+          },
+          "insertWhenMissing": true,
+          "deleteWhenBlank": true
+        }
+      ]
+    }
+  }
 }

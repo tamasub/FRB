@@ -60,7 +60,8 @@
 
     function hasUnsavedChanges() {
       if (isReadonly() || !hasLoadedDocument()) return false;
-      return headerDraftDirty || detailDraftDirty || canonicalHasChanged();
+      return headerDraftDirty || detailDraftDirty || canonicalHasChanged() ||
+        (typeof virtualJoinHasPendingEdits === 'function' && virtualJoinHasPendingEdits());
     }
 
     function cleanSaveLabel() {

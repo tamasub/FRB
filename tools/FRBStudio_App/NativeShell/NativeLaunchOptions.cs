@@ -99,7 +99,7 @@ namespace FRBStudio.NativeShell
             {
                 var page = "index.html?startupJson=1";
                 if (options.LaunchItemId != null)
-                    page += "&focusField=item_id&focusValue=" + Uri.EscapeDataString(options.LaunchItemId) + "&openDetail=true";
+                    page += "&focusField=item_id&focusValue=" + Uri.EscapeDataString(options.LaunchItemId) + "&openDetail=true&launchItemProperties=1";
                 if (options.LaunchNewCategoryPage != null)
                     page += "&launchNewCategory=1&newCategoryPage=" + Uri.EscapeDataString(options.LaunchNewCategoryPage);
                 if (options.LaunchPageId != null)

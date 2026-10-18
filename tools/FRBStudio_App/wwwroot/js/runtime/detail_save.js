@@ -70,6 +70,84 @@ function renderDetailEditorComponents(row, gd) {
   );
 }
 
+// v0.19 Dynamic Detail Header: a ViewDef Section controls the standard Editor title.
+// Only the resolver knows template tokens; display code never knows business words.
+function detailHeaderTitleConfig(gd) {
+  const raw = gd?.detailHeader?.title;
+  return raw && typeof raw === 'object' ? raw : null;
+}
+
+function detailHeaderTreeTokens(row, gd) {
+  if (typeof studioTreeConfig !== 'function') return {};
+  const tree = studioTreeConfig(gd);
+  if (!tree) return {};
+  try {
+    const groupId = tree.groupField ? String(getByPath(row, tree.groupField) ?? '') : '';
+    const names = typeof studioTreeGroups === 'function' ? studioTreeGroups(tree) : null;
+    const groupLabel = (names?.get(groupId) || groupId || '最上位');
+    const parentId = String(getByPath(row, tree.parentField) ?? '');
+    let ancestors = '';
+    if (parentId) {
+      const parent = studioTreeModel().ids.get(parentId);
+      if (!parent) return { groupLabel }; // A broken parent key must not masquerade as a root.
+      ancestors = studioTreeLabel(parent, tree);
+    }
+    return {
+      groupLabel,
+      ancestorPath: ancestors,
+      parentPath: groupLabel + (ancestors ? ' › ' + ancestors : '')
+    };
+  } catch (_) {
+    return {};
+  }
+}
+
+function resolveDetailHeaderTitle(row, gd) {
+  const config = detailHeaderTitleConfig(gd);
+  if (!config) return '詳細';
+  const fallback = typeof config.fallback === 'string' && config.fallback.trim()
+    ? config.fallback : '詳細';
+  if (config.mode !== 'template' || typeof config.template !== 'string' || !config.template.trim()) return fallback;
+  const tree = detailHeaderTreeTokens(row, gd);
+  let unresolved = false;
+  const title = config.template.replace(/\{([^{}]+)\}/g, (_, token) => {
+    let value;
+    if (/^row\.[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)*$/.test(token)) {
+      value = getByPath(row, token.slice(4));
+    } else if (['tree.groupLabel', 'tree.ancestorPath', 'tree.parentPath'].includes(token)) {
+      value = tree[token.slice(5)];
+    }
+    // Do not render [object Object], unknown placeholders, or partial/unresolved titles.
+    if (value === undefined || value === null || typeof value === 'object' || String(value).trim() === '') {
+      unresolved = true;
+      return '';
+    }
+    return String(value);
+  });
+  return unresolved || /[{}]/.test(title) || !title.trim() ? fallback : title;
+}
+
+function renderDetailHeaderTitle(row, gd) {
+  const title = $('detailTitle');
+  if (title) {
+    title.textContent = resolveDetailHeaderTitle(row, gd); // textContent: never interpret HTML.
+    title.title = title.textContent; // Full path is readable even if CSS truncates it.
+  }
+}
+
+function refreshDetailHeaderTitleOnEdit(event) {
+  const gd = gridDef();
+  const config = detailHeaderTitleConfig(gd);
+  if (!config || config.mode !== 'template') return;
+  const field = event.target?.dataset?.field;
+  if (!field || !config.template.includes('{row.' + field + '}')) return;
+  const baseRow = detailMode === 'new' ? draftRow : currentRows?.[selectedIndex];
+  if (!baseRow) return;
+  // Preview the same pending draft used by F12 validation; do not commit to Data.
+  const pending = buildPendingDetailApplyRow(baseRow);
+  if (pending) renderDetailHeaderTitle(pending, gd);
+}
+
 function detailFieldSetConfigs(gd) {
   const raw = gd?.fieldSets ?? gd?.field_sets ?? [];
   return Array.isArray(raw) ? raw.filter(item => item && typeof item === 'object') : [];
@@ -166,6 +244,12 @@ function renderDetailForRow(row) {
   const form = $('detailForm');
   form.innerHTML = '';
   form.onchange = refreshDetailConditionalVisibility;
+  if (form.dataset.detailHeaderListenersInstalled !== 'true') {
+    form.dataset.detailHeaderListenersInstalled = 'true';
+    form.addEventListener('input', refreshDetailHeaderTitleOnEdit);
+    form.addEventListener('change', refreshDetailHeaderTitleOnEdit);
+  }
+  renderDetailHeaderTitle(row, gd);
 
   if (typeof renderTargetContextDetailPanel === 'function') renderTargetContextDetailPanel(row, gd, form);
 
@@ -603,6 +687,24 @@ async function postDataSourceJsonByKey(key) {
 }
 
 async function writeBackVirtualDataEdits() {
+  // Plan every join mutation before applying; v1 permits one declared target.
+  // Persistence of $current stays with the existing document save API.
+  const joinedConfigs = virtualDataArrayConfigOf(viewDef).filter(
+    config => virtualDataBuilderName(config) === 'left_join' && config.writeBack?.enabled !== false);
+  for (const config of joinedConfigs) {
+    const targetPath = virtualDataTargetPath(config);
+    const baseline = virtualDataJoinBaselines.get(targetPath);
+    if (!baseline) throw new Error(`left_join baseline is missing: ${targetPath}`);
+    const rows = getByPath(sourceData, targetPath);
+    const sources = source => dataSourceJsonByKey(source);
+    const plan = planVirtualJoinWriteBack(config, rows, baseline, sources);
+    if (plan.operations.length) {
+      if (plan.target.source !== '$current')
+        throw new Error('left_join v1 writeBack currently supports only $current (one source)');
+      applyVirtualJoinWriteBackPlan(plan, sources);
+      // Successful save resets this baseline below. It is not reset before persistence.
+    }
+  }
   const configs = virtualDataArrayConfigOf(viewDef);
   if (!configs.length) return [];
 
@@ -712,6 +814,12 @@ async function saveOverwriteJson() {
   }
   if (systemAppSettingsMode && typeof window?.FrbStudioShell?.refreshLaunchShortcuts === 'function') {
     void window.FrbStudioShell.refreshLaunchShortcuts();
+  }
+  for (const config of virtualDataArrayConfigOf(viewDef)) {
+    if (virtualDataBuilderName(config) === 'left_join') {
+      const path = virtualDataTargetPath(config);
+      virtualDataJoinBaselines.set(path, cloneData(getByPath(sourceData, path)));
+    }
   }
   setStatus(`${systemAppSettingsMode ? 'Studio設定を' : (currentDataSourceKind === 'viewdef' ? 'ViewDefを' : '')}上書き保存しました: ${currentDataApiUrl}`);
   return true;

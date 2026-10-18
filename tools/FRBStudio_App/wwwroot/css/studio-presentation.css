@@ -40,16 +40,22 @@ body.frb-page-json-object[data-studio-density="compact"] #detailDialog .dialog-b
 /* Independent dark/launch-dark visual tokens. */
 body.frb-page-json-object[data-studio-theme="dark"],
 body.frb-page-json-object[data-studio-theme="launch-dark"] {
-  --bg:#172321;--bg2:#172321;--panel:#202b29;--panel-solid:#202b29;
-  --line:#405451;--line-soft:#354a46;--text:#e5ebf3;--muted:#acbcb9;
+  --bg:#202b29;--bg2:#202b29;--panel:#25343a;--panel-solid:#25343a;
+  --line:#536870;--line-soft:#40565e;--text:#e5ebf3;--muted:#acbcb9;
   --row-alt:#20302d;--row-hover:#314942;--selected:#334d68;
   --readonly:#2a3735;--accent:#6ba7ff;--accent2:#416c9b;
-  --frb-canvas:#172321;--frb-surface:#202b29;--frb-text:#e5ebf3;
-  --frb-muted:#acbcb9;--frb-line:#405451;--frb-json-surface:#202b29;
-  --frb-json-surface-2:#172321;--frb-json-line:#405451;
+  --frb-canvas:#202b29;--frb-surface:#25343a;--frb-text:#e5ebf3;
+  --frb-muted:#acbcb9;--frb-line:#536870;--frb-json-surface:#25343a;
+  --frb-json-surface-2:#202b29;--frb-json-line:#536870;
+  --studio-dark-header-gradient:linear-gradient(180deg,#384943 0%,#293934 43%,#202d29 100%);
   color:#e5ebf3;
-  background:#172321;
+  background:#202b29;
   color-scheme:dark;
+}
+/* Standard Studio has a navy shell header; launcher presentation uses the
+   existing green-slate gradient. Both feed the same Editor header token. */
+body.frb-page-json-object[data-studio-theme="dark"] {
+  --studio-dark-header-gradient:linear-gradient(135deg,var(--frb-shell-navy),var(--frb-shell-navy-2));
 }
 body.frb-page-json-object[data-studio-theme="dark"] .card,
 body.frb-page-json-object[data-studio-theme="launch-dark"] .card,
@@ -57,9 +63,9 @@ body.frb-page-json-object[data-studio-theme="dark"] .json-studio-main-toolbar,
 body.frb-page-json-object[data-studio-theme="launch-dark"] .json-studio-main-toolbar,
 body.frb-page-json-object[data-studio-theme="dark"] .section-group-navigation,
 body.frb-page-json-object[data-studio-theme="launch-dark"] .section-group-navigation {
-  background:#202b29;
+  background:#25343a;
   color:#e5ebf3;
-  border-color:#405451;
+  border-color:#536870;
   box-shadow:none;
   backdrop-filter:none;
 }
@@ -70,32 +76,32 @@ body.frb-page-json-object[data-studio-theme="launch-dark"] label,
 body.frb-page-json-object[data-studio-theme="dark"] .count,
 body.frb-page-json-object[data-studio-theme="launch-dark"] .count { color:#dce7e5; }
 body.frb-page-json-object[data-studio-theme="dark"] .table-wrap,
-body.frb-page-json-object[data-studio-theme="launch-dark"] .table-wrap { background:#172321; border-color:#405451; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] .table-wrap { background:#202b29; border-color:#536870; }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid,
-body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid { color:#e5ebf3; background:#172321; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid { color:#e5ebf3; background:#202b29; }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid th,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid th {
-  background:#293b38!important; color:#c9d7df; border-color:#405451;
+  background:#32454e!important; color:#c9d7df; border-color:#536870;
 }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid td,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid td {
-  background:#172321; color:#e5ebf3; border-color:#354a46;
+  background:#202b29; color:#e5ebf3; border-color:#40565e;
 }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr:nth-child(even) td,
-body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:nth-child(even) td { background:#1d2b29; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:nth-child(even) td { background:#24343b; }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr:hover td,
-body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:hover td { background:#2a403e; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr:hover td { background:#304750; }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr.selected td,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr.selected td,
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tbody tr[aria-selected="true"] td,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tbody tr[aria-selected="true"] td { background:#334d68!important;color:#fff; }
 body.frb-page-json-object[data-studio-theme="dark"] #dataGrid tr[data-group-id] td,
-body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tr[data-group-id] td { background:#283b38!important; color:#e5ebf3; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] #dataGrid tr[data-group-id] td { background:#30444b!important; color:#e5ebf3; }
 body.frb-page-json-object[data-studio-theme="dark"] button,
 body.frb-page-json-object[data-studio-theme="launch-dark"] button,
 body.frb-page-json-object[data-studio-theme="dark"] select,
 body.frb-page-json-object[data-studio-theme="launch-dark"] select {
-  color:#e5ebf3; background:#2a3c39; border-color:#4a6261; box-shadow:none;
+  color:#e5ebf3; background:#30424b; border-color:#607780; box-shadow:none;
 }
 body.frb-page-json-object[data-studio-theme="dark"] button.primary-button,
 body.frb-page-json-object[data-studio-theme="launch-dark"] button.primary-button,
@@ -109,7 +115,7 @@ body.frb-page-json-object[data-studio-theme="dark"] textarea,
 body.frb-page-json-object[data-studio-theme="launch-dark"] textarea,
 body.frb-page-json-object[data-studio-theme="dark"] #searchSection #studioFullTextSearchInput,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #searchSection #studioFullTextSearchInput {
-  background:#101a20; color:#e5ebf3; border-color:#40536d; box-shadow:none;
+  background:#16242e; color:#e5ebf3; border-color:#40536d; box-shadow:none;
 }
 body.frb-page-json-object[data-studio-theme="dark"] input::placeholder,
 body.frb-page-json-object[data-studio-theme="launch-dark"] input::placeholder { color:#93a7b2; }
@@ -125,14 +131,14 @@ body.frb-page-json-object[data-studio-theme="dark"] #detailDialog,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog,
 body.frb-page-json-object[data-studio-theme="dark"] dialog,
 body.frb-page-json-object[data-studio-theme="launch-dark"] dialog {
-  background:#202b29; color:#e5ebf3; border-color:#4a6261;
+  background:#25343a; color:#e5ebf3; border-color:#607780;
 }
 body.frb-page-json-object[data-studio-theme="dark"] #detailDialog input,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog input,
 body.frb-page-json-object[data-studio-theme="dark"] #detailDialog select,
 body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog select,
 body.frb-page-json-object[data-studio-theme="dark"] #detailDialog textarea,
-body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog textarea { background:#101a20; color:#e5ebf3; border-color:#40536d; }
+body.frb-page-json-object[data-studio-theme="launch-dark"] #detailDialog textarea { background:#16242e; color:#e5ebf3; border-color:#40536d; }
 
 /* Minimal shell is fixed by the loaded ViewDef. Hidden standard controls still
    exist in DOM for file APIs and shared save routines; not user-accessible. */
@@ -214,10 +220,10 @@ body.frb-page-json-object[data-studio-shell="minimal"] #gridCount { font-size:10
 /* v0.2: complete detail-editor / subgrid dark surfaces. Scoped to resolved ViewDef
    theme only; Standard Studio retains its existing white editor. */
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) {
-  --studio-editor-bg:#202b29;
-  --studio-editor-input:#101a20;
-  --studio-editor-line:#405451;
-  --studio-editor-muted:#acbfbc;
+  --studio-editor-bg:#25343a;
+  --studio-editor-input:#16242e;
+  --studio-editor-line:#536870;
+  --studio-editor-muted:#b4c6cb;
   --studio-editor-text:#e5ebf3;
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog {
@@ -232,7 +238,7 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .dialog-title-row,
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-footer {
-  background:#202b29;
+  background:#25343a;
   color:var(--studio-editor-text);
   border-color:var(--studio-editor-line);
   box-shadow:none;
@@ -252,45 +258,64 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(input,select,textarea):disabled,
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-subgrid-edit.is-readonly .detail-subgrid-cell-input {
-  background:#293834;
-  color:#acbfbc;
+  background:#30434b;
+  color:#b4c6cb;
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-edit,.detail-subgrid-table-wrap,.detail-subgrid-header,.detail-subgrid-action-th,.detail-subgrid-row-actions,.detail-subgrid-card-editor-toolbar),
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-table th,.detail-subgrid-table td) {
-  background:#202b29;
+  background:#25343a;
   color:var(--studio-editor-text);
   border-color:var(--studio-editor-line);
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .detail-subgrid-table tbody tr:nth-child(even) td {
-  background:#1c2a28;
+  background:#223239;
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog :is(.detail-subgrid-dirty-badge,.detail-subgrid-action-btn) {
-  background:#293b38;
+  background:#32454e;
   color:var(--studio-editor-text);
   border-color:var(--studio-editor-line);
 }
+/* v0.18 dark-visibility: cool FRB Launch-aligned canvas, distinct editor chrome.
+   Only ViewDef-resolved dark/launch-dark profiles use these overrides.
+   Keep the editor header and launcher main heading on one gradient token. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog {
+  border:2px solid #9aafb4;
+  box-shadow:0 26px 68px rgba(5,13,20,.50), inset 0 1px 0 rgba(255,255,255,.12);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog::backdrop {
+  background:rgba(76,85,95,.38);
+  backdrop-filter:blur(3px);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .dialog-title-row {
+  background:var(--studio-dark-header-gradient);
+  border-bottom:1px solid #718b90;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 3px 9px rgba(7,17,23,.25);
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) #detailDialog .dialog-title-row :is(h2,.app-kicker) {
+  color:#edf6f4;
+}
 /* Preview/editor overlays are mounted outside #detailDialog; scope these by body theme. */
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) :is(.detail-subgrid-preview-dialog,.detail-subgrid-preview-body,.detail-subgrid-preview-header,.detail-subgrid-preview-card,.detail-subgrid-preview-empty-card,.detail-subgrid-card-editor-dialog,.detail-subgrid-card-editor-toolbar) {
-  background:#202b29;
+  background:#25343a;
   color:#e5ebf3;
-  border-color:#405451;
+  border-color:#536870;
   box-shadow:none;
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) :is(.detail-subgrid-preview-label,.detail-subgrid-preview-value,.detail-subgrid-preview-card-title,.detail-subgrid-card-editor-card-title) {
   color:#e5ebf3;
 }
-body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .detail-subgrid-preview-field { border-color:#405451; }
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .detail-subgrid-preview-field { border-color:#536870; }
 
 /* v0.4: Related Grid modal + child shell dark theme.
    The parent overlay and the child iframe are separate documents: each uses
    its own resolved ViewDef theme. No app/domain-specific selectors or runtime
    theme switching. Light/Standard continues to use styles.css unchanged. */
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) {
-  --studio-related-surface:#202b29;
-  --studio-related-surface-low:#172321;
-  --studio-related-border:#405451;
+  --studio-related-surface:#25343a;
+  --studio-related-surface-low:#202b29;
+  --studio-related-border:#536870;
   --studio-related-text:#e5ebf3;
-  --studio-related-muted:#acbfbc;
+  --studio-related-muted:#b4c6cb;
 }
 /* Parent document: the related-grid overlay is deliberately outside the
    detail editor, so #detailDialog selectors cannot reach it. */
@@ -302,7 +327,7 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
   box-shadow:0 20px 56px rgba(0,0,0,.48);
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-header {
-  background:#243633;
+  background:#33464a;
   color:var(--studio-related-text);
   border-bottom-color:var(--studio-related-border);
 }
@@ -311,14 +336,14 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
   background:var(--studio-related-surface-low);
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-modal-close {
-  background:#2a3c39;
+  background:#30424b;
   color:var(--studio-related-text);
-  border-color:#4a6261;
+  border-color:#607780;
 }
 /* Child document: the info banner and result badge are separate from the
    main grid. The status colors remain meaningful on the dark background. */
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner {
-  background:#263b37;
+  background:#30464f;
   color:var(--studio-related-text);
   border-color:var(--studio-related-border);
   box-shadow:none;
@@ -330,9 +355,9 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
   color:var(--studio-related-muted);
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status {
-  background:#2e4340;
+  background:#384e56;
   color:#d5e3e0;
-  border-color:#607a75;
+  border-color:#69848c;
 }
 body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"]) .related-grid-shell-banner .related-grid-shell-status[data-kind="success"] {
   background:#193d31;
@@ -356,7 +381,7 @@ body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="laun
 body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-dark"] .studio-presentation-heading {
   justify-content:space-between;
   gap:12px;
-  background:linear-gradient(180deg,#384943 0%,#293934 43%,#202d29 100%);
+  background:var(--studio-dark-header-gradient);
   border-bottom:1px solid #42534d;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 1px 3px rgba(0,0,0,.12);
 }

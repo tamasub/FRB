@@ -9,7 +9,7 @@ from ctypes import wintypes
 import ctypes
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QObject, Signal
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
@@ -26,6 +26,10 @@ from page_tab_theme import PAGE_TABS_QSS
 from page_tab_focus import FocusPageTabBar
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
+from context_menu_resolver import resolve_context_target
+from context_menu_config import load_context_menus
+from context_menu_actions import (show_windows_properties, open_file_explorer,
+                                  open_folder_terminal, rename_file_or_folder)
 from menu_viewport import place_popup, MENU_SCREEN_MARGIN
 from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
@@ -85,6 +89,7 @@ logging.basicConfig(handlers=[RotatingFileHandler(STATE / 'error.log', maxBytes=
                                                   backupCount=2, encoding='utf-8')], level=logging.WARNING)
 DIAG = make_logger(STATE)
 LOG_RETENTION_OPTIONS = LAUNCH_HOME / 'config' / 'log_retention_options.json'
+CONTEXT_MENU_OPTIONS = LAUNCH_HOME / 'config' / 'context_menu_options.json'
 
 
 def prune_diagnostics():
@@ -177,33 +182,53 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self._folder_click_action = None
         self._folder_double_click_row = None
         self._right_context_row = None
+        # A separate context QMenu must not erase the selected row in the
+        # launcher-owned tool column while the popup temporarily owns focus.
+        self._context_highlight_action = None
 
     def _authored_context_row(self, row):
-        data = getattr(self.launcher, 'data', None) or {}
-        return authored_cascade_row(row, data.get('items', []))
+        # One menu can contain Studio-authored rows, physical files, and
+        # virtual application/bookmark rows. Return only actionable targets.
+        authored = getattr(self.launcher, 'authored_items', [])
+        kind, _ = resolve_context_target(row, authored)
+        if kind == 'studio':
+            return authored_cascade_row(row, authored)
+        if kind in ('file', 'folder'):
+            return row
+        return None
 
     def _right_click_row(self, event, source=None):
         """Resolve the item from the receiving menu/widget, never from the cursor."""
         if source is None or source is self:
             action = self.actionAt(event.position().toPoint())
             row = action.data() if action is not None else None
+            if row is not None:
+                # Right-clicking a previously unselected row must visibly
+                # select *that* row, not leave the old keyboard row highlighted.
+                setter = getattr(self, 'setActiveAction', None)
+                if callable(setter):
+                    setter(action)
         elif self.scroll_tree is not None and source is self.scroll_tree.viewport():
-            action = self._scroll_item_action(
-                self.scroll_tree.itemAt(event.position().toPoint()))
+            item = self.scroll_tree.itemAt(event.position().toPoint())
+            action = self._scroll_item_action(item)
             row = action.data() if action is not None else None
+            if row is not None and hasattr(self.scroll_tree, 'setCurrentItem'):
+                self.scroll_tree.setCurrentItem(item)
         elif (getattr(self, 'tree', None) is not None
               and source is self.tree.viewport()):
             item = self.tree.itemAt(event.position().toPoint())
             row = item.data(0, Qt.ItemDataRole.UserRole) if item is not None else None
+            if row is not None and hasattr(self.tree, 'setCurrentItem'):
+                self.tree.setCurrentItem(item)
         else:
             return None
         return self._authored_context_row(row)
 
     def _handle_right_click_properties(self, event, source=None):
-        """Right mouse up on one authored row opens Launch's existing Properties.
+        """Right mouse up on a contextual row opens its origin-specific menu.
 
-        Defer popup creation until Qt has dispatched mouse release.  The launcher
-        closes its tool cascade before showing the separate context QMenu.
+        Defer popup creation until Qt has dispatched mouse release. Preserve
+        the cascade tool column while the context menu is visible.
         """
         kind = event.type()
         if kind not in (QEvent.Type.MouseButtonPress,
@@ -215,6 +240,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if kind == QEvent.Type.MouseButtonPress:
             self.hover_timer.stop()
             self._right_context_row = self._right_click_row(event, source)
+            if self._right_context_row is not None:
+                # A QMenu QAction does not retain ::item:selected when a
+                # second popup takes focus; pin the hit during that popup.
+                if source is None or source is self:
+                    hit_test = getattr(self, 'actionAt', None)
+                    if callable(hit_test) and hasattr(event, 'position'):
+                        self._context_highlight_action = hit_test(event.position().toPoint())
+                refresh = getattr(self, 'update', None)
+                if callable(refresh):
+                    refresh()
         elif kind == QEvent.Type.MouseButtonRelease:
             row = self._right_click_row(event, source)
             pressed = self._right_context_row
@@ -235,8 +270,21 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # the cascade must preserve its column and highlighted row.  Closing
         # the cascade here made only a detached Properties popup visible.
         # Parent the context menu to the source tool-window so it stacks above
-        # the column while reusing the existing Studio item-editor route.
-        self.launcher.show_launch_context_menu(pos, row, context_parent=self)
+        # the column; the origin resolver selects Studio or the OS actions.
+        shown = self.launcher.show_launch_context_menu(pos, row, context_parent=self)
+        context = getattr(self.launcher, '_launch_context_menu', None)
+        clear = getattr(self, '_clear_context_highlight', None)
+        if shown and context is not None and callable(clear):
+            context.aboutToHide.connect(clear)
+        elif callable(clear):
+            clear()
+
+    def _clear_context_highlight(self):
+        action = self._context_highlight_action
+        self._context_highlight_action = None
+        if self.isVisible() and action is not None and action in self.actions():
+            self.setActiveAction(action)
+        self.update()
 
     @staticmethod
     def _consume_unused_right_click(event):
@@ -378,8 +426,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if action is self.activeAction():
             return
         self.scroll_tree.setCurrentItem(item)
-        if self.child and self.child.open_mode == 'hover':
-            self.child.close()
+        # Do not immediately close a hover child when the pointer crosses a
+        # neighbouring row on its way to the child column.  If the pointer
+        # *settles* on another row, open_current replaces the child after the
+        # ordinary hover delay; otherwise the existing child stays reachable.
         self.hover_timer.stop()
         if action in self.openers:
             self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms', 250)))
@@ -417,6 +467,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 border:0; outline:0; padding:0; font-family:'Yu Gothic UI'; font-size:13px; }
             QTreeWidget#cascadeScrollView::item { height:32px; padding:0 6px; }
             QTreeWidget#cascadeScrollView::item:selected { background:#304d70; color:white; }
+            QTreeWidget#cascadeScrollView::item:selected:!active { background:#304d70; color:white; }
             QTreeWidget#cascadeScrollView::item:hover { background:#34475d; }
         """)
         apply_scrollbar_theme(tree, '#202b39')
@@ -688,13 +739,29 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self._folder_click_action = None
         self._folder_double_click_row = None
         self._right_context_row = None
+        self._context_highlight_action = None
         if self.child:self.child.close()
         super().hideEvent(event)
 
     def order_surface(self):return self
     def order_rects(self):return [self.actionGeometry(a) for a in self.actions() if a.data()]
     def paintEvent(self,event):
-        super().paintEvent(event);self.paint_order_line()
+        super().paintEvent(event)
+        # QAction selection in a QMenu can go inactive as soon as a second
+        # context QMenu is shown.  Draw a light, non-opaque pinned highlight
+        # so the user can always tell which row was right-clicked.
+        action = self._context_highlight_action
+        popup = getattr(self.launcher, '_launch_context_menu', None)
+        if action is not None and (self._right_context_row is not None or
+                                   (popup is not None and popup.isVisible())):
+            rect = self.actionGeometry(action)
+            if rect.isValid():
+                painter = QPainter(self)
+                painter.fillRect(rect.adjusted(2, 1, -2, -1), QColor(48, 77, 112, 90))
+                painter.setPen(QPen(QColor('#779bc5'), 1))
+                painter.drawRect(rect.adjusted(2, 1, -3, -2))
+                painter.end()
+        self.paint_order_line()
     def mousePressEvent(self,event):
         self.order_press=(event.position().toPoint(),self.actionAt(event.position().toPoint())) if event.button()==Qt.MouseButton.LeftButton else None
         super().mousePressEvent(event)
@@ -745,7 +812,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             if self.folder_click_timer.isActive():
                 self.folder_click_timer.stop()
                 self._folder_click_action = None
-            if self.child and self.child.open_mode=="hover":self.child.close()
+            # Switching rows is delayed; otherwise a diagonal move into an
+            # already-open child closes that child before the pointer arrives.
             self.hover_timer.stop()
             if self.activeAction() in self.openers:
                 self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms',250)))
@@ -950,7 +1018,7 @@ class Launcher(QWidget):
         self.file_index_signals.failed.connect(self.file_index_failed)
         self.file_index_settings = file_index.load_options(self.file_index_options_path)
         self.apps_timer=QTimer(self);self.apps_timer.setInterval(150);self.apps_timer.timeout.connect(self.poll_apps)
-        self.data = None; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
+        self.data = None; self.authored_items = []; self.mtime = None; self.config_size = None; self.target = 0; self.busy = False
         # A Qt item activation on double-click happens on the second DOWN.
         # Defer launching until its matching UP, otherwise Windows can revoke
         # the new GUI child's foreground permission on that last mouse input.
@@ -1020,7 +1088,7 @@ class Launcher(QWidget):
         buttons.addStretch()
         self.selection_tools.hide()
         for w in (self.search,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}''')
+        self.setStyleSheet('''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}''')
         # Search mode may show both scroll axes.  Keep their look consistent
         # with the slim cascade scrollbar; do not change their policies or sorting.
         self.list.verticalScrollBar().setStyleSheet(MAIN_LIST_SCROLLBAR_QSS)
@@ -1637,6 +1705,10 @@ class Launcher(QWidget):
             Expander(fresh)  # Validate timezone before swapping the active data.
             self.data=browser_bookmarks.attach(installed_apps.attach(fresh,self.app_records),
                                                self.bookmark_browser,self.bookmark_profiles)
+            # Keep the *original* DataJSON rows separate from runtime-merged
+            # apps/bookmarks. self.data['items'] is never an authority for
+            # deciding what Studio may edit.
+            self.authored_items = fresh['items']
             self.mtime=stamp;self.config_size=stat.st_size
             self.tabs.blockSignals(True)
             while self.tabs.count():self.tabs.removeTab(0)
@@ -1958,11 +2030,37 @@ class Launcher(QWidget):
             self.stack.pop()
         self.search.clear(); self.render(); self.list.setFocus()
 
+    def record_main_hover_motion(self, point, now=None):
+        """Keep a short, viewport-local mouse trail; no synthetic events."""
+        now = time.monotonic() if now is None else now
+        recent = [(t, p) for t, p in getattr(self, '_main_hover_motion', ())
+                  if now - t <= .18]
+        recent.append((now, point))
+        self._main_hover_motion = recent[-20:]
+
+    def main_hover_heading_to_cascade(self):
+        """Protect diagonal travel into an open right-hand column only."""
+        recent = getattr(self, '_main_hover_motion', ())
+        if len(recent) < 2:
+            return False
+        start, end = recent[0][1], recent[-1][1]
+        dx, dy = end.x() - start.x(), end.y() - start.y()
+        return dx >= 10 and dx * 2 >= abs(dy)
+
     def hover(self,q,col):
         if self.selection or QApplication.mouseButtons() & Qt.MouseButton.LeftButton or getattr(self.list,'order_dragging',False):return
-        self.list.setCurrentItem(q)
+        current = self.menu if self.menu is not None and self.menu.isVisible() else None
+        # Hovering from one root row to another should use the configured
+        # latency. A longer protection window is only needed when the cursor
+        # is actually travelling diagonally toward the existing child column.
+        switching = current is not None and current.owner_item is not q
+        if not switching:
+            self.list.setCurrentItem(q)
         self.pending_menu_item=q
-        self.hover_timer.start(int(self.data.get('launch_hover_delay_ms',250)))
+        delay = int(self.data.get('launch_hover_delay_ms',250))
+        if switching and self.main_hover_heading_to_cascade():
+            delay = max(delay, 650)
+        self.hover_timer.start(delay)
 
     def open_hover(self):
         q=self.pending_menu_item
@@ -1970,9 +2068,15 @@ class Launcher(QWidget):
             row=q.data(0,Qt.ItemDataRole.UserRole)
             if row.get('item_kind') in {'category','directory'}:
                 if self.list.itemAt(self.list.viewport().mapFromGlobal(QCursor.pos()))==q:
+                    self.list.setCurrentItem(q)
                     self.cascade(row,q,"hover")
 
     def check_hover_menus(self, pos=None, now=None):
+        # When a context menu owns the pointer, the underlying cascade must
+        # remain visible and highlighted, not time out as if mouse left it.
+        context = getattr(self, '_launch_context_menu', None)
+        if context is not None and context.isVisible():
+            return
         pos=QCursor.pos() if pos is None else pos
         now=time.monotonic() if now is None else now
         # Stop delayed opens as soon as their originating row is left.
@@ -1990,10 +2094,23 @@ class Launcher(QWidget):
                 if isinstance(parent,CascadeMenu):
                     related=related or (parent.isVisible() and parent.actionAt(parent.mapFromGlobal(pos))==menu.owner_action)
                 elif menu.owner_item:
-                    related=related or self.list.visualItemRect(menu.owner_item).contains(self.list.viewport().mapFromGlobal(pos))
+                    viewport_pos = self.list.viewport().mapFromGlobal(pos)
+                    related = related or self.list.visualItemRect(menu.owner_item).contains(viewport_pos)
+                    # A pending switch is a mouse *hover*, not a click. While
+                    # crossing neighbouring rows toward the open menu, do not
+                    # retire the old column ahead of the longer hover delay.
+                    related = related or (self.hover_timer.isActive() and
+                        self.pending_menu_item is not None and
+                        self.list.itemAt(viewport_pos) is self.pending_menu_item)
                 if related:menu.outside_since=None
                 elif menu.outside_since is None:menu.outside_since=now
-                elif now-menu.outside_since>=.25:
+                elif now-menu.outside_since >= (
+                        .8 if (menu.owner_item is not None and
+                               self.list.viewport().rect().contains(
+                                   self.list.viewport().mapFromGlobal(pos))) else .25):
+                    # Crossing the main list on the way to a tool column must
+                    # not dismiss it. Normal departure outside the launcher
+                    # keeps the original 250ms responsiveness.
                     menu.close();break
             menu=menu.child
 
@@ -2390,6 +2507,24 @@ class Launcher(QWidget):
         if self.menu is not None and self.menu.isVisible():
             self.menu.close()  # CascadeMenu.hideEvent also closes all children.
 
+    def page_empty_area_can_open_context(self, viewport_pos):
+        """Only the region strictly BELOW the last visible main Page row.
+
+        Empty cells, reorder rows, tab/search/footer and blank space beside a
+        row are NOT the page background.  Context on an actual row is handled
+        independently from this guard.
+        """
+        if self.selection or self.stack or self.search.text().strip():
+            return False
+        if self.list.itemAt(viewport_pos) is not None:
+            return False
+        for i in range(self.list.topLevelItemCount() - 1, -1, -1):
+            item = self.list.topLevelItem(i)
+            if not item.isHidden():
+                rect = self.list.visualItemRect(item)
+                return rect.isValid() and viewport_pos.y() > rect.bottom()
+        return True   # An empty Page has no last row.
+
     def eventFilter(self,obj,event):
         if (obj is self.list.viewport() and
                 event.type() == getattr(QEvent.Type, 'MouseButtonPress', None) and
@@ -2397,6 +2532,8 @@ class Launcher(QWidget):
                                    Qt.MouseButton.RightButton)):
             self.close_cascade_for_main_interaction()
         if obj is self.list.viewport():
+            if event.type() == getattr(QEvent.Type, 'MouseMove', None):
+                self.record_main_hover_motion(event.position().toPoint())
             # Qt/Windows sometimes delivers ContextMenu to the parent, rather
             # than the tree's viewport. Capture the right-button interaction
             # here and hit-test the actual row on the *first* click.
@@ -2411,7 +2548,8 @@ class Launcher(QWidget):
                     row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
                     if item is not None and row is not None:
                         self.list.setCurrentItem(item)
-                    self.show_launch_context_menu(event.globalPosition().toPoint(), row)
+                    if row is not None or self.page_empty_area_can_open_context(event.position().toPoint()):
+                        self.show_launch_context_menu(event.globalPosition().toPoint(), row)
                 event.accept()
                 return True
             if event.type() == getattr(QEvent.Type, 'ContextMenu', None):
@@ -2607,39 +2745,106 @@ class Launcher(QWidget):
         })
 
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None):
-        """Right-click in the launcher: use Studio for authored configuration only."""
-        if not self.data or self.selection or self.stack or self.search.text().strip():
-            # Search hits can still expose the original authored item properties.
-            if not row or row.get('item_id') not in {
-                item.get('item_id') for item in self.data.get('items', [])
-            }:
-                return False
-        authored_ids = {item.get('item_id') for item in self.data.get('items', [])}
-        menu = QMenu(context_parent if context_parent is not None else self)
+        """Choose context actions by authoritative source, not displayed item ID."""
+        if not self.data:
+            return False
+        if self.selection:
+            return False
+        origin, path = resolve_context_target(row, self.authored_items)
         if row is None:
-            if self.selection or self.stack or self.search.text().strip():
+            if self.stack or self.search.text().strip():
                 return False
+            menu = QMenu(context_parent if context_parent is not None else self)
             menu.addAction('新規作成（カテゴリー）',
                            lambda: self.launch_configuration_studio(new_category=True))
             menu.addAction('プロパティ',
                            lambda: self.launch_configuration_studio(page_properties=True))
-        elif row.get('item_id') in authored_ids:
+        elif origin == 'studio':
+            menu = QMenu(context_parent if context_parent is not None else self)
             menu.addAction('プロパティ',
-                           lambda item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
+                           lambda checked=False, item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
+        elif origin in ('file', 'folder'):
+            try:
+                actions = load_context_menus(CONTEXT_MENU_OPTIONS)[origin]
+            except (OSError, ValueError, KeyError) as exc:
+                self.error('コンテキストメニュー定義が不正です: ' + str(exc))
+                return False
+            menu = QMenu(context_parent if context_parent is not None else self)
+            for definition in actions:
+                menu.addAction(definition['title'],
+                               lambda checked=False, action_id=definition['action_id'], p=path, k=origin:
+                               self.perform_filesystem_context_action(action_id, p, k))
+            if menu.isEmpty():
+                return False
         else:
+            # Imported bookmarks/apps have no context menu, even though they
+            # happen to be merged into self.data['items'] for display/search.
             return False
         self.hover_timer.stop()
         self.pending_menu_item = None
         self._launch_context_menu = menu
+        # Do not keep a stale Python wrapper after a cascade tool-window is
+        # closed/deleted. Hover polling must not ask a deleted QMenu if visible.
+        if hasattr(menu, 'aboutToHide'):
+            menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         menu.popup(global_pos)
         return True
 
+    def _forget_launch_context_menu(self, menu):
+        if getattr(self, '_launch_context_menu', None) is menu:
+            self._launch_context_menu = None
+
+    def perform_filesystem_context_action(self, action_id, target, kind):
+        """Display belongs to JSON; filesystem work belongs to OS action helpers."""
+        try:
+            path = Path(target)
+            # Index/search contents can change after a context menu opens.
+            if not path.exists():
+                self.error('ファイルまたはフォルダーが見つかりません: ' + str(path))
+                return
+            if (kind == 'file' and not path.is_file()) or (kind == 'folder' and not path.is_dir()):
+                self.error('対象の種類が変更されています: ' + str(path))
+                return
+            if action_id in ('copy_full_path', 'copy_path'):
+                QApplication.clipboard().setText(str(path))
+            elif action_id == 'copy_file_name':
+                QApplication.clipboard().setText(path.name)
+            elif action_id == 'open_explorer':
+                open_file_explorer(path)
+            elif action_id == 'open_terminal':
+                open_folder_terminal(path)
+            elif action_id == 'properties':
+                show_windows_properties(path)
+            elif action_id == 'rename':
+                name, accepted = QInputDialog.getText(self, '名前の変更', '新しい名前:', text=path.name)
+                if not accepted or name == path.name:
+                    return
+                if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
+                    answer = QMessageBox.question(
+                        self, '拡張子の変更',
+                        'ファイルの拡張子が変わります。名前を変更しますか？',
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.No)
+                    if answer != QMessageBox.StandardButton.Yes:
+                        return
+                rename_file_or_folder(path, name)
+                # Source columns may hold the old path; safely close them and
+                # refresh the current page/search result after a successful rename.
+                self.close_cascade_for_main_interaction()
+                self.render()
+                if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
+                    QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
+            else:
+                raise ValueError('未対応の操作: ' + str(action_id))
+        except (OSError, ValueError, RuntimeError) as exc:
+            DIAG.exception('FILESYSTEM_CONTEXT action=%s target=%s', action_id, target)
+            self.error('操作を実行できませんでした: ' + str(exc))
+
     def contextMenuEvent(self, event):
-        # Empty space outside the QTreeWidget belongs to the root menu.
-        if self.show_launch_context_menu(event.globalPos()):
-            event.accept()
-        else:
-            super().contextMenuEvent(event)
+        # The root QWidget cannot distinguish page content from its tab,
+        # search box, footer or reordering overlay. The ONLY background menu
+        # entry point is the QTreeWidget viewport guard above.
+        event.accept()
 
     def open_target(self,target,browser="",profile=""):
         if browser.lower() == 'chrome' and not profile:windows.open_chrome(target);return

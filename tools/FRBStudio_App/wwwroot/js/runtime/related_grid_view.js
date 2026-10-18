@@ -123,12 +123,18 @@ function relatedGridParentWindow(params=relatedGridQueryParams()) {
 
 function createRelatedGridParentSession(definition, channel, child, extra={}) {
   const rows = relatedGridArrayFor(definition);
+  const snapshot = cloneData(sourceData);
+  // Only project the selected virtual rows into the child transfer document.
+  // This is never the document persisted by the parent.
+  if (rows && !Array.isArray(getByPath(snapshot, definition.dataPath))) {
+    setByPath(snapshot, definition.dataPath, cloneData(rows));
+  }
   const session = {
     channel,
     child,
     definition,
     sourceDataRef: sourceData,
-    sourceDataSnapshot: cloneData(sourceData),
+    sourceDataSnapshot: snapshot,
     parentDataDisplayPath: String(currentLoadedDataDisplayPath || currentDataApiUrl || ''),
     parentDataTitle: String(currentLoadedDataTitle || ''),
     parentViewDefName: String(lastLoadedDefName || ''),
@@ -683,8 +689,13 @@ function handleParentRelatedGridMessage(event, message) {
   }
 
   const nextRows = cloneData(message.rows);
-  setByPath(sourceData, session.definition.dataPath, nextRows);
+  if (virtualDataArrayConfigOf(viewDef).some(config => virtualDataTargetPath(config) === session.definition.dataPath)) {
+    setVirtualByPath(sourceData, session.definition.dataPath, nextRows);
+  } else {
+    setByPath(sourceData, session.definition.dataPath, nextRows);
+  }
   session.baseline = stableRelatedGridJson(nextRows);
+  if (window.FrbJsonObjectUnsavedGuard?.refresh) window.FrbJsonObjectUnsavedGuard.refresh();
   renderRelatedGridLaunchButtons();
   if (typeof gridDef === 'function' && gridDef()?.dataPath === session.definition.dataPath) {
     loadRows();

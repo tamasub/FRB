@@ -460,7 +460,14 @@ $('saveBtn').addEventListener('click', async () => {
   }
 });
 
-refreshServerLists().finally(async () => {
+// Launch のアイテム・プロパティから直接 Editor を開く場合は、Data/ViewDef の
+// *全件* ファイル列挙を起動クリティカルパスに置かない。指定された JSON と
+// ViewDef は autoLoadFromQuery() で直接取得する。通常起動の順序は変えない。
+// 一覧はファイル選択ツリーを開いた時に既存の遅延取得機構が補完する。
+const deferStartupFileLists = typeof isLaunchPropertiesFastStartup === 'function'
+  && isLaunchPropertiesFastStartup();
+const initialFileLists = deferStartupFileLists ? Promise.resolve() : refreshServerLists();
+initialFileLists.finally(async () => {
   try {
     if (typeof loadStudioOverlayPlugins === 'function') {
       const results = await loadStudioOverlayPlugins();

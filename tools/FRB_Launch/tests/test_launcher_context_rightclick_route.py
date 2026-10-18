@@ -54,6 +54,7 @@ class Widget:
         self.list = self
         self.dismissed = 0
     def close_cascade_for_main_interaction(self): self.dismissed += 1
+    def page_empty_area_can_open_context(self, position): return position == 9
     def viewport(self): return self.viewport_object
     def itemAt(self, pos): return self.row if pos == 8 else None
     def setCurrentItem(self, row): self.current = row

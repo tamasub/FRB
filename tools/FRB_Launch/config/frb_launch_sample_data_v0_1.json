@@ -2509,5 +2509,20 @@
       "sort_order": 70
     }
   ],
-  "bookmark_category_initialized": true
+  "bookmark_category_initialized": true,
+  "app_catalog": {
+    "cache_path": "%LOCALAPPDATA%\\FRBLaunch\\apps_cache.json"
+  },
+  "app_aliases": [
+    {
+      "kind": "aumid",
+      "target": "Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe!App",
+      "alias": "録音"
+    },
+    {
+      "kind": "aumid",
+      "target": "Microsoft.VisualStudioCode",
+      "alias": "vscode"
+    }
+  ]
 }

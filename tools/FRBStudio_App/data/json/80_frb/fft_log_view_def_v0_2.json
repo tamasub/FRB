@@ -308,6 +308,43 @@
               },
               "defaultValue": []
             }
+          ],
+          "fieldSets": [
+            {
+              "id": "fft_time_input",
+              "caption": "時刻・入力",
+              "fields": [
+                "t",
+                "inputHz"
+              ]
+            },
+            {
+              "id": "fft_peak_response",
+              "caption": "ピーク・振動応答",
+              "fields": [
+                "peakAHz",
+                "fluxA",
+                "peakMoveA"
+              ]
+            },
+            {
+              "id": "fft_phase_state",
+              "caption": "Phase2・アタリ状態",
+              "fields": [
+                "phase2State",
+                "attackState",
+                "melodyNote"
+              ]
+            },
+            {
+              "id": "fft_band_a",
+              "caption": "周波数帯 A",
+              "fields": [
+                "bandA.b0",
+                "bandA.b1",
+                "bandA.b2"
+              ]
+            }
           ]
         }
       ]

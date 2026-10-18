@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,6 +36,28 @@ namespace FRBStudio.NativeShell
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _persistedFolderGrantStorePath = Path.Combine(localAppData, "FRBStudio", "folder_grants.json");
             LoadPersistedFolderGrants();
+        }
+
+        // A generic read-only JSON adapter. JavaScript cannot select arbitrary filesystem paths.
+        // Every requested path must match an exact trusted native config allowlist entry.
+        private object ReadAllowedExternalJson(IDictionary<string, object> payload)
+        {
+            var inputPath = RequiredString(payload, "path");
+            var expanded = Path.GetFullPath(Environment.ExpandEnvironmentVariables(inputPath));
+            var allowed = _config.ReadOnlyExternalJsonFiles.Any(raw =>
+                string.Equals(Path.GetFullPath(Environment.ExpandEnvironmentVariables(raw)),
+                    expanded, StringComparison.OrdinalIgnoreCase));
+            if (!allowed) throw new InvalidOperationException("External JSON path is not in readonly_external_json_files.");
+            if (!expanded.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Read-only JSON source must end in .json");
+            var info = new FileInfo(expanded);
+            if (info.Length > 8 * 1024 * 1024)
+                throw new InvalidDataException("Read-only JSON exceeds 8 MB limit");
+            var contents = File.ReadAllText(expanded, Encoding.UTF8);
+            var parsed = _serializer.DeserializeObject(contents);
+            if (!(parsed is IDictionary<string, object>))
+                throw new InvalidDataException("Read-only JSON source must contain an object");
+            return new Dictionary<string, object> { ["document"] = parsed };
         }
 
         private object DescribeDroppedFiles(IEnumerable<object> objects)
@@ -146,6 +168,9 @@ namespace FRBStudio.NativeShell
                         ["document_id"] = _startupDocumentId,
                         ["content"] = content
                     });
+
+                case "dataSource.readOnlyJson":
+                    return ReadAllowedExternalJson(payload);
 
                 case "sqlite.documentLoad":
                     return new Dictionary<string, object> { ["document"] = _sqlite.Load(ResolveSqliteDataDocument(payload)) };

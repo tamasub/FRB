@@ -220,6 +220,22 @@
       "violation_action": "Guarantee IDがテスト実装都合で過剰分割されている場合は、独立承認の必要性を再評価し、一体として承認すべき保証へ統合する。逆にシステムごとに独立採用される保証が混在している場合は、Guarantee IDの分割を検討する。",
       "source_decision_log_ids": [],
       "notes": "原則: TestPatternは細かく分けてよい。Expected条件も細かく持ってよい。しかしGuaranteeは、人間の承認単位以上には細かくしない。"
+    },
+    {
+      "sort_order": 120,
+      "item_id": "decision_axis_external_grouping_of_field_layout",
+      "item_type": "DECISION_AXIS",
+      "title": "項目定義と配置を分離し、必要なとき外から束ねる[外からつまむ原則]",
+      "statement": "項目の意味・型・制約を定義する正本と、表示上の配置・グルーピングを分離する。初期段階でグループ構造を固定せず、必要になった時点で既存項目を外部から参照して束ねる。配置やグループを変更しても項目定義自体を書き換えない。",
+      "reason": "項目定義と表示構造を一体化すると、画面の見やすさを改善するたびに項目の正本やValidation契約へ影響が及び、再利用や変更差分の追跡を難しくするため。表示構成を後から組み替えられるようにすれば、人間とAIが項目定義を維持したままViewだけを改善できる。",
+      "scope": "document",
+      "priority": "high",
+      "status": "DRAFT",
+      "evaluation_guidance": "複数項目をまとめたい場合は、各項目へ親グループIDを埋め込む方式や項目定義の入れ子化よりも、別の表示定義がField ID / field_pathを参照して束ねる方式を優先して検討する。グループの追加・削除・組み替えが項目の意味・型・Validation・保存データへ影響しないかを判断する。ただし論理的な親子関係やデータ上の集約まで表示目的だけで変更しない。",
+      "verification_method": "①Field定義の正本にグループ配置のためだけの変更がないこと、②ViewDef側の参照定義の変更だけでグループを追加・変更・解除できること、③表示後も各Fieldの値・型・Validation・保存先が変わらないこと、④ViewDefの差分から配置変更を説明できることを確認する。",
+      "violation_action": "表示グループへの所属変更のために項目定義またはデータ構造を書き換えている場合は、責務を再分離し、外部の参照型グループ定義へ移す。既存の正本に生じた不要な変更は復元し、ViewDef差分として管理する。",
+      "source_decision_log_ids": [],
+      "notes": "通称「外からつまむ原則」。例：ViewDefのsection.fieldSetsで、既存のsection.fieldsをField ID / field_pathで後からグルーピングする。fieldGroupType（項目定義の再利用）とは別責務。2026-10-18のFRB Studio FieldSetサンプル確認を契機とした判断軸。"
     }
   ],
   "rules": [
@@ -2046,10 +2062,16 @@
       "at": "2026-08-30T10:40:00+09:00",
       "title": "Expected First / 入力データ逆算生成の原則を追加",
       "body": "constitution_34を追加。Expectedを実行後のOracleだけでなく、検証可能なBefore世界を逆算する生成契約として扱う。機械導出可能なテストではTestPatternとExpectedを先に確定し、そのExpectedが成立するInput / FixtureをAI等で生成する。Expected Diffの(-)はBefore生成条件、(+)は操作後／After生成条件として利用できる。AIはOracleではなく、確定済みExpectedを満たす制約付きFixture Generatorとして扱う。"
+    },
+    {
+      "note_id": "note_20261018_external_grouping_field_layout",
+      "at": "2026-10-18",
+      "title": "判断軸Draft追加：外からつまむ原則",
+      "body": "governance_itemsへdecision_axis_external_grouping_of_field_layoutをDRAFTで追加。項目の意味・型・制約の正本と、表示上の配置・グループを分離し、ViewDefで既存項目を外から参照して後付けで束ねることを優先する。既存constitution rules・承認状態には変更なし。sort_order 110は既存項目に使用されているため120を採番。"
     }
   ],
   "review_revision": "v0.18.41-expected-first-input-generation",
-  "updated": "2026-08-30",
+  "updated": "2026-10-18",
   "change_history_policy": "レビューで条文・仕様を変更した場合は、対象行の change_history に変更前・変更後・理由・会話を保存する。変更後だけを残さず、修正元を追体験できる状態にする。",
   "viewing_policy": {
     "data_json_role": "原本",
@@ -2090,5 +2112,5 @@
     }
   ],
   "markdown_export_body": "",
-  "updated_at": "2026-08-30T10:40:00+09:00"
+  "updated_at": "2026-10-18T13:42:00+09:00"
 }

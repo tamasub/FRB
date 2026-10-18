@@ -91,19 +91,33 @@ function dataSourceFileName(spec) {
   return null;
 }
 
-async function loadDataSourceJson(spec, label) {
+async function loadDataSourceJson(spec, label, dataObj) {
+  if (spec?.adapter === 'readonly_external_json') {
+    const pathField = String(spec.pathFromData ?? '').trim();
+    if (!pathField) throw new Error(`dataSources.${label}: pathFromData がありません`);
+    let path = String(getByPath(dataObj, pathField) ?? '').trim();
+    if (!path && spec.defaultPath) {
+      path = String(spec.defaultPath).trim();
+      if (spec.persistDefaultPath === true) setByPath(dataObj, pathField, path);
+    }
+    if (!path) throw new Error(`dataSources.${label}: 外部JSONパスがありません`);
+    if (!window.FRBStudioNativeHost?.isAvailable?.())
+      throw new Error(`dataSources.${label}: 読み取り専用外部JSONはNativeShellで開いてください`);
+    const result = await window.FRBStudioNativeHost.invoke('dataSource.readOnlyJson', { path });
+    return cloneData(result.document);
+  }
   if (spec && typeof spec === 'object' && spec.inline != null) return cloneData(spec.inline);
   const name = dataSourceFileName(spec);
   if (!name) throw new Error(`dataSources.${label} のJSONファイル名が不正です`);
   return await fetchApiJson('data', name);
 }
 
-async function loadConfiguredDataSources(defObj) {
+async function loadConfiguredDataSources(defObj, dataObj) {
   const config = dataSourcesConfigOf(defObj);
   const result = {};
   const specs = {};
   for (const [key, spec] of Object.entries(config)) {
-    result[key] = await loadDataSourceJson(spec, key);
+    result[key] = await loadDataSourceJson(spec, key, dataObj);
     specs[key] = spec;
   }
   currentDataSources = result;

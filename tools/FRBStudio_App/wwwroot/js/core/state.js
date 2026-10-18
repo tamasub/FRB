@@ -112,3 +112,6 @@ const $ = (id) => document.getElementById(id);
   document.head.appendChild(script);
 })();
 
+
+// VirtualData row provenance for explicit JOIN writeback, reset on each Data load.
+let virtualDataJoinBaselines = new Map();

@@ -34,7 +34,11 @@ async function loadFromObjects(defObj, dataObj, label='読み込み完了', data
   }
   currentDataSources = {};
   currentDataSourceSpecs = {};
-  sourceData = await materializeVirtualDataForViewDef(defObj, dataObj);
+  // Related-grid children receive an already-materialized virtual row projection.
+  // Do not reload the referenced source (and overwrite user edits) in the child.
+  sourceData = (typeof relatedGridChildRuntime !== 'undefined' && relatedGridChildRuntime
+    && Array.isArray(getByPath(dataObj, relatedGridChildRuntime.dataPath)))
+    ? dataObj : await materializeVirtualDataForViewDef(defObj, dataObj);
   if (typeof materializeDefinitionTargetCaptionDerivedProperties === 'function') {
     sourceData = await materializeDefinitionTargetCaptionDerivedProperties(defObj, sourceData);
   }
@@ -232,6 +236,65 @@ function launchBooleanParam(params, name, fallback=false) {
   return ['1', 'true', 'yes', 'on', 'open'].includes(raw);
 }
 
+// A native FRB Launch Properties request has a different initial Editor UX from
+// ordinary URL focus: start expanded, then locate the authored row on close.
+// This is a one-shot presentation contract; it never changes persisted data.
+function revealLaunchPropertiesTreeRow(index) {
+  const config = typeof studioTreeConfig === 'function' ? studioTreeConfig() : null;
+  if (!config || !Array.isArray(currentRows)) return;
+  const row = currentRows[index];
+  if (!row) return;
+  const state = studioTreeState();
+  state.selectedGroup = null;
+  if (config.groupRoots && config.groupField) {
+    state.collapsed.delete('group:' + String(row[config.groupField] ?? ''));
+  }
+  const byId = new Map(currentRows.map(item => [String(item[config.idField] ?? ''), item]));
+  const visited = new Set();
+  let parentId = String(row[config.parentField] ?? '');
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId);
+    state.collapsed.delete(parentId);
+    parentId = String(byId.get(parentId)?.[config.parentField] ?? '');
+  }
+}
+
+function alignLaunchPropertiesGridRow(index) {
+  const row = document.querySelector(`#dataGrid tr[data-source-index="${index}"]`);
+  if (!row) return false;
+  const viewport = row.closest('.table-wrap');
+  if (!viewport) return false;
+  const header = document.querySelector('#dataGrid thead');
+  const headerHeight = header ? header.getBoundingClientRect().height : 0;
+  const offset = row.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
+  const desired = Math.max(0, viewport.scrollTop + offset - headerHeight);
+  const maxScroll = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+  viewport.scrollTop = Math.min(desired, maxScroll);
+  row.focus({ preventScroll: true });
+  return true;
+}
+
+function setupLaunchPropertiesDetailClose(index, focusField, focusValue) {
+  const dialog = $('detailDialog');
+  if (!dialog) return;
+  // Resolve by authored key rather than the initial array index: F12 or
+  // re-sorting may have changed the row positions while the Editor was open.
+  dialog.addEventListener('close', () => {
+    if (!Array.isArray(currentRows)) return;
+    const targetIndex = currentRows.findIndex(row =>
+      String(getByPath(row, focusField) ?? '') === String(focusValue));
+    if (targetIndex < 0) return; // The item was removed; never focus a different row.
+    selectedIndex = targetIndex;
+    revealLaunchPropertiesTreeRow(targetIndex);
+    renderGrid();
+    const align = () => alignLaunchPropertiesGridRow(targetIndex);
+    align();
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(align));
+    }
+  }, { once: true });
+}
+
 function applyLaunchFocusFromQuery(params) {
   const focusField = normalizeLaunchFocusField(
     params.get('focusField') || params.get('recordField') || params.get('rowField')
@@ -249,10 +312,19 @@ function applyLaunchFocusFromQuery(params) {
     return false;
   }
 
+  const fromLaunchProperties = params.get('launchItemProperties') === '1'
+    && focusField === 'item_id' && launchBooleanParam(params, 'openDetail', true);
   selectedIndex = index;
+  if (fromLaunchProperties) revealLaunchPropertiesTreeRow(index);
   renderByKey('grid');
   const openDetailRequested = launchBooleanParam(params, 'openDetail', true);
-  if (openDetailRequested && typeof openDetail === 'function') openDetail(index);
+  if (openDetailRequested && typeof openDetail === 'function') {
+    openDetail(index);
+    if (fromLaunchProperties) {
+      if (typeof setDetailDialogExpanded === 'function') setDetailDialogExpanded(true);
+      setupLaunchPropertiesDetailClose(index, focusField, target);
+    }
+  }
   setStatus(`URL focus: ${focusField}=${target}`, {
     kind: 'success', title: '標準エディターFocus', toast: false
   });
@@ -659,6 +731,27 @@ async function loadSystemAppSettings() {
   return { dataObj, defObj, readonly };
 }
 
+// Launch が item_id を指定して直接 Editor を開くときだけ高速起動。
+// Page プロパティ、通常の URL 起動、Studio 単独起動では従来の一覧初期化を維持。
+function isLaunchPropertiesFastStartup(params = new URLSearchParams(location.search)) {
+  return params.get('startupJson') === '1'
+    && params.get('launchItemProperties') === '1';
+}
+
+// FastStartup でも ViewDef を推測する必要があるケースは従来の一覧探索へ戻す。
+// 正常系（Data が有効な view_def を持つ場合）は /api/defs, /api/data を列挙しない。
+async function resolveStartupViewDefWithFallback(dataObj, dataName, params) {
+  try {
+    return await resolveDefForData(null, dataObj, dataName);
+  } catch (error) {
+    if (!isLaunchPropertiesFastStartup(params)
+      || typeof refreshServerLists !== 'function'
+      || refreshServerLists.hasCompleted) throw error;
+    await refreshServerLists({ status: false, toast: false });
+    return resolveDefForData(null, dataObj, dataName);
+  }
+}
+
 async function autoLoadFromQuery() {
   const params = new URLSearchParams(location.search);
   if (typeof isRelatedGridLaunchQuery === 'function' && isRelatedGridLaunchQuery(params)) {
@@ -680,7 +773,7 @@ async function autoLoadFromQuery() {
       const dataObj = JSON.parse(document.content);
       const dataName = document.file_name;
       updateCurrentDataViewDefCandidates(dataObj, dataName);
-      const resolved = await resolveDefForData(null, dataObj, dataName);
+      const resolved = await resolveStartupViewDefWithFallback(dataObj, dataName, params);
       lastLoadedDefName = resolved.defName;
       launchRuntime = { fromUrl: true, mode: '', readonly: false, dataParam: document.path, viewParam: resolved.defName, fileParam: '' };
       if ($('dataNameInput')) $('dataNameInput').value = dataName;

@@ -1,14 +1,16 @@
-"""Create a source/config backup next to this script (no build artifacts)."""
+"""Create a source/config backup in the app_zip directory (no build artifacts)."""
 from datetime import datetime
 from pathlib import Path
 import os
 from zipfile import ZipFile, ZIP_DEFLATED
 
-EXCLUDED = {'.venv','.venv_backup', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules', 'backups'}
+EXCLUDED = {'.venv','.venv_backup', 'venv', '.git', '__pycache__', '.pytest_cache', 'build', 'dist', 'node_modules', 'backups', 'app_zip'}
 
 def make_zip(root):
     root = Path(root).resolve()
-    target = root / ('launch_app_' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.zip')
+    output_dir = root / 'app_zip'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    target = output_dir / ('launch_app_' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.zip')
     # Exclusive creation avoids overwriting a backup made in the same second.
     with target.open('xb') as output:
         try:

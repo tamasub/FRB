@@ -39,7 +39,8 @@
     "startupJson.write",
     "file.describeDrop",
     "sqlite.documentLoad",
-    "sqlite.documentSave"
+    "sqlite.documentSave",
+    "dataSource.readOnlyJson"
   ],
   "process_profiles": [
     {
@@ -165,5 +166,8 @@
   ],
   "sqlite_readonly_external_files": [
     "%LOCALAPPDATA%\\FRBLaunch\\file_index.db"
+  ],
+  "readonly_external_json_files": [
+    "%LOCALAPPDATA%\\FRBLaunch\\apps_cache.json"
   ]
 }

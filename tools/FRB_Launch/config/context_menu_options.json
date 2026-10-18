@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "menus": {
+    "file": [
+      {"action_id": "copy_full_path", "title": "フルパスのコピー"},
+      {"action_id": "copy_file_name", "title": "ファイル名のコピー"},
+      {"action_id": "rename", "title": "名前の変更"},
+      {"action_id": "properties", "title": "プロパティー"}
+    ],
+    "folder": [
+      {"action_id": "open_explorer", "title": "エクスプローラで開く"},
+      {"action_id": "open_terminal", "title": "ターミナルで開く"},
+      {"action_id": "copy_path", "title": "パスのコピー"},
+      {"action_id": "rename", "title": "名前の変更"},
+      {"action_id": "properties", "title": "プロパティー"}
+    ]
+  }
+}

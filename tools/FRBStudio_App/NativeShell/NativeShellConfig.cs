@@ -18,6 +18,8 @@ namespace FRBStudio.NativeShell
         public string[] WritableFiles { get; private set; } = Array.Empty<string>();
         // Trusted native configuration: exact external DB files permitted for read-only SQLite access.
         public string[] SqliteReadOnlyExternalFiles { get; private set; } = Array.Empty<string>();
+        // Explicit exact files, controlled by trusted native config; read-only JSON sources.
+        public string[] ReadOnlyExternalJsonFiles { get; private set; } = Array.Empty<string>();
         public HashSet<string> AllowedCommands { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, NativeProcessProfile> ProcessProfiles { get; private set; } = new Dictionary<string, NativeProcessProfile>(StringComparer.OrdinalIgnoreCase);
 
@@ -40,7 +42,8 @@ namespace FRBStudio.NativeShell
                 OpenExternalLinksInDefaultBrowser = GetBool(raw, "open_external_links_in_default_browser", true),
                 WritableRoots = GetStringList(raw, "writable_roots").ToArray(),
                 WritableFiles = GetStringList(raw, "writable_files").ToArray(),
-                SqliteReadOnlyExternalFiles = GetStringList(raw, "sqlite_readonly_external_files").ToArray()
+                SqliteReadOnlyExternalFiles = GetStringList(raw, "sqlite_readonly_external_files").ToArray(),
+                ReadOnlyExternalJsonFiles = GetStringList(raw, "readonly_external_json_files").ToArray()
             };
 
             foreach (var command in GetStringList(raw, "allowed_commands"))

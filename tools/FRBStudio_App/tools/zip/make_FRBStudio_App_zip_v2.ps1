@@ -62,7 +62,7 @@ $excludePaths = @(
 # 出力 ZIP 名
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $zipName = "FRBStudio_App$timestamp.zip"
-$zipPath = Join-Path $root $zipName
+$zipPath = Join-Path $root "app_zip\$zipName"
 
 # 一時ステージングフォルダ
 $stage = Join-Path $env:TEMP ("frbstudio_zip_stage_" + [guid]::NewGuid().ToString("N"))
