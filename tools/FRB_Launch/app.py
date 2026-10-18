@@ -2276,6 +2276,16 @@ class Launcher(QWidget):
             self.list.setFocus(Qt.FocusReason.TabFocusReason)
 
     def eventFilter(self,obj,event):
+        if (obj is self.list.viewport() and
+                event.type() == getattr(QEvent.Type, "ContextMenu", None)):
+            item = self.list.itemAt(event.pos())
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+            if self.show_launch_context_menu(event.globalPos(), row):
+                event.accept()
+                return True
+            # No OS menu on virtual / generated results.
+            event.accept()
+            return True
         if obj is self.list.viewport():
             # Headerless main-menu columns have an invisible draggable grip.
             # Handle before double-click activation, but leave all other row
@@ -2418,6 +2428,67 @@ class Launcher(QWidget):
         if obj==self.search and event.type()==QEvent.Type.InputMethod:
             self.composing=bool(event.preeditString())
         return super().eventFilter(obj,event)
+
+    def launch_configuration_studio(self, *, item_id=None, new_category=False):
+        """Open the authored Launch DataJSON.  UI never edits the JSON itself."""
+        if not self.data:
+            return
+        studio_root = self.expander().values.get('studio_root', '')
+        exe = Path(studio_root) / 'NativeShell' / '_publish' / 'FRBStudio.NativeShell.exe'
+        if not exe.is_file():
+            self.error('Studioくんが見つかりません: ' + str(exe))
+            return
+        args = ['--open-json=' + str(CONFIG)]
+        if new_category:
+            args.append('--launch-new-category=' + str(self.page_id))
+        elif item_id:
+            args.append('--launch-item-id=' + str(item_id))
+        else:
+            return
+        self.execute({
+            'item_id': '__launch_context_studio',
+            'title': 'Studioくんでメニュー設定を編集',
+            'launch_actions': [{
+                'launch_action_type': 'Run',
+                'launch_program': str(exe),
+                'launch_arguments': args,
+                'launch_working_directory': studio_root,
+                'launch_wait_for_exit': False
+            }]
+        })
+
+    def show_launch_context_menu(self, global_pos, row=None):
+        """Right-click in the launcher: use Studio for authored configuration only."""
+        if not self.data or self.selection or self.stack or self.search.text().strip():
+            # Search hits can still expose the original authored item properties.
+            if not row or row.get('item_id') not in {
+                item.get('item_id') for item in self.data.get('items', [])
+            }:
+                return False
+        authored_ids = {item.get('item_id') for item in self.data.get('items', [])}
+        menu = QMenu(self)
+        if row is None:
+            if self.selection or self.stack or self.search.text().strip():
+                return False
+            menu.addAction('新規作成（カテゴリー）',
+                           lambda: self.launch_configuration_studio(new_category=True))
+        elif row.get('item_id') in authored_ids:
+            menu.addAction('プロパティ',
+                           lambda item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
+        else:
+            return False
+        self.hover_timer.stop()
+        self.pending_menu_item = None
+        self._launch_context_menu = menu
+        menu.popup(global_pos)
+        return True
+
+    def contextMenuEvent(self, event):
+        # Empty space outside the QTreeWidget belongs to the root menu.
+        if self.show_launch_context_menu(event.globalPos()):
+            event.accept()
+        else:
+            super().contextMenuEvent(event)
 
     def open_target(self,target,browser="",profile=""):
         if browser.lower() == 'chrome' and not profile:windows.open_chrome(target);return

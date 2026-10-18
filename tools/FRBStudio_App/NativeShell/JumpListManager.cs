@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace FRBStudio.NativeShell
 {
@@ -11,6 +12,23 @@ namespace FRBStudio.NativeShell
         {
             try
             {
+                // Do not rebuild COM Jump Lists on every Studio launch.
+                // Refresh on relevant settings / exe changes, and once per day to
+                // recover if Explorer restarted or the list was cleared.
+                var fingerprint = CurrentFingerprint();
+                var marker = Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                    "FRBStudio", "jumplist_fingerprint.txt");
+                if (!string.IsNullOrWhiteSpace(fingerprint))
+                {
+                    try
+                    {
+                        if (File.Exists(marker) && string.Equals(
+                            File.ReadAllText(marker), fingerprint, StringComparison.Ordinal))
+                            return;
+                    }
+                    catch { /* A bad cache must never suppress Jump List registration. */ }
+                }
                 NativeAppIdentity.Ensure();
                 var removed = IntPtr.Zero;
                 uint slots;
@@ -39,10 +57,42 @@ namespace FRBStudio.NativeShell
 
                 destinationList.AddUserTasks((IObjectArray)tasks);
                 destinationList.CommitList();
+                // A failed registration must not write a success fingerprint.
+                if (!string.IsNullOrWhiteSpace(fingerprint))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(marker));
+                        File.WriteAllText(marker, fingerprint);
+                    }
+                    catch { /* Cache is only an optimization. */ }
+                }
             }
             catch
             {
             }
+        }
+
+        internal static string CurrentFingerprint()
+        {
+            try
+            {
+                var root = NativeLaunchShortcutCatalog.ResolveStudioAppRoot();
+                var path = Path.Combine(root, "wwwroot", "config", "app_settings.json");
+                var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                var settingsBytes = File.Exists(path) ? File.ReadAllBytes(path) : new byte[0];
+                using (var sha = SHA256.Create())
+                {
+                    var settingsHash = Convert.ToBase64String(sha.ComputeHash(settingsBytes));
+                    return string.Join("|", new[] {
+                        settingsHash,
+                        exe,
+                        File.GetLastWriteTimeUtc(exe).Ticks.ToString(),
+                        DateTime.UtcNow.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture)
+                    });
+                }
+            }
+            catch { return null; }
         }
 
         private static IShellLinkW CreateShellLink(string title, string arguments, string description, string iconPath, int iconIndex)

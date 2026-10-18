@@ -8,6 +8,8 @@ namespace FRBStudio.NativeShell
         public string InitialPage { get; private set; }
         public string InitialJsonPath { get; private set; }
         public string InitialMarkdownPath { get; private set; }
+        public string LaunchItemId { get; private set; }
+        public string LaunchNewCategoryPage { get; private set; }
 
         public static NativeLaunchOptions Parse(string[] args)
         {
@@ -17,6 +19,20 @@ namespace FRBStudio.NativeShell
             foreach (var raw in args)
             {
                 var arg = raw ?? string.Empty;
+                if (arg.StartsWith("--launch-item-id=", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.LaunchItemId = arg.Substring("--launch-item-id=".Length).Trim();
+                    if (string.IsNullOrWhiteSpace(options.LaunchItemId))
+                        throw new ArgumentException("--launch-item-id requires an item ID.");
+                    continue;
+                }
+                if (arg.StartsWith("--launch-new-category=", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.LaunchNewCategoryPage = arg.Substring("--launch-new-category=".Length).Trim();
+                    if (string.IsNullOrWhiteSpace(options.LaunchNewCategoryPage))
+                        throw new ArgumentException("--launch-new-category requires a page ID.");
+                    continue;
+                }
                 if (arg.StartsWith("--open-json=", StringComparison.OrdinalIgnoreCase))
                 {
                     var path = arg.Substring("--open-json=".Length).Trim();
@@ -60,12 +76,23 @@ namespace FRBStudio.NativeShell
                     }
                 }
             }
+            if (options.LaunchItemId != null && options.LaunchNewCategoryPage != null)
+                throw new ArgumentException("Cannot open item properties and new category at the same time.");
+            if ((options.LaunchItemId != null || options.LaunchNewCategoryPage != null) && options.InitialJsonPath == null)
+                throw new ArgumentException("Launch item edit requires --open-json.");
             if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath) && !string.IsNullOrWhiteSpace(options.InitialJsonPath))
                 throw new ArgumentException("--open-json and --open-md cannot be combined.");
             if (!string.IsNullOrWhiteSpace(options.InitialMarkdownPath))
                 options.InitialPage = "mdViewer.html?startupMd=1";
             if (!string.IsNullOrWhiteSpace(options.InitialJsonPath))
-                options.InitialPage = "index.html?startupJson=1";
+            {
+                var page = "index.html?startupJson=1";
+                if (options.LaunchItemId != null)
+                    page += "&focusField=item_id&focusValue=" + Uri.EscapeDataString(options.LaunchItemId) + "&openDetail=true";
+                if (options.LaunchNewCategoryPage != null)
+                    page += "&launchNewCategory=1&newCategoryPage=" + Uri.EscapeDataString(options.LaunchNewCategoryPage);
+                options.InitialPage = page;
+            }
             return options;
         }
     }

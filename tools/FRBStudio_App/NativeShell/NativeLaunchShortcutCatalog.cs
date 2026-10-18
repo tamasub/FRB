@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -120,7 +120,7 @@ namespace FRBStudio.NativeShell
             return "index.html?" + string.Join("&", query);
         }
 
-        private static string ResolveStudioAppRoot()
+        internal static string ResolveStudioAppRoot()
         {
             var starts = new[] { AppContext.BaseDirectory, Environment.CurrentDirectory };
             foreach (var start in starts)

@@ -260,6 +260,36 @@ function applyLaunchFocusFromQuery(params) {
 }
 
 
+// Launch context-menu creation: use the authored ViewDef and its normal New Detail path.
+// The launcher supplies only page_id; the UI controls the new-row defaults.
+function applyLaunchNewCategoryFromQuery(params) {
+  if (params.get('launchNewCategory') !== '1') return false;
+  const pageId = String(params.get('newCategoryPage') ?? '').trim();
+  const gd = typeof gridDef === 'function' ? gridDef() : null;
+  if (gd?.dataPath !== '$.items' || !Array.isArray(currentRows)) {
+    setStatus('カテゴリー追加画面を開けません: メニュー項目グリッドがありません',
+      { kind: 'warn', title: '新規カテゴリー', toast: false });
+    return false;
+  }
+  if (typeof createDefaultRow !== 'function' || typeof openNewDetail !== 'function') return false;
+  const row = createDefaultRow();
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    row.item_id = crypto.randomUUID();
+  row.page_id = pageId;
+  row.parent_item_id = '';
+  row.title = '';
+  row.description = '';
+  row.item_kind = 'category';
+  row.icon_key = 'category.blue';
+  row.enabled = true;
+  row.launch_actions = [];
+  row.keywords = [];
+  const samePage = currentRows.filter(x => x?.page_id === pageId && !x?.parent_item_id);
+  row.sort_order = Math.max(0, ...samePage.map(x => Number(x.sort_order) || 0)) + 10;
+  openNewDetail(row, '新規カテゴリーの編集を開始しました（F12で反映し、保存で確定）');
+  return true;
+}
+
 function syncLoadedDocumentSaveButtonState() {
   const saveBtn = $('saveBtn');
   if (!saveBtn) return;
@@ -608,6 +638,7 @@ async function autoLoadFromQuery() {
       if ($('defNameInput')) $('defNameInput').value = resolved.defName;
       await loadFromObjects(resolved.defObj, dataObj, '起動指定JSONを読み込みました',
         '/api/data/__startup_document__.json', document.path);
+      if (!applyLaunchNewCategoryFromQuery(params)) applyLaunchFocusFromQuery(params);
     } catch (err) {
       console.error(err);
       setStatus('起動指定JSON読込エラー: ' + err.message, { kind: 'error', title: '起動指定JSON読込エラー', sticky: true });
