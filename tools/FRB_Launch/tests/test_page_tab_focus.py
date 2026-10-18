@@ -23,6 +23,17 @@ class FocusTabSourceTests(unittest.TestCase):
         self.assertIn('def focusOutEvent(', source)
         self.assertIn('super().paintEvent(event)', source)
         self.assertIn('QRectF(tab_rect).adjusted(', source)
+        self.assertIn('button_rect.adjusted(', source)
+
+    def test_focus_ring_is_inset_from_visible_tab_not_spacing_margin(self):
+        source = (ROOT / 'src/page_tab_focus.py').read_text(encoding='utf-8')
+        light_qss = (ROOT / 'src/launch_appearance.py').read_text(encoding='utf-8')
+        dark_qss = (ROOT / 'src/page_tab_theme.py').read_text(encoding='utf-8')
+        # Keep the inset in sync with the stylesheet's reserved inter-tab gap.
+        self.assertIn('margin-right:5px', light_qss)
+        self.assertIn('margin-right: 5px', dark_qss)
+        self.assertIn('button_rect = QRectF(tab_rect).adjusted(0, 0, -5.0, 0)', source)
+        self.assertIn('inner = button_rect.adjusted(4.0, 4.0, -4.0, -5.0)', source)
 
 
 @unittest.skipUnless(importlib.util.find_spec('PySide6'), 'PySide6 not installed')

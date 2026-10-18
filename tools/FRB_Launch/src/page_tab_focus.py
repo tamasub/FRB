@@ -42,7 +42,13 @@ class FocusPageTabBar(QTabBar):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.setBrush(QColor(0, 0, 0, 0))
         painter.setPen(QPen(QColor('#82958c' if getattr(self, '_light_theme', False) else '#d2e6ff'), 1.8))
-        inner = QRectF(tab_rect).adjusted(3.5, 3.5, -3.5, -4.5)
+        # QSS gives each tab a 5px right margin to separate Page buttons.
+        # QTabBar.tabRect() includes that reserved gap, so drawing directly
+        # against its right edge makes the focus outline stick out past the
+        # *visible button*.  Remove the gap first, then inset equally from
+        # the actual button's left/right sides.
+        button_rect = QRectF(tab_rect).adjusted(0, 0, -5.0, 0)
+        inner = button_rect.adjusted(4.0, 4.0, -4.0, -5.0)
         if inner.width() > 0 and inner.height() > 0:
             painter.drawRoundedRect(inner, 4, 4)
         painter.end()
