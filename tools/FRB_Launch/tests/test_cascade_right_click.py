@@ -27,7 +27,7 @@ class RightClickConnectionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.source = (Path(__file__).resolve().parents[1] / 'app.py').read_text(encoding='utf-8')
+        cls.source = (Path(__file__).resolve().parents[1] / 'src/app.py').read_text(encoding='utf-8')
         parsed = ast.parse(cls.source)
         cls.cascade = next(node for node in parsed.body
                            if isinstance(node, ast.ClassDef) and node.name == 'CascadeMenu')

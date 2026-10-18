@@ -11,13 +11,13 @@ from types import SimpleNamespace
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-source = ast.parse((ROOT / 'app.py').read_text(encoding='utf-8'))
+source = ast.parse((ROOT / 'src/app.py').read_text(encoding='utf-8'))
 launcher = next(c for c in source.body if isinstance(c, ast.ClassDef) and c.name == 'Launcher')
 
 
 def extract_method(name):
     fn = next(n for n in launcher.body if isinstance(n, ast.FunctionDef) and n.name == name)
-    return compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), str(ROOT / 'app.py'), 'exec')
+    return compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), str(ROOT / 'src/app.py'), 'exec')
 
 
 class Base:

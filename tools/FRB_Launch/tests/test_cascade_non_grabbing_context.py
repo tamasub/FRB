@@ -4,7 +4,7 @@ import pathlib
 import unittest
 from unittest.mock import Mock
 
-SOURCE = pathlib.Path(__file__).resolve().parents[1] / 'app.py'
+SOURCE = pathlib.Path(__file__).resolve().parents[1] / 'src/app.py'
 
 
 class CascadeStructuralTests(unittest.TestCase):

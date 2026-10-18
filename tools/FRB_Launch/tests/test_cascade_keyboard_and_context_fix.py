@@ -10,7 +10,7 @@ import types
 import unittest
 from unittest.mock import Mock, patch
 
-SOURCE = pathlib.Path(__file__).resolve().parents[1] / 'app.py'
+SOURCE = pathlib.Path(__file__).resolve().parents[1] / 'src/app.py'
 CODE = SOURCE.read_text(encoding='utf-8')
 PARSED = ast.parse(CODE)
 

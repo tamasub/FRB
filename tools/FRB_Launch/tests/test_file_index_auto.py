@@ -169,7 +169,7 @@ class AutoIndexTests(unittest.TestCase):
         with self.assertRaises(ValueError):fi.load_options(path)
 
     def test_app_timer_and_manual_update_wired(self):
-        source=(Path(__file__).parents[1]/'app.py').read_text(encoding='utf8')
+        source=(Path(__file__).parents[1]/'src/app.py').read_text(encoding='utf8')
         ast.parse(source)
         self.assertIn('self.file_index_check_timer.timeout.connect(self.auto_refresh_file_index)',source)
         self.assertIn('file_index.refresh_index(',source)

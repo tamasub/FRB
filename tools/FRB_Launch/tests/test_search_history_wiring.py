@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = (ROOT / 'app.py').read_text(encoding='utf8')
+SOURCE = (ROOT / 'src/app.py').read_text(encoding='utf8')
 TREE = ast.parse(SOURCE)
 LAUNCHER = next(x for x in TREE.body if isinstance(x, ast.ClassDef) and x.name == 'Launcher')
 FUNCS = {x.name: x for x in LAUNCHER.body if isinstance(x, ast.FunctionDef)}

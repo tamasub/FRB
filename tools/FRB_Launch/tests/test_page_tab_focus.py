@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class FocusTabSourceTests(unittest.TestCase):
     def test_main_launcher_uses_focus_aware_tab_bar(self):
-        source = (ROOT / 'app.py').read_text(encoding='utf-8')
+        source = (ROOT / 'src/app.py').read_text(encoding='utf-8')
         self.assertIn('from page_tab_focus import FocusPageTabBar', source)
         self.assertIn('self.tabs = FocusPageTabBar()', source)
         self.assertIn('self.tabs.setStyleSheet(PAGE_TABS_QSS)', source)

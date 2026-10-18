@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'build_output_preflight.py'
+SCRIPT = Path(__file__).resolve().parents[1] / 'src/build_output_preflight.py'
 spec = importlib.util.spec_from_file_location('build_output_preflight', SCRIPT)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
@@ -73,9 +73,9 @@ class BuildOutputGuardTests(unittest.TestCase):
             self.assertTrue((external / 'keep.txt').is_file())
 
     def test_build_order_retains_migration(self):
-        bat = (SCRIPT.parent / 'build_windows.bat').read_text(encoding='utf-8-sig')
-        self.assertLess(bat.index('prepare_launch_home.py\nif errorlevel 1 goto fail'), bat.index('build_output_preflight.py'))
-        self.assertLess(bat.index('build_output_preflight.py'), bat.index('PyInstaller --noconfirm'))
+        bat = (SCRIPT.parents[1] / '_build_windows.bat').read_text(encoding='utf-8-sig')
+        self.assertLess(bat.index('prepare_launch_home.py\nif errorlevel 1 goto fail'), bat.index('src\\build_output_preflight.py'))
+        self.assertLess(bat.index('src\\build_output_preflight.py'), bat.index('PyInstaller --noconfirm'))
         self.assertIn('if %_frb_wait% GEQ 15 goto frb_process_stuck', bat)
 
 if __name__ == '__main__':

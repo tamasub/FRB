@@ -126,7 +126,7 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         import ast
         import types
         from unittest.mock import Mock
-        source = (CONFIG.parent.parent / 'app.py').read_text(encoding='utf-8')
+        source = (CONFIG.parent.parent / 'src/app.py').read_text(encoding='utf-8')
         tree = ast.parse(source)
         cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
         fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'show_launch_context_menu')

@@ -29,7 +29,7 @@ class PageTabThemeTests(unittest.TestCase):
         self.assertIn('qlineargradient(', PAGE_TABS_QSS)
 
     def test_launcher_uses_style_without_changing_page_navigation(self):
-        source = (ROOT / 'app.py').read_text(encoding='utf-8')
+        source = (ROOT / 'src/app.py').read_text(encoding='utf-8')
         self.assertIn('self.tabs.setStyleSheet(PAGE_TABS_QSS)', source)
         self.assertIn('self.tabs.currentChanged.connect(self.page_changed)', source)
         self.assertIn('self.tabs.setCurrentIndex(index)', source)

@@ -17,9 +17,10 @@ class BuildPrepareSmokeTests(unittest.TestCase):
             (root / 'config').mkdir()
             shutil.copy2(SOURCE / 'config/frb_launch_sample_data_v0_1.json',
                          root / 'config/frb_launch_sample_data_v0_1.json')
-            for name in ('prepare_launch_home.py', 'core.py', 'browser_bookmarks.py'):
-                shutil.copy2(SOURCE / name, root / name)
-            cmd = [sys.executable, str(root / 'prepare_launch_home.py')]
+            (root / 'src').mkdir()
+            for name in ('prepare_launch_home.py', 'core.py', 'browser_bookmarks.py', 'search_matching.py'):
+                shutil.copy2(SOURCE / 'src' / name, root / 'src' / name)
+            cmd = [sys.executable, str(root / 'src' / 'prepare_launch_home.py')]
             first = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             self.assertTrue((root / '.launch_home_ready').is_file())

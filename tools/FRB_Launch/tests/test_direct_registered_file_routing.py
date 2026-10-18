@@ -78,7 +78,7 @@ class DirectRegisteredFileRoutingTests(unittest.TestCase):
         self.assertEqual(file_index.route_registered_open_step(run, str(self.studio)), [run])
 
     def test_existing_launch_execute_uses_shared_routing_after_expansion(self):
-        source = (ROOT / 'app.py').read_text(encoding='utf-8')
+        source = (ROOT / 'src/app.py').read_text(encoding='utf-8')
         tree = ast.parse(source)
         launcher = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
         method = next(n for n in launcher.body if isinstance(n, ast.FunctionDef) and n.name == 'execute')
@@ -87,7 +87,7 @@ class DirectRegisteredFileRoutingTests(unittest.TestCase):
             'should_start_before_dismiss': should_start_before_dismiss,
             'QTimer': SimpleNamespace(singleShot=lambda _, action: None),
         }
-        exec(compile(ast.Module(body=[method], type_ignores=[]), str(ROOT / 'app.py'), 'exec'), env)
+        exec(compile(ast.Module(body=[method], type_ignores=[]), str(ROOT / 'src/app.py'), 'exec'), env)
 
         class Stub:
             busy = False

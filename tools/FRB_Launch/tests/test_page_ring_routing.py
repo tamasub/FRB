@@ -2,7 +2,7 @@
 import unittest
 from pathlib import Path
 
-SOURCE = (Path(__file__).resolve().parents[1] / 'app.py').read_text(encoding='utf-8')
+SOURCE = (Path(__file__).resolve().parents[1] / 'src/app.py').read_text(encoding='utf-8')
 
 
 class PageRingRoutingTest(unittest.TestCase):

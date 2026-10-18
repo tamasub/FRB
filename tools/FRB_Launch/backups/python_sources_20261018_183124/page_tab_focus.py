@@ -1,0 +1,43 @@
+"""Keyboard focus cue for the modern FRB Launch Page tabs.
+
+Qt stylesheets can style :selected tabs, but they do not reliably draw a
+per-tab keyboard-focus indicator on all Windows Qt styles.  Keep the normal
+QTabBar selection/navigation, then paint a thin inner outline only when the
+bar actually owns focus.  The outline is *not* the selected-page marker.
+"""
+
+from PySide6.QtCore import QRectF
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import QTabBar
+
+
+class FocusPageTabBar(QTabBar):
+    """A normal QTabBar with a visible inner outline on its focused tab."""
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.update()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        index = self.currentIndex()
+        if not self.hasFocus() or index < 0:
+            return
+        tab_rect = self.tabRect(index)
+        if tab_rect.isEmpty():
+            return
+
+        # Draw *inside* the styled tab: neither its rounded border nor the
+        # blue selection underline should move when keyboard focus changes.
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setBrush(QColor(0, 0, 0, 0))
+        painter.setPen(QPen(QColor('#d2e6ff'), 1.5))
+        inner = QRectF(tab_rect).adjusted(3.5, 3.5, -3.5, -4.5)
+        if inner.width() > 0 and inner.height() > 0:
+            painter.drawRoundedRect(inner, 4, 4)
+        painter.end()

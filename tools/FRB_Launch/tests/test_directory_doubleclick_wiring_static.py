@@ -3,7 +3,7 @@ import ast
 from pathlib import Path
 import unittest
 
-SOURCE = Path(__file__).resolve().parents[1] / 'app.py'
+SOURCE = Path(__file__).resolve().parents[1] / 'src/app.py'
 
 
 class FolderMouseWiringTests(unittest.TestCase):

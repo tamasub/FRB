@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 from cascade_properties import authored_cascade_row
 
-SOURCE = Path(__file__).resolve().parents[1] / 'app.py'
+SOURCE = Path(__file__).resolve().parents[1] / 'src/app.py'
 
 
 def isolated_method(name):

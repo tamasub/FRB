@@ -4,7 +4,7 @@ import pathlib
 import types
 import unittest
 
-APP = pathlib.Path(__file__).resolve().parents[1] / 'app.py'
+APP = pathlib.Path(__file__).resolve().parents[1] / 'src/app.py'
 
 
 def load_guard():

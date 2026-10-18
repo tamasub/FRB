@@ -44,12 +44,12 @@ class SearchSortAndRoutesTests(unittest.TestCase):
 
     def test_folder_routing_is_shared_with_index_routing(self):
         # GUI Qt isn't installed in CI, inspect Python AST for the connection.
-        tree=ast.parse((ROOT/'app.py').read_text(encoding='utf8'))
+        tree=ast.parse((ROOT/'src/app.py').read_text(encoding='utf8'))
         clazz=next(node for node in tree.body if isinstance(node,ast.ClassDef) and node.name=='Launcher')
         funcs={node.name:node for node in clazz.body if isinstance(node,ast.FunctionDef)}
-        children=ast.get_source_segment((ROOT/'app.py').read_text(encoding='utf8'),funcs['children'])
-        activate=ast.get_source_segment((ROOT/'app.py').read_text(encoding='utf8'),funcs['activate'])
-        runner=ast.get_source_segment((ROOT/'app.py').read_text(encoding='utf8'),funcs['run_file_path'])
+        children=ast.get_source_segment((ROOT/'src/app.py').read_text(encoding='utf8'),funcs['children'])
+        activate=ast.get_source_segment((ROOT/'src/app.py').read_text(encoding='utf8'),funcs['activate'])
+        runner=ast.get_source_segment((ROOT/'src/app.py').read_text(encoding='utf8'),funcs['run_file_path'])
         self.assertIn('_browse_file',children)
         self.assertIn('_indexed_file',activate)
         self.assertIn('_browse_file',activate)

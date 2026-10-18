@@ -10,7 +10,7 @@ class _Base:
         return False
 
 
-source = ast.parse((Path(__file__).resolve().parents[1] / 'app.py').read_text(encoding='utf-8'))
+source = ast.parse((Path(__file__).resolve().parents[1] / 'src/app.py').read_text(encoding='utf-8'))
 launcher = next(c for c in source.body if isinstance(c, ast.ClassDef) and c.name == 'Launcher')
 method = next(n for n in launcher.body if isinstance(n, ast.FunctionDef) and n.name == 'eventFilter')
 code = compile(ast.fix_missing_locations(ast.Module(body=[ast.ClassDef(name='TestLauncher', bases=[ast.Name(id='_Base', ctx=ast.Load())], keywords=[], body=[method], decorator_list=[])], type_ignores=[])), '<launcher-event-filter>', 'exec')

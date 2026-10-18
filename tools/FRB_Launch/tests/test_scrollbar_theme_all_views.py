@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import unittest
 
-APP = Path(__file__).resolve().parents[1] / 'app.py'
+APP = Path(__file__).resolve().parents[1] / 'src/app.py'
 SOURCE = APP.read_text(encoding='utf-8')
 TREE = ast.parse(SOURCE)
 

@@ -19,10 +19,10 @@ import file_index
 
 
 def method_body(name):
-    module = ast.parse((ROOT / 'app.py').read_text(encoding='utf-8'))
+    module = ast.parse((ROOT / 'src/app.py').read_text(encoding='utf-8'))
     cls = next(node for node in module.body if isinstance(node, ast.ClassDef) and node.name == 'Launcher')
     fn = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == name)
-    code = compile(ast.Module(body=[fn], type_ignores=[]), str(ROOT / 'app.py'), 'exec')
+    code = compile(ast.Module(body=[fn], type_ignores=[]), str(ROOT / 'src/app.py'), 'exec')
     return code
 
 

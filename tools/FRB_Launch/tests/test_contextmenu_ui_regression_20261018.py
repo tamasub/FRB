@@ -9,7 +9,7 @@ import types
 import unittest
 from unittest.mock import Mock
 
-SRC = Path(__file__).resolve().parents[1] / 'app.py'
+SRC = Path(__file__).resolve().parents[1] / 'src/app.py'
 TEXT = SRC.read_text(encoding='utf-8')
 TREE = ast.parse(TEXT)
 

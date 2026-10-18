@@ -42,7 +42,7 @@
   ('pyi_rth_pyside6',
    'F:\\FRB\\tools\\FRB_Launch\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyside6.py',
    'PYSOURCE'),
-  ('app', 'F:\\FRB\\tools\\FRB_Launch\\app.py', 'PYSOURCE')],
+  ('app', 'F:\\FRB\\tools\\FRB_Launch\\src\\app.py', 'PYSOURCE')],
  'python314.dll',
  True,
  False,

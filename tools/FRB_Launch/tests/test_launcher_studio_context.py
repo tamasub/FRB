@@ -2,7 +2,7 @@
 import pathlib
 import unittest
 
-SOURCE = pathlib.Path(__file__).resolve().parents[1].joinpath('app.py').read_text(encoding='utf-8')
+SOURCE = pathlib.Path(__file__).resolve().parents[1].joinpath('src/app.py').read_text(encoding='utf-8')
 
 class LauncherStudioContextTests(unittest.TestCase):
     def test_context_event_uses_hit_test(self):

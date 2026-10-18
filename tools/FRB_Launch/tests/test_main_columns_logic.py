@@ -4,7 +4,7 @@ import types
 import unittest
 from pathlib import Path
 
-APP = Path(__file__).resolve().parents[1] / 'app.py'
+APP = Path(__file__).resolve().parents[1] / 'src/app.py'
 source = APP.read_text(encoding='utf-8')
 module = ast.parse(source)
 launcher = next(node for node in module.body if isinstance(node, ast.ClassDef) and
