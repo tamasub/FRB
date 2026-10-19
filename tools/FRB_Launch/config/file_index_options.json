@@ -36,6 +36,6 @@
   "auto_update": {
     "startup_delay_seconds": 90,
     "check_interval_minutes": 30,
-    "max_scan_workers": 4
+    "max_scan_workers": 99
   }
 }
