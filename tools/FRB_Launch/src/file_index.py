@@ -1,6 +1,6 @@
 """Persistent, root-scoped file index for FRB Launch.
 
-Roots are inferred solely from enabled, registered directory items. v0.2
+Indexing may use registered launch folders, separately configured folders, or be disabled. v0.2
 compares filename/path snapshots and transactionally updates only changed
 roots; the legacy full-build function remains for compatibility.
 """
@@ -10,6 +10,7 @@ import json
 import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import ntpath
+import re
 import os
 import sqlite3
 import tempfile
@@ -19,7 +20,10 @@ from pathlib import Path
 from search_matching import sql_like_term
 
 DEFAULT_OPTIONS = {
-    'enabled': True,
+    'enabled': True,  # Backward-compatible switch; false overrides index_mode.
+    'index_mode': 'registered',  # registered / configured / off
+    'index_folders': [],  # Used only in configured mode; absolute paths, spaces OK.
+    'max_depth': None,  # None=recursive, 0=files in root only, 1=one child level.
     'extensions': ['.bat', '.py', '.ps1', '.json', '.xlsx', '.md'],
     'exclude_name_contains': ['view_def'],
     'exclude_directories': ['.venv', '.git', 'node_modules', '__pycache__', 'build', 'dist', 'System Volume Information', '$RECYCLE.BIN'],
@@ -36,6 +40,14 @@ def load_options(path):
     if not isinstance(raw, dict):
         raise ValueError('file_index_options.json はJSONオブジェクトにしてください')
     options = {**DEFAULT_OPTIONS, **raw}
+    if options['index_mode'] not in ('registered', 'configured', 'off'):
+        raise ValueError('index_mode は registered / configured / off を指定してください')
+    if not isinstance(options['index_folders'], list) or not all(
+            isinstance(x, str) and x.strip() for x in options['index_folders']):
+        raise ValueError('index_folders は空でないパス文字列の配列にしてください')
+    if options['max_depth'] is not None and (
+            type(options['max_depth']) is not int or not 0 <= options['max_depth'] <= 100):
+        raise ValueError('max_depth は null または 0～100 の整数にしてください')
     if options['update_mode'] not in ('manual', 'auto'):
         raise ValueError('update_mode は manual / auto を指定してください')
     auto = options.get('auto_update', {})
@@ -44,7 +56,7 @@ def load_options(path):
     auto = {**DEFAULT_OPTIONS['auto_update'], **auto}
     limits = {'startup_delay_seconds': (0, 3600),
               'check_interval_minutes': (1, 1440),
-              'max_scan_workers': (1, 4)}
+              'max_scan_workers': (1, 99)}
     for key, (minimum, maximum) in limits.items():
         if type(auto[key]) is not int or not minimum <= auto[key] <= maximum:
             raise ValueError(f'auto_update.{key} は {minimum}～{maximum} の整数にしてください')
@@ -61,6 +73,85 @@ def load_options(path):
     if type(options['search_limit']) is not int or not 1 <= options['search_limit'] <= 500:
         raise ValueError('search_limit は1～500で指定してください')
     return options
+
+
+def index_mode(options):
+    """Legacy enabled:false always means off (including old installations)."""
+    return 'off' if not options.get('enabled', True) else options.get('index_mode', 'registered')
+
+
+def configured_roots(options, *, include_unavailable=True):
+    """Separate index scope from the launch JSON; do not tokenize paths at spaces.
+
+    Never interpret paths as shell commands. Environment vars and ~ are allowed,
+    but relative paths and drive/share roots are rejected to avoid surprise scans.
+    Unavailable roots are retained in the desired set so a disconnected sync
+    drive cannot silently wipe an older index snapshot.
+    """
+    roots, warnings = [], []
+    for raw in options.get('index_folders', []):
+        expanded = os.path.expanduser(os.path.expandvars(raw.strip()))
+        # ntpath handles Windows %VAR% even when unit tests run on POSIX.
+        expanded = ntpath.expandvars(expanded)
+        if re.search(r'%[A-Za-z_][A-Za-z0-9_]*%', expanded):
+            raise ValueError(f'環境変数を展開できないパスです: {raw}')
+        if not os.path.isabs(expanded):
+            raise ValueError(f'index_folders には絶対パスを指定してください: {raw}')
+        path = os.path.abspath(expanded)
+        drive, tail = ntpath.splitdrive(path)
+        # C:\, //server/share, or the POSIX filesystem root.
+        if os.path.normpath(path) == os.path.normpath(os.path.abspath(os.sep)) or (
+                drive and not tail.strip('\\/')):
+            raise ValueError(f'ドライブルート/共有ルートは索引できません。下位フォルダーを指定してください: {path}')
+        if not os.path.isdir(path):
+            warnings.append(f'指定フォルダーを利用できません: {path}')
+            if not include_unavailable:
+                continue
+        # An explicitly configured cloud folder may itself be a junction;
+        # traversal still avoids following links encountered *under* the root.
+        roots.append(path)
+    return minimize_roots(roots), warnings
+
+
+def resolve_roots(options, launch_data=None, expand=None, *, include_unavailable=True):
+    """Resolve one of three independent indexing scopes."""
+    mode = index_mode(options)
+    if mode == 'off':
+        return [], []
+    if mode == 'configured':
+        return configured_roots(options, include_unavailable=include_unavailable)
+    if launch_data is None or expand is None:
+        raise ValueError('registered モードにはランチャー設定が必要です')
+    return registered_roots(launch_data, expand, include_unavailable=include_unavailable)
+
+
+def clear_index(database):
+    """Atomically empty the generated index, without unlinking its SQLite file.
+
+    Windows prevents deleting a database while another connection holds it open
+    (WinError 32).  Clearing rows in a single transaction is safe with other
+    readers in WAL mode, and deleting index_roots as well as files guarantees
+    the next refresh really rebuilds the index rather than reusing old digests.
+
+    The launcher disables this action while its index writer is working.  If an
+    unrelated writer keeps SQLite locked, raise an error and preserve the old
+    data rather than reporting a partial/silent success.
+    """
+    database = Path(database)
+    if not database.is_file():
+        return False
+    with closing(sqlite3.connect(database, timeout=5)) as db:
+        db.execute('PRAGMA busy_timeout=5000')
+        tables = {name for (name,) in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name IN ('files', 'index_roots', 'metadata')")}
+        # The old index schema lacks index_roots. Handle both versions without
+        # dropping tables, modifying the journal mode, or touching WAL sidecars.
+        with db:
+            for name in ('files', 'index_roots', 'metadata'):
+                if name in tables:
+                    db.execute(f'DELETE FROM {name}')
+    return True
 
 
 def _normalized_path(path):
@@ -134,6 +225,7 @@ def _scan(roots, options, connection):
     extensions = set(options['extensions'])
     hidden = tuple({'view_def', *(x.casefold() for x in options['exclude_name_contains'] if x)})
     excluded_dirs = {x.casefold() for x in options['exclude_directories']}
+    max_depth = options.get('max_depth')
     inserted, skipped, errors = 0, 0, []
     cur = connection.cursor()
     def onerror(error):
@@ -145,6 +237,9 @@ def _scan(roots, options, connection):
         with os.scandir(root) as check:
             next(check, None)
         for parent, dirs, files in os.walk(root, topdown=True, followlinks=False, onerror=onerror):
+            if max_depth is not None and os.path.relpath(parent, root).count(os.sep) + (parent != root) >= max_depth:
+                skipped += len(dirs)
+                dirs[:] = []
             retained = []
             for dirname in dirs:
                 child = os.path.join(parent, dirname)
@@ -205,7 +300,10 @@ def index_status(database):
         return None
     try:
         with closing(sqlite3.connect(database, timeout=1)) as db:
-            return {key: json.loads(value) for key, value in db.execute('SELECT key, value FROM metadata')}
+            metadata = {key: json.loads(value) for key, value in db.execute('SELECT key, value FROM metadata')}
+            # Empty metadata means the cache was cleared; it is not a valid
+            # index status (the tray expects updated_at/count/etc.).
+            return metadata or None
     except (sqlite3.Error, OSError, ValueError):
         return None
 
@@ -321,7 +419,7 @@ def route_registered_open_step(step, studio_root=''):
 
 def _index_options_digest(options):
     relevant = {key: options[key] for key in
-                ('extensions', 'exclude_name_contains', 'exclude_directories')}
+                ('extensions', 'exclude_name_contains', 'exclude_directories', 'max_depth')}
     return hashlib.sha256(json.dumps(relevant, ensure_ascii=False,
                                     sort_keys=True).encode('utf-8')).hexdigest()
 
@@ -345,12 +443,16 @@ def _root_scan(root, options, cancelled=None):
     extensions = set(options['extensions'])
     hidden = ('view_def', *(v.casefold() for v in options['exclude_name_contains'] if v))
     excluded_dirs = {v.casefold() for v in options['exclude_directories']}
+    max_depth = options.get('max_depth')
     rows, excluded = [], 0
     failures = []
     for parent, dirs, files in os.walk(root, topdown=True, followlinks=False,
                                        onerror=lambda exc: failures.append(str(exc))):
         if cancelled and cancelled():
             raise InterruptedError('索引更新は中断されました')
+        if max_depth is not None and os.path.relpath(parent, root).count(os.sep) + (parent != root) >= max_depth:
+            excluded += len(dirs)
+            dirs[:] = []
         retained = []
         for dirname in dirs:
             child = os.path.join(parent, dirname)

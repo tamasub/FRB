@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import sqlite3
 import logging
 import time
 import threading
@@ -1172,6 +1173,7 @@ class Launcher(QWidget):
         traymenu.addSeparator()
         self.file_index_refresh_action = traymenu.addAction('ファイル索引を今すぐ更新', lambda: self.refresh_file_index(manual=True))
         traymenu.addAction('ファイル索引の状態を表示', self.show_file_index_status)
+        self.file_index_clear_action = traymenu.addAction('ファイル索引SQLite DBをクリア', self.clear_file_index)
         traymenu.addAction('ファイル索引の設定JSONを開く',
                            lambda: self.open_target(str(self.file_index_options_path)))
         traymenu.addSeparator()
@@ -1616,9 +1618,10 @@ class Launcher(QWidget):
             new_interval = opts['auto_update']['check_interval_minutes'] * 60000
             if self.file_index_check_timer.interval() != new_interval:
                 self.file_index_check_timer.setInterval(new_interval)
-            if not opts.get('enabled', True):
+            mode = file_index.index_mode(opts)
+            if mode == 'off':
                 if manual:
-                    raise ValueError('ファイル索引は設定JSONで無効になっています')
+                    raise ValueError('ファイル索引は設定JSONで無効になっています（index_mode: off）')
                 return
             if not manual and opts['update_mode'] != 'auto':
                 return
@@ -1626,17 +1629,22 @@ class Launcher(QWidget):
             # they cannot be mistaken for removed configuration and deleted.
             # Read the latest authored config even if Studio changed it while
             # the launcher stays hidden in the system tray.
-            index_data = load(CONFIG)
-            roots, warnings = file_index.registered_roots(
-                index_data, Expander(index_data).expand, include_unavailable=True)
+            if mode == 'registered':
+                index_data = load(CONFIG)
+                roots, warnings = file_index.resolve_roots(
+                    opts, index_data, Expander(index_data).expand, include_unavailable=True)
+            else:
+                roots, warnings = file_index.resolve_roots(
+                    opts, include_unavailable=True)
             if not roots:
                 if manual:
-                    raise ValueError('有効な「実フォルダー展開先」がありません。設定を確認してください')
-                DIAG.warning('FILE_INDEX auto skipped: no registered roots')
+                    raise ValueError('索引対象フォルダーがありません。index_mode と index_folders を確認してください')
+                DIAG.warning('FILE_INDEX auto skipped: no configured index roots (mode=%s)', mode)
                 return
             self.file_index_busy = True
             self._file_index_manual = manual
             self.file_index_refresh_action.setEnabled(False)
+            self.file_index_clear_action.setEnabled(False)
             DIAG.info('FILE_INDEX start mode=%s roots=%s extensions=%s warnings=%s',
                       'manual' if manual else 'auto', roots, opts['extensions'], warnings)
             if manual:
@@ -1665,6 +1673,7 @@ class Launcher(QWidget):
     def file_index_finished(self, stats):
         self.file_index_busy = False
         self.file_index_refresh_action.setEnabled(True)
+        self.file_index_clear_action.setEnabled(True)
         DIAG.info('FILE_INDEX complete count=%s changed=%s unchanged=%s failed=%s applied=%s',
                   stats['count'], len(stats['changed_roots']),
                   len(stats['unchanged_roots']), len(stats['failed_roots']), stats['applied'])
@@ -1682,12 +1691,19 @@ class Launcher(QWidget):
     def file_index_failed(self, message):
         self.file_index_busy = False
         self.file_index_refresh_action.setEnabled(True)
+        self.file_index_clear_action.setEnabled(True)
         if self._file_index_manual:
             self.error('ファイル索引の更新に失敗（旧索引は維持）: ' + message)
         else:
             DIAG.warning('FILE_INDEX automatic refresh failed (old index retained): %s', message)
 
     def show_file_index_status(self):
+        try:
+            self.file_index_settings = file_index.load_options(self.file_index_options_path)
+            mode = file_index.index_mode(self.file_index_settings)
+        except (OSError, ValueError) as exc:
+            self.error('ファイル索引の設定JSONに問題があります: ' + str(exc))
+            return
         status = file_index.index_status(self.file_index_db)
         if status is None:
             message = 'まだ索引がありません。トレイの「ファイル索引を今すぐ更新」を実行してください。'
@@ -1708,7 +1724,37 @@ class Launcher(QWidget):
                     message += f'\nほか {len(detail)-15}ルート'
             if warnings:
                 message += '\n警告（前回チェック時）:\n' + warnings
+        labels = {'registered':'既存設定のフォルダー', 'configured':'index_folders に指定したフォルダー', 'off':'無効'}
+        message = (f"現在のモード: {mode}（{labels[mode]}）\n"
+                   f"最大探索深さ: {self.file_index_settings.get('max_depth')}\n" + message)
+        if mode == 'off':
+            message += '\n※旧DBが残っていても検索には使用されません。'
         QMessageBox.information(self, 'ファイル索引の状態', message)
+
+    def clear_file_index(self):
+        """Clear indexed rows safely, preserving the SQLite file and source data."""
+        if self.file_index_busy:
+            QMessageBox.warning(self, 'ファイル索引', '索引を更新中です。終了後に再実行してください。')
+            return
+        answer = QMessageBox.question(
+            self, 'ファイル索引SQLite DBをクリア',
+            'ファイル索引DB内の索引データをすべてクリアしますか？\n\n'
+            'DBファイル自体は残します。元のファイルや設定JSONは削除しません。\n'
+            '必要な場合は「ファイル索引を今すぐ更新」で再作成できます。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            removed = file_index.clear_index(self.file_index_db)
+            DIAG.info('FILE_INDEX cleared database=%s removed=%s', self.file_index_db, removed)
+            if self.isVisible() and self.search.text().strip() and not self.selection:
+                self.render()
+            QMessageBox.information(self, 'ファイル索引',
+                                    '索引データをクリアしました（登録0件）。' if removed else '索引DBは既にありません。')
+        except (OSError, sqlite3.Error) as exc:
+            DIAG.exception('FILE_INDEX clear failed')
+            self.error('ファイル索引DBをクリアできませんでした: ' + str(exc))
 
     def run_file_path(self, row, path):
         """Index results and expanded folder entries share launch rules."""
@@ -2099,7 +2145,12 @@ class Launcher(QWidget):
                 pairs=[(c,'') for c in candidates if matches_search_text(json.dumps(c,ensure_ascii=False), query)]
             elif query:
                 pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
-                if self.file_index_settings.get('enabled', True):
+                try:
+                    self.file_index_settings = file_index.load_options(self.file_index_options_path)
+                except (OSError, ValueError) as exc:
+                    DIAG.warning('FILE_INDEX search options invalid: %s', exc)
+                    self.file_index_settings = {'index_mode': 'off', 'enabled': False}
+                if file_index.index_mode(self.file_index_settings) != 'off':
                     for hit in file_index.search_index(self.file_index_db, query,
                                                        self.file_index_settings['search_limit']):
                         row = dict(item_id='__file_index_'+hit['path'],

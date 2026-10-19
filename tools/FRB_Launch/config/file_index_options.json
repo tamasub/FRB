@@ -1,5 +1,16 @@
 {
+  "_index_mode_help": {
+    "registered": "従来方式：ランチャー登録フォルダーを対象",
+    "configured": "指定方式：index_foldersのフォルダーのみ対象",
+    "off": "インデックス処理なし"
+  },
   "enabled": true,
+  "index_mode": "registered",
+  "index_folders": [
+    "F:\\FRB\\tools\\FRB_Launch",
+    "C:\\Users\\tsub-\\Pictures"
+  ],
+  "max_depth": null,
   "extensions": [
     ".bat",
     ".ps1",
@@ -25,6 +36,6 @@
   "auto_update": {
     "startup_delay_seconds": 90,
     "check_interval_minutes": 30,
-    "max_scan_workers": 2
+    "max_scan_workers": 4
   }
 }
