@@ -27,6 +27,10 @@ QTreeWidget::item { height:35px; padding:0 6px; }
 QTreeWidget::item:selected, QTreeWidget::item:selected:!active {
     background:#d6e7f8; color:#1d3b4b; }
 QTreeWidget::item:hover:!selected { background:#e4eee8; }
+/* The main grid's blue fills and full-row outline are drawn separately.
+   History and cascade lists retain their existing styling. */
+QTreeWidget#mainLaunchList::item:selected { background:transparent; color:#253e35; }
+QTreeWidget#mainLaunchList::item:hover { background:transparent; }
 QHeaderView::section { background:#e3eee7; color:#28463b; border:0;
     border-right:1px solid #cbdcd1; border-bottom:1px solid #cbdcd1; padding:3px 8px; }
 QHeaderView::section:hover { background:#d2e7db; }

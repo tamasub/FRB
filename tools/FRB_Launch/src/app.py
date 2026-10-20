@@ -1099,7 +1099,7 @@ class Launcher(QWidget):
         # Apply full tab styles (including *unselected* tabs) so Windows does
         # not fall back to the legacy beveled/3D native QTabBar appearance.
         self.tabs.setStyleSheet(PAGE_TABS_QSS)
-        self.list = ReorderTree(self); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
+        self.list = ReorderTree(self); self.list.setObjectName('mainLaunchList'); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
         self.list.setHeaderLabels(['タイトル', '説明・場所'])
         header = self.list.header()
         header.setSectionsMovable(False)
@@ -1133,7 +1133,7 @@ class Launcher(QWidget):
         buttons.addStretch()
         self.selection_tools.hide()
         for w in (self.search_bar,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
-        self._dark_main_qss = '''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}'''
+        self._dark_main_qss = '''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QTreeWidget#mainLaunchList::item:selected{background:transparent;color:#e5ebf3;} QTreeWidget#mainLaunchList::item:hover{background:transparent;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}'''
         # Search mode may show both scroll axes.  Keep their look consistent
         # with the slim cascade scrollbar; do not change their policies or sorting.
         self.list.verticalScrollBar().setStyleSheet(MAIN_LIST_SCROLLBAR_QSS)
@@ -1296,6 +1296,7 @@ class Launcher(QWidget):
         """Restyle existing widgets without rebuilding search results or pages."""
         light = self.color_theme == 'light'
         self.setStyleSheet(LIGHT_MAIN_QSS if light else self._dark_main_qss)
+        self.list.set_row_theme(self.color_theme)
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
         self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
@@ -2142,6 +2143,7 @@ class Launcher(QWidget):
         self.list.setHeaderHidden(not bool(query))
         self.list.header().setSortIndicatorShown(bool(query) and self.result_sort_column >= 0)
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded if query else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.list.clear_row_hover()
         self.list.blockSignals(True);self.list.clear()
         self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source') in {'installed_apps','browser_bookmarks'} or self.stack[-1].get('_browser_bookmark'))) 
         self.list.order_rows=[]

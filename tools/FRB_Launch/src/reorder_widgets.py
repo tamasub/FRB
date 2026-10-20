@@ -1,7 +1,8 @@
 """Mouse reordering of a single visible group of menu items."""
-from PySide6.QtCore import Qt, QMimeData
-from PySide6.QtGui import QDrag, QPainter, QColor
-from PySide6.QtWidgets import QTreeWidget
+from PySide6.QtCore import Qt, QMimeData, QEvent, QRect
+from PySide6.QtGui import QDrag, QPainter, QColor, QBrush, QPen
+from PySide6.QtWidgets import QApplication, QTreeWidget, QStyledItemDelegate, QStyle, QStyleOptionViewItem
+from main_grid_visual_state import ROW_PALETTE, row_visual_state, row_fill, row_has_outline
 
 MIME='application/x-frb-launch-order'
 
@@ -69,10 +70,85 @@ class OrderDragMixin:
             if pos.y()<rect.center().y():return index
         return len(self.order_rows)
 
+class MainGridRowDelegate(QStyledItemDelegate):
+    """Render icons, text and checkboxes without Qt's native row highlight.
+
+    The QTreeWidget::item stylesheet can paint *over* option.backgroundBrush,
+    so background/outline ownership belongs entirely to ReorderTree.drawRow.
+    """
+    def __init__(self, tree):
+        super().__init__(tree)
+        self.tree = tree
+
+    def paint(self, painter, option, index):
+        tree = self.tree
+        if not tree.main_grid_visuals:
+            super().paint(painter, option, index)
+            return
+        opts = QStyleOptionViewItem(option)
+        opts.state &= ~(QStyle.StateFlag.State_Selected |
+                        QStyle.StateFlag.State_MouseOver |
+                        QStyle.StateFlag.State_HasFocus)
+        # Do not supply a background to the delegate: the row-level painting
+        # happens before text/icon/checkbox painting, including for columns 0/1.
+        opts.backgroundBrush = QBrush(Qt.BrushStyle.NoBrush)
+        super().paint(painter, opts, index)
+
+
 class ReorderTree(OrderDragMixin,QTreeWidget):
     def __init__(self, launcher):
         super().__init__();self.launcher=launcher;self.setup_order_drag()
         self.setDragEnabled(True)
+        self.main_grid_visuals = True
+        self.row_palette = ROW_PALETTE['dark']
+        self._hover_item = None
+        self.setItemDelegate(MainGridRowDelegate(self))
+        self.viewport().setMouseTracking(True)
+        self.currentItemChanged.connect(lambda *_: self.viewport().update())
+
+    def set_row_theme(self, theme):
+        self.row_palette = ROW_PALETTE['light' if theme == 'light' else 'dark']
+        self.viewport().update()
+
+    def grid_has_focus(self):
+        """Qt may give focus to the abstract scroll area's viewport."""
+        return (self.hasFocus() or self.viewport().hasFocus()
+                or QApplication.focusWidget() is self)
+
+    def row_state_for_index(self, index):
+        if not index.isValid():
+            return 'normal'
+        item = self.itemFromIndex(index)
+        return row_visual_state(current=(item is not None and item == self.currentItem()),
+                                focused=self.grid_has_focus(),
+                                hovered=(item is not None and item == self._hover_item))
+
+    def clear_row_hover(self):
+        if self._hover_item is not None:
+            self._hover_item = None
+            self.viewport().update()
+
+    def viewportEvent(self, event):
+        # Mouse hover never requires keyboard focus or changes a checkbox.
+        kind = event.type()
+        if kind in (QEvent.Type.MouseMove, QEvent.Type.HoverMove):
+            item = self.itemAt(event.position().toPoint())
+            if item != self._hover_item:
+                self._hover_item = item
+                self.viewport().update()
+        elif kind in (QEvent.Type.Leave, QEvent.Type.HoverLeave):
+            self.clear_row_hover()
+        elif kind in (QEvent.Type.FocusIn, QEvent.Type.FocusOut):
+            self.viewport().update()
+        return super().viewportEvent(event)
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.viewport().update()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.viewport().update()
 
     def mousePressEvent(self,event):
         self.launcher.hover_timer.stop();self.launcher.pending_menu_item=None
@@ -84,12 +160,47 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
 
     def order_surface(self):return self.viewport()
     def order_rects(self):return [self.visualItemRect(self.topLevelItem(i)) for i in range(self.topLevelItemCount())]
-    def paintEvent(self,event):
+    def drawRow(self, painter, option, index):
+        """Paint a *whole* row using the viewport's actual paint device.
+
+        Previous attempts passed blue through a QStyledItemDelegate's
+        option.backgroundBrush. QSS's ::item rules overwrite that color on
+        Windows. Painting directly in drawRow before native content, and then
+        drawing the current-row border over it, avoids that conflict.
+        """
+        if not self.main_grid_visuals:
+            super().drawRow(painter, option, index)
+            return
+        state = self.row_state_for_index(index)
+        bounds = option.rect
+        if not bounds.isValid():
+            super().drawRow(painter, option, index)
+            return
+        full_row = QRect(0, bounds.y(), self.viewport().width(), bounds.height())
+        # Keep background independent of selected item flags and columns.
+        fill = row_fill(self.row_palette, state)
+        if fill:
+            painter.fillRect(full_row, QColor(fill))
+        # QTreeView may also draw a native *row-level* selection panel before
+        # invoking delegates. Strip those flags at this outer layer too.
+        opts = QStyleOptionViewItem(option)
+        opts.state &= ~(QStyle.StateFlag.State_Selected |
+                        QStyle.StateFlag.State_MouseOver |
+                        QStyle.StateFlag.State_HasFocus)
+        super().drawRow(painter, opts, index)
+        if row_has_outline(state):
+            painter.save()
+            painter.setPen(QPen(QColor(self.row_palette['outline']), 1))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(full_row.adjusted(0, 0, -1, -1))
+            painter.restore()
+
+    def paintEvent(self, event):
+        # Main-row visuals are painted in drawRow, not in paintEvent: Qt can
+        # compose individual rows after the parent paint handler returns.
         super().paintEvent(event)
         if (getattr(self.launcher, '_column_mode', None) == 'main' and
                 getattr(self.launcher, '_main_column_hover', False)):
-            # Quiet alignment guide visible only when the hidden divider is
-            # hovered/dragged; the normal main menu remains header-free.
             x = self.columnViewportPosition(1)
             painter = QPainter(self.viewport())
             painter.setPen(QColor('#7296b9'))
