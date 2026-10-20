@@ -123,8 +123,11 @@ class ParentFolderTests(unittest.TestCase):
         fn, holder = ActualLauncherRoutingTests.setup()
         row = {'item_id': '__file_index_report', '_indexed_file': 'C:/docs/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
+        # The display title is user-editable in context_menu_options.json.
+        label = next(item['title'] for item in load_context_menus(CONFIG)['file']
+                     if item['action_id'] == 'open_parent_folder')
         action = next(callback for name, callback in holder._launch_context_menu.actions
-                      if name == '親フォルダーを開く')
+                      if name == label)
         action(True)
         holder.perform_filesystem_context_action.assert_called_once_with(
             'open_parent_folder', 'C:/docs/report.txt', 'file')

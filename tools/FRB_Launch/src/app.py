@@ -41,7 +41,7 @@ from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
 from ordering import save_order
 from reorder_widgets import OrderDragMixin, ReorderTree
-from process_runner import start_process, should_start_before_dismiss
+from process_runner import start_process, should_start_before_dismiss, batch_script_working_directory
 from studio_theme_launch import studio_launch_arguments
 from launch_diagnostics import make_logger, wifi_transcript_arguments
 from log_retention import cleanup as cleanup_diagnostics
@@ -3109,7 +3109,15 @@ class Launcher(QWidget):
         if target.lower().startswith('shell:'):
             import subprocess
             subprocess.Popen(['explorer.exe',target])
-        else:os.startfile(target)
+        else:
+            # ShellExecute's default current directory is not guaranteed to
+            # be the script's directory (especially from an indexed search).
+            # Pass it explicitly for batch files; keep other Open behavior.
+            path = Path(target)
+            if path.suffix.casefold() in ('.bat', '.cmd') and path.is_file():
+                os.startfile(target, cwd=str(path.resolve().parent))
+            else:
+                os.startfile(target)
 
     def expander(self, values=None):
         ex=Expander(self.data,QApplication.clipboard().text(),values or {})
@@ -3163,7 +3171,12 @@ class Launcher(QWidget):
                 elif step.get('launch_browser'):self.open_target(step['launch_target'],step['launch_browser'])
                 else:self.open_target(step['launch_target'])
             elif kind=='Run':
-                program=step['launch_program'];args=studio_launch_arguments(program, step.get('launch_arguments',[]));cwd=step.get('launch_working_directory') or str(ROOT)
+                program=step['launch_program'];args=studio_launch_arguments(program, step.get('launch_arguments',[]))
+                # BAT/CMD always starts in its own folder, including an
+                # authored cmd.exe /d /c script. Unrelated Run steps retain
+                # their configured working directories.
+                cwd=(batch_script_working_directory(program,args)
+                     or step.get('launch_working_directory') or str(ROOT))
                 args,transcript=wifi_transcript_arguments(program,args,STATE)
                 DIAG.info('RUN program=%s cwd=%s console=%s wait=%s transcript=%s',program,cwd,step.get('launch_show_console',False),step.get('launch_wait_for_exit',False),transcript)
                 self.proc = start_process(program, args, cwd, step.get('launch_show_console',False))

@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from process_runner import should_start_before_dismiss
 import file_index
+from studio_theme_launch import studio_launch_arguments
+from process_runner import batch_script_working_directory
 
 
 def method_body(name):
@@ -54,6 +56,8 @@ class ForegroundLaunchTests(unittest.TestCase):
                    QTimer=SimpleNamespace(singleShot=lambda delay, fn: callbacks.append((delay, fn))),
                    windows=win, start_process=start,
                    wifi_transcript_arguments=lambda p, a, state:(a, None),
+                   studio_launch_arguments=studio_launch_arguments,
+                   batch_script_working_directory=batch_script_working_directory,
                    STATE=ROOT, ROOT=ROOT,
                    QApplication=SimpleNamespace(clipboard=lambda:None),
                    file_index=file_index)
