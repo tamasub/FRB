@@ -14,10 +14,11 @@ import re
 import os
 import sqlite3
 import tempfile
+import fnmatch
 from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
-from search_matching import sql_like_term
+from search_matching import sql_search_condition, parse_search_query
 
 DEFAULT_OPTIONS = {
     'enabled': True,  # Backward-compatible switch; false overrides index_mode.
@@ -27,6 +28,9 @@ DEFAULT_OPTIONS = {
     'extensions': ['.bat', '.py', '.ps1', '.json', '.xlsx', '.md'],
     'exclude_name_contains': ['view_def'],
     'exclude_directories': ['.venv', '.git', 'node_modules', '__pycache__', 'build', 'dist', 'System Volume Information', '$RECYCLE.BIN'],
+    'exclude_directory_globs': [],  # Relative paths or folder names; e.g. '**/Broken (*)'.
+    'scan_error_policy': 'preserve_cached',  # or 'fail_root'; see README.
+
     'search_limit': 100,
     'update_mode': 'manual',
     'auto_update': {'startup_delay_seconds': 90, 'check_interval_minutes': 30, 'max_scan_workers': 2},
@@ -61,9 +65,11 @@ def load_options(path):
         if type(auto[key]) is not int or not minimum <= auto[key] <= maximum:
             raise ValueError(f'auto_update.{key} は {minimum}～{maximum} の整数にしてください')
     options['auto_update'] = auto
-    for key in ('extensions', 'exclude_name_contains', 'exclude_directories'):
+    for key in ('extensions', 'exclude_name_contains', 'exclude_directories', 'exclude_directory_globs'):
         if not isinstance(options[key], list) or not all(isinstance(x, str) for x in options[key]):
             raise ValueError(f'{key} は文字列配列にしてください')
+    if options['scan_error_policy'] not in ('preserve_cached', 'fail_root'):
+        raise ValueError('scan_error_policy は preserve_cached / fail_root を指定してください')
     extensions = {x.strip().casefold() for x in options['extensions']}
     if not extensions or any(not x.startswith('.') or len(x) < 2 or '/' in x or '\\' in x for x in extensions):
         raise ValueError('extensions には .py などの拡張子を指定してください')
@@ -103,7 +109,7 @@ def configured_roots(options, *, include_unavailable=True):
         if os.path.normpath(path) == os.path.normpath(os.path.abspath(os.sep)) or (
                 drive and not tail.strip('\\/')):
             raise ValueError(f'ドライブルート/共有ルートは索引できません。下位フォルダーを指定してください: {path}')
-        if not os.path.isdir(path):
+        if not os.path.isdir(_windows_scan_path(path)):
             warnings.append(f'指定フォルダーを利用できません: {path}')
             if not include_unavailable:
                 continue
@@ -206,19 +212,82 @@ def registered_roots(data, expand, *, include_unavailable=False):
             continue
         try:
             path = os.path.abspath(os.path.expanduser(expand(target)))
-            if not os.path.isdir(path):
+            if not os.path.isdir(_windows_scan_path(path)):
                 errors.append(f'登録フォルダーが存在しません: {path}')
                 if include_unavailable:
                     roots.append(path)
                 continue
             # Never follow a linked root beyond the registered path.
-            if os.path.islink(path) or (hasattr(os.path, 'isjunction') and os.path.isjunction(path)):
+            if os.path.islink(_windows_scan_path(path)) or (hasattr(os.path, 'isjunction') and os.path.isjunction(_windows_scan_path(path))):
                 errors.append(f'リンク先フォルダーは索引対象外: {path}')
                 continue
             roots.append(path)
         except (OSError, ValueError) as exc:
             errors.append(f'{row.get("title", "directory")}: {exc}')
     return minimize_roots(roots), errors
+
+
+def _windows_scan_path(path):
+    """Use Win32 extended-length paths for deep Box/SharePoint sync trees.
+
+    Parentheses, spaces, Unicode, % and ! are *literal* path characters;
+    no cmd.exe/PowerShell parsing or string escaping is involved.
+    """
+    path = os.fspath(path)
+    if os.name != 'nt' or path.startswith('\\\\?\\'):
+        return path
+    absolute = os.path.abspath(path)
+    if absolute.startswith('\\\\'):
+        return '\\\\?\\UNC\\' + absolute.lstrip('\\')
+    return '\\\\?\\' + absolute
+
+
+def _original_scan_path(path):
+    path = os.fspath(path)
+    if path.startswith('\\\\?\\UNC\\'):
+        return '\\\\' + path[len('\\\\?\\UNC\\'):]
+    if path.startswith('\\\\?\\'):
+        return path[len('\\\\?\\'):]
+    return path
+
+
+def _excluded_folder(options, root, child):
+    """Match user-configured globs against both leaf name and root-relative path."""
+    patterns = options.get('exclude_directory_globs', [])
+    name = os.path.basename(child).casefold()
+    relative = os.path.relpath(child, root).replace('\\', '/').casefold()
+    return any(fnmatch.fnmatchcase(name, pattern.casefold()) or
+               fnmatch.fnmatchcase(relative, pattern.replace('\\', '/').casefold())
+               for pattern in patterns if pattern)
+
+
+def _digest_rows(rows):
+    digest = hashlib.sha256()
+    for row in rows:
+        digest.update(os.path.normpath(row[0]).encode('utf-8', errors='surrogatepass'))
+        digest.update(b'\0')
+    return digest.hexdigest()
+
+
+def _preserve_failed_subtrees(db, scanned):
+    """Keep cached entries below inaccessible subfolders; never erase them.
+
+    The newly scanned branches still update normally.  A previously unseen
+    inaccessible branch remains missing, but is recorded as a warning.
+    """
+    failed = scanned.get('failed_dirs', ())
+    if not failed:
+        return scanned
+    rows = { _normalized_path(r[0]): r for r in scanned['rows'] }
+    for p, name, folded, folder, extension, key in db.execute(
+            'SELECT path,name,name_fold,directory,extension,root_key FROM files WHERE root_key=?',
+            (scanned['key'],)):
+        if any(_contains(directory, p) for directory in failed):
+            rows.setdefault(_normalized_path(p), (p, name, folded, folder, extension, key))
+    scanned['rows'] = sorted(rows.values(), key=lambda row: _normalized_path(row[0]))
+    scanned['count'] = len(scanned['rows'])
+    scanned['digest'] = _digest_rows(scanned['rows'])
+    return scanned
 
 
 def _scan(roots, options, connection):
@@ -237,14 +306,15 @@ def _scan(roots, options, connection):
         with os.scandir(root) as check:
             next(check, None)
         for parent, dirs, files in os.walk(root, topdown=True, followlinks=False, onerror=onerror):
-            if max_depth is not None and os.path.relpath(parent, root).count(os.sep) + (parent != root) >= max_depth:
+            if max_depth is not None and os.path.relpath(parent, scan_root).count(os.sep) + (parent != scan_root) >= max_depth:
                 skipped += len(dirs)
                 dirs[:] = []
             retained = []
             for dirname in dirs:
                 child = os.path.join(parent, dirname)
-                if dirname.casefold() in excluded_dirs or os.path.islink(child) or (
-                    hasattr(os.path, 'isjunction') and os.path.isjunction(child)):
+                if (dirname.casefold() in excluded_dirs or _excluded_folder(options, root, child)
+                    or os.path.islink(child) or (
+                    hasattr(os.path, 'isjunction') and os.path.isjunction(child))):
                     skipped += 1
                 else:
                     retained.append(dirname)
@@ -315,20 +385,13 @@ def search_index(database, query, limit=100):
     names or filenames. Retain name_fold for Unicode-insensitive basename
     matching and compatibility with indexes built by older versions.
     """
-    words = query.casefold().split()
-    if not words or not Path(database).is_file():
+    if not parse_search_query(query) or not Path(database).is_file():
         return []
-    clauses = []
-    params = []
-    for word in words:
-        # Only * is a wildcard; SQL-specific wildcard chars are literals.
-        clauses.append("(name_fold LIKE ? ESCAPE '!' OR path LIKE ? ESCAPE '!')")
-        pattern = sql_like_term(word)
-        params.extend((pattern, pattern))
+    condition, params = sql_search_condition(query)
     try:
         with closing(sqlite3.connect(database, timeout=1)) as db:
             sql = ('SELECT path, name, directory, extension FROM files WHERE '
-                   + ' AND '.join(clauses) + ' ORDER BY name_fold, path LIMIT ?')
+                   + condition + ' ORDER BY name_fold, path LIMIT ?')
             return [dict(path=p, name=n, directory=d, extension=e)
                     for p,n,d,e in db.execute(sql, (*params, limit))]
     except (sqlite3.Error, OSError):
@@ -419,7 +482,8 @@ def route_registered_open_step(step, studio_root=''):
 
 def _index_options_digest(options):
     relevant = {key: options[key] for key in
-                ('extensions', 'exclude_name_contains', 'exclude_directories', 'max_depth')}
+                ('extensions', 'exclude_name_contains', 'exclude_directories',
+                 'exclude_directory_globs', 'scan_error_policy', 'max_depth')}
     return hashlib.sha256(json.dumps(relevant, ensure_ascii=False,
                                     sort_keys=True).encode('utf-8')).hexdigest()
 
@@ -436,27 +500,45 @@ def _root_scan(root, options, cancelled=None):
     """
     if cancelled and cancelled():
         raise InterruptedError('索引更新は中断されました')
-    if not os.path.isdir(root):
+    scan_root = _windows_scan_path(root)
+    # Cloud filesystem providers sometimes reject extended-length notation.
+    # Keep the original path as a fallback instead of breaking a root that
+    # previously worked with the ordinary Windows pathname.
+    if scan_root != root and not os.path.isdir(scan_root) and os.path.isdir(root):
+        scan_root = root
+    if not os.path.isdir(scan_root):
         raise FileNotFoundError(f'対象フォルダーが利用できません: {root}')
-    with os.scandir(root) as entries:
-        next(entries, None)  # fail fast on an inaccessible root
+    try:
+        with os.scandir(scan_root) as entries:
+            next(entries, None)  # fail fast on an inaccessible root
+    except OSError:
+        if scan_root == root:
+            raise
+        scan_root = root
+        with os.scandir(scan_root) as entries:
+            next(entries, None)
     extensions = set(options['extensions'])
     hidden = ('view_def', *(v.casefold() for v in options['exclude_name_contains'] if v))
     excluded_dirs = {v.casefold() for v in options['exclude_directories']}
     max_depth = options.get('max_depth')
     rows, excluded = [], 0
-    failures = []
-    for parent, dirs, files in os.walk(root, topdown=True, followlinks=False,
-                                       onerror=lambda exc: failures.append(str(exc))):
+    failures, failed_dirs = [], []
+    def on_error(exc):
+        path = _original_scan_path(getattr(exc, 'filename', '') or root)
+        failures.append(f'{path}: {exc}')
+        failed_dirs.append(path)
+    for parent, dirs, files in os.walk(scan_root, topdown=True, followlinks=False,
+                                       onerror=on_error):
         if cancelled and cancelled():
             raise InterruptedError('索引更新は中断されました')
-        if max_depth is not None and os.path.relpath(parent, root).count(os.sep) + (parent != root) >= max_depth:
+        if max_depth is not None and os.path.relpath(parent, scan_root).count(os.sep) + (parent != scan_root) >= max_depth:
             excluded += len(dirs)
             dirs[:] = []
         retained = []
         for dirname in dirs:
             child = os.path.join(parent, dirname)
-            if (dirname.casefold() in excluded_dirs or os.path.islink(child)
+            if (dirname.casefold() in excluded_dirs or
+                    _excluded_folder(options, root, _original_scan_path(child)) or os.path.islink(child)
                     or (hasattr(os.path, 'isjunction') and os.path.isjunction(child))):
                 excluded += 1
             else:
@@ -471,16 +553,14 @@ def _root_scan(root, options, cancelled=None):
             if os.path.islink(path):
                 excluded += 1
                 continue
-            rows.append((path, name, name.casefold(), parent, extension, _root_key(root)))
-    if failures:
+            rows.append((_original_scan_path(path), name, name.casefold(),
+                         _original_scan_path(parent), extension, _root_key(root)))
+    if failures and options.get('scan_error_policy', 'preserve_cached') == 'fail_root':
         raise OSError(f'{root}: サブフォルダーの走査に失敗: {failures[0]}（{len(failures)}件）')
     rows.sort(key=lambda row: _normalized_path(row[0]))
-    digest = hashlib.sha256()
-    for row in rows:
-        digest.update(os.path.normpath(row[0]).encode('utf-8', errors='surrogatepass'))
-        digest.update(b'\\0')
     return {'root': root, 'key': _root_key(root), 'rows': rows,
-            'digest': digest.hexdigest(), 'count': len(rows), 'excluded': excluded}
+            'digest': _digest_rows(rows), 'count': len(rows), 'excluded': excluded,
+            'failed_dirs': failed_dirs, 'warnings': failures}
 
 
 def _ensure_incremental_schema(db):
@@ -572,6 +652,9 @@ def refresh_index(database, roots, options, *, force=False, root_warnings=(),
                     if on_root:
                         on_root(root, 'failed')
                     continue
+                if scanned.get('failed_dirs'):
+                    scanned = _preserve_failed_subtrees(db, scanned)
+                    warnings.extend(scanned['warnings'][:15])
                 completed[scanned['key']] = scanned
                 old = stored.get(scanned['key'])
                 needs_update = (force or topology_changed or old is None or

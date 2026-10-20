@@ -88,11 +88,15 @@ class SearchHistoryUITests(test_navigation.NavigationTests if test_navigation el
         self.assertEqual(type(self.w.search_history)(self.w.search_history.path).keywords,
                          self.w.search_history.keywords)
 
-    def test_slash_paste_is_stripped_and_manual_search_saved_on_dismiss(self):
+    def test_slash_paste_is_stripped_and_history_is_only_explicit(self):
         self.w.search.setText('ab/c')
         self.assertEqual(self.w.search.text(), 'abc')
         self.w.search.setText('*.xlsx')
+        self.assertTrue(self.w.save_history_button.isVisible())
         self.w.dismiss()
+        self.assertNotIn('*.xlsx', type(self.w.search_history)(self.w.search_history.path).keywords)
+        self.w.show()
+        self.w.save_history_button.click()
         self.assertIn('*.xlsx', type(self.w.search_history)(self.w.search_history.path).keywords)
 
 

@@ -32,11 +32,12 @@ class HistoryWiringTests(unittest.TestCase):
         self.assertNotIn('self.activate(', handler)
         self.assertNotIn('self.execute(', handler)
 
-    def test_committed_keyword_storage_has_entrypoints(self):
-        self.assertIn('self.remember_search()', body('dismiss'))
-        self.assertIn('self.remember_search()', body('activate'))
-        self.assertIn('self.remember_search(self._history_search_full_text or previous)', body('search_text_changed'))
-        self.assertIn('self.remember_search()', body('confirm_selection'))
+    def test_only_button_registers_search_history(self):
+        self.assertIn('self.save_history_button.clicked.connect(', SOURCE)
+        self.assertIn('self.remember_search()', SOURCE)
+        self.assertIn("setVisible(bool(value.strip()))", body('search_text_changed'))
+        for name in ('dismiss', 'activate', 'confirm_selection', 'search_text_changed'):
+            self.assertNotIn('self.remember_search(', body(name))
 
     def test_slash_removal_and_reserved_hotkey(self):
         self.assertIn("value.replace('/', '')", body('search_text_changed'))

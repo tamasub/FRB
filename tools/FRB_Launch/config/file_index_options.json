@@ -37,5 +37,7 @@
     "startup_delay_seconds": 90,
     "check_interval_minutes": 30,
     "max_scan_workers": 99
-  }
+  },
+  "exclude_directory_globs": [],
+  "scan_error_policy": "preserve_cached"
 }

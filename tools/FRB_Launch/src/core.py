@@ -4,7 +4,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from search_matching import matches_search_text
+from search_matching import matches_search_text, matches_choice_search
 
 TYPES = {'SendKey', 'ClipboardCopy', 'Open', 'Run'}
 
@@ -223,9 +223,7 @@ def searchable_rows(data, query, bookmark_browser=None):
                 continue
             # Match the same searchable fields as the selection screen plus
             # the owning item's path, so names and addresses both work.
-            content = ' '.join(str(choice.get(k, '')) for k in ('title', 'description', 'value'))
-            content += ' ' + path
-            if matches_search_text(content, query):
+            if matches_choice_search(choice, query, path):
                 result.append(({**choice,
                                 'item_kind': 'choice',
                                 'icon_key': owner.get('icon_key', 'mail'),

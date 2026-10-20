@@ -18,15 +18,15 @@ class ChoiceSearchCoreTests(unittest.TestCase):
         hits = self.hits(DATA, '田中')
         self.assertEqual(len(hits), 1)
         person, path = hits[0]
-        self.assertEqual(person['choice_id'], 'sales_1')
+        self.assertEqual(person['choice_id'], next(c['choice_id'] for c in DATA['launch_choices'] if c['title'].startswith('田中')))
         self.assertEqual(person['_search_selection_owner'], 'sales')
         self.assertEqual(person['item_kind'], 'choice')
         self.assertIn('メール宛先', path)
         self.assertIn('営業部 E-MAIL', path)
 
     def test_find_people_by_email_and_group_name(self):
-        self.assertEqual([r['choice_id'] for r, _ in self.hits(DATA, 'sato@example.invalid')], ['sales_2'])
-        self.assertEqual([r['choice_id'] for r, _ in self.hits(DATA, '営業部 鈴木')], ['sales_3'])
+        self.assertEqual([r['choice_id'] for r, _ in self.hits(DATA, 'sato@example.invalid')], [next(c['choice_id'] for c in DATA['launch_choices'] if c['title'].startswith('佐藤'))])
+        self.assertEqual([r['choice_id'] for r, _ in self.hits(DATA, '営業部 鈴木')], [next(c['choice_id'] for c in DATA['launch_choices'] if c['title'].startswith('鈴木'))])
 
     def test_regular_search_results_remain_available(self):
         self.assertEqual({r['item_id'] for r, _ in searchable_rows(DATA, 'appdata')}, {'roaming', 'local'})
@@ -36,7 +36,7 @@ class ChoiceSearchCoreTests(unittest.TestCase):
             with self.subTest(kind=kind):
                 data = copy.deepcopy(DATA)
                 if kind == 'choice':
-                    next(c for c in data['launch_choices'] if c['choice_id'] == 'sales_1')['enabled'] = False
+                    next(c for c in data['launch_choices'] if c['title'].startswith('田中'))['enabled'] = False
                 elif kind == 'owner':
                     next(i for i in data['items'] if i['item_id'] == 'sales')['enabled'] = False
                 elif kind == 'ancestor':
@@ -102,25 +102,35 @@ class ChoiceSearchUITests(unittest.TestCase):
         self.w.deleteLater()
         self.app.processEvents()
 
-    def test_search_space_f12_reuses_original_selection_action(self):
+    def test_search_space_is_text_and_enter_f12_reuses_original_selection_action(self):
+        tanaka_id = next(c['choice_id'] for c in self.w.data['launch_choices']
+                         if c['title'].startswith('田中'))
+        sato_id = next(c['choice_id'] for c in self.w.data['launch_choices']
+                       if c['title'].startswith('佐藤'))
         self.w.search.setText('田中')
         self.app.processEvents()
         self.assertEqual(self.w.list.topLevelItemCount(), 1)
         hit = self.w.list.currentItem()
-        self.assertEqual(hit.data(0, Qt.ItemDataRole.UserRole)['choice_id'], 'sales_1')
+        self.assertEqual(hit.data(0, Qt.ItemDataRole.UserRole)['choice_id'], tanaka_id)
         self.assertEqual(hit.checkState(0), Qt.CheckState.Unchecked)
 
         QTest.keyClick(self.w.search, Qt.Key.Key_Space)
+        self.assertEqual(self.w.search.text(), '田中 ')
+        self.assertIsNone(self.w.selection)
+        self.assertEqual(self.w.list.currentItem().checkState(0), Qt.CheckState.Unchecked)
+        QTest.keyClick(self.w.search, Qt.Key.Key_Return)
         self.assertEqual(self.w.selection['item_id'], 'sales')
-        self.assertEqual(self.w.checked, {'sales_1'})
-        self.assertEqual(self.w.search.text(), '田中')
+        self.assertEqual(self.w.checked, {tanaka_id})
 
-        # Change filter, preserve already selected recipient, select another.
+        # Preserve the previously selected recipient while searching for another.
         self.w.search.setText('佐藤')
         self.w.search.setFocus()
         self.app.processEvents()
         QTest.keyClick(self.w.search, Qt.Key.Key_Space)
-        self.assertEqual(self.w.checked, {'sales_1', 'sales_2'})
+        self.assertEqual(self.w.search.text(), '佐藤 ')
+        self.assertEqual(self.w.checked, {tanaka_id})
+        QTest.keyClick(self.w.search, Qt.Key.Key_Return)
+        self.assertEqual(self.w.checked, {tanaka_id, sato_id})
         sent = []
         self.w.execute = lambda row, values=None: sent.append((row, values))
         QTest.keyClick(self.w.list, Qt.Key.Key_F12)
@@ -142,7 +152,7 @@ class ChoiceSearchUITests(unittest.TestCase):
         item = self.w.list.currentItem()
         item.setCheckState(0, Qt.CheckState.Checked)
         self.assertEqual(self.w.selection['item_id'], 'sales')
-        self.assertEqual(self.w.checked, {'sales_3'})
+        self.assertEqual(self.w.checked, {next(c['choice_id'] for c in self.w.data['launch_choices'] if c['title'].startswith('鈴木'))})
 
 
 if __name__ == '__main__':

@@ -14,8 +14,10 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QT
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
-from search_matching import matches_search_text
+from search_matching import matches_search_text, matches_choice_search
+from ime_input import initialize_halfwidth_english
 from search_result_order import display_columns, sort_search_pairs
+from selection_scope import update_visible_checks
 from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
 from search_history import SearchHistory, normalize_keyword
 import windows
@@ -1054,8 +1056,6 @@ class Launcher(QWidget):
         self.bookmark_errors = []
 
         self.search_history = SearchHistory(STATE / 'search_history.json')
-        self._previous_search_text = ''
-        self._history_search_full_text = ''
         self.search = QLineEdit(); self.search.setPlaceholderText('検索 — 全Page（/ 履歴）'); self.search.setClearButtonEnabled(True)
         # A small trailing chevron makes the '/' history shortcut discoverable.
         chevron = QPixmap(14, 14); chevron.fill(Qt.GlobalColor.transparent)
@@ -1073,6 +1073,14 @@ class Launcher(QWidget):
         search_row.setSpacing(6)
         search_row.addWidget(self.search, 1)
         self.search.setMinimumHeight(32)
+        self.save_history_button = QPushButton('履歴登録', self.search_bar)
+        self.save_history_button.setObjectName('saveHistoryButton')
+        self.save_history_button.setToolTip('現在の検索文字列を履歴へ登録')
+        self.save_history_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.save_history_button.setMinimumHeight(32)
+        self.save_history_button.hide()
+        self.save_history_button.clicked.connect(lambda checked=False: self.remember_search())
+        search_row.addWidget(self.save_history_button)
         self.theme_button = QPushButton('⋯', self.search_bar)
         self.theme_button.setObjectName('themeButton')
         self.theme_button.setFixedSize(34, 32)
@@ -1680,7 +1688,8 @@ class Launcher(QWidget):
         if self._file_index_manual:
             summary = (f"ファイル索引: {stats['count']:,}件 / 更新{len(stats['changed_roots'])}ルート"
                        f" / 変更なし{len(stats['unchanged_roots'])}ルート"
-                       f" / 失敗{len(stats['failed_roots'])}ルート")
+                       f" / 失敗{len(stats['failed_roots'])}ルート"
+                       f" / 警告{len(stats['scan_warnings'])}件")
             self.tray.showMessage('FRB Launch', summary,
                                   QSystemTrayIcon.MessageIcon.Information, 6000)
         if stats['scan_warnings']:
@@ -1929,7 +1938,6 @@ class Launcher(QWidget):
 
     def dismiss(self):
         # Never carry a half-finished double-click into the next summon.
-        self.remember_search()
         self.hide_history_popup()
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
@@ -2142,7 +2150,9 @@ class Launcher(QWidget):
         try:
             if self.selection:
                 candidates=sorted([c for c in self.data.get('launch_choices',[]) if c.get('enabled',True) and c['group_id']==self.selection['launch_selection_group_id']],key=lambda c:c.get('sort_order',0))
-                pairs=[(c,'') for c in candidates if matches_search_text(json.dumps(c,ensure_ascii=False), query)]
+                # Search display fields, not serialized JSON: a choice_id like
+                # import_mail_000004 must not make se001 match '(003 or 004)'.
+                pairs=[(c,'') for c in candidates if matches_choice_search(c, query)]
             elif query:
                 pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
                 try:
@@ -2195,9 +2205,12 @@ class Launcher(QWidget):
 
     def select_all(self, selected):
         if not self.selection:return
-        # Apply to the whole group, including choices hidden by the search.
-        self.checked = {c['choice_id'] for c in self.data.get('launch_choices', [])
-                        if c.get('enabled', True) and c['group_id'] == self.selection['launch_selection_group_id']} if selected else set()
+        # Only affect the currently visible/filter-matched candidates.
+        # Preserve checks outside the current filter for deliberate multi-step
+        # selections; never silently select or clear hidden recipients.
+        visible_ids = {self.list.topLevelItem(i).data(0, Qt.ItemDataRole.UserRole)['choice_id']
+                       for i in range(self.list.topLevelItemCount())}
+        self.checked = update_visible_checks(self.checked, visible_ids, selected)
         self.render()
         self.list.setFocus()
 
@@ -2317,6 +2330,11 @@ class Launcher(QWidget):
         except Exception as e:
             self.error('表示順を保存できません: '+str(e));return False
 
+    def initialize_search_ime(self):
+        """Set an initial halfwidth-English IME state after focus settles."""
+        if self.search.hasFocus():
+            initialize_halfwidth_english(int(self.search.winId()))
+
     def focus_search(self, select=True):
         self.hide_history_popup()
         self.hover_timer.stop();self.pending_menu_item=None
@@ -2395,7 +2413,6 @@ class Launcher(QWidget):
 
     def activate(self,row):
         if not row:return
-        self.remember_search()
         file_path = row.get('_indexed_file') or row.get('_browse_file')
         if file_path:
             self.run_file_path(row, file_path)
@@ -2423,7 +2440,6 @@ class Launcher(QWidget):
 
     def confirm_selection(self):
         if not self.selection or not self.checked:return
-        self.remember_search()
         row=self.selection
         choices=sorted([c for c in self.data['launch_choices'] if c['choice_id'] in self.checked],key=lambda c:c.get('sort_order',0))
         value=join_selection_values(row, choices)
@@ -2466,18 +2482,7 @@ class Launcher(QWidget):
             self.search.setText(cleaned)
             self.search.setCursorPosition(max(0, cursor - value[:max(0, cursor)].count('/')))
             return
-        previous = self._previous_search_text
-        self._previous_search_text = value
-        # When Backspace is held to erase an entire query, preserve the full
-        # word, not just the final one-character fragment before it cleared.
-        if value.strip():
-            if (not previous or not previous.startswith(value)
-                    or len(value) > len(self._history_search_full_text)):
-                self._history_search_full_text = value
-        else:
-            if previous.strip():
-                self.remember_search(self._history_search_full_text or previous)
-            self._history_search_full_text = ''
+        self.save_history_button.setVisible(bool(value.strip()))
         self.render()
 
     def position_history_popup(self):
@@ -2736,6 +2741,10 @@ class Launcher(QWidget):
                 # Virtual search results never invoke Windows's OS menu.
                 event.accept()
                 return True
+        if obj is getattr(self, "search", None) and event.type() == QEvent.Type.FocusIn:
+            # Qt may move the native caret HWND after FocusIn dispatch; defer
+            # once, and do not touch input state while the user keeps focus.
+            QTimer.singleShot(0, self.initialize_search_ime)
         # Qt.Tool cascade columns do not monopolize keyboard focus.  On some
         # Windows setups the key event still lands in the main list/search/tabs
         # after the user selects a cascade row.  Give visible columns keyboard
@@ -2810,19 +2819,12 @@ class Launcher(QWidget):
             if self.page_key(event):return True
             # IME owns its pre-edit and candidate keystrokes.
             if getattr(self,'composing',False):return False
-            if self.selection and ctrl and k==Qt.Key.Key_A:
+            if self.selection and k==Qt.Key.Key_A and (ctrl or
+                    bool(event.modifiers() & Qt.KeyboardModifier.AltModifier)):
                 self.select_all(not bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier));return True
-            # When typing in the main search box, Space directly selects the
-            # highlighted recipient. Do not intercept IME pre-edit/Shift+Space
-            # or ordinary searches whose current row is not a choice.
-            if (k==Qt.Key.Key_Space and obj==self.search and self.search.text().strip()
-                    and event.modifiers()==Qt.KeyboardModifier.NoModifier):
-                current=self.list.currentItem()
-                if current:
-                    hit=current.data(0,Qt.ItemDataRole.UserRole)
-                    if hit and (self.selection or hit.get('_search_selection_owner')):
-                        self.activate(hit)
-                        return True
+            # The search box ALWAYS owns Space for text input, including while
+            # recipient checkboxes are visible. The list keeps its own Space
+            # checkbox shortcut below; Enter also works from the search box.
             if k==Qt.Key.Key_Left and (self.selection or obj==self.list or not self.search.text()):
                 self.go_back();return True
             if k==Qt.Key.Key_Right and self.selection and event.modifiers()==Qt.KeyboardModifier.NoModifier:
