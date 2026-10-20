@@ -37,6 +37,11 @@ def open_file_explorer(path):
     subprocess.Popen(['explorer.exe', str(path)])
 
 
+def open_parent_folder(path):
+    """Open the containing directory of a filesystem file in Explorer."""
+    open_file_explorer(Path(path).parent)
+
+
 def open_folder_terminal(path):
     _windows_only()
     folder = str(path)

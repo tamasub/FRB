@@ -2,11 +2,12 @@
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import Mock, patch
 import unittest
 
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
-from context_menu_actions import rename_file_or_folder
+from context_menu_actions import rename_file_or_folder, open_parent_folder
 
 CONFIG = Path(__file__).resolve().parents[1] / 'config/context_menu_options.json'
 
@@ -64,7 +65,7 @@ class ConfigTests(unittest.TestCase):
     def test_exact_v1_actions_no_new_or_delete(self):
         menus = load_context_menus(CONFIG)
         self.assertEqual([x['action_id'] for x in menus['file']],
-                         ['copy_full_path', 'copy_file_name', 'rename', 'properties'])
+                         ['copy_full_path', 'copy_file_name', 'open_parent_folder', 'rename', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder']],
                          ['open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties'])
 
@@ -83,7 +84,50 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(len(load_context_menus(path)['file']), 3)
+            self.assertEqual(len(load_context_menus(path)['file']), 4)
+
+
+class ParentFolderTests(unittest.TestCase):
+    def test_open_parent_folder_delegates_to_explorer_with_containing_directory(self):
+        with patch('context_menu_actions.open_file_explorer') as explorer:
+            open_parent_folder(Path('my projects') / 'reports' / 'report (final).xlsx')
+            explorer.assert_called_once_with(Path('my projects') / 'reports')
+
+    def test_context_menu_file_action_uses_real_launcher_dispatch(self):
+        """The same action dispatch used by search and folder browsing."""
+        import ast
+        import types
+        source = (CONFIG.parent.parent / 'src/app.py').read_text(encoding='utf-8')
+        tree = ast.parse(source)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
+        fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                  and n.name == 'perform_filesystem_context_action')
+        isolated = ast.Module(body=[fn], type_ignores=[])
+        ast.fix_missing_locations(isolated)
+        action_scope = {'Path': Path, 'open_parent_folder': Mock()}
+        exec(compile(isolated, '<launcher context dispatch>', 'exec'), action_scope)
+        with TemporaryDirectory() as folder:
+            target = Path(folder) / 'report (final).html'
+            target.write_text('<html></html>', encoding='utf-8')
+            holder = types.SimpleNamespace(error=Mock())
+            action_scope['perform_filesystem_context_action'](
+                holder, 'open_parent_folder', str(target), 'file')
+            action_scope['open_parent_folder'].assert_called_once_with(target)
+            holder.error.assert_not_called()
+
+    def test_parent_folder_action_not_permitted_on_folder_entries(self):
+        self.assertNotIn('open_parent_folder',
+                         [x['action_id'] for x in load_context_menus(CONFIG)['folder']])
+
+    def test_file_context_menu_exposes_new_action_and_routes_its_click(self):
+        fn, holder = ActualLauncherRoutingTests.setup()
+        row = {'item_id': '__file_index_report', '_indexed_file': 'C:/docs/report.txt'}
+        self.assertTrue(fn(holder, (3, 4), row))
+        action = next(callback for name, callback in holder._launch_context_menu.actions
+                      if name == '親フォルダーを開く')
+        action(True)
+        holder.perform_filesystem_context_action.assert_called_once_with(
+            'open_parent_folder', 'C:/docs/report.txt', 'file')
 
 
 class RenameTests(unittest.TestCase):
@@ -177,5 +221,5 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         holder.search.text = lambda: 'report'
         row = {'item_id':'__file_index_foo', '_indexed_file': 'C:/x/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
-        self.assertEqual(len(holder._launch_context_menu.actions), 4)
+        self.assertEqual(len(holder._launch_context_menu.actions), 5)
 

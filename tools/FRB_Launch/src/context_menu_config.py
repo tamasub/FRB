@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 ALLOWED_ACTIONS = {
-    'file': frozenset(('copy_full_path', 'copy_file_name', 'rename', 'properties')),
+    'file': frozenset(('copy_full_path', 'copy_file_name', 'open_parent_folder', 'rename', 'properties')),
     'folder': frozenset(('open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties')),
 }
 

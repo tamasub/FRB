@@ -34,7 +34,7 @@ from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
-from context_menu_actions import (show_windows_properties, open_file_explorer,
+from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
                                   open_folder_terminal, rename_file_or_folder)
 from menu_viewport import place_popup, MENU_SCREEN_MARGIN
 from bookmark_menu import visible_bookmark_children
@@ -2136,6 +2136,8 @@ class Launcher(QWidget):
 
     def render(self,*args):
         if not self.data:return
+        # Stop this brief reaction when switching pages, views or search terms.
+        self.hide_root_left_feedback()
         self.hover_timer.stop();self.pending_menu_item=None
         self.selection_tools.setVisible(self.selection is not None)
         query=self.search.text().strip()
@@ -2222,6 +2224,64 @@ class Launcher(QWidget):
         elif self.stack:
             self.stack.pop()
         self.search.clear(); self.render(); self.list.setFocus()
+
+    def hide_root_left_feedback(self):
+        """Dismiss the harmless left-edge reaction when the view changes."""
+        timer = getattr(self, '_root_left_feedback_timer', None)
+        if timer is not None:
+            timer.stop()
+        bubble = getattr(self, '_root_left_feedback', None)
+        if bubble is not None:
+            bubble.hide()
+
+    def show_root_left_feedback(self):
+        """Brief, silent balloon for Left at the root's first row.
+
+        It is a child of the list viewport, not an OS tooltip/popup: it never
+        acquires keyboard focus and never interferes with Page-tab arrows.
+        """
+        bubble = getattr(self, '_root_left_feedback', None)
+        if bubble is None:
+            bubble = QLabel('🎺 ぱふぅ〜！！', self.list.viewport())
+            bubble.setObjectName('rootLeftFeedback')
+            bubble.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            bubble.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            bubble.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+            self._root_left_feedback = bubble
+            timer = QTimer(self)
+            timer.setSingleShot(True)
+            timer.timeout.connect(bubble.hide)
+            self._root_left_feedback_timer = timer
+        if self.color_theme == 'light':
+            bubble.setStyleSheet('QLabel#rootLeftFeedback { '
+                'background:#ecf5ff; color:#263f58; border:1px solid #85adcf; '
+                'border-radius:12px; padding:7px 13px; font-size:15px; '
+                'font-weight:600; }')
+        else:
+            bubble.setStyleSheet('QLabel#rootLeftFeedback { '
+                'background:#2f4961; color:#f3f8ff; border:1px solid #85aed8; '
+                'border-radius:12px; padding:7px 13px; font-size:15px; '
+                'font-weight:600; }')
+        bubble.adjustSize()
+        viewport = self.list.viewport()
+        current = self.list.currentItem()
+        row_rect = self.list.visualItemRect(current) if current is not None else QRect()
+        # Sit just below the first row, towards its right side. Keep the
+        # balloon completely inside the viewport on narrow windows.
+        x = max(4, min(viewport.width() - bubble.width() - 4,
+                       (viewport.width() - bubble.width()) // 2))
+        y = max(4, min(viewport.height() - bubble.height() - 4,
+                       row_rect.bottom() + 6))
+        bubble.move(x, y)
+        bubble.show()
+        bubble.raise_()
+        self._root_left_feedback_timer.start(800)
+
+    def at_root_first_row(self):
+        """Only the unfiltered root's actual first row has a left edge."""
+        return (self.in_root_page_navigation()
+                and self.list.topLevelItemCount() > 0
+                and self.list.currentItem() is self.list.topLevelItem(0))
 
     def record_main_hover_motion(self, point, now=None):
         """Keep a short, viewport-local mouse trail; no synthetic events."""
@@ -2827,6 +2887,13 @@ class Launcher(QWidget):
             # The search box ALWAYS owns Space for text input, including while
             # recipient checkboxes are visible. The list keeps its own Space
             # checkbox shortcut below; Enter also works from the search box.
+            # Silent endpoint reaction; Page-tab Left/Right stays unchanged.
+            if (k == Qt.Key.Key_Left and obj is self.list
+                    and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                    and self.at_root_first_row()):
+                self.show_root_left_feedback()
+                event.accept()
+                return True
             if k==Qt.Key.Key_Left and (self.selection or obj==self.list or not self.search.text()):
                 self.go_back();return True
             if k==Qt.Key.Key_Right and self.selection and event.modifiers()==Qt.KeyboardModifier.NoModifier:
@@ -2994,6 +3061,8 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(str(path))
             elif action_id == 'copy_file_name':
                 QApplication.clipboard().setText(path.name)
+            elif action_id == 'open_parent_folder' and kind == 'file':
+                open_parent_folder(path)
             elif action_id == 'open_explorer':
                 open_file_explorer(path)
             elif action_id == 'open_terminal':

@@ -4,6 +4,7 @@
     "file": [
       {"action_id": "copy_full_path", "title": "フルパスのコピー"},
       {"action_id": "copy_file_name", "title": "ファイル名のコピー"},
+      {"action_id": "open_parent_folder", "title": "フォルダーを開く"},
       {"action_id": "rename", "title": "名前の変更"},
       {"action_id": "properties", "title": "プロパティー"}
     ],

@@ -985,26 +985,6 @@
       ]
     },
     {
-      "item_id": "work_files",
-      "page_id": "work",
-      "parent_item_id": "",
-      "title": "One File",
-      "description": "",
-      "item_kind": "category",
-      "icon_key": "category.blue",
-      "sort_order": 70,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "value",
-      "launch_selection_separator": "; ",
-      "launch_selection_result_name": "recipients",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": []
-    },
-    {
       "item_id": "audio_list",
       "page_id": "windows",
       "parent_item_id": "audio",
@@ -1768,54 +1748,6 @@
           "launch_timeout_ms": 30000,
           "launch_failure_policy": "stop",
           "launch_result_name": "",
-          "launch_result_format": "none"
-        }
-      ]
-    },
-    {
-      "page_id": "work",
-      "parent_item_id": "work_files",
-      "item_id": "35316c61-4a73-46eb-826b-821d17b89995",
-      "title": "FRB_Tools",
-      "description": "FRB_Tools",
-      "item_kind": "category",
-      "icon_key": "category.blue",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "",
-      "launch_selection_separator": "",
-      "launch_selection_result_name": "",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": []
-    },
-    {
-      "page_id": "work",
-      "parent_item_id": "35316c61-4a73-46eb-826b-821d17b89995",
-      "item_id": "0e9c564a-ee8b-409d-a8a3-ab1b2d4d35d3",
-      "title": "frb_camera_jpg_player",
-      "description": "frb_camera_jpg_player",
-      "item_kind": "command",
-      "icon_key": "command",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "",
-      "launch_selection_separator": "",
-      "launch_selection_result_name": "",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "file:///F:/FRB/tools/frb_camera_jpg_player/frb_camera_jpg_player.html",
-          "launch_browser": "",
-          "launch_failure_policy": "stop",
           "launch_result_format": "none"
         }
       ]

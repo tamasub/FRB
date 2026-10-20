@@ -16,7 +16,8 @@
     ".ps1",
     ".json",
     ".xlsx",
-    ".md"
+    ".md",
+    ".html"
   ],
   "exclude_name_contains": [
     "view_def"
