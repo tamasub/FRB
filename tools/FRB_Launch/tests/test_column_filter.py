@@ -30,10 +30,11 @@ class ColumnFilterTests(test_navigation.NavigationTests):
         return [a.data()['title'] for a in menu.actions()
                 if a.isVisible() and isinstance(a.data(), dict)]
 
-    def test_search_appears_only_after_typing_and_is_local(self):
+    def test_search_is_visible_immediately_and_is_local(self):
         menu = self.make_menu()
-        self.assertIsNone(menu.filter_edit)
-        QTest.keyClicks(menu, 'frb')
+        self.assertIsNotNone(menu.filter_edit)
+        self.assertTrue(menu.filter_edit.isVisible())
+        QTest.keyClicks(menu.filter_edit, 'frb')
         self.app.processEvents()
         self.assertEqual(menu.filter_edit.text(), 'frb')
         self.assertEqual(self.visible_titles(menu), ['FRB_Alpha', 'FRB_Beta'])
@@ -44,25 +45,29 @@ class ColumnFilterTests(test_navigation.NavigationTests):
 
     def test_arrow_right_enters_matching_child(self):
         menu = self.make_menu()
-        QTest.keyClicks(menu, 'alpha')
+        QTest.keyClicks(menu.filter_edit, 'alpha')
         edit = menu.filter_edit
         self.assertEqual(menu.activeAction().data()['title'], 'FRB_Alpha')
+        # Right inside the editor moves the caret, not the cascade.
         QTest.keyClick(edit, Qt.Key.Key_Right)
+        self.assertIsNone(menu.child)
+        QTest.keyClick(edit, Qt.Key.Key_Return)
         self.app.processEvents()
         self.assertIsNotNone(menu.child)
         self.assertTrue(menu.child.isVisible())
-        self.assertEqual(menu.child.filter_edit, None)
-        QTest.keyClicks(menu.child, 'depth')
+        self.assertIsNotNone(menu.child.filter_edit)
+        QTest.keyClicks(menu.child.filter_edit, 'depth')
         self.assertEqual(self.visible_titles(menu.child), ['depth.txt'])
         self.assertEqual(self.visible_titles(menu), ['FRB_Alpha'])
 
     def test_escape_resets_filter_without_closing_menu(self):
         menu = self.make_menu()
         original = self.visible_titles(menu)
-        QTest.keyClicks(menu, 'frb')
+        QTest.keyClicks(menu.filter_edit, 'frb')
         QTest.keyClick(menu.filter_edit, Qt.Key.Key_Escape)
         self.app.processEvents()
-        self.assertIsNone(menu.filter_edit)
+        self.assertIsNotNone(menu.filter_edit)
+        self.assertEqual(menu.filter_edit.text(), '')
         self.assertEqual(self.visible_titles(menu), original)
         self.assertTrue(menu.isVisible())
         QTest.keyClick(menu, Qt.Key.Key_Escape)
@@ -70,14 +75,14 @@ class ColumnFilterTests(test_navigation.NavigationTests):
 
     def test_zero_hit_and_edit_clear(self):
         menu = self.make_menu()
-        QTest.keyClicks(menu, 'zzzx')
+        QTest.keyClicks(menu.filter_edit, 'zzzx')
         self.assertEqual(self.visible_titles(menu), [])
         self.assertIsNone(menu.activeAction())
         QTest.keyClick(menu.filter_edit, Qt.Key.Key_Right)
         self.assertIsNone(menu.child)
         menu.filter_edit.clear()
         self.app.processEvents()
-        self.assertIsNone(menu.filter_edit)
+        self.assertIsNotNone(menu.filter_edit)
         self.assertEqual(len(self.visible_titles(menu)), 4)
 
     def test_filter_does_not_shrink_popup_frame(self):
@@ -93,7 +98,7 @@ class ColumnFilterTests(test_navigation.NavigationTests):
         menu = self.w.menu
         original_size = menu.size()
         original_minimum = menu.minimumSize()
-        QTest.keyClicks(menu, 'tools')
+        QTest.keyClicks(menu.filter_edit, 'tools')
         self.app.processEvents()
         self.assertEqual(self.visible_titles(menu), ['tools'])
         self.assertGreaterEqual(menu.height(), original_size.height())
@@ -106,6 +111,7 @@ class ColumnFilterTests(test_navigation.NavigationTests):
         QTest.keyClick(menu.filter_edit, Qt.Key.Key_Escape)
         self.app.processEvents()
         self.assertEqual(menu.minimumSize(), original_minimum)
+        self.assertIsNotNone(menu.filter_edit)
         self.assertEqual(len(self.visible_titles(menu)), 40)
 
     def test_regular_category_and_apps_exclusion(self):
@@ -113,7 +119,7 @@ class ColumnFilterTests(test_navigation.NavigationTests):
                     and row.get('launch_source')!='installed_apps')
         self.w.cascade(root)
         menu = self.w.menu
-        QTest.keyClicks(menu, 'test')
+        QTest.keyClicks(menu.filter_edit, 'test')
         self.assertIsNotNone(menu.filter_edit)
         self.assertEqual(self.w.search.text(), '')
         self.w.cascade(dict(item_kind='category', item_id='app_fixture', page_id=self.w.page_id,

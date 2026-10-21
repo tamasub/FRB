@@ -92,6 +92,7 @@ class PureRegressionTests(unittest.TestCase):
             Key_Escape = 16777216
             Key_Left = 16777234
             Key_Right = 16777236
+            Key_Space = 32
         qt = types.SimpleNamespace(Key=Key, KeyboardModifier=types.SimpleNamespace(
             ControlModifier=1, AltModifier=2))
         fn = isolated_method('CascadeMenu', 'keyPressEvent',
@@ -121,6 +122,7 @@ class PureRegressionTests(unittest.TestCase):
             Key_Escape = 16777216
             Key_Left = 16777234
             Key_Right = 16777236
+            Key_Space = 32
         qt = types.SimpleNamespace(Key=Key, KeyboardModifier=types.SimpleNamespace(
             ControlModifier=1, AltModifier=2))
         fn = isolated_method('CascadeMenu', 'keyPressEvent',

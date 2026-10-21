@@ -28,13 +28,15 @@ def compile_function(body, ns):
 
 
 class Event:
-    def __init__(self, kind, key=None, preedit=None):
+    def __init__(self, kind, key=None, preedit=None, commit=''):
         self.kind, self.k = kind, key
         self.preedit = preedit
+        self.commit = commit
         self.accept = Mock()
     def type(self): return self.kind
     def key(self): return self.k
     def preeditString(self): return self.preedit
+    def commitString(self): return self.commit
 
 
 def test_main_search_is_not_relayed_to_open_cascade():
@@ -117,7 +119,7 @@ def test_first_japanese_preedit_creates_inline_editor():
         'QApplication':types.SimpleNamespace(sendEvent=lambda target,event:sent.append((target,event)))}
     exec(compile(mod,str(SRC),'exec'),ns)
     text_edit = object()
-    obj=types.SimpleNamespace(filter_edit=None)
+    obj=types.SimpleNamespace(filter_action=None, filter_edit=None)
     def ensure(): obj.filter_edit=text_edit
     obj._ensure_local_filter=ensure
     ime=Event(6,preedit='日本')
@@ -166,3 +168,49 @@ def test_native_main_search_caret_remains_editable_with_cascade():
         launcher.close_cascade_for_main_interaction()
         launcher.tray.hide()
         launcher.close()
+
+
+def test_first_ime_committed_fullwidth_space_is_consumed():
+    fn = method('CascadeMenu', 'inputMethodEvent')
+    mod = ast.Module(body=[fn], type_ignores=[])
+    ast.fix_missing_locations(mod)
+    sent = []
+    ns = {'AppCascadeMenu': type('AppCascadeMenu', (), {}),
+          'QApplication': types.SimpleNamespace(sendEvent=lambda target, event: sent.append((target, event)))}
+    exec(compile(mod, str(SRC), 'exec'), ns)
+    editor = object()
+    state = types.SimpleNamespace(filter_action=None, filter_edit=None,
+                                  _start_japanese_local_filter=Mock())
+    def show_search():
+        state.filter_action = object()
+        state.filter_edit = editor
+    state._start_japanese_local_filter.side_effect = show_search
+    state._ensure_local_filter = Mock()
+    first = Event(6, preedit='', commit='\u3000')
+    ns['inputMethodEvent'](state, first)
+    state._start_japanese_local_filter.assert_called_once_with()
+    state._ensure_local_filter.assert_not_called()
+    assert sent == []
+    first.accept.assert_called_once()
+    # Subsequent ideographic spaces are real text, not search-start commands.
+    second = Event(6, preedit='', commit='\u3000')
+    ns['inputMethodEvent'](state, second)
+    assert sent == [(editor, second)]
+    assert state._start_japanese_local_filter.call_count == 1
+
+
+def test_first_ime_committed_ascii_space_also_opens_without_text():
+    fn = method('CascadeMenu', 'inputMethodEvent')
+    mod = ast.Module(body=[fn], type_ignores=[])
+    ast.fix_missing_locations(mod)
+    sent = []
+    ns = {'AppCascadeMenu': type('AppCascadeMenu', (), {}),
+          'QApplication': types.SimpleNamespace(sendEvent=lambda target, event: sent.append((target, event)))}
+    exec(compile(mod, str(SRC), 'exec'), ns)
+    state = types.SimpleNamespace(filter_action=None, filter_edit=None,
+                                  _start_japanese_local_filter=Mock())
+    first = Event(6, preedit='', commit=' ')
+    ns['inputMethodEvent'](state, first)
+    state._start_japanese_local_filter.assert_called_once()
+    assert sent == []
+    first.accept.assert_called_once()

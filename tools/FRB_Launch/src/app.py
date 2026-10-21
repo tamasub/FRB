@@ -452,7 +452,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         """
         if self.scroll_tree is not None:
             return
-        original = list(self.actions())
+        # The always-visible search bar is a separate QWidgetAction, not a
+        # selectable row.  Keep it above the scrolling result list.
+        original = [action for action in self.actions()
+                    if action is not self.filter_action]
         if len(original) < 2:
             return
         original_width = self.sizeHint().width()
@@ -490,8 +493,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
             if not action.isEnabled():
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
             tree.addTopLevelItem(item)
+        filter_height = (self.filter_action.defaultWidget().sizeHint().height()
+                         if self.filter_action is not None else 0)
         tree.setFixedSize(max(200, min(self.maximumWidth() - 12, original_width)),
-                          max(90, height - 22))
+                          max(90, height - 22 - filter_height))
         tree.installEventFilter(self)
         tree.viewport().installEventFilter(self)
         tree.itemClicked.connect(self._scroll_activate)
@@ -510,6 +515,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.order_enabled = False
 
     def popup(self, pos, at=None):
+        # A real, full-height editor exists before the popup gets native focus.
+        # Never insert a 2px hidden editor: that broke QMenu layout on Windows.
+        if not isinstance(self, AppCascadeMenu):
+            self._ensure_local_filter()
         if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
             self.launcher.style_cascade_menu(self)
         screen = QApplication.screenAt(pos) or self.screen() or QApplication.primaryScreen()
@@ -540,7 +549,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
             super().setFocus(reason)
 
     def _ensure_local_filter(self):
-        """Display an inline search only after the user starts typing in this column."""
+        """Install a permanently visible search bar for a folder/menu column."""
         if self.filter_action is not None:
             return
         # Lock the *minimum* frame size before QWidgetAction is inserted and
@@ -550,13 +559,6 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if self.isVisible():
             self.setMinimumSize(max(self.minimumWidth(), self.width()),
                                 max(self.minimumHeight(), self.height()))
-        # Keyboard input should keep a hover-opened menu alive even after the
-        # pointer leaves the row (same promotion used by Right-arrow).
-        ancestor = self
-        while isinstance(ancestor, CascadeMenu):
-            ancestor.open_mode = 'keyboard'
-            ancestor.outside_since = None
-            ancestor = ancestor.parentWidget()
         container = QWidget(self)
         container.setObjectName('columnFilterBar')
         container.setStyleSheet("""
@@ -594,14 +596,66 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self._scroll_original_tree_height = self.scroll_tree.height()
             self.scroll_tree.setFixedHeight(max(120, self.scroll_tree.height() - 48))
         self._order_enabled_before_filter = self.order_enabled
-        self.order_enabled = False  # Never reorder a filtered subset as if it were complete.
+        # An empty, visible search field must not disable normal row dragging.
         self.filter_edit.textChanged.connect(self._apply_local_filter)
-        self.filter_edit.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        # popup/showEvent transfers the actual keyboard focus after display.
+
+    def _focus_initial_filter(self):
+        """Start in the same keyboard mode that Tab selects from the search bar.
+
+        The search bar stays visible, but the menu (or its scrollable item tree)
+        owns initial keyboard focus.  Thus Right expands the highlighted row,
+        while ordinary text and Japanese IME events still reach the column's
+        search bar through keyPressEvent/inputMethodEvent.  Clicking the bar
+        explicitly returns focus to QLineEdit for normal caret navigation.
+        """
+        editor = self.filter_edit
+        if editor is None or not self.isVisible():
+            return
+        self.activateWindow()
+        # Reproduce the already-working Tab-from-search focus destination.
+        # CascadeMenu.setFocus() targets scroll_tree for oversized columns.
+        self.setFocus(Qt.FocusReason.TabFocusReason)
+        focus_target = self.scroll_tree if self.scroll_tree is not None else self
+
+        def initialize_once():
+            if (self.filter_edit is not editor or not self.isVisible()
+                    or not focus_target.hasFocus() or editor.text()
+                    or getattr(self, '_filter_ime_composing', False)):
+                return
+            # Initialize the *actual* focused input window, not the unfocused
+            # QLineEdit. Users remain free to switch to Japanese afterwards.
+            initialize_halfwidth_english(int(focus_target.winId()))
+
+        # Run once after native focus settles; never reset the IME per keystroke.
+        QTimer.singleShot(0, initialize_once)
+
+    def _restore_local_rows(self):
+        """An empty query restores rows, but never removes the search bar."""
+        if self.scroll_tree is not None:
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                self.scroll_tree.topLevelItem(index).setHidden(False)
+        else:
+            for action in self.actions():
+                if action is not self.filter_action:
+                    action.setVisible(True)
+        if self.filter_count is not None:
+            self.filter_count.setText('')
+        self.order_enabled = self._order_enabled_before_filter
+        self.select_first()
 
     def _apply_local_filter(self, query):
         if not query:
-            self.clear_local_filter()
+            self._restore_local_rows()
             return
+        # Only real search input promotes hover mode to keyboard mode and
+        # disables drag-to-reorder for a filtered (possibly incomplete) list.
+        ancestor = self
+        while isinstance(ancestor, CascadeMenu):
+            ancestor.open_mode = 'keyboard'
+            ancestor.outside_since = None
+            ancestor = ancestor.parentWidget()
+        self.order_enabled = False
         shown = 0
         total = 0
         self.hover_timer.stop()
@@ -734,7 +788,17 @@ class CascadeMenu(OrderDragMixin,QMenu):
             if getattr(self, '_filter_ime_composing', False):
                 return False
             if key == Qt.Key.Key_Escape:
-                self.clear_local_filter()
+                # First Esc clears the query; second Esc closes the column.
+                self.keyPressEvent(event)
+                event.accept()
+                return True
+            if key == Qt.Key.Key_Tab and not event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                # The menu still supports arrow-based folder navigation after
+                # moving focus off the search editor with Tab.
+                if self.scroll_tree is not None:
+                    self.scroll_tree.setFocus(Qt.FocusReason.TabFocusReason)
+                else:
+                    super().setFocus(Qt.FocusReason.TabFocusReason)
                 event.accept()
                 return True
             if key in (Qt.Key.Key_Down, Qt.Key.Key_Up):
@@ -759,6 +823,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def showEvent(self, event):
         super().showEvent(event)
         self.select_first()
+        if self.filter_edit is not None:
+            # Keep the popup's frame stable as filtered QAction rows disappear.
+            # The size is taken AFTER Qt's screen-placement/scroll adaptation.
+            self.setMinimumSize(max(self.minimumWidth(), self.width()),
+                                max(self.minimumHeight(), self.height()))
+            QTimer.singleShot(0, self._focus_initial_filter)
 
     def hideEvent(self, event):
         self.hover_timer.stop()
@@ -862,6 +932,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
+        # The editor is always present. Space is ordinary input, not a
+        # special Japanese-IME trigger, and never switches the IME mode.
         if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             # QMenu normally stops at its edges.  Use the shared wrap rule
             # for folder/bookmark cascades, including the "open folder" action.
@@ -877,8 +949,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
             event.accept()
             return
         if self.launcher.page_key(event):event.accept();return
-        if key == Qt.Key.Key_Escape and self.filter_action is not None:
-            self.clear_local_filter();event.accept();return
+        if (key == Qt.Key.Key_Escape and self.filter_edit is not None
+                and self.filter_edit.text()):
+            self.filter_edit.clear();event.accept();return
         if key in (Qt.Key.Key_Left, Qt.Key.Key_Escape):
             parent = self.parentWidget()
             self.close()
@@ -925,7 +998,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
                     self._ensure_local_filter()
                     self.filter_edit.insert(clip)
                 event.accept();return
-            if event.text() and event.text().isprintable() and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
+            if (event.text() and (event.text().isprintable() or event.text() == '\u3000')
+                    and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
                 self._ensure_local_filter()
                 QApplication.sendEvent(self.filter_edit, QKeyEvent(event.type(),key,mods,event.text()))
                 event.accept();return
@@ -951,6 +1025,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.launcher.focus_search(False)
             QApplication.sendEvent(self.launcher.search, event)
         else:
+            # The real QLineEdit is already visible: forward IME composition
+            # without synthesizing keys or altering the user's chosen mode.
             self._ensure_local_filter()
             QApplication.sendEvent(self.filter_edit, event)
         event.accept()
@@ -2578,6 +2654,9 @@ class Launcher(QWidget):
                     if menu.child:menu.child.close()
                     context=menu.order_context;menu.clear_local_filter();menu.clear();menu.openers.clear()
                     self.fill_cascade(menu,context)
+                    # Rebuilding a currently visible column must also restore
+                    # its permanently displayed search bar.
+                    menu._ensure_local_filter()
                     for action in menu.actions():
                         if action.data() and action.data()['item_id']==selected:menu.setActiveAction(action);break
                 else:refresh(menu.child)
