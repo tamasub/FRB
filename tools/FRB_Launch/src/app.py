@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QObject, Signal
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QSize, QObject, Signal
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
@@ -19,6 +19,8 @@ from ime_input import initialize_halfwidth_english
 from search_result_order import display_columns, sort_search_pairs
 from selection_scope import update_visible_checks
 from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
+from view_navigation_history import ViewNavigationHistory
+from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
 import windows
 import installed_apps
@@ -574,6 +576,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_edit.setClearButtonEnabled(True)
         self.filter_edit.setMinimumWidth(180)
         self.filter_edit.installEventFilter(self)
+        self._filter_ime_composing = False
         layout.addWidget(self.filter_edit, 1)
         self.filter_count = QLabel('', container)
         layout.addWidget(self.filter_count)
@@ -657,6 +660,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_action = None
         self.filter_edit = None
         self.filter_count = None
+        self._filter_ime_composing = False
         self.order_enabled = self._order_enabled_before_filter
         self.select_first()
         if self.isVisible():
@@ -723,7 +727,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self._scroll_hover(self.scroll_tree.itemAt(event.position().toPoint()))
             return False
         if obj is self.filter_edit and event.type() == QEvent.Type.KeyPress:
+            # A real QLineEdit must own its editing keys.  In particular,
+            # Left/Right belong to caret movement and IME candidate selection,
+            # not to cascade close/open.  Do not steal keys during pre-edit.
             key = event.key()
+            if getattr(self, '_filter_ime_composing', False):
+                return False
             if key == Qt.Key.Key_Escape:
                 self.clear_local_filter()
                 event.accept()
@@ -732,7 +741,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self._move_filtered_selection(1 if key == Qt.Key.Key_Down else -1)
                 event.accept()
                 return True
-            if key in (Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
                 self.keyPressEvent(event)
                 event.accept()
                 return True
@@ -740,6 +749,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self.keyPressEvent(event)
                 event.accept()
                 return True
+        if obj is self.filter_edit and event.type() == QEvent.Type.InputMethod:
+            # Leave the actual composition to Qt's QLineEdit, including
+            # Japanese pre-edit text and candidate selection.
+            self._filter_ime_composing = bool(event.preeditString())
+            return False
         return super().eventFilter(obj, event)
 
     def showEvent(self, event):
@@ -922,13 +936,24 @@ class CascadeMenu(OrderDragMixin,QMenu):
             event.accept();return
         super().keyPressEvent(event)
 
+    def inputMethodQuery(self, query):
+        # A QMenu is not normally an IME text editor.  Advertise pre-edit
+        # support while the inline QLineEdit is being created lazily so that
+        # the very first Japanese conversion needn't start with an ASCII key.
+        if query == Qt.InputMethodQuery.ImEnabled:
+            return True
+        if self.filter_edit is not None:
+            return self.filter_edit.inputMethodQuery(query)
+        return super().inputMethodQuery(query)
+
     def inputMethodEvent(self, event):
         if isinstance(self, AppCascadeMenu):
             self.launcher.focus_search(False)
-            QApplication.sendEvent(self.launcher.search,event)
+            QApplication.sendEvent(self.launcher.search, event)
         else:
             self._ensure_local_filter()
-            QApplication.sendEvent(self.filter_edit,event)
+            QApplication.sendEvent(self.filter_edit, event)
+        event.accept()
 
 
 
@@ -1040,6 +1065,13 @@ class Launcher(QWidget):
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
+        self.view_history = ViewNavigationHistory()
+        self._nav_restoring = False
+        self._nav_transition = False
+        self._nav_search_timer = QTimer(self)
+        self._nav_search_timer.setSingleShot(True)
+        self._nav_search_timer.setInterval(600)
+        self._nav_search_timer.timeout.connect(self._nav_flush_search)
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
         self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
@@ -1071,6 +1103,27 @@ class Launcher(QWidget):
         search_row = QHBoxLayout(self.search_bar)
         search_row.setContentsMargins(0, 0, 0, 0)
         search_row.setSpacing(6)
+        # Browser-style view navigation is separate from ←/→ keyboard
+        # shortcuts used by Page tabs, cascades and recipient selection.
+        self.nav_toolbar = QWidget(self.search_bar)
+        nav_layout = QHBoxLayout(self.nav_toolbar)
+        nav_layout.setContentsMargins(0, 0, 0, 0)
+        nav_layout.setSpacing(2)
+        # Use real vector icons, never tiny platform-dependent Unicode glyphs.
+        self.nav_back_button = QPushButton(self.nav_toolbar)
+        self.nav_home_button = QPushButton(self.nav_toolbar)
+        for button, name, tip in (
+            (self.nav_back_button, 'navBackButton', '前の画面に戻る'),
+            (self.nav_home_button, 'navHomeButton', 'ホーム（仕事Pageの先頭）')):
+            button.setObjectName(name)
+            button.setToolTip(tip)
+            button.setFixedSize(34, 34)
+            button.setIconSize(QSize(24, 24))
+            button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            nav_layout.addWidget(button)
+        self.nav_back_button.clicked.connect(self.navigate_back)
+        self.nav_home_button.clicked.connect(self.navigate_home)
+        search_row.addWidget(self.nav_toolbar)
         search_row.addWidget(self.search, 1)
         self.search.setMinimumHeight(32)
         self.save_history_button = QPushButton('履歴登録', self.search_bar)
@@ -1096,10 +1149,14 @@ class Launcher(QWidget):
         self.dark_theme_action.triggered.connect(lambda checked=False: self.set_color_theme('dark'))
         self.theme_button.clicked.connect(self.open_theme_menu)
         self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
+        # Non-grabbing folder columns sometimes leave native keyboard focus on
+        # the Page tabs; it must still be possible to start an IME composition.
+        self.tabs.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         # Apply full tab styles (including *unselected* tabs) so Windows does
         # not fall back to the legacy beveled/3D native QTabBar appearance.
         self.tabs.setStyleSheet(PAGE_TABS_QSS)
         self.list = ReorderTree(self); self.list.setObjectName('mainLaunchList'); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
+        self.list.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.list.setHeaderLabels(['タイトル', '説明・場所'])
         header = self.list.header()
         header.setSectionsMovable(False)
@@ -1309,6 +1366,21 @@ class Launcher(QWidget):
                 font-weight:bold; padding:0; }
             QPushButton#themeButton:hover { background:#334746; border-color:#699684; }
             QPushButton#themeButton:pressed { background:#415e53; }
+        ''')
+        # Draw bold-enough, consistently sized Chrome-style outline icons.
+        # Native font glyphs (← → ⌂) were too tiny and theme-dependent.
+        for button, name in (
+                (self.nav_back_button, 'back'),
+                (self.nav_home_button, 'home')):
+            button.setIcon(browser_navigation_icon(name, self.color_theme))
+        nav_hover = '#dbe6e0' if light else '#354b50'
+        nav_pressed = '#cbdad4' if light else '#496168'
+        self.nav_toolbar.setStyleSheet(f'''
+            QPushButton {{ background:transparent; border:0; border-radius:17px;
+                padding:0; margin:0; }}
+            QPushButton:hover:!disabled {{ background:{nav_hover}; }}
+            QPushButton:pressed:!disabled {{ background:{nav_pressed}; }}
+            QPushButton:disabled {{ background:transparent; }}
         ''')
         self.theme_menu.setStyleSheet(LIGHT_MENU_QSS if light else '')
         if hasattr(self, 'tray_menu'):
@@ -1901,6 +1973,7 @@ class Launcher(QWidget):
             if self.page_id not in ids:self.page_id=ids[0]
             self.tabs.setCurrentIndex(ids.index(self.page_id));self.tabs.blockSignals(False)
             self.stack=[];self.selection=None;self.checked.clear();self.render()
+            self._nav_reset()
             if hasattr(self,'registered_key'):self.register_key()
         except Exception as e:self.error('設定の読込に失敗: '+str(e))
 
@@ -1917,6 +1990,7 @@ class Launcher(QWidget):
         self.target=windows.foreground();self.reload();self.refresh_bookmarks()
         self.hide_history_popup()
         self.stack=[];self.selection=None;self.checked.clear();self.search.clear();self.render()
+        self._nav_reset()
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
         self.show();self.raise_();self.activateWindow();self.search.setFocus()
@@ -1961,15 +2035,21 @@ class Launcher(QWidget):
         if index==11 and self.selection:
             self.confirm_selection();return
         if index>=self.tabs.count():return
+        self._nav_before_change()
+        self._nav_transition = True
         if self.menu:self.menu.close()
         self.hover_timer.stop();self.pending_menu_item=None
         self.stack=[];self.selection=None;self.checked.clear()
         self.tabs.setCurrentIndex(index)
         self.search.clear();self.render();self.search.setFocus()
+        self._nav_transition = False
+        self._nav_after_change()
 
     def page_changed(self,index):
         if self.data and index>=0:
+            self._nav_before_change()
             self.page_id=self.pages[index]['page_id'];self.stack=[];self.selection=None;self.checked.clear();self.render()
+            self._nav_after_change()
 
     def children(self,row=None):
         if row and row.get('item_kind')=='directory':
@@ -2218,12 +2298,127 @@ class Launcher(QWidget):
         self.render()
         self.list.setFocus()
 
+    def _nav_state(self):
+        current = self.list.currentItem()
+        row = current.data(0, Qt.ItemDataRole.UserRole) if current else None
+        return dict(page_id=self.page_id, stack=tuple(self.stack),
+                    selection=self.selection, checked=frozenset(self.checked),
+                    query=self.search.text(), current_item_id=row.get('item_id') if row else None,
+                    focus=('tabs' if self.tabs.hasFocus() else
+                           'search' if self.search.hasFocus() else 'list'))
+
+    def _nav_update_buttons(self):
+        self.nav_back_button.setEnabled(self.view_history.can_back)
+        # Home is always available even if currently at the root.
+        self.nav_home_button.setEnabled(bool(getattr(self, 'pages', None)))
+
+    def _nav_reset(self):
+        self._nav_search_timer.stop()
+        self.view_history.reset(self._nav_state())
+        self._nav_update_buttons()
+
+    def _nav_flush_search(self):
+        self._nav_search_timer.stop()
+        if self._nav_restoring or self._nav_transition or not self.data:
+            return
+        self.view_history.push(self._nav_state())
+        self._nav_update_buttons()
+
+    def _nav_before_change(self):
+        if self._nav_restoring or self._nav_transition:
+            return
+        self._nav_flush_search()
+        self.view_history.update_current(self._nav_state())
+
+    def _nav_after_change(self):
+        if self._nav_restoring or self._nav_transition:
+            return
+        self._nav_search_timer.stop()
+        self.view_history.push(self._nav_state())
+        self._nav_update_buttons()
+
+    def _nav_restore(self, state):
+        self._nav_search_timer.stop()
+        self._nav_restoring = True
+        try:
+            self.hide_history_popup()
+            self.hover_timer.stop()
+            self.pending_menu_item = None
+            if self.menu:
+                self.menu.close()
+            # A configuration reload invalidates the history, so all row
+            # objects here belong to the current data snapshot.
+            page_ids = [page['page_id'] for page in self.pages]
+            if state['page_id'] not in page_ids:
+                return
+            self.tabs.blockSignals(True)
+            self.tabs.setCurrentIndex(page_ids.index(state['page_id']))
+            self.tabs.blockSignals(False)
+            self.page_id = state['page_id']
+            self.stack = list(state['stack'])
+            self.selection = state['selection']
+            self.checked = set(state['checked'])
+            self.search.setText(state['query'])
+            self.render()
+            target_id = state.get('current_item_id')
+            for index in range(self.list.topLevelItemCount()):
+                item = self.list.topLevelItem(index)
+                row = item.data(0, Qt.ItemDataRole.UserRole)
+                if row and row.get('item_id') == target_id:
+                    self.list.setCurrentItem(item)
+                    break
+            focus = state.get('focus')
+            if focus == 'tabs':
+                self.tabs.setFocus(Qt.FocusReason.ShortcutFocusReason)
+            elif focus == 'search':
+                self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
+            else:
+                self.list.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        finally:
+            self._nav_restoring = False
+            self._nav_update_buttons()
+
+    def navigate_back(self):
+        self._nav_flush_search()
+        state = self.view_history.back()
+        if state is not None:
+            self._nav_restore(state)
+        else:
+            self._nav_update_buttons()
+
+    def navigate_home(self):
+        if not self.data or not self.pages:
+            return
+        self._nav_before_change()
+        self._nav_restoring = True
+        try:
+            self.hide_history_popup()
+            if self.menu:
+                self.menu.close()
+            self.hover_timer.stop()
+            self.pending_menu_item = None
+            self.stack = []
+            self.selection = None
+            self.checked.clear()
+            self.page_id = self.pages[0]['page_id']
+            self.tabs.blockSignals(True)
+            self.tabs.setCurrentIndex(0)
+            self.tabs.blockSignals(False)
+            self.search.clear()
+            self.render()
+            self.list.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        finally:
+            self._nav_restoring = False
+        self._nav_after_change()
+
     def go_back(self):
+        self._nav_before_change()
         if self.selection:
             self.selection = None; self.checked.clear()
         elif self.stack:
             self.stack.pop()
         self.search.clear(); self.render(); self.list.setFocus()
+        self._nav_after_change()
 
     def hide_root_left_feedback(self):
         """Dismiss the harmless left-edge reaction when the view changes."""
@@ -2480,6 +2675,7 @@ class Launcher(QWidget):
             self.run_file_path(row, file_path)
             return
         if not self.selection and row.get('_search_selection_owner'):
+            self._nav_before_change()
             # Enter/Space on a global-search hit joins its original selection
             # group. Keep the search text, so the selected person stays visible.
             owner_id = row['_search_selection_owner']
@@ -2490,14 +2686,21 @@ class Launcher(QWidget):
             self.checked = {row['choice_id']}
             self.render()
             self.list.setFocus()
+            self._nav_after_change()
             return
         if self.selection:
             q=self.list.currentItem();q.setCheckState(0,Qt.CheckState.Unchecked if q.checkState(0)==Qt.CheckState.Checked else Qt.CheckState.Checked);return
         kind=row.get('item_kind')
         if kind=='category':
-            self.stack.append(row);self.search.clear();self.render();self.list.setFocus();return
+            self._nav_before_change()
+            self.stack.append(row);self.search.clear();self.render();self.list.setFocus()
+            self._nav_after_change()
+            return
         if kind=='selection':
-            self.selection=row;self.checked.clear();self.search.clear();self.render();self.list.setFocus();return
+            self._nav_before_change()
+            self.selection=row;self.checked.clear();self.search.clear();self.render();self.list.setFocus()
+            self._nav_after_change()
+            return
         self.execute(row)
 
     def confirm_selection(self):
@@ -2546,6 +2749,8 @@ class Launcher(QWidget):
             return
         self.save_history_button.setVisible(bool(value.strip()))
         self.render()
+        if not self._nav_restoring and not self._nav_transition:
+            self._nav_search_timer.start()
 
     def position_history_popup(self):
         if not hasattr(self, 'history_popup'):
@@ -2812,10 +3017,23 @@ class Launcher(QWidget):
         # after the user selects a cascade row.  Give visible columns keyboard
         # ownership without changing their non-grabbing mouse behavior.
         if (event.type() == getattr(QEvent.Type, 'KeyPress', None)
-                and obj in (self.list, self.tabs, self.search)):
+                and obj in (self.list, self.tabs)):
+            # Never steal keystrokes from the MAIN search QLineEdit.  When a
+            # cascade is open, it must still support Japanese IME composition,
+            # Left/Right caret movement, Home/End, and ordinary text editing.
             column = self.visible_cascade_for_keyboard()
             if column is not None and QApplication.activePopupWidget() is None:
                 column.keyPressEvent(event)
+                event.accept()
+                return True
+        if (event.type() == getattr(QEvent.Type, 'InputMethod', None)
+                and obj in (self.list, self.tabs)):
+            # IME pre-edit is not a printable KeyPress.  Relay it explicitly
+            # when a non-grabbing Qt.Tool cascade owns the keyboard so the
+            # inline QLineEdit can be created BEFORE the first commit.
+            column = self.visible_cascade_for_keyboard()
+            if column is not None and QApplication.activePopupWidget() is None:
+                column.inputMethodEvent(event)
                 event.accept()
                 return True
         if obj is self.list.viewport():
@@ -2878,6 +3096,13 @@ class Launcher(QWidget):
             k=event.key();ctrl=bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
             if ctrl and k==Qt.Key.Key_F:
                 self.focus_search();return True
+            # When the caret is in the main search editor, cursor navigation
+            # must NEVER close/open the still-visible folder cascade.  Qt's
+            # QLineEdit handles arrows (including Ctrl+Left/Right) natively.
+            if obj is self.search and k in (
+                    Qt.Key.Key_Left, Qt.Key.Key_Right,
+                    Qt.Key.Key_Home, Qt.Key.Key_End):
+                return False
             if self.page_key(event):return True
             # IME owns its pre-edit and candidate keystrokes.
             if getattr(self,'composing',False):return False
@@ -2926,8 +3151,12 @@ class Launcher(QWidget):
                 return True
             if k==Qt.Key.Key_Escape:
                 if self.search.text():self.search.clear()
-                elif self.selection:self.selection=None;self.render()
-                elif self.stack:self.stack.pop();self.render()
+                elif self.selection or self.stack:
+                    self._nav_before_change()
+                    if self.selection:self.selection=None
+                    elif self.stack:self.stack.pop()
+                    self.render()
+                    self._nav_after_change()
                 else:self.dismiss()
                 return True
             if ctrl and k in (Qt.Key.Key_PageUp,Qt.Key.Key_PageDown):
@@ -2943,7 +3172,10 @@ class Launcher(QWidget):
                     if r['item_kind'] in {'category','directory'}:self.cascade(r,q)
                     return True
                 if k==Qt.Key.Key_Left:
-                    if self.stack:self.stack.pop();self.render()
+                    if self.stack:
+                        self._nav_before_change()
+                        self.stack.pop();self.render()
+                        self._nav_after_change()
                     return True
                 if k==Qt.Key.Key_Space:
                     current=self.list.currentItem()
