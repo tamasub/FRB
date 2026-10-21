@@ -18,6 +18,9 @@ namespace FRBStudio.NativeShell
         public string[] WritableFiles { get; private set; } = Array.Empty<string>();
         // Trusted native configuration: exact external DB files permitted for read-only SQLite access.
         public string[] SqliteReadOnlyExternalFiles { get; private set; } = Array.Empty<string>();
+        // Trusted native allowlists for external .db files located under explicitly approved folders.
+        public string[] SqliteReadOnlyExternalDirectories { get; private set; } = Array.Empty<string>();
+        public string[] SqliteReadWriteExternalDirectories { get; private set; } = Array.Empty<string>();
         // Explicit exact files, controlled by trusted native config; read-only JSON sources.
         public string[] ReadOnlyExternalJsonFiles { get; private set; } = Array.Empty<string>();
         public HashSet<string> AllowedCommands { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -43,6 +46,8 @@ namespace FRBStudio.NativeShell
                 WritableRoots = GetStringList(raw, "writable_roots").ToArray(),
                 WritableFiles = GetStringList(raw, "writable_files").ToArray(),
                 SqliteReadOnlyExternalFiles = GetStringList(raw, "sqlite_readonly_external_files").ToArray(),
+                SqliteReadOnlyExternalDirectories = GetStringList(raw, "sqlite_readonly_external_directories").ToArray(),
+                SqliteReadWriteExternalDirectories = GetStringList(raw, "sqlite_readwrite_external_directories").ToArray(),
                 ReadOnlyExternalJsonFiles = GetStringList(raw, "readonly_external_json_files").ToArray()
             };
 

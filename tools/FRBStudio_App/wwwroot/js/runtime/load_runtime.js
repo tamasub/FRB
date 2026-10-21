@@ -107,8 +107,29 @@ async function loadFromFiles() {
 
 async function fetchJson(url) {
   const res = await fetch(url, {cache: 'no-store'});
-  if (!res.ok) throw new Error(`${url} の読み込みに失敗しました (${res.status})`);
-  return res.json();
+  const text = await res.text();
+  if (!res.ok) {
+    let payload = null;
+    try { payload = JSON.parse(text); } catch { /* HTTP error may be plain text */ }
+    const code = String(payload?.error || `HTTP_${res.status}`);
+    const reason = String(payload?.message || text.slice(0, 300) || `HTTP ${res.status}`);
+    const details = payload?.details;
+    const table = details?.table ? ` / table=${details.table}` : '';
+    const operation = details?.operation ? ` / operation=${details.operation}` : '';
+    const sqliteCode = details?.sqlite_code ? ` / SQLite code=${details.sqlite_code}` : '';
+    const error = new Error(`JSON読込失敗: ${url} / HTTP ${res.status} / ${code}: ${reason}${table}${operation}${sqliteCode}`);
+    error.code = code;
+    error.details = details || null;
+    throw error;
+  }
+  try {
+    return JSON.parse(text);
+  } catch (cause) {
+    const error = new Error(`JSON構文エラー: ${url} / ${cause.message}`);
+    error.code = 'JSON_PARSE_ERROR';
+    error.cause = cause;
+    throw error;
+  }
 }
 
 function normalizeRuntimeFieldDefinitionRef(raw) {
@@ -752,6 +773,14 @@ async function resolveStartupViewDefWithFallback(dataObj, dataName, params) {
   }
 }
 
+async function recordStudioJsonLoadFailure(error, context) {
+  if (typeof window.FRBStudioJsonLoadDiagnostics?.record === 'function') {
+    return window.FRBStudioJsonLoadDiagnostics.record(error, context);
+  }
+  console.error('[FRBStudio JSON LOAD FAILURE]', context, error);
+  return null;
+}
+
 async function autoLoadFromQuery() {
   const params = new URLSearchParams(location.search);
   if (typeof isRelatedGridLaunchQuery === 'function' && isRelatedGridLaunchQuery(params)) {
@@ -784,7 +813,8 @@ async function autoLoadFromQuery() {
         applyLaunchFocusFromQuery(params);
     } catch (err) {
       console.error(err);
-      setStatus('起動指定JSON読込エラー: ' + err.message, { kind: 'error', title: '起動指定JSON読込エラー', sticky: true });
+      const diag = await recordStudioJsonLoadFailure(err, { stage: 'startupJson.read', dataPath: '(startupJson)', viewDefPath: lastLoadedDefName });
+      setStatus('起動指定JSON読込エラー: ' + err.message + (diag?.path ? ` / LOG: ${diag.path}` : ''), { kind: 'error', title: '起動指定JSON読込エラー', sticky: true });
     }
     return;
   }
@@ -869,7 +899,8 @@ async function autoLoadFromQuery() {
     await executeLaunchActionFromQuery(params);
   } catch (err) {
     console.error(err);
-    setStatus('URL読込エラー: ' + err.message + '（file://直開きの場合はローカルサーバ起動が必要な場合があります）', { kind: 'error', title: 'URL読込エラー' });
+    const diag = await recordStudioJsonLoadFailure(err, { stage: 'URL load', dataPath: dataParam, viewDefPath: viewParam || lastLoadedDefName });
+    setStatus('URL読込エラー: ' + err.message + (diag?.path ? ` / LOG: ${diag.path}` : ''), { kind: 'error', title: 'URL読込エラー', sticky: true });
   }
 }
 

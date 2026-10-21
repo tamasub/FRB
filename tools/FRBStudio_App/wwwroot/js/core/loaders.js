@@ -91,7 +91,8 @@ async function loadFromDroppedFilesOrServer() {
   let droppedDataName = null;
   if (dataFile) {
     droppedDataName = dataFile.name;
-    dataObj = JSON.parse(await dataFile.text());
+    try { dataObj = JSON.parse(await dataFile.text()); }
+    catch (err) { throw new Error(`Data JSON構文エラー: ${droppedDataName} / ${err.message}`); }
   }
 
   let defName = defNameFromInput;
@@ -109,7 +110,8 @@ async function loadFromDroppedFilesOrServer() {
   let droppedDefRawObj = null;
   if (defFile) {
     droppedDefName = defFile.name;
-    droppedDefRawObj = JSON.parse(await defFile.text());
+    try { droppedDefRawObj = JSON.parse(await defFile.text()); }
+    catch (err) { throw new Error(`ViewDef JSON構文エラー: ${droppedDefName} / ${err.message}`); }
     defName = safeJsonFileName(defFile.name) || defName || 'dropped_view_def.json';
     if (dataObj && !isViewDefCandidateAllowedForData(dataObj, defName)) {
       const allowed = getDataViewDefCandidateItems(dataObj).map(item => item.view_def).join(' / ') || '(候補なし)';

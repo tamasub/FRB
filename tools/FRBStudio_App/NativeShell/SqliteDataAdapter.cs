@@ -16,13 +16,19 @@ namespace FRBStudio.NativeShell
     {
         private readonly WorkspacePolicy _workspace;
         private readonly HashSet<string> _externalReadOnlyFiles;
+        private readonly string[] _externalReadOnlyDirectories;
+        private readonly string[] _externalReadWriteDirectories;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         private const string SnapshotKey = "__sqlite_snapshot";
         private const string MetaKey = "__sqlite_meta";
         private static readonly Regex Identifier = new Regex(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
         private static readonly Regex DataPath = new Regex(@"^\$\.[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
 
-        internal SqliteDataAdapter(WorkspacePolicy workspace, IEnumerable<string> externalReadOnlyFiles = null)
+        internal SqliteDataAdapter(
+            WorkspacePolicy workspace,
+            IEnumerable<string> externalReadOnlyFiles = null,
+            IEnumerable<string> externalReadOnlyDirectories = null,
+            IEnumerable<string> externalReadWriteDirectories = null)
         {
             _workspace = workspace;
             _externalReadOnlyFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -33,6 +39,54 @@ namespace FRBStudio.NativeShell
                 if (!Path.IsPathRooted(expanded))
                     throw new InvalidDataException("sqlite_readonly_external_files must contain absolute paths.");
                 _externalReadOnlyFiles.Add(Path.GetFullPath(expanded));
+            }
+            _externalReadOnlyDirectories = NormalizeExternalDirectories(
+                externalReadOnlyDirectories, "sqlite_readonly_external_directories");
+            _externalReadWriteDirectories = NormalizeExternalDirectories(
+                externalReadWriteDirectories, "sqlite_readwrite_external_directories");
+        }
+
+        private static string[] NormalizeExternalDirectories(IEnumerable<string> directories, string settingName)
+        {
+            var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var configured in directories ?? Enumerable.Empty<string>())
+            {
+                if (String.IsNullOrWhiteSpace(configured)) continue;
+                var expanded = Environment.ExpandEnvironmentVariables(configured.Trim());
+                if (!Path.IsPathRooted(expanded))
+                    throw new InvalidDataException(settingName + " must contain absolute folder paths: " + configured);
+                var full = Path.GetFullPath(expanded);
+                // Keep the separator on a drive/UNC root; otherwise trim trailing separators.
+                var volumeRoot = Path.GetPathRoot(full);
+                if (!String.Equals(full, volumeRoot, StringComparison.OrdinalIgnoreCase))
+                    full = full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                roots.Add(full);
+            }
+            return roots.ToArray();
+        }
+
+        private static bool IsUnderDirectory(string filePath, string directory)
+        {
+            // Separator-aware containment: C:\Data is not the parent of C:\Database.
+            var prefix = directory.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal)
+                ? directory : directory + Path.DirectorySeparatorChar;
+            return filePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void EnsureNoExternalReparsePoints(string fullPath)
+        {
+            // A junction/symlink could otherwise redirect an approved directory outside its boundary.
+            var volumeRoot = Path.GetPathRoot(fullPath);
+            var current = volumeRoot;
+            if (Directory.Exists(current) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidOperationException("WORKSPACE_PATH_DENIED: external SQLite path contains a reparse point.");
+            foreach (var part in fullPath.Substring(volumeRoot.Length)
+                .Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                current = Path.Combine(current, part);
+                if ((File.Exists(current) || Directory.Exists(current))
+                    && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                    throw new InvalidOperationException("WORKSPACE_PATH_DENIED: external SQLite path contains a reparse point.");
             }
         }
 
@@ -89,13 +143,20 @@ namespace FRBStudio.NativeShell
             string full;
             if (Path.IsPathRooted(path))
             {
-                // External access is intentionally opt-in, exact-file, and READ ONLY.
-                // DataJSON alone cannot grant itself filesystem permissions.
-                if (!String.Equals(GetString(ds, "access_mode"), "read_only", StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("WORKSPACE_PATH_DENIED: external SQLite databases require read_only mode.");
+                // DataJSON is untrusted: access to an external .db must be explicitly granted
+                // by trusted native_shell.config.json (exact read-only file or approved directory).
                 full = Path.GetFullPath(path);
-                if (!_externalReadOnlyFiles.Contains(full))
-                    throw new InvalidOperationException("WORKSPACE_PATH_DENIED: SQLite external DB is not in native allowlist.");
+                var wantsWrite = String.Equals(GetString(ds, "access_mode"), "read_write", StringComparison.OrdinalIgnoreCase);
+                var directoryGrantsWrite = _externalReadWriteDirectories.Any(root => IsUnderDirectory(full, root));
+                var directoryGrantsRead = directoryGrantsWrite ||
+                    _externalReadOnlyDirectories.Any(root => IsUnderDirectory(full, root));
+                if (wantsWrite && !directoryGrantsWrite)
+                    throw new InvalidOperationException(
+                        "WORKSPACE_PATH_DENIED: external SQLite read_write requires sqlite_readwrite_external_directories in NativeShell/native_shell.config.json.");
+                if (!wantsWrite && !_externalReadOnlyFiles.Contains(full) && !directoryGrantsRead)
+                    throw new InvalidOperationException(
+                        "WORKSPACE_PATH_DENIED: SQLite external DB is not in native allowlist. Add its file to sqlite_readonly_external_files or its folder to sqlite_readonly_external_directories in NativeShell/native_shell.config.json.");
+                EnsureNoExternalReparsePoints(full);
             }
             else
             {
@@ -312,9 +373,22 @@ namespace FRBStudio.NativeShell
             var meta = new Dictionary<string, object>();
             foreach (var map in maps)
             {
-                ResolveTableColumns(con, tx, map);
+                List<IDictionary<string, object>> rows;
                 bool truncated;
-                var rows = ReadRows(con, tx, map, out truncated);
+                try
+                {
+                    ResolveTableColumns(con, tx, map);
+                    rows = ReadRows(con, tx, map, out truncated);
+                }
+                catch (SqliteException ex)
+                {
+                    throw SqliteDataError.FromSqlite(ex, map.Table, "SELECT");
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidDataException("SQLite read failed: table=" + map.Table
+                        + ", data_path=" + map.DataPath + " / " + ex.Message, ex);
+                }
                 def[map.Property] = rows.ToArray();
                 snap[map.Property] = rows.ToArray().Select(row => new Dictionary<string, object>(row)).ToArray();
                 meta[map.Property] = new Dictionary<string, object> { ["table"] = map.Table, ["loaded"] = rows.Count,

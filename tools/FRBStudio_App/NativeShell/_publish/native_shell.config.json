@@ -13,6 +13,7 @@
   ],
   "allowed_commands": [
     "system.ping",
+    "diagnostics.recordJsonLoadError",
     "workspace.getCurrent",
     "workspace.select",
     "file.exists",
@@ -167,6 +168,8 @@
   "sqlite_readonly_external_files": [
     "%LOCALAPPDATA%\\FRBLaunch\\file_index.db"
   ],
+  "sqlite_readonly_external_directories": [],
+  "sqlite_readwrite_external_directories": [],
   "readonly_external_json_files": [
     "%LOCALAPPDATA%\\FRBLaunch\\apps_cache.json"
   ]

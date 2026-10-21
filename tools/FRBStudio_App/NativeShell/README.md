@@ -63,6 +63,31 @@ C# -> Web response:
 
 Adding a new profile that can be expressed with the existing generic `process.runProfile` command should be done in JSON rather than by adding Studio-specific C# logic. A genuinely new OS capability may still require C#.
 
+## External SQLite DB folder allowlist
+
+The SQLite DataJSON descriptor (`data/json/.../*.json`) must still reside inside the Studio workspace. Its `data_source.database_path` may be an **absolute** path outside the workspace only when explicitly approved in **`NativeShell/native_shell.config.json`**. This is independent of the `writable_roots` setting.
+
+Example (Windows paths; double backslashes required inside JSON):
+
+```json
+"sqlite_readonly_external_directories": [
+  "F:\\SharedDB\\Reports",
+  "%LOCALAPPDATA%\\MyApp\\db"
+],
+"sqlite_readwrite_external_directories": []
+```
+
+- `sqlite_readonly_external_directories`: read-only SQLite databases anywhere under these folders, including subfolders (`data_source.access_mode = "read_only"`).
+- `sqlite_readwrite_external_directories`: explicitly allow editing SQLite DBs under these folders (`access_mode = "read_write"`); read-only access is also allowed. **Only set this when editing the external database is intentional.**
+- `sqlite_readonly_external_files`: existing exact-file read-only allowlist remains supported.
+- An empty list means no new external folders are permitted. Entries must be absolute Windows paths; environment variables such as `%LOCALAPPDATA%` are expanded.
+- Exact path boundaries are enforced (`F:\\DB` does not match `F:\\DB_Backup`). Junctions/symlinks (reparse points) in the authorized DB path are rejected to prevent directory escapes.
+- The database file must already exist and must end in `.db`; Studio does not create it. Folder permissions and DB locks still apply.
+- NativeShell first reads `native_shell.config.json` **next to the running EXE** (normally `NativeShell/_publish/native_shell.config.json`), then falls back to `NativeShell/native_shell.config.json`. Edit the **effective** copy and **restart FRB Studio**. After updating C# code, **recompile the NativeShell** with `cmd_compile_NativeShell.bat` and deploy it as usual.
+- Avoid granting a full drive root or unrelated shared folder. Do not put external DB paths into `writable_roots` (that setting is for workspace-relative JSON writes).
+
+If the database remains unreadable, check `%LOCALAPPDATA%\FRBStudio\logs\json_load_errors.log` for `WORKSPACE_PATH_DENIED` or a more specific SQLite error. An allowlisted folder does not bypass invalid `data_source.tables`, missing tables, or malformed JSON.
+
 ## Build / runtime verification status
 
 The source targets `.NET Framework 4.8` (`net48`) and x64 and references the Microsoft WebView2 SDK.

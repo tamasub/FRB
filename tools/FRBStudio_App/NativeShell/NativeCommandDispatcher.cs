@@ -21,7 +21,11 @@ namespace FRBStudio.NativeShell
         private string _startupDocumentId;
         private readonly WorkspacePolicy _workspace;
         private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-        private SqliteDataAdapter _sqlite => new SqliteDataAdapter(_workspace, _config.SqliteReadOnlyExternalFiles);
+        private SqliteDataAdapter _sqlite => new SqliteDataAdapter(
+            _workspace,
+            _config.SqliteReadOnlyExternalFiles,
+            _config.SqliteReadOnlyExternalDirectories,
+            _config.SqliteReadWriteExternalDirectories);
         private readonly Dictionary<string, WorkspacePolicy> _folderGrants = new Dictionary<string, WorkspacePolicy>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _documentGrants = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _persistedFolderGrantPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -83,6 +87,7 @@ namespace FRBStudio.NativeShell
         {
             string requestId = null;
             string command = null;
+            IDictionary<string, object> diagnosticPayload = null;
             try
             {
                 var request = _serializer.DeserializeObject(messageJson) as Dictionary<string, object>;
@@ -92,6 +97,7 @@ namespace FRBStudio.NativeShell
                 command = GetString(request, "command");
                 var protocolVersion = GetString(request, "protocol_version") ?? string.Empty;
                 var payload = GetDictionary(request, "payload") ?? new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                diagnosticPayload = payload;
 
                 if (!string.Equals(protocolVersion, _config.ProtocolVersion, StringComparison.Ordinal))
                     return SerializeError(requestId, command, "UNSUPPORTED_PROTOCOL_VERSION", "protocol_version is not supported.");
@@ -122,11 +128,13 @@ namespace FRBStudio.NativeShell
             }
             catch (SqliteDataError ex)
             {
+                JsonLoadDiagnostics.TryNativeFailure(command, diagnosticPayload, ex.ErrorCode, ex);
                 return SerializeError(requestId, command, ex.ErrorCode, ex.Message, ex.Details());
             }
             catch (Microsoft.Data.Sqlite.SqliteException ex)
             {
                 var sqliteError = SqliteDataError.FromSqlite(ex);
+                JsonLoadDiagnostics.TryNativeFailure(command, diagnosticPayload, sqliteError.ErrorCode, ex);
                 return SerializeError(requestId, command, sqliteError.ErrorCode, sqliteError.Message, sqliteError.Details());
             }
             catch (Exception ex)
@@ -134,6 +142,7 @@ namespace FRBStudio.NativeShell
                 var code = ex.Message != null && ex.Message.StartsWith("WORKSPACE_PATH_DENIED", StringComparison.Ordinal)
                     ? "WORKSPACE_PATH_DENIED"
                     : "NATIVE_OPERATION_FAILED";
+                JsonLoadDiagnostics.TryNativeFailure(command, diagnosticPayload, code, ex);
                 return SerializeError(requestId, command, code, ex.Message);
             }
         }
@@ -142,6 +151,9 @@ namespace FRBStudio.NativeShell
         {
             switch (command)
             {
+                case "diagnostics.recordJsonLoadError":
+                    return JsonLoadDiagnostics.RecordBrowser(payload);
+
                 case "system.ping":
                     return new Dictionary<string, object>
                     {

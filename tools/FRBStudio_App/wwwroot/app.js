@@ -413,7 +413,12 @@ $('loadBtn').addEventListener('click', async () => {
     await loadFromFiles();
   } catch (err) {
     console.error(err);
-    setStatus('エラー: ' + err.message, { kind: 'error', title: '読込エラー' });
+    const diag = await recordStudioJsonLoadFailure(err, {
+      stage: 'manual load',
+      dataPath: $('dataFile')?.files?.[0]?.name || $('dataNameInput')?.value,
+      viewDefPath: $('defFile')?.files?.[0]?.name || $('defNameInput')?.value
+    });
+    setStatus('読込エラー: ' + err.message + (diag?.path ? ` / LOG: ${diag.path}` : ''), { kind: 'error', title: '読込エラー', sticky: true });
   }
 });
 
