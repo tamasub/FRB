@@ -4536,3 +4536,108 @@ body.studio-field-width-resizing * {
 #searchSection .studio-smart-history-action:disabled {opacity:.25;cursor:default;}
 #searchSection .studio-smart-history-empty {padding:12px 8px;font-size:12px;color:var(--muted,#526b82);}
 #searchSection #studioSmartSearchHistoryOpen { min-width:28px; padding-left:7px; padding-right:7px; }
+
+/* studio_work_0268: quiet, Markdown-formatted Smart Search grammar help. */
+#searchSection .studio-full-text-search-input-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  align-items: center;
+}
+#searchSection .studio-full-text-search-input-wrap > #studioFullTextSearchInput {
+  flex: 1 1 auto;
+  width: 100%;
+  padding-right: 34px;
+}
+#searchSection .studio-smart-search-help-holder {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+#searchSection .studio-smart-search-help-trigger {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  min-width: 21px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: var(--muted, #77869b);
+  opacity: .58;
+  cursor: help;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  transition: opacity .12s ease, background-color .12s ease;
+}
+#searchSection .studio-smart-search-help-trigger:hover,
+#searchSection .studio-smart-search-help-trigger:focus-visible {
+  opacity: 1;
+  color: var(--text, #152c40);
+  background: rgba(100, 130, 180, .1);
+  border-color: var(--line, #d3e0ec);
+}
+#searchSection .studio-smart-search-help-trigger:focus-visible {
+  outline: 2px solid #889cff;
+  outline-offset: 1px;
+}
+/* Search and Grid cards form separate stacking contexts due to backdrop-filter. */
+#searchSection.studio-smart-search-help-open { z-index: 12; }
+/* Keep pointer hover alive through the 7px gap between the ? and the panel. */
+#searchSection.studio-smart-search-help-open .studio-smart-search-help-holder::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: -5px;
+  width: min(430px, calc(100vw - 36px));
+  height: 8px;
+  background: transparent;
+}
+#searchSection .studio-smart-search-help-panel {
+  position: absolute;
+  right: -5px;
+  top: calc(100% + 7px);
+  z-index: 1010;
+  width: min(430px, calc(100vw - 36px));
+  max-height: min(65vh, 490px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  background: var(--panel, #fff);
+  color: var(--text, #152c40);
+  border: 1px solid #bdcbe5;
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(20, 40, 80, .2);
+  font-size: 12px;
+  line-height: 1.55;
+  cursor: default;
+  text-align: left;
+  white-space: normal;
+}
+#searchSection .studio-smart-search-help-panel[hidden] { display: none !important; }
+#searchSection .studio-smart-search-help-panel h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 2px 0 8px;
+}
+#searchSection .studio-smart-search-help-panel h3:not(:first-child) { margin-top: 13px; }
+#searchSection .studio-smart-search-help-panel ul { padding-left: 18px; margin: 0 0 8px; }
+#searchSection .studio-smart-search-help-panel li { margin: 4px 0; }
+#searchSection .studio-smart-search-help-panel code {
+  font-size: 11px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(115, 140, 190, .11);
+  overflow-wrap: anywhere;
+}
+#searchSection .studio-smart-search-help-panel blockquote {
+  margin: 10px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--line, #d3e0ec);
+  color: var(--muted, #526b82);
+}

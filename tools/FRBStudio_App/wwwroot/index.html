@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918&detailFooter=20261016-fixed&fullSearchRow=20261016&detailTitle=20261018&smartEditor=0268step2&launchEditor=20261018" />
+  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918&detailFooter=20261016-fixed&fullSearchRow=20261016&detailTitle=20261018&smartEditor=0268help&launchEditor=20261018" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -309,18 +309,27 @@
 
     <section id="searchSection" class="card" aria-label="検索">
       <div class="section-title-row studio-search-title-row">
-        <label class="studio-full-text-search-control" for="studioFullTextSearchInput">
-          <span class="studio-full-text-search-label">🔍 全文検索</span>
-          <input
-            id="studioFullTextSearchInput"
-            type="text"
-            disabled
-            data-field="__studio_full_text__"
-            data-type="text"
-            autocomplete="off"
-            placeholder="全文検索・空白AND・OR・括弧・項目名=値"
-          />
-        </label>
+        <div class="studio-full-text-search-control">
+          <label class="studio-full-text-search-label" for="studioFullTextSearchInput">🔍 全文検索</label>
+          <div class="studio-full-text-search-input-wrap">
+            <input
+              id="studioFullTextSearchInput"
+              type="text"
+              disabled
+              data-field="__studio_full_text__"
+              data-type="text"
+              autocomplete="off"
+              placeholder="全文検索・空白AND・OR・括弧・項目名=値"
+            />
+            <div class="studio-smart-search-help-holder" id="studioSmartSearchHelpHolder">
+              <button id="studioSmartSearchHelpButton" type="button" class="studio-smart-search-help-trigger"
+                aria-label="Smart Search の検索記号ヘルプ" aria-controls="studioSmartSearchHelpTooltip"
+                aria-expanded="false" aria-describedby="studioSmartSearchHelpTooltip">?</button>
+              <div id="studioSmartSearchHelpTooltip" class="studio-smart-search-help-panel markdown-rendered"
+                role="tooltip" hidden></div>
+            </div>
+          </div>
+        </div>
         <div class="button-row compact">
           <button id="studioSmartSearchHistoryRegister" class="ghost-button small" type="button" title="今の検索式を履歴に登録">履歴登録</button>
           <button id="studioSmartSearchHistoryOpen" class="ghost-button small" type="button" title="登録済み検索履歴を開く" aria-label="検索履歴を開く">▾</button>
@@ -456,6 +465,7 @@
   <script src="js/responsibilities/smart_search_engine.js?v=studio-smart-search-step1-0268"></script>
   <script src="js/ui/studio_smart_search_editor.js?v=studio-smart-search-history-0268"></script>
   <script src="js/ui/studio_smart_search_history.js?v=studio-smart-search-history-0268"></script>
+  <script src="js/ui/studio_smart_search_help.js?v=studio-smart-search-help-0268"></script>
   <script src="js/responsibilities/search_filter.js?v=standard-search-ui-01867&smart=20261022"></script>
   <script src="js/responsibilities/csv_exporter.js?v=responsibility-refactor-0187"></script>
   <script src="js/responsibilities/csv_importer.js?v=related-grid-csv-replace-20261016"></script>
