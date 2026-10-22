@@ -422,12 +422,28 @@ $('loadBtn').addEventListener('click', async () => {
   }
 });
 
-// studio_work_0268 / Step 2: completion changes only the editor text, not SearchFilter semantics.
+// studio_work_0268: Search assistance and locally registered, data-scoped query history.
+let studioSmartSearchHistory = null;
 const studioSmartSearchEditor = typeof StudioSmartSearchEditor !== 'undefined'
   ? StudioSmartSearchEditor.setup({
       input: $('studioFullTextSearchInput'),
       section: $('searchSection'),
-      getFields: () => (typeof gridDef === 'function' ? gridDef()?.fields ?? [] : [])
+      getFields: () => (typeof gridDef === 'function' ? gridDef()?.fields ?? [] : []),
+      onOpen: () => studioSmartSearchHistory?.close()
+    })
+  : null;
+studioSmartSearchHistory = typeof StudioSmartSearchHistory !== 'undefined'
+  ? StudioSmartSearchHistory.setup({
+      input: $('studioFullTextSearchInput'),
+      section: $('searchSection'),
+      registerBtn: $('studioSmartSearchHistoryRegister'),
+      dropdownBtn: $('studioSmartSearchHistoryOpen'),
+      searchBtn: $('searchBtn'),
+      getDataKey: () => {
+        try { return typeof selectedDataName === 'function' ? selectedDataName() : ''; }
+        catch { return ''; }
+      },
+      onOpen: () => studioSmartSearchEditor?.close()
     })
   : null;
 $('searchBtn').addEventListener('click', applySearch);
@@ -446,6 +462,7 @@ if ($('gridCsvExportBtn')) $('gridCsvExportBtn').addEventListener('click', expor
 $('clearSearchBtn').addEventListener('click', () => {
   const fullText = $('studioFullTextSearchInput');
   studioSmartSearchEditor?.close();
+  studioSmartSearchHistory?.close();
   if (fullText) { fullText.value = ''; fullText.removeAttribute('aria-invalid'); }
   const smartError = $('studioSmartSearchError');
   if (smartError) { smartError.hidden = true; smartError.textContent = ''; }

@@ -1,16 +1,15 @@
-// studio_work_0268 / Step 2: keyboard-only field/value completion for Smart Search.
+// studio_work_0268: field/value completion + candidate filtering + context-menu trigger.
 // '/' is an editor command, never part of the query. The Parser remains independent.
 var StudioSmartSearchEditor = (function () {
   'use strict';
   const OPERATORS = ['==', '!=', '=!', '>=', '=>', '<=', '=<', '=', '>', '<'];
 
   function isSearchTrigger(event, input) {
-    if (!event || !input || event.key !== '/' || event.isComposing || event.keyCode === 229 ||
-        event.ctrlKey || event.metaKey || event.altKey || input.disabled || input.readOnly) return false;
-    const start = input.selectionStart, end = input.selectionEnd;
-    if (typeof start !== 'number' || start !== end) return false;
-    // A slash inside a path/URL or other search token stays an ordinary character.
-    return start === 0 || /[\s(]/u.test(input.value[start - 1]);
+    // '/' is reserved as a command anywhere in the Smart Search input, even
+    // immediately after a value (or with text selected). It is never inserted.
+    // Let IME composition, modifier shortcuts and disabled/read-only inputs alone.
+    return Boolean(event && input && event.key === '/' && !event.isComposing && event.keyCode !== 229 &&
+      !event.ctrlKey && !event.metaKey && !event.altKey && !input.disabled && !input.readOnly);
   }
 
   function fieldChoices(fields) {
@@ -89,11 +88,52 @@ var StudioSmartSearchEditor = (function () {
     input.setAttribute('aria-autocomplete','list');
     let state=null;
     let internalChange=false;
+    const hint=document.createElement('div');
+    hint.className='studio-smart-search-hint';
+    const filter=document.createElement('input');
+    filter.type='text';
+    filter.className='studio-smart-search-candidate-filter';
+    filter.autocomplete='off';
+    filter.setAttribute('aria-label','補完候補を絞り込む');
+    filter.placeholder='候補を検索…';
+    const list=document.createElement('div');
+    list.className='studio-smart-search-option-list';
+    popup.append(hint,filter,list);
+    function filterItems(items, query) {
+      const needle=String(query??'').trim().toLocaleLowerCase();
+      return needle ? items.filter(x=>[x.label,x.id,x.value].some(v=>String(v??'').toLocaleLowerCase().includes(needle))) : [...items];
+    }
+    function updateCandidateFilter() {
+      if (!state) return;
+      state.filter=filter.value;
+      state.items=filterItems(state.allItems,state.filter);
+      state.index=0;
+      draw();
+    }
+    // FRB Launch navigation contract: Tab / Enter / Right confirm the active suggestion.
+    function isConfirmKey(key) {
+      return key==='Tab' || key==='Enter' || key==='ArrowRight';
+    }
+    filter.addEventListener('input',updateCandidateFilter);
+    filter.addEventListener('keydown',event=>{
+      if (!state || event.isComposing || event.keyCode===229) return;
+      if (event.key==='Escape') {event.preventDefault();event.stopPropagation();close();input.focus();return;}
+      if ((event.key==='ArrowDown'||event.key==='ArrowUp') && state.items.length) {
+        event.preventDefault(); event.stopPropagation();
+        state.index=(state.index+(event.key==='ArrowDown'?1:-1)+state.items.length)%state.items.length;
+        highlight(); return;
+      }
+      if (isConfirmKey(event.key) && state.items.length) {
+        event.preventDefault();event.stopPropagation();choose(state.index);
+      }
+    });
 
     function close() {
       state=null;
       popup.hidden=true;
-      popup.replaceChildren();
+      section.classList.remove('studio-smart-search-popup-open');
+      list.replaceChildren();
+      filter.value='';
       input.setAttribute('aria-expanded','false');
       input.removeAttribute('aria-activedescendant');
     }
@@ -106,15 +146,12 @@ var StudioSmartSearchEditor = (function () {
     }
     function draw() {
       if (!state) return;
-      popup.replaceChildren();
-      const hint=document.createElement('div');
-      hint.className='studio-smart-search-hint';
-      hint.textContent=state.mode==='field' ? '検索項目を選択  ·  ↑↓ 移動 / Tab 確定 / Esc 閉じる' :
-        `${state.field.caption ?? state.field.field} の値  ·  ↑↓ 移動 / Tab 確定 / Esc 閉じる`;
-      popup.appendChild(hint);
+      list.replaceChildren();
+      hint.textContent=state.mode==='field' ? '検索項目を選択  ·  ↑↓ 移動 / Tab・Enter・→ 確定 / Esc 閉じる' :
+        `${state.field.caption ?? state.field.field} の値  ·  ↑↓ 移動 / Tab・Enter・→ 確定 / Esc 閉じる`;
       if (!state.items.length) {
         const empty=document.createElement('div');empty.className='studio-smart-search-empty';
-        empty.textContent='候補はありません（自由入力も可能）'; popup.appendChild(empty);
+        empty.textContent='候補はありません（自由入力も可能）'; list.appendChild(empty);
       }
       state.items.forEach((item,i)=>{
         const button=document.createElement('div');
@@ -128,18 +165,21 @@ var StudioSmartSearchEditor = (function () {
         button.addEventListener('mousedown',e=>e.preventDefault());
         button.addEventListener('click',()=>choose(i));
         button.addEventListener('mousemove',()=>{if (state && state.index!==i){state.index=i;highlight();}});
-        popup.appendChild(button);
+        list.appendChild(button);
       });
       popup.hidden=false;
+      // The search card and grid card each create a stacking context (backdrop-filter).
+      // Elevate the card while suggestions are open; a large z-index on the child alone is insufficient.
+      section.classList.add('studio-smart-search-popup-open');
       input.setAttribute('aria-expanded','true');
       highlight(); place();
     }
     function highlight() {
-      popup.querySelectorAll('[role="option"]').forEach((el,i)=>{
+      list.querySelectorAll('[role="option"]').forEach((el,i)=>{
         el.classList.toggle('is-active',i===state.index);
         el.setAttribute('aria-selected',i===state.index?'true':'false');
       });
-      const el=popup.querySelectorAll('[role="option"]')[state.index];
+      const el=list.querySelectorAll('[role="option"]')[state.index];
       if (el) { input.setAttribute('aria-activedescendant',el.id); el.scrollIntoView?.({block:'nearest'}); }
       else input.removeAttribute('aria-activedescendant');
     }
@@ -152,24 +192,30 @@ var StudioSmartSearchEditor = (function () {
     }
     function showFieldList() {
       if (input.disabled) return;
-      state={mode:'field', items:fieldChoices(getFields()),index:0,caret:input.selectionStart};
+      if (input.disabled || input.readOnly) return;
+      close();
+      const allItems=fieldChoices(getFields());
+      state={mode:'field', allItems,items:allItems,index:0,caret:input.selectionStart,selectionEnd:input.selectionEnd,filter:''};
       draw();
+      // Slash/right-click are explicit completion commands: focus its dedicated filter.
+      filter.focus();
     }
     function showValueList(ctx) {
       const all=valueChoices(ctx.field);
       const needle=ctx.typed.toLocaleLowerCase();
       const items=all.filter(x=>x.label.toLocaleLowerCase().includes(needle) || x.value.toLocaleLowerCase().includes(needle));
-      state={mode:'value',field:ctx.field, items, index:0,valueStart:ctx.valueStart, typed:ctx.typed};
+      state={mode:'value',field:ctx.field, allItems:items,items,index:0,valueStart:ctx.valueStart,typed:ctx.typed,filter:''};
+      filter.value='';
       draw();
     }
     function choose(i) {
       if (!state || !state.items[i]) return;
       const chosen=state.items[i];
       if (state.mode==='field') {
-        const caret=input.selectionStart;
-        const needsSpace=caret>0 && !/[\s(]/u.test(input.value[caret-1]);
+        const start=state.caret, end=state.selectionEnd;
+        const needsSpace=start>0 && !/[\s(]/u.test(input.value[start-1]);
         const insertion=(needsSpace?' ':'')+quoteAtom(chosen.insertName)+'=';
-        close(); replace(caret,caret,insertion);
+        close(); replace(start,end,insertion);
         const field=chosen.field;
         if (valueChoices(field).length) showValueList({field,valueStart:input.selectionStart,typed:''});
       } else {
@@ -181,7 +227,7 @@ var StudioSmartSearchEditor = (function () {
     function onKeydown(event) {
       if (event.isComposing || event.keyCode===229) return;
       if (isSearchTrigger(event,input)) {
-        event.preventDefault(); event.stopImmediatePropagation(); showFieldList(); return;
+        event.preventDefault(); event.stopImmediatePropagation(); args.onOpen?.(); showFieldList(); return;
       }
       if (!state) return;
       if (event.key==='Escape') {
@@ -192,7 +238,7 @@ var StudioSmartSearchEditor = (function () {
         state.index=(state.index+(event.key==='ArrowDown'?1:-1)+state.items.length)%state.items.length;
         highlight(); return;
       }
-      if ((event.key==='Tab' || event.key==='Enter') && state.items.length) {
+      if (isConfirmKey(event.key) && state.items.length) {
         event.preventDefault(); event.stopImmediatePropagation(); choose(state.index); return;
       }
       // Normal user input is never swallowed by the completer.
@@ -206,7 +252,17 @@ var StudioSmartSearchEditor = (function () {
       if (ctx) showValueList(ctx);
       else close();
     });
-    input.addEventListener('blur',()=>{close();});
+    input.addEventListener('blur',event=>{
+      if (popup.contains(event.relatedTarget) || popup.contains(document.activeElement)) return;
+      close();
+    });
+    // Right-click is the same explicit completion command as '/'. No slash is inserted.
+    input.addEventListener('contextmenu',event=>{
+      if (input.disabled || input.readOnly) return;
+      event.preventDefault();
+      args.onOpen?.();
+      showFieldList();
+    });
     input.addEventListener('compositionstart',close);
     window.addEventListener('resize',()=>{if(state)place();});
     document.addEventListener('pointerdown',event=>{

@@ -38330,17 +38330,17 @@
       "priority": "high",
       "status": "確認中",
       "follow_up_status": "IN_PROGRESS",
-      "verification_status": "Step 2: Node/static 602/602 PASS、JS構文PASS、Chromium UI操作 PASS、JSON Schema PASS／NativeShell実機はユーザー確認待ち",
+      "verification_status": "Slash文字直後起動とスペース挿入を修正。Node/static 616/616 PASS・Chromiumで文字直後/→候補選択→Combo値確定／空白二重挿入防止／途中/・範囲選択を確認。NativeShell実機最終確認待ち。",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-10-22",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-10-22",
       "updated_at": "2026-10-22",
-      "work_summary": "- Step 1：JSON用Smart Search Parser/AST/Evaluatorを実装。\n- 既存全文検索に接続。個別検索・Plugin検索とAND共存。\n- Node/static 597/597 PASS。\n- Step 2：IntelliSense・NativeShell実機確認待ち。",
+      "work_summary": "- Step 1：JSON用Smart Search Parser/AST/Evaluatorを実装。\n- 既存全文検索に接続。個別検索・Plugin検索とAND共存。\n- Node/static 597/597 PASS。\n- Step 2：IntelliSense・NativeShell実機確認待ち。\n- 2026-10-22：FRB Launch操作継承。候補確定キーをTab／Enter／→に統一（Node/static 609件、Chromium操作PASS）。\n- 2026-10-22：ユーザー実機でEnterのみ未確定を報告。全体キーボード標準がdocument captureでEnter→検索を先行処理していたため、補完中はEnterをSmart Searchに譲る。Node/static 615/615、修正前後のChromium再現比較・Tab/Enter/→と通常検索回帰PASS。\n- 2026-10-22：文字直後の `/` が文字として入力される不具合を解消。`/` を常時補完コマンド化し、選択した項目の前には必要に応じて半角スペースを1つだけ挿入。Node/static 616/616・Chromiumで挙動確認。",
       "target_files": "- wwwroot/js/responsibilities/smart_search_engine.js\n- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/index.html\n- wwwroot/app.js\n- tests/qa/static/studio_smart_search_step1.test.mjs\n- tests/qa/static/full_text_and_keywords.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "actual_updated_files": "- wwwroot/js/responsibilities/smart_search_engine.js\n- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/index.html\n- wwwroot/app.js\n- tests/qa/static/studio_smart_search_step1.test.mjs\n- tests/qa/static/full_text_and_keywords.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
-      "context_def_draft": "Smart Search v0.1 計画。検索UIの入口は既存 studioFullTextSearchInput。入力の/キーは補完起動のみで検索文字に含めない。\nSearch Editor（入力補完）とParser/Evaluator（検索判定）を分離し、Canonical FieldDef / ViewDef / SearchCapabilityResolverを再利用する。\n検索はJSON上で先行しSQLiteは別件。検索式エラーは黙って条件を変更せずに示す。既存個別検索項目およびPlugin検索の動作を維持する。",
+      "actual_updated_files": "- wwwroot/js/ui/studio_smart_search_editor.js\n- tests/qa/static/studio_smart_search_step2.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Smart Search v0.1 計画。検索UIの入口は既存 studioFullTextSearchInput。入力の/キーは補完起動のみで検索文字に含めない。\nSearch Editor（入力補完）とParser/Evaluator（検索判定）を分離し、Canonical FieldDef / ViewDef / SearchCapabilityResolverを再利用する。\n検索はJSON上で先行しSQLiteは別件。検索式エラーは黙って条件を変更せずに示す。既存個別検索項目およびPlugin検索の動作を維持する。\n2026-10-22確定：全文検索欄で `/` はどのカーソル位置でも補完起動専用キーとし、入力文字には残さない（IME変換中・修飾キー・disabled/readOnlyは除外）。文字直後で項目を確定すると半角スペースを1つだけ追加し `項目名=` を挿入。既存空白・開き括弧直後は空白を追加しない。範囲選択時は選択範囲を補完結果で置換。",
       "objective": "大量のJSONデータから欲しい情報を、1つのテキストボックスで素早く取り出せる標準検索体験を提供する。\n個別検索項目は「よく使うものだけを常設」にできるようにし、残りは/による項目補完で呼び出す。\n一般利用者は=中心の簡単操作、SEは任意の比較演算子や多重括弧・ORを手入力できるようにする。",
       "background": "- FRB LaunchでOR検索の心地よさを体験し、Studioの検索への展開構想が生まれた。\n- 項目ごとの検索欄を多数並べるより、全検索欄を軸として頻用項目だけを常設する方が画面を簡潔にできる。\n- 既存Studioには全文検索欄（現在は空白AND）と個別検索欄、SearchFilter / SearchCapabilityResolver / SearchOperatorRegistryが既に存在する。これらを捨てず拡張する。\n- 本件は先行するJSON編集体験の改善。会社の業務データ・SQLite接続は対象外。",
       "scope": "## Step 1 — Smart Search Engine（検索できる状態まで）\n- 既存全文検索欄へ、空白AND・or（大小文字無視）・任意階層の括弧ネストを追加する。演算優先度は括弧 > AND > OR。\n- 項目指定がない語は従来通り行全体（子配列・詳細文字列を含む）を検索。`項目名=値` 等はFieldDefで解決した項目だけを検索。FieldDefの項目キーと表示名（重複に注意）を扱う。\n- `=` は型別の標準検索（文字列は含む／数値・日付・Boolean・Comboは一致）。`==` は厳密一致。`!=`と`=!`、`>=`と`=>`、`<=`と`=<` はそれぞれ同義。`>`・`<` も扱う。\n- 数値と日付では `A=2..5`（両端含む）、`A=2..`、`A=..5` の範囲検索を扱う。逆転範囲はエラーとする。\n- 引用符なしを標準とし、シングル／ダブルクォートも必要時だけ受け付ける。空白を含む値、括弧、演算子、引用符の字句境界を安全に解釈する。\n- Search Editorと切り離したParser→型付き条件（AST）→既存SearchFilter相当の評価とする。構文不正・存在しない項目・曖昧な項目名は黙って全文検索にfallbackしない。\n\n## Step 2 — IntelliSense・検索画面統合・回帰確認\n- `/` は入力欄へ表示しない補完起動キー。↑↓でField候補選択、Tabで確定すると常に `項目名=` を挿入。Escでキャンセル。日本語入力・パス・URLなどの `/` と干渉しない起動条件を設ける。\n- FieldDef / ViewDef / 選択肢定義から候補を生成。Comboの項目確定後は即座に選択肢一覧、Booleanはtrue/false等の値候補を表示。表示ラベルと保存値の対応を解決する。候補選択・自由入力の両方を許す。\n- 演算子は選択UIを強制せず、ユーザーが直接加筆・変更する。`コンボA=` → `コンボA=!選択肢①` のような編集も検索エンジン側で解釈する。\n- 既存 `studioFullTextSearchInput` と既存常設検索項目を共存させ、両者はAND結合。検索項目をすべて非表示にしても全文欄だけで機能する。従来ViewDefの `search.visible` と既存Plugin検索、検索クリア／状態復元、Grid/CSV出力を壊さない。\n- Node/staticテストとStudio実機確認で、検索結果・キーボード操作・旧検索の回帰を確認する。",
@@ -38348,13 +38348,13 @@
       "fixed_name_policy": "Field名（status、priority等）やCombo値をSmart Search固有コードへ固定実装しない。Candidateと型解釈はCanonical FieldDef / ViewDef / SearchCapabilityResolver等から導出する。表示名の重複は黙って取り違えず、識別可能な候補表示かエラーにする。",
       "module_policy": "検索UI補完と構文解析/評価を別責務とする。既存SearchFilter・Search Operator Registry・StandardSearchUiとの接続を調査して重複実装を避ける。JSON先行。将来SQLite Adapterが使えるよう抽象化するが、初回の過剰なDB共通化は行わない。",
       "expected_outputs": "- Step 1：AND/OR/括弧ネスト/項目別/型別/範囲検索が動くJSON用Smart Search Engineと自動テスト。\n- Step 2：`/` IntelliSense、項目名=`補完、Combo/Boolean値候補、既存全文検索欄への統合、表示・操作・回帰テスト。\n- 各Stepで修正ファイルとテスト結果をインシデントに追記し、最終結果はNativeShellでユーザー確認。",
-      "risk": "- `=` の意味はSQL等と異なる独自標準（文字列の部分一致）。既存個別検索のOperator意味を勝手に変更しない。\n- `OR`／括弧／引用符が普通の検索語として含まれる場合の解釈をテストで固定する。\n- NULL・空値・Combo表示ラベルと内部値、同名Caption、子配列の扱いを実装時に既存契約と照合する。\n- テキスト入力のたびに全件評価すると大量JSONで重くなる恐れがあるため、必要なら遅延評価やキャッシュを検討する。\n- ` / `の無条件キー奪取はURL入力やIMEと衝突し得るため、候補起動条件を定義する。",
-      "test_points": "- `aaa bbb` はAND、`aaa or bbb` はOR、`(aaa or bbb) (ccc or ddd)` と `((aaa or bbb) or (ccc or ddd))` は正しい括弧ネスト。\n- 全項目検索は既存の詳細・子配列の文字列も対象。`タイトル=SQLite` はタイトルのみ、`タイトル==SQLite` は完全一致。\n- `数値A=2` は2のみ、`数値A=2..5` は2/5を含み範囲外除外、`A=>2` / `A>=2` 等が同値、`A=!2` / `A!=2` が同値。\n- Combo/Booleanは表示候補と保存値を一致させ、`/` は検索文字に残らない。Field選択で常に`=`が付加され、値候補が即表示。\n- ↑↓/Tab/Esc、文字入力途中のエラー、引用符、未知/同名項目、NULL/空値、IME/URLの/、候補選択後の演算子手編集を確認する。\n- 既存個別検索とのAND、Clear、検索状態復元、Plugin SearchFilter、Grid行数/ソート/CSV、従来空白AND検索に回帰がない。",
-      "verification_log": "2026-10-22：最新添付ZIP内の既存検索構成（studioFullTextSearchInput / SearchFilter / SearchCapabilityResolver）とインシデント形式を調査し、2ステップの計画を登録。検索実装・動作検証は未着手。\n2026-10-22 Step 1：\n- Parser・型別Evaluator新規実装。\n- 既存全文検索／個別検索とのAND結合。\n- JS構文PASS。\n- Node/static 597/597 PASS。\n- 未確認：NativeShell実機、Step 2 IntelliSense。\n2026-10-22 Step 2：\n- `/`項目補完、↑↓/Tab/Esc、常時`項目名=`補完、Combo/Boolean候補を実装。\n- ComboのViewDef/Enum optionsを使用。曖昧なCaptionの誤補完を防止。\n- URL途中の/・IME中・修飾キーでは補完起動しない。\n- JS構文検証 PASS。\n- Node/static 602/602 PASS。\n- Chromium独立UI操作スモーク PASS（/、Tab、Combo、Boolean、Escape、=!、URL途中の/）。\n- JSON Schema PASS。NativeShellはユーザー確認待ち。",
+      "risk": "- `=` の意味はSQL等と異なる独自標準（文字列の部分一致）。既存個別検索のOperator意味を勝手に変更しない。\n- `OR`／括弧／引用符が普通の検索語として含まれる場合の解釈をテストで固定する。\n- NULL・空値・Combo表示ラベルと内部値、同名Caption、子配列の扱いを実装時に既存契約と照合する。\n- テキスト入力のたびに全件評価すると大量JSONで重くなる恐れがあるため、必要なら遅延評価やキャッシュを検討する。\n- ` / `の無条件キー奪取はURL入力やIMEと衝突し得るため、候補起動条件を定義する。\n- 全体キーボード標準はdocument捕捉フェーズでEnterを処理する。補完UIのキー統合テストにはこのスクリプトを含めること。IME中や候補非表示で通常検索を壊さない。\n- `/` は入力キーとして予約されるため、URLなどのリテラル `/` を検索欄に直接キー入力できない。貼り付け等による検索式内の `/` はParserが受け付ける。IME入力中・Ctrl/Alt/Meta修飾入力は奪わない。",
+      "test_points": "- `aaa bbb` はAND、`aaa or bbb` はOR、`(aaa or bbb) (ccc or ddd)` と `((aaa or bbb) or (ccc or ddd))` は正しい括弧ネスト。\n- 全項目検索は既存の詳細・子配列の文字列も対象。`タイトル=SQLite` はタイトルのみ、`タイトル==SQLite` は完全一致。\n- `数値A=2` は2のみ、`数値A=2..5` は2/5を含み範囲外除外、`A=>2` / `A>=2` 等が同値、`A=!2` / `A!=2` が同値。\n- Combo/Booleanは表示候補と保存値を一致させ、`/` は検索文字に残らない。Field選択で常に`=`が付加され、値候補が即表示。\n- ↑↓/Tab/Esc、文字入力途中のエラー、引用符、未知/同名項目、NULL/空値、IME/URLの/、候補選択後の演算子手編集を確認する。\n- 既存個別検索とのAND、Clear、検索状態復元、Plugin SearchFilter、Grid行数/ソート/CSV、従来空白AND検索に回帰がない。\n- IntelliSense候補表示中（候補あり）、Tab・Enter・→のどれも同じ項目／値候補を確定する。候補絞り込み欄・検索欄のいずれにフォーカスがあっても有効。候補非表示では通常の→カーソル移動が維持される。\n- 候補Popupが開いている間、全文検索入力または候補内絞り込みからのEnterは候補確定。Popupを閉じた場合、従来のEnter検索を維持。\n- 文字列・Combo値の直後で `/` → `/` 非挿入で候補表示、項目確定時だけ必要に応じて半角1スペースを追加し `項目名=` を挿入、Combo値確定まで継続。空欄・空白直後・値候補表示中・範囲選択中でも `/` は補完起動。",
+      "verification_log": "2026-10-22：最新添付ZIP内の既存検索構成（studioFullTextSearchInput / SearchFilter / SearchCapabilityResolver）とインシデント形式を調査し、2ステップの計画を登録。検索実装・動作検証は未着手。\n2026-10-22 Step 1：\n- Parser・型別Evaluator新規実装。\n- 既存全文検索／個別検索とのAND結合。\n- JS構文PASS。\n- Node/static 597/597 PASS。\n- 未確認：NativeShell実機、Step 2 IntelliSense。\n2026-10-22 Step 2：\n- `/`項目補完、↑↓/Tab/Esc、常時`項目名=`補完、Combo/Boolean候補を実装。\n- ComboのViewDef/Enum optionsを使用。曖昧なCaptionの誤補完を防止。\n- URL途中の/・IME中・修飾キーでは補完起動しない。\n- JS構文検証 PASS。\n- Node/static 602/602 PASS。\n- Chromium独立UI操作スモーク PASS（/、Tab、Combo、Boolean、Escape、=!、URL途中の/）。\n- JSON Schema PASS。NativeShellはユーザー確認待ち。\n2026-10-22 Step 2追加修正（候補一覧の背面表示）：\n- NativeShellのユーザー提示スクリーンショットで、候補がGridの背面へ隠れる現象を確認。\n- `.card`のbackdrop-filterにより検索Section・GridSectionが独立したstacking contextとなるため、子候補のみz-indexを上げても不足。\n- 候補表示中だけsearchSectionにstudio-smart-search-popup-openクラスを付加し、検索カード全体を前面へ昇格。close時は解除。\n- JS構文PASS、Node/static 610/610 PASS、Chromium実ブラウザーの合成DOMでpopupがGridの前面に表示されること/Tab値候補遷移/Esc復帰を確認。\n- NativeShellで修正版の重なり確認はユーザー確認待ち。\n2026-10-22 Smart Search追加改善（Launch操作性の逆輸入）：\n- ユーザー実機で候補の前面化が正常表示できたことを確認。\n- 候補内の検索入力、Data別履歴の登録・並替・削除・再検索、右クリックで/相当補完を追加。\n- Node/static 608/608 PASS、Chromium独立DOMで一連操作PASS。\n- NativeShell新機能のUI／フォーカス確認はユーザー待ち。\n2026-10-22 FRB Launchキー文化 継承（候補選択キー同義化）：\n- popupのフィルター検索欄と元の検索欄の両方で、Tab・Enter・→（ArrowRight）を候補確定として統一。\n- 候補一覧がない場合はArrowRightを奪わない。項目→Combo値の連続確定、選択肢フィルターからの確定も検証。\n- JavaScript構文PASS、Node/static 609/609 PASS、Chromiumキー操作PASS。NativeShell実機はユーザー確認待ち。\n2026-10-22 Enterイベント競合修正：\n- NativeShell画面でユーザーが「右矢印はいけたけど、Enterが効かない」と報告。前回のChromiumテストは全体キーボード標準のdocument captureを含まないため、実機との不一致を見逃した。\n- 修正前と修正後の同一ブラウザー再現テスト：検索式 `状態=` の値候補が開いた状態でEnterを押すと、修正前は検索ボタンが実行され候補未確定、修正後は `状態=完了` が挿入され検索は実行されない。\n- 項目候補と値候補の両方でTab / Enter / →による確定が成功。候補表示なしのEnterによる検索、従来個別検索のEnterも確認。\n- 新規Node回帰6テストと全静的615/615 PASS、JavaScript構文PASS。NativeShell実機での修正結果は未確認。\n2026-10-22 `/` 常時補完起動の改善：`isSearchTrigger` の直前文字境界判定を除外し、IME・修飾キー等の例外は維持。項目選択範囲を補完中も保持。JS構文PASS、Node/static 616/616 PASS、Chromiumで `種別=rules_review` → `/` → `優先度=` → `high`、空白二重挿入なし、候補切替・範囲選択を確認。NativeShell実機は未確認。",
       "user_request": "FRB LaunchのOR検索体験をStudio標準機能へ拡張したい。検索欄1つで全文・項目別・AND/OR・括弧ネスト・型別演算子・数値/日付範囲を扱い、`/` IntelliSenseでFieldとCombo/Boolean値を補完したい。よく使う個別検索項目のみ常設する。まず最新ZIPのインシデントに計画を作成し、ステップは少なくしてほしい。",
-      "ai_response": "Step 2 実装完了。Smart Search Editorの/補完とCombo/Boolean値候補を既存検索欄へ統合。Node/static 602/602 PASS、Chromium UI smoke PASS。NativeShell実機確認待ち。",
-      "latest_ai_response": "AI回答\n\n## 今回の更新\n- Step 2：Smart Searchの`/` IntelliSenseを既存全文検索欄へ統合。\n- `/`は検索式に追加せず、項目候補ポップアップを開く操作キーとする。\n- ↑↓で候補移動、Tab（またはEnter）で候補を確定、Escで閉じる。\n- 項目確定時は常に`項目名=`を挿入。Combo/Booleanは値候補を直ちに表示する。\n\n## 変更ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`（新規：候補取得／キーボード操作／ポップアップ制御）\n- `wwwroot/app.js`（検索欄の補完初期化と検索クリア連動）\n- `wwwroot/js/renderers/field_controls.js`（ViewDef再描画時の候補クローズ）\n- `wwwroot/index.html`（補完スクリプトの読み込み）\n- `wwwroot/styles.css`（検索欄直下の候補ポップアップ）\n- `tests/qa/static/studio_smart_search_step2.test.mjs`（追加静的テスト）\n- `data/json/01_main/_studio_work_incident_data_v2.json`（判断・変更・確認結果）\n\n## 設計判断\n- 候補は現在のGrid ViewDefのFieldから取得。Combo/Enum解決済みoptionsとBooleanを利用。\n- Captionが重複するときはField IDを挿入。値の候補を曖昧な項目名から誤補完しない。\n- Comboは表示ラベルを検索式に挿入し、Step 1の検索評価で保存値へ対応付ける。\n- 値候補を強制選択しない。自由入力・演算子の手編集（`=!`・`!=`）を許可。\n- URL／パスの途中の`/`、IME変換中、Ctrl/Alt/Metaとの組み合わせは補完起動しない。\n- 既存の検索ボタン・Enter・個別検索・Plugin検索・SQLiteには変更を加えない。\n\n## 確認結果\n- JavaScript構文：PASS。\n- Node/staticテスト：602/602 PASS。\n- Chromium UI操作：PASS（`/`・↑↓・Tab・Combo・Boolean・Esc・`=!`・URL中の`/`）。\n- インシデントJSON parse／Schema：PASS。\n- 差分ZIP：変更ファイルのみ・runtime生成物なし。\n- NativeShell実機：未確認。人間による画面操作確認待ち。\n\n## 残課題・次の作業\n- NativeShellで入力候補の表示位置・フォーカス・選択操作を確認する。\n- 将来のSQLite検索Adapterは別件。",
-      "latest_user_comment": "おけぇーーーーーーい！！いろいろいけちゃってます！！笑\nステップ２お願いしまーーーす",
+      "ai_response": "`/`常時補完起動、前の文字列直後で半角スペース自動追加。Node/static 616/616、Chromiumキー操作確認PASS、NativeShell実機確認待ち。",
+      "latest_ai_response": "AI回答\n\n## 修正\n- 検索欄の`/`は直前文字や選択状態に関係なく補完を開き、`/`自体は検索式に挿入しない。IME変換中・修飾キー・入力不可欄では通常の処理を保つ。\n- 候補確定はスラッシュ押下位置を保持。直前に空白／`(`がないとき、候補を挿入する際に半角スペースを1つ追加する。\n- Tab／Enter／→キーの候補確定、Combo/Booleanへの遷移、右クリック補完、Parser、履歴は維持。\n\n## テスト\n- JS構文PASS。Node/static 616/616 PASS。\n- Chromiumの実キー操作で文字列直後／空白直後／先頭／候補切替／選択範囲を確認。\n- NativeShell実機はユーザー確認待ち。",
+      "latest_user_comment": "`/` が文字列直後では普通の文字として入力され、補完が開かない。常時補完起動専用として文字は捨て、文字列直後なら選択項目前に半角スペースを追加して `項目名=選択値` と続けられるようにしてほしい（最新FRBStudio_App20261022_215132.zip）。",
       "context_refs": [],
       "follow_up_actions": [
         {
@@ -38373,7 +38373,7 @@
           "action_type": "UI_IMPROVEMENT",
           "required": true,
           "related_ids": [],
-          "note": "2026-10-22：Step 2実装・静的602件・Chromium UI操作確認は完了。NativeShell実機の表示／フォーカス／キー操作はユーザー確認待ち。"
+          "note": "2026-10-22：Step 2実装・静的602件・Chromium UI操作確認は完了。NativeShell実機の表示／フォーカス／キー操作はユーザー確認待ち。 2026-10-22：NativeShell画面で候補がGridの後ろに隠れる点を発見。検索Section全体を候補表示中のみ前面化し、Node/static 610/610・Chromium候補重なり操作PASS。修正版NativeShell実機確認待ち。 2026-10-22：ユーザーより候補のGrid前面化は実機確認済み。候補絞り込み、登録履歴、右クリック補完を追加。Node/static 608/608件・Chromium検証PASS。NativeShell新機能の最終確認待ち。 2026-10-22：候補選択のTab・Enter・→同義化。609件Node/static・Chromium操作PASS。NativeShell本件の操作確認待ち。 2026-10-22：NativeShellユーザーがEnterだけ効かないと報告。document capture競合を修正しNode/static615件＋Chromium修正前後の再現比較PASS。NativeShellでの再確認待ち。 2026-10-22：`/`を文字列直後でも必ず補完起動するよう変更。半角スペースは項目確定時に1つだけ自動挿入。Node/static 616/616・ChromiumスモークPASS。NativeShell最終確認待ち。"
         }
       ],
       "discussion_history": [
@@ -38418,6 +38418,83 @@
           "speaker": "assistant",
           "topic": "Step 2実装報告",
           "message": "AI回答\n\n## 今回の更新\n- Step 2：Smart Searchの`/` IntelliSenseを既存全文検索欄へ統合。\n- `/`は検索式に追加せず、項目候補ポップアップを開く操作キーとする。\n- ↑↓で候補移動、Tab（またはEnter）で候補を確定、Escで閉じる。\n- 項目確定時は常に`項目名=`を挿入。Combo/Booleanは値候補を直ちに表示する。\n\n## 変更ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`（新規：候補取得／キーボード操作／ポップアップ制御）\n- `wwwroot/app.js`（検索欄の補完初期化と検索クリア連動）\n- `wwwroot/js/renderers/field_controls.js`（ViewDef再描画時の候補クローズ）\n- `wwwroot/index.html`（補完スクリプトの読み込み）\n- `wwwroot/styles.css`（検索欄直下の候補ポップアップ）\n- `tests/qa/static/studio_smart_search_step2.test.mjs`（追加静的テスト）\n- `data/json/01_main/_studio_work_incident_data_v2.json`（判断・変更・確認結果）\n\n## 設計判断\n- 候補は現在のGrid ViewDefのFieldから取得。Combo/Enum解決済みoptionsとBooleanを利用。\n- Captionが重複するときはField IDを挿入。値の候補を曖昧な項目名から誤補完しない。\n- Comboは表示ラベルを検索式に挿入し、Step 1の検索評価で保存値へ対応付ける。\n- 値候補を強制選択しない。自由入力・演算子の手編集（`=!`・`!=`）を許可。\n- URL／パスの途中の`/`、IME変換中、Ctrl/Alt/Metaとの組み合わせは補完起動しない。\n- 既存の検索ボタン・Enter・個別検索・Plugin検索・SQLiteには変更を加えない。\n\n## 確認結果\n- JavaScript構文：PASS。\n- Node/staticテスト：602/602 PASS。\n- Chromium UI操作：PASS（`/`・↑↓・Tab・Combo・Boolean・Esc・`=!`・URL中の`/`）。\n- インシデントJSON parse／Schema：PASS。\n- 差分ZIP：変更ファイルのみ・runtime生成物なし。\n- NativeShell実機：未確認。人間による画面操作確認待ち。\n\n## 残課題・次の作業\n- NativeShellで入力候補の表示位置・フォーカス・選択操作を確認する。\n- 将来のSQLite検索Adapterは別件。"
+        },
+        {
+          "history_id": "disc_0268_007",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "Step 2実機確認・候補ポップアップ背面問題",
+          "message": "いやぁ～～これはやべぇーーーもん作ってしまったんじゃないかい？？笑　とりあえず、かくれるやつ直しておくかい？？w"
+        },
+        {
+          "history_id": "disc_0268_008",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Smart Search候補ポップアップ前面化の改修報告",
+          "message": "AI回答\n\n## 今回の更新\n- Smart Search候補一覧がGridの背面に隠れる問題を修正。\n- 候補が開いている間だけsearchSectionをGridSectionより上に配置し、閉じたら元に戻す。\n\n## 変更ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`：open/closeに応じた検索カードの前面化クラス制御。\n- `wwwroot/styles.css`：前面化クラス時に親検索Sectionへz-index:12を付与。\n- `tests/qa/static/studio_smart_search_step2.test.mjs`：親stacking contextの回帰チェック追加。\n- `data/json/01_main/_studio_work_incident_data_v2.json`：ユーザー実機観察・判断・結果を追記。\n\n## 変更理由・判断\n- 既存.cardのbackdrop-filterによるstacking contextが原因。子ポップアップ単独のz-indexでは後続Gridより前面にできない。\n- bodyへのportal化など大規模変更を避け、開いている間だけ親検索カードの重なり順を上げる最小変更とした。\n- 既存の候補内容、/補完、Tab、Enter、Esc、Combo/Boolean、検索Parser、個別検索は変更しない。\n\n## 確認結果\n- JS構文：PASS。\n- Node/staticテスト：610/610 PASS。\n- Chromium操作：PASS（候補が後続Gridの前に描画、TabによるCombo候補遷移、Escによる前面化解除）。\n- インシデントJSON構文/Schema：PASS。\n- NativeShell修正版での重なり：未確認（ユーザー確認待ち）。\n\n## 残課題\n- NativeShell実機で候補がGridより前面表示されるかを確認する。"
+        },
+        {
+          "history_id": "disc_0268_009",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "IntelliSense候補検索と履歴機能追加の依頼",
+          "message": "完璧ぃーーーーー！！ つぎぃーーーーーー。①インテリセンス選択肢の検索ボックスぅーーーーー！！Launchの経験を生かす！！ ②検索ボックスに検索履歴登録！！Launchの経験を生かす！！ よろしくぅーーーーー爆笑"
+        },
+        {
+          "history_id": "disc_0268_010",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "右クリックによる補完起動の追加依頼",
+          "message": "まにあうなら、検索テキストボックスの右クリックは　/入力と同じ意味にしよう"
+        },
+        {
+          "history_id": "disc_0268_011",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Launch検索体験のSmart Search追加実装報告",
+          "message": "AI回答\n\n## 今回の更新\n- IntelliSenseの項目候補・Combo/Boolean値候補へ、専用の候補絞り込み入力欄を追加。\n- `/`で項目候補を開いた場合は候補絞り込みへフォーカス。↑↓／Tab／Enter／Escは継続利用可能。\n- Combo/Boolean値候補は既存の検索式直接入力・Backspace連動を維持し、候補内の絞り込み入力欄も併用可能。\n- 全文検索欄の右クリックは`/`と同じ項目候補起動として実装。検索欄に`/`を挿入しない。\n- 手動の「履歴登録」・「▾」を検索ボタン横に追加。検索式の呼び出し／上下移動／削除が可能。\n- 履歴はData JSON名ごとに分けてブラウザーのlocalStorageへ保存。Data JSON本体は書き換えない。\n\n## 更新ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`\n- `wwwroot/js/ui/studio_smart_search_history.js`\n- `wwwroot/index.html`\n- `wwwroot/app.js`\n- `wwwroot/styles.css`\n- `tests/qa/static/studio_smart_search_step2.test.mjs`\n- `tests/qa/static/studio_smart_search_history.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 実装判断\n- 履歴は自動保存ではなく、「履歴登録」を押したときだけ登録。押下時は既存の検索ボタン処理で検索式を確認し、エラーがあれば登録しない。\n- 検索履歴は同一式を重複登録せず先頭へ移動。1データあたり最大60件。\n- 候補の絞り込みと検索式自体の変更を別の入力欄に分離。候補一覧内では検索式を変更しない。\n- 既存Smart Search Parser/AST、Grid個別検索、Plugin検索は変更しない。\n\n## 確認結果\n- JavaScript構文：PASS。\n- Node/static：608/608件PASS。\n- Chromium独立UI操作テスト：PASS（候補絞り込み／Tab／値候補／右クリック／Esc／履歴登録／呼び出し／並べ替え／削除／データ別履歴分離）。\n- インシデントJSON構文・Schema：PASS。\n- ZIPには変更ファイルのみを収録。\n- NativeShell実機：未確認。\n\n## 残課題・リスク\n- 検索履歴はクライアントごとのlocalStorageに保存される。別PCとは同期されず、ブラウザーのデータ削除で消える。\n- ストレージが禁止／容量不足の環境では保存できない。バックエンド保存は今回対象外。\n- NativeShellで候補絞り込みフォーカスと履歴ボタン配置を確認する必要がある。\n"
+        },
+        {
+          "history_id": "disc_0268_012",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "IntelliSense候補のキー操作統一依頼",
+          "message": "インテリジェンスの選択肢の一覧がでているときに、tabキー＝ｴﾝﾀｰ＝右矢印キー の扱いにしてほしい。FRB Launchのキー文化を継承したい。"
+        },
+        {
+          "history_id": "disc_0268_013",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Tab・Enter・→候補確定対応の完了報告",
+          "message": "AI回答\n\n## 今回の更新\n- IntelliSense候補一覧が開いていて候補が存在する場合、Tab・Enter・→（ArrowRight）を同じ「選択候補の確定」として扱う。\n- 候補の絞り込み検索欄と、元の検索文字列入力欄の双方で同じキー契約を適用。\n- 項目候補の確定後は既存どおり「項目名=」を挿入し、Combo/Booleanなら値候補へ遷移。値候補を確定したら選択肢を検索式に挿入。\n- 候補なし・候補非表示では→キーを消費せず、通常のカーソル移動を維持。\n- 補完ポップアップの操作ヒントに「Tab・Enter・→ 確定」を明示。\n\n## 更新ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`\n- `tests/qa/static/studio_smart_search_step2.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 判断・理由\n- FRB Launchのキー文化をSmart Searchに継承するため、左右操作のうち→だけを候補確定に割り当てる。\n- 独立した確認キー判定関数を利用し、フォーカス位置による操作差を避ける。\n- Parser／検索判定／検索履歴／ViewDef／FieldDefは変更しない。\n\n## 検証\n- JavaScript構文：PASS。\n- Node/static：609/609件PASS（新規回帰テスト含む）。\n- Chromium操作：Tab／Enter／→それぞれで項目候補確定→Combo値確定が成功。値候補絞り込み欄からの→確定、項目候補絞り込み欄からの→確定、候補を閉じた通常の→カーソル移動もPASS。\n- NativeShell実機：未確認。\n\n## 残課題\n- NativeShellで候補一覧・検索欄・候補絞り込み欄の各フォーカス動作を最終確認する。"
+        },
+        {
+          "history_id": "disc_0268_014",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "Enter候補確定が効かない実機報告",
+          "message": "あぁ・・・・右矢印はいけたけど、エンターがきかないねぇ～"
+        },
+        {
+          "history_id": "disc_0268_015",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Enterと全体検索処理の捕捉競合修正",
+          "message": "AI回答\n\n## 修正内容\n- 根本原因：`studio_keyboard_standard.js` が document のキャプチャ段階で Enter を「検索実行」として消費しており、Smart Search入力欄の候補確定ハンドラまで届いていなかった。\n- IntelliSenseポップアップが実際に開いていて、Enterの入力先が全文検索ボックスまたは候補フィルタであるときだけ、グローバルEnter処理をスキップして補完部品へ譲る。\n- Popupを閉じた通常のEnter検索、個別検索フォームのEnter、Tab/→補完、IME入力は維持。\n\n## 変更ファイル\n- `wwwroot/js/runtime/studio_keyboard_standard.js`\n- `tests/qa/static/studio_smart_search_enter_priority.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 原因と判断\n- 前回の補完部品単体ブラウザーテストだけでは、全体キーボード標準スクリプトのイベント伝播順序を再現できなかった。今回、実際の2スクリプトを同時に読み込んで修正前後の実行差を確認。\n- 既存Smart Searchエンジン・UI・履歴・Parser・ViewDefへの変更は不要。全体キー処理の衝突箇所だけに限定。\n\n## テスト\n- JS構文PASS、Node/static 615/615 PASS（新規6テスト）。\n- Chromium実ブラウザーテスト：修正前は Enter で検索実行・候補未確定を再現、修正後はEnterで値補完・検索未実行を確認。項目・値それぞれTab/Enter/→成功。Popup非表示の通常検索、既存個別検索EnterもPASS。\n- NativeShell実機は未確認。差分ZIP適用後にEnter候補確定を再確認する。"
+        },
+        {
+          "history_id": "disc_0268_016",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "Slashを任意位置で補完起動・半角スペース自動挿入",
+          "message": "`/` が文字列直後では普通の文字として入力され、補完が開かない。常時補完起動専用として文字は捨て、文字列直後なら選択項目前に半角スペースを追加して `項目名=選択値` と続けられるようにしてほしい（最新FRBStudio_App20261022_215132.zip）。"
+        },
+        {
+          "history_id": "disc_0268_017",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Slash常時補完の修正内容・テスト結果",
+          "message": "AI回答\n\n## 修正\n- 検索欄の`/`は直前文字や選択状態に関係なく補完を開き、`/`自体は検索式に挿入しない。IME変換中・修飾キー・入力不可欄では通常の処理を保つ。\n- 候補確定はスラッシュ押下位置を保持。直前に空白／`(`がないとき、候補を挿入する際に半角スペースを1つ追加する。\n- Tab／Enter／→キーの候補確定、Combo/Booleanへの遷移、右クリック補完、Parser、履歴は維持。\n\n## テスト\n- JS構文PASS。Node/static 616/616 PASS。\n- Chromiumの実キー操作で文字列直後／空白直後／先頭／候補切替／選択範囲を確認。\n- NativeShell実機はユーザー確認待ち。"
         }
       ],
       "decision_log": [
@@ -38462,6 +38539,48 @@
           "at": "2026-10-22",
           "decision": "Field補完/値補完は既存検索欄に重ねて表示し、入力欄を増設しない。見出しCaptionが重複する場合はField IDを挿入し、値候補でも曖昧なCaptionの自動解決を避ける。",
           "reason": "従来の検索UIレイアウトを維持しながら定義駆動補完を可能にし、汎用ViewDefで誤検索を防止するため。"
+        },
+        {
+          "decision_id": "dec_0268_008",
+          "at": "2026-10-22",
+          "decision": "候補一覧表示中だけ親searchSectionに前面化用クラスを付けてGridSectionより重なり順を上げ、閉じたら解除する。",
+          "reason": "検索カードとGridカードはbackdrop-filterで独立stacking contextを形成する。候補のz-indexだけでは解決せず、body portal等より小さく限定した変更で修正できるため。"
+        },
+        {
+          "decision_id": "dec_0268_009",
+          "at": "2026-10-22",
+          "decision": "補完候補の絞り込み検索は候補一覧内の独立テキストボックスに置き、/・右クリックで項目一覧を起動した場合は絞り込み欄をフォーカスする。",
+          "reason": "検索式の編集中の値補完と候補のフィルタ操作を混同せず、既存のBackspace動作・Tab補完を維持するため。"
+        },
+        {
+          "decision_id": "dec_0268_010",
+          "at": "2026-10-22",
+          "decision": "検索履歴は明示登録・Data JSON単位・localStorage保存とし、登録順変更／削除／選択再検索を可能とする。",
+          "reason": "FRB Launchの登録操作を踏襲しつつ、他のData JSONの検索式が混ざらないようにする。サーバーやData JSONへの変更は不要とするため。"
+        },
+        {
+          "decision_id": "dec_0268_011",
+          "at": "2026-10-22",
+          "decision": "検索テキストボックスの右クリックを項目補完起動（/キーと同じ）として扱う。",
+          "reason": "ユーザーが補完へアクセスする入口をキーボードとマウスの両方に設けるため。"
+        },
+        {
+          "decision_id": "dec_0268_012",
+          "at": "2026-10-22",
+          "decision": "IntelliSense候補一覧が開いて候補がある間は、Tab・Enter・右矢印キー（ArrowRight）を同じ候補確定操作とする。フィルター入力と検索文字列入力の両方を対象にする。",
+          "reason": "FRB Launchのキーボード操作文化を継承し、候補選択のキー操作を共通化する。候補がない場合や閉じている場合の通常入力は維持する。"
+        },
+        {
+          "decision_id": "dec_0268_013",
+          "at": "2026-10-22",
+          "decision": "候補一覧が開いているとき、全文検索入力欄・候補フィルタ内のEnterはSmart Search補完を優先させ、全体キーボード標準では処理しない。候補がない/閉じている場合や別の検索入力は従来処理を維持する。",
+          "reason": "document capture処理が対象inputのkeydownより先に動作しEnterを検索実行として消費していた。局所的に委譲することで操作契約と既存標準Enterを両立する。"
+        },
+        {
+          "decision_id": "dec_0268_014",
+          "at": "2026-10-22",
+          "decision": "全文検索ボックスの`/`は文字位置にかかわらず補完起動専用キーとし、入力文字から除外する。項目を確定するときだけ、直前が非空白・開き括弧以外なら半角スペースを1つ加えて`項目名=`を挿入する。",
+          "reason": "連続して検索条件を追加する場合のトリガー一貫性を優先。URL内の文字としての/入力は直接キーで行わず、必要なら貼り付け等を使う。旧「URL中は/を残す」動作を意図的に変更する。"
         }
       ],
       "change_history": [
@@ -38488,9 +38607,60 @@
           "before": "全文検索欄はSmart Search式を実行できるが、FieldDefからの項目/値候補や/キー補完は未実装。",
           "after": "- /で項目候補を起動（検索式に/を残さない）。\n- ↑↓・Tab・Esc対応、項目確定で項目名=を入力。\n- Combo/Booleanの候補を自動表示し、表示ラベルから既存の保存値対応を再利用。\n- 検索欄の再描画/クリアで候補を閉じる。\n- Node/static 602/602 PASS、Chromium UIスモーク PASS。\n- NativeShell実機はユーザー確認待ち。",
           "reason": "一般利用者の簡単な検索体験とSEによる検索式の自由編集を両立するため。"
+        },
+        {
+          "history_id": "chg_0268_004",
+          "at": "2026-10-22",
+          "change_type": "smart_search_suggestion_overlay_stack_fix",
+          "before": "Smart SearchポップアップはsearchSection配下にabsolute配置され、下のGridカードより背面になり候補下端が隠れることがある。",
+          "after": "ポップアップ表示中のみsearchSectionにstudio-smart-search-popup-openを追加しz-index:12。候補がGridの前面に描画され、閉じるとクラスを解除。JS構文PASS・Node/static 610/610 PASS・Chromium合成UIスモークPASS。",
+          "reason": "既存検索機能とGrid表示を維持したまま、候補の可視性を確保するため。"
+        },
+        {
+          "history_id": "chg_0268_005",
+          "at": "2026-10-22",
+          "change_type": "smart_search_history_candidate_filter_contextmenu",
+          "before": "候補一覧をスクロールして選択する。検索履歴ボタンはない。/キーのみで補完起動する。",
+          "after": "候補一覧内の検索欄で部分一致絞り込み、全文検索式の手動登録／履歴選択再検索／上下順序変更／削除、右クリックによる/相当補完起動を追加。Node/static 608件とChromium一連操作PASS。",
+          "reason": "Launchで得た高速検索体験をStudioの汎用検索へ反映するため。"
+        },
+        {
+          "history_id": "chg_0268_006",
+          "at": "2026-10-22",
+          "change_type": "smart_search_launch_keyboard_confirm_right_arrow",
+          "before": "Tab・Enterで補完候補を確定できるが、→キーは候補確定にならない。操作ヒントはTabのみ表示。",
+          "after": "候補一覧が開いて候補がある場合、Tab・Enter・→で現在の候補を確定。候補フィルターと検索欄の両経路に対応し操作ヒントを更新。Node/static 609/609・Chromium操作PASS。",
+          "reason": "FRB Launchのキー操作と統一し、Smart SearchのIntelliSenseで統一的な選択操作を提供するため。"
+        },
+        {
+          "history_id": "chg_0268_007",
+          "at": "2026-10-22",
+          "change_type": "smart_search_enter_global_key_capture_handoff",
+          "before": "値候補表示中にEnterを押すと、document captureのStudio標準キー処理が先に検索を実行し、候補確定できなかった。",
+          "after": "候補が開いていてキー入力先がSmart Search検索欄か候補内フィルタの場合に、グローバルなEnter→検索ハンドリングをSmart Search補完へ委譲する。静的615/615とChromium修正前後再現・キー操作・検索回帰PASS。",
+          "reason": "FRB Launch操作文化のTab・Enter・→候補確定をNativeShellと整合させ、検索実行とのイベント捕捉競合を解消する。"
+        },
+        {
+          "history_id": "chg_0268_008",
+          "at": "2026-10-22",
+          "change_type": "smart_search_slash_always_trigger_and_space_insertion",
+          "before": "`/`による補完起動は先頭・空白・開き括弧直後に限られ、`種別=rules_review/` は文字として入力されてしまう。",
+          "after": "`/`を位置非依存の補完コマンドに統一し文字を挿入しない。項目候補確定時、文字列直後なら半角スペースを1つ追加して`項目名=`を挿入。選択範囲を候補表示中に保持。Node/static 616/616・Chromiumで候補／値確定と各境界確認PASS。",
+          "reason": "FRB Launch式のコマンドトリガーと、連続条件入力時の一貫したインテリセンス操作を実現するため。"
         }
       ],
-      "failure_stories": []
+      "failure_stories": [
+        {
+          "failure_id": "fail_0268_001",
+          "at": "2026-10-22",
+          "failure_owner": "AI",
+          "summary": "Tab・Enter・→は揃えたはずが、Enterだけ共通キー処理に横取りされていた",
+          "what_went_wrong": "前回はSmart Search Editor単体のキー操作をテストしたため、document captureで先に動作するStudio全体のキーボード標準を同時に組み込んでおらず、NativeShellでのEnter未確定を検出できなかった。",
+          "excuse": "補完コンポーネントのテストだけで満足して、アプリ全体のイベント伝播順まで見ていなかった。右矢印は通ったのにEnterだけ遠回り（笑）。",
+          "failure_admission": "ADMITTED",
+          "article_hook": "Launch式のキー操作がStudio全体のEnter処理に止められた日 — イベント伝播順の落とし穴"
+        }
+      ]
     }
   ],
   "review_notes": [

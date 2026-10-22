@@ -105,8 +105,15 @@
     }
 
     if (event.key === 'Enter') {
-      const search = doc.getElementById('searchForm');
+      // Smart Search completion owns Enter while its candidate popup is open.
+      // This document-level capture listener runs before the input/filter listeners;
+      // without the hand-off, Enter triggers Search instead of confirming a candidate.
       const fullTextSearch = doc.getElementById('studioFullTextSearchInput');
+      const suggestions = doc.getElementById('studioSmartSearchSuggestions');
+      if (suggestions && !suggestions.hidden &&
+          fullTextSearch?.getAttribute('aria-expanded') === 'true' &&
+          (target === fullTextSearch || suggestions.contains(target))) return;
+      const search = doc.getElementById('searchForm');
       const isSearchInput = search?.contains(target) || target === fullTextSearch;
       const isEditor = detailOpen && detail.contains(target) && !foreignDialog;
       if (isSearchInput || isEditor) {
