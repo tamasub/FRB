@@ -4464,3 +4464,33 @@ body.studio-field-width-resizing * {
   from { opacity: 0; transform: translateY(-2px) scale(.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* studio_work_0268 Step 2: Smart Search completion overlay; no additional search row. */
+#searchSection { position: relative; }
+#searchSection .studio-smart-search-suggestions {
+  position: absolute; z-index: 1005;
+  background: var(--panel, #fff); color: var(--text, #152c40);
+  border: 1px solid #a8b9e5; border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(20,40,80,.24);
+  max-height: 290px; overflow: auto; padding: 5px;
+  box-sizing: border-box;
+}
+#searchSection .studio-smart-search-suggestions[hidden] { display: none !important; }
+#searchSection .studio-smart-search-hint {
+  padding: 5px 8px 8px; font-size: 11px; color: var(--muted, #526b82);
+  border-bottom: 1px solid var(--line, #d3e0ec);
+}
+#searchSection .studio-smart-search-option {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; padding: 7px 9px; border-radius: 6px;
+  cursor: pointer; font-size: 12px; line-height: 1.4;
+}
+#searchSection .studio-smart-search-option small {
+  color: var(--muted, #61748a); font-size: 11px; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+#searchSection .studio-smart-search-option.is-active,
+#searchSection .studio-smart-search-option:hover {
+  background: #dfe9ff; color: #172a53;
+}
+#searchSection .studio-smart-search-empty { padding: 9px; font-size: 12px; color: var(--muted, #526b82); }

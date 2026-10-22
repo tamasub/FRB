@@ -328,7 +328,11 @@ var SearchFilter = (function () {
     return collectStringValues(row).join('\n').toLowerCase();
   }
 
-  function matchesFullText(row, rawQuery) {
+  function matchesFullText(row, rawQuery, fields = [], preparedAst = null) {
+    if (typeof StudioSmartSearch !== 'undefined') {
+      const ast = preparedAst ?? StudioSmartSearch.parse(rawQuery, fields);
+      return StudioSmartSearch.evaluate(row, ast);
+    }
     // 全文検索では空白区切りの語をAND判定する。子Grid/詳細など行内の別フィールドに分散していてもよい。
     const keywords = String(rawQuery ?? '').trim().toLowerCase().split(/\s+/u).filter(Boolean);
     if (!keywords.length) return true;
@@ -347,8 +351,11 @@ var SearchFilter = (function () {
     const entries = normalizeRows(rows);
     const effectiveCriteria = Array.isArray(criteria) ? criteria : [];
     const fullText = options.fullText ?? options.full_text ?? '';
+    // Parse once per query, not once per row. UI catches structured errors and keeps prior result.
+    const fields = options.fields ?? [];
+    const ast = typeof StudioSmartSearch !== 'undefined' ? StudioSmartSearch.parse(fullText, fields) : null;
     const filtered = entries.filter(({ row }) => (
-      matchesRow(row, effectiveCriteria) && matchesFullText(row, fullText)
+      matchesRow(row, effectiveCriteria) && matchesFullText(row, fullText, fields, ast)
     ));
     return typeof options.afterFilter === 'function' ? options.afterFilter(filtered) : filtered;
   }

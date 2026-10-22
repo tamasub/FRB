@@ -422,6 +422,14 @@ $('loadBtn').addEventListener('click', async () => {
   }
 });
 
+// studio_work_0268 / Step 2: completion changes only the editor text, not SearchFilter semantics.
+const studioSmartSearchEditor = typeof StudioSmartSearchEditor !== 'undefined'
+  ? StudioSmartSearchEditor.setup({
+      input: $('studioFullTextSearchInput'),
+      section: $('searchSection'),
+      getFields: () => (typeof gridDef === 'function' ? gridDef()?.fields ?? [] : [])
+    })
+  : null;
 $('searchBtn').addEventListener('click', applySearch);
 // Standard behavior: Enter in full-text search submits the existing search action.
 // Do not handle IME conversion or introduce a new search pathway.
@@ -437,7 +445,10 @@ $('deleteRowBtn').addEventListener('click', deleteSelectedRow);
 if ($('gridCsvExportBtn')) $('gridCsvExportBtn').addEventListener('click', exportVisibleGridCsv);
 $('clearSearchBtn').addEventListener('click', () => {
   const fullText = $('studioFullTextSearchInput');
-  if (fullText) fullText.value = '';
+  studioSmartSearchEditor?.close();
+  if (fullText) { fullText.value = ''; fullText.removeAttribute('aria-invalid'); }
+  const smartError = $('studioSmartSearchError');
+  if (smartError) { smartError.hidden = true; smartError.textContent = ''; }
   [...$('searchForm').querySelectorAll('input, select, textarea')].forEach(i => {
     if (i instanceof HTMLSelectElement && i.multiple) [...i.options].forEach(opt => { opt.selected = false; });
     else i.value = '';

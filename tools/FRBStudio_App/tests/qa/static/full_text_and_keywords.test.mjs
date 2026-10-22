@@ -52,9 +52,9 @@ test('legacy fallback predicate has same AND behavior when SearchFilter is absen
   assert.equal(sandbox.fallbackMatchesStudioFullText(rows[0], '2026'), false);
 });
 
-test('global search UI documents the rule and refreshes both script caches', () => {
+test('global search UI advertises Smart Search and refreshes both script caches', () => {
   const html = fs.readFileSync('wwwroot/index.html', 'utf8');
-  assert.match(html, /placeholder="スペース区切りでAND検索（サブGrid・詳細も対象）"/);
-  assert.match(html, /js\/responsibilities\/search_filter\.js\?[^"\n]*and=20261017/);
-  assert.match(html, /js\/renderers\/grid_detail\.js\?[^"\n]*and=20261017/);
+  assert.match(html, /placeholder="全文検索・空白AND・OR・括弧・項目名=値"/);
+  assert.match(html, /js\/responsibilities\/search_filter\.js\?[^"\n]*smart=20261022/);
+  assert.match(html, /js\/renderers\/grid_detail\.js\?[^"\n]*smart=20261022/);
 });

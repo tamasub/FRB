@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRB Studio - JSON Object Studio v0.4-r001</title>
-  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918&detailFooter=20261016-fixed&fullSearchRow=20261016&detailTitle=20261018&launchEditor=20261018" />
+  <link rel="stylesheet" href="styles.css?v=subgrid-collapse-018107&ui=responsibility-diff-evidence-018121&live=018135&tables=20260918&detailFooter=20261016-fixed&fullSearchRow=20261016&detailTitle=20261018&smartEditor=0268step2&launchEditor=20261018" />
   <script>
   (function () {
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
@@ -318,7 +318,7 @@
             data-field="__studio_full_text__"
             data-type="text"
             autocomplete="off"
-            placeholder="スペース区切りでAND検索（サブGrid・詳細も対象）"
+            placeholder="全文検索・空白AND・OR・括弧・項目名=値"
           />
         </label>
         <div class="button-row compact">
@@ -326,6 +326,7 @@
           <button id="clearSearchBtn" class="ghost-button small" disabled>取消</button>
         </div>
       </div>
+      <div id="studioSmartSearchError" hidden role="alert" style="color:#b42318;font-size:12px;margin:4px 0 0 6px;"></div>
       <div id="searchForm" class="form-grid search-grid"></div>
     </section>
 
@@ -446,11 +447,13 @@
   <script src="js/virtualData/join_builders.js?v=join-writeback-001"></script>
   <script src="js/virtualData/join_writeback.js?v=join-writeback-001"></script>
   <script src="js/runtime/live_view_design.js?v=live-view-design-editor-tip-top-layer-fix-018136"></script>
-  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878&live=018133&tables=20260918&f12BlurFix=20261018"></script>
+  <script src="js/renderers/field_controls.js?v=empty-primary-section-hide-01878&live=018133&tables=20260918&smart=20261022"></script>
   <script src="js/responsibilities/grid_column_builder.js?v=responsibility-refactor-0187"></script>
   <script src="js/services/search_capability_resolver.js?v=standard-search-capability-01865"></script>
   <script src="js/services/search_ui_controller.js?v=standard-search-ui-018138"></script>
-  <script src="js/responsibilities/search_filter.js?v=standard-search-ui-01867&and=20261017"></script>
+  <script src="js/responsibilities/smart_search_engine.js?v=studio-smart-search-step1-0268"></script>
+  <script src="js/ui/studio_smart_search_editor.js?v=studio-smart-search-step2-0268"></script>
+  <script src="js/responsibilities/search_filter.js?v=standard-search-ui-01867&smart=20261022"></script>
   <script src="js/responsibilities/csv_exporter.js?v=responsibility-refactor-0187"></script>
   <script src="js/responsibilities/csv_importer.js?v=related-grid-csv-replace-20261016"></script>
   <script src="js/responsibilities/grid_aggregator.js?v=grid-numeric-aggregate-01820"></script>
@@ -460,7 +463,7 @@
   <script src="js/runtime/subgrid_cards.js?v=1"></script>
   <script src="js/runtime/tree_drag_move.js?v=1"></script>
   <script src="js/runtime/tree_file_drop.js?v=1"></script>
-  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831&resource=018124&live=018133&and=20261017&relatedAutoApply=20261018b&f12BlurFix=20261018"></script>
+  <script src="js/renderers/grid_detail.js?v=visibility-contract-audit-01831&resource=018124&live=018133&smart=20261022&relatedAutoApply=20261018b&f12BlurFix=20261018"></script>
   <script src="js/ui/section_group_navigation.js?v=section-group-navigation-01873"></script>
   <script src="js/markdown/markdown_registry.js?v=markdown-export-mode-0186"></script>
   <script src="js/markdown/data_markdown.js?v=visible-rows-md-01861"></script>
@@ -478,7 +481,7 @@
   <script src="js/core/plugin_host.js?v=native-overlay-runtime-01894"></script>
   <script src="js/runtime/search_state.js?v=viewdef-search-initial-018125"></script>
   <script src="js/actions/action_toolbar.js?v=visible-rows-md-01861"></script>
-  <script src="app.js?v=detail-dialog-expand-01836&amp;search=enter-002&amp;faststart=20261018"></script>
+  <script src="app.js?v=detail-dialog-expand-01836&amp;search=enter-002&amp;faststart=20261018&amp;smart=20261022-step2"></script>
   <script src="js/runtime/studio_keyboard_standard.js?v=keyboard-standard-20261016-ctrlq"></script>
   <script src="js/runtime/studio_detail_apply_indicator.js?v=detail-unapplied-dot-20261016"></script>
 </body>

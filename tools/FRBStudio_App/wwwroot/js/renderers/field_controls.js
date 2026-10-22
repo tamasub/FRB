@@ -1136,8 +1136,11 @@ function renderHeader() {
 
 function renderSearch() {
   const gd = gridDef();
+  if (typeof studioSmartSearchEditor !== 'undefined') studioSmartSearchEditor?.close();
   const fullText = $('studioFullTextSearchInput');
-  if (fullText) fullText.value = '';
+  if (fullText) { fullText.value = ''; fullText.removeAttribute('aria-invalid'); }
+  const smartError = $('studioSmartSearchError');
+  if (smartError) { smartError.hidden = true; smartError.textContent = ''; }
   const form = $('searchForm');
   form.innerHTML = '';
   if (!gd) {

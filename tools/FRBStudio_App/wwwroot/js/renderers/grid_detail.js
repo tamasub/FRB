@@ -751,7 +751,20 @@ function applySearch() {
 
   if (typeof SearchFilter !== 'undefined' && SearchFilter?.apply) {
     const criteria = SearchFilter.criteriaFromInputs(inputs, gd.fields ?? []);
-    filteredRows = SearchFilter.apply(currentRows, criteria, { fullText });
+    try {
+      const nextRows = SearchFilter.apply(currentRows, criteria, { fullText, fields: gd.fields ?? [] });
+      filteredRows = nextRows;
+      const errorHost = document.getElementById('studioSmartSearchError');
+      if (errorHost) { errorHost.hidden = true; errorHost.textContent = ''; }
+      $('studioFullTextSearchInput')?.removeAttribute('aria-invalid');
+    } catch (error) {
+      if (error?.name !== 'StudioSmartSearchError') throw error;
+      // Invalid/incomplete expressions do not silently broaden the search or erase prior rows.
+      const errorHost = document.getElementById('studioSmartSearchError');
+      if (errorHost) { errorHost.textContent = error.message; errorHost.hidden = false; }
+      $('studioFullTextSearchInput')?.setAttribute('aria-invalid', 'true');
+      return;
+    }
   } else {
     // fallback: v0.18.7責務Interface読込前でも旧挙動を維持する。
     filteredRows = currentRows.map((row, index) => ({row, index})).filter(({row}) => {

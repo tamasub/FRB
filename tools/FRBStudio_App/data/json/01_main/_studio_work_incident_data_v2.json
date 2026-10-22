@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-10-11T21:02:30+09:00",
+  "updated_at": "2026-10-22",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 255,
+  "items_count": 256,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -38320,6 +38320,177 @@
           "reason": "使わない操作を減らし、ツリー上の直感的な配置変更へ統一するため。"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0268",
+      "phase": "studio-smart-search-v0_1",
+      "title": "Studio Smart Search / AND・OR構文とIntelliSense標準化（2ステップ）",
+      "incident_type": "enhancement",
+      "category": "search / smart_search / intellisense",
+      "priority": "high",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "Step 2: Node/static 602/602 PASS、JS構文PASS、Chromium UI操作 PASS、JSON Schema PASS／NativeShell実機はユーザー確認待ち",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-10-22",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-10-22",
+      "updated_at": "2026-10-22",
+      "work_summary": "- Step 1：JSON用Smart Search Parser/AST/Evaluatorを実装。\n- 既存全文検索に接続。個別検索・Plugin検索とAND共存。\n- Node/static 597/597 PASS。\n- Step 2：IntelliSense・NativeShell実機確認待ち。",
+      "target_files": "- wwwroot/js/responsibilities/smart_search_engine.js\n- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/index.html\n- wwwroot/app.js\n- tests/qa/static/studio_smart_search_step1.test.mjs\n- tests/qa/static/full_text_and_keywords.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "actual_updated_files": "- wwwroot/js/responsibilities/smart_search_engine.js\n- wwwroot/js/responsibilities/search_filter.js\n- wwwroot/js/renderers/grid_detail.js\n- wwwroot/js/renderers/field_controls.js\n- wwwroot/index.html\n- wwwroot/app.js\n- tests/qa/static/studio_smart_search_step1.test.mjs\n- tests/qa/static/full_text_and_keywords.test.mjs\n- data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "Smart Search v0.1 計画。検索UIの入口は既存 studioFullTextSearchInput。入力の/キーは補完起動のみで検索文字に含めない。\nSearch Editor（入力補完）とParser/Evaluator（検索判定）を分離し、Canonical FieldDef / ViewDef / SearchCapabilityResolverを再利用する。\n検索はJSON上で先行しSQLiteは別件。検索式エラーは黙って条件を変更せずに示す。既存個別検索項目およびPlugin検索の動作を維持する。",
+      "objective": "大量のJSONデータから欲しい情報を、1つのテキストボックスで素早く取り出せる標準検索体験を提供する。\n個別検索項目は「よく使うものだけを常設」にできるようにし、残りは/による項目補完で呼び出す。\n一般利用者は=中心の簡単操作、SEは任意の比較演算子や多重括弧・ORを手入力できるようにする。",
+      "background": "- FRB LaunchでOR検索の心地よさを体験し、Studioの検索への展開構想が生まれた。\n- 項目ごとの検索欄を多数並べるより、全検索欄を軸として頻用項目だけを常設する方が画面を簡潔にできる。\n- 既存Studioには全文検索欄（現在は空白AND）と個別検索欄、SearchFilter / SearchCapabilityResolver / SearchOperatorRegistryが既に存在する。これらを捨てず拡張する。\n- 本件は先行するJSON編集体験の改善。会社の業務データ・SQLite接続は対象外。",
+      "scope": "## Step 1 — Smart Search Engine（検索できる状態まで）\n- 既存全文検索欄へ、空白AND・or（大小文字無視）・任意階層の括弧ネストを追加する。演算優先度は括弧 > AND > OR。\n- 項目指定がない語は従来通り行全体（子配列・詳細文字列を含む）を検索。`項目名=値` 等はFieldDefで解決した項目だけを検索。FieldDefの項目キーと表示名（重複に注意）を扱う。\n- `=` は型別の標準検索（文字列は含む／数値・日付・Boolean・Comboは一致）。`==` は厳密一致。`!=`と`=!`、`>=`と`=>`、`<=`と`=<` はそれぞれ同義。`>`・`<` も扱う。\n- 数値と日付では `A=2..5`（両端含む）、`A=2..`、`A=..5` の範囲検索を扱う。逆転範囲はエラーとする。\n- 引用符なしを標準とし、シングル／ダブルクォートも必要時だけ受け付ける。空白を含む値、括弧、演算子、引用符の字句境界を安全に解釈する。\n- Search Editorと切り離したParser→型付き条件（AST）→既存SearchFilter相当の評価とする。構文不正・存在しない項目・曖昧な項目名は黙って全文検索にfallbackしない。\n\n## Step 2 — IntelliSense・検索画面統合・回帰確認\n- `/` は入力欄へ表示しない補完起動キー。↑↓でField候補選択、Tabで確定すると常に `項目名=` を挿入。Escでキャンセル。日本語入力・パス・URLなどの `/` と干渉しない起動条件を設ける。\n- FieldDef / ViewDef / 選択肢定義から候補を生成。Comboの項目確定後は即座に選択肢一覧、Booleanはtrue/false等の値候補を表示。表示ラベルと保存値の対応を解決する。候補選択・自由入力の両方を許す。\n- 演算子は選択UIを強制せず、ユーザーが直接加筆・変更する。`コンボA=` → `コンボA=!選択肢①` のような編集も検索エンジン側で解釈する。\n- 既存 `studioFullTextSearchInput` と既存常設検索項目を共存させ、両者はAND結合。検索項目をすべて非表示にしても全文欄だけで機能する。従来ViewDefの `search.visible` と既存Plugin検索、検索クリア／状態復元、Grid/CSV出力を壊さない。\n- Node/staticテストとStudio実機確認で、検索結果・キーボード操作・旧検索の回帰を確認する。",
+      "out_of_scope": "- SQLiteへの移行、SQL WHERE生成、複数人同時更新・排他制御。\n- 全画面の検索項目を強制的に隠すことや、既存ViewDefの一括書換え。\n- 検索式を任意SQLとして実行すること、外部DB接続、未承認業務データの取り込み。\n- 高度な自然言語検索、全文検索インデックス、性能チューニングの全面実装。",
+      "fixed_name_policy": "Field名（status、priority等）やCombo値をSmart Search固有コードへ固定実装しない。Candidateと型解釈はCanonical FieldDef / ViewDef / SearchCapabilityResolver等から導出する。表示名の重複は黙って取り違えず、識別可能な候補表示かエラーにする。",
+      "module_policy": "検索UI補完と構文解析/評価を別責務とする。既存SearchFilter・Search Operator Registry・StandardSearchUiとの接続を調査して重複実装を避ける。JSON先行。将来SQLite Adapterが使えるよう抽象化するが、初回の過剰なDB共通化は行わない。",
+      "expected_outputs": "- Step 1：AND/OR/括弧ネスト/項目別/型別/範囲検索が動くJSON用Smart Search Engineと自動テスト。\n- Step 2：`/` IntelliSense、項目名=`補完、Combo/Boolean値候補、既存全文検索欄への統合、表示・操作・回帰テスト。\n- 各Stepで修正ファイルとテスト結果をインシデントに追記し、最終結果はNativeShellでユーザー確認。",
+      "risk": "- `=` の意味はSQL等と異なる独自標準（文字列の部分一致）。既存個別検索のOperator意味を勝手に変更しない。\n- `OR`／括弧／引用符が普通の検索語として含まれる場合の解釈をテストで固定する。\n- NULL・空値・Combo表示ラベルと内部値、同名Caption、子配列の扱いを実装時に既存契約と照合する。\n- テキスト入力のたびに全件評価すると大量JSONで重くなる恐れがあるため、必要なら遅延評価やキャッシュを検討する。\n- ` / `の無条件キー奪取はURL入力やIMEと衝突し得るため、候補起動条件を定義する。",
+      "test_points": "- `aaa bbb` はAND、`aaa or bbb` はOR、`(aaa or bbb) (ccc or ddd)` と `((aaa or bbb) or (ccc or ddd))` は正しい括弧ネスト。\n- 全項目検索は既存の詳細・子配列の文字列も対象。`タイトル=SQLite` はタイトルのみ、`タイトル==SQLite` は完全一致。\n- `数値A=2` は2のみ、`数値A=2..5` は2/5を含み範囲外除外、`A=>2` / `A>=2` 等が同値、`A=!2` / `A!=2` が同値。\n- Combo/Booleanは表示候補と保存値を一致させ、`/` は検索文字に残らない。Field選択で常に`=`が付加され、値候補が即表示。\n- ↑↓/Tab/Esc、文字入力途中のエラー、引用符、未知/同名項目、NULL/空値、IME/URLの/、候補選択後の演算子手編集を確認する。\n- 既存個別検索とのAND、Clear、検索状態復元、Plugin SearchFilter、Grid行数/ソート/CSV、従来空白AND検索に回帰がない。",
+      "verification_log": "2026-10-22：最新添付ZIP内の既存検索構成（studioFullTextSearchInput / SearchFilter / SearchCapabilityResolver）とインシデント形式を調査し、2ステップの計画を登録。検索実装・動作検証は未着手。\n2026-10-22 Step 1：\n- Parser・型別Evaluator新規実装。\n- 既存全文検索／個別検索とのAND結合。\n- JS構文PASS。\n- Node/static 597/597 PASS。\n- 未確認：NativeShell実機、Step 2 IntelliSense。\n2026-10-22 Step 2：\n- `/`項目補完、↑↓/Tab/Esc、常時`項目名=`補完、Combo/Boolean候補を実装。\n- ComboのViewDef/Enum optionsを使用。曖昧なCaptionの誤補完を防止。\n- URL途中の/・IME中・修飾キーでは補完起動しない。\n- JS構文検証 PASS。\n- Node/static 602/602 PASS。\n- Chromium独立UI操作スモーク PASS（/、Tab、Combo、Boolean、Escape、=!、URL途中の/）。\n- JSON Schema PASS。NativeShellはユーザー確認待ち。",
+      "user_request": "FRB LaunchのOR検索体験をStudio標準機能へ拡張したい。検索欄1つで全文・項目別・AND/OR・括弧ネスト・型別演算子・数値/日付範囲を扱い、`/` IntelliSenseでFieldとCombo/Boolean値を補完したい。よく使う個別検索項目のみ常設する。まず最新ZIPのインシデントに計画を作成し、ステップは少なくしてほしい。",
+      "ai_response": "Step 2 実装完了。Smart Search Editorの/補完とCombo/Boolean値候補を既存検索欄へ統合。Node/static 602/602 PASS、Chromium UI smoke PASS。NativeShell実機確認待ち。",
+      "latest_ai_response": "AI回答\n\n## 今回の更新\n- Step 2：Smart Searchの`/` IntelliSenseを既存全文検索欄へ統合。\n- `/`は検索式に追加せず、項目候補ポップアップを開く操作キーとする。\n- ↑↓で候補移動、Tab（またはEnter）で候補を確定、Escで閉じる。\n- 項目確定時は常に`項目名=`を挿入。Combo/Booleanは値候補を直ちに表示する。\n\n## 変更ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`（新規：候補取得／キーボード操作／ポップアップ制御）\n- `wwwroot/app.js`（検索欄の補完初期化と検索クリア連動）\n- `wwwroot/js/renderers/field_controls.js`（ViewDef再描画時の候補クローズ）\n- `wwwroot/index.html`（補完スクリプトの読み込み）\n- `wwwroot/styles.css`（検索欄直下の候補ポップアップ）\n- `tests/qa/static/studio_smart_search_step2.test.mjs`（追加静的テスト）\n- `data/json/01_main/_studio_work_incident_data_v2.json`（判断・変更・確認結果）\n\n## 設計判断\n- 候補は現在のGrid ViewDefのFieldから取得。Combo/Enum解決済みoptionsとBooleanを利用。\n- Captionが重複するときはField IDを挿入。値の候補を曖昧な項目名から誤補完しない。\n- Comboは表示ラベルを検索式に挿入し、Step 1の検索評価で保存値へ対応付ける。\n- 値候補を強制選択しない。自由入力・演算子の手編集（`=!`・`!=`）を許可。\n- URL／パスの途中の`/`、IME変換中、Ctrl/Alt/Metaとの組み合わせは補完起動しない。\n- 既存の検索ボタン・Enter・個別検索・Plugin検索・SQLiteには変更を加えない。\n\n## 確認結果\n- JavaScript構文：PASS。\n- Node/staticテスト：602/602 PASS。\n- Chromium UI操作：PASS（`/`・↑↓・Tab・Combo・Boolean・Esc・`=!`・URL中の`/`）。\n- インシデントJSON parse／Schema：PASS。\n- 差分ZIP：変更ファイルのみ・runtime生成物なし。\n- NativeShell実機：未確認。人間による画面操作確認待ち。\n\n## 残課題・次の作業\n- NativeShellで入力候補の表示位置・フォーカス・選択操作を確認する。\n- 将来のSQLite検索Adapterは別件。",
+      "latest_user_comment": "おけぇーーーーーーい！！いろいろいけちゃってます！！笑\nステップ２お願いしまーーーす",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0268_001",
+          "status": "COMPLETED",
+          "action": "Step 1：既存全文検索欄へSmart Search Parser/AST/型別評価を追加し、JSONでAND/OR/括弧/比較/範囲のテストを通す。",
+          "action_type": "IMPLEMENTATION_FIX",
+          "required": true,
+          "related_ids": [],
+          "note": "2026-10-22 Step 1実装済み。JSON検索Parser/AST/Evaluator、画面接続、Node/static 597/597 PASS。NativeShell実機は未確認。"
+        },
+        {
+          "action_id": "followup_0268_002",
+          "status": "IN_PROGRESS",
+          "action": "Step 2：/ IntelliSenseとCombo/Boolean値候補を既存検索欄に統合し、既存個別検索との共存・NativeShell操作・回帰テストを確認する。",
+          "action_type": "UI_IMPROVEMENT",
+          "required": true,
+          "related_ids": [],
+          "note": "2026-10-22：Step 2実装・静的602件・Chromium UI操作確認は完了。NativeShell実機の表示／フォーカス／キー操作はユーザー確認待ち。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0268_001",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "ファーストチャレンジ計画登録依頼",
+          "message": "よっしゃぁーーー。ファーストチャレンジ版いってみますかぁ～笑　まずは、インシデントに計画を作成お願いします。ステップは少ないほうが嬉しいよぉ？？笑　よろしく"
+        },
+        {
+          "history_id": "disc_0268_002",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "2ステップ計画登録",
+          "message": "Studio Smart Searchの計画を2ステップで登録。①検索エンジン、②IntelliSense＋画面統合・テスト。今回は計画登録のみとし、SQLiteは別フェーズへ分離した。"
+        },
+        {
+          "history_id": "disc_0268_003",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "Step 1実装依頼",
+          "message": "では、Step1お願いします！！\n\n今回の作業依頼:\n- incident_file: data/json/01_main/_studio_work_incident_data_v2.json\n- work_item_id: studio_work_0268\n- phase: studio-smart-search-v0_1"
+        },
+        {
+          "history_id": "disc_0268_004",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Step 1完了報告",
+          "message": "AI回答\n\n## 今回の更新\n- Step 1：Smart Search Engineを追加し、既存の全文検索欄へ接続。\n- 検索式は Parser → AST → JSON行評価で実行。\n- 個別検索・Plugin検索は従来の責務を維持。\n\n## 実装内容\n- 全文：空白AND、明示AND、OR、任意階層の括弧ネスト。\n- 項目指定：FieldDefのfield・caption・labelで解決。存在しない項目と同名項目はエラー。\n- 演算子：=、==、!=/=!、>/</>=/=>/<=/=<。\n- 値判定：文字列の部分一致／完全一致、数値／日付／Boolean／Comboの一致。\n- 範囲：数値・日付の`A=2..5`／`A=2..`／`A=..5`（境界を含む）。逆転範囲は拒否。\n- 引用：基本は引用符なし。引用符で空白、OR、括弧、演算子を含む語を区別。\n- 不正検索式：エラー表示。直前の検索結果を維持し、黙って全文検索へ戻さない。\n\n## 変更ファイル\n- `wwwroot/js/responsibilities/smart_search_engine.js`（新規）\n- `wwwroot/js/responsibilities/search_filter.js`\n- `wwwroot/js/renderers/grid_detail.js`\n- `wwwroot/js/renderers/field_controls.js`\n- `wwwroot/index.html`\n- `wwwroot/app.js`\n- `tests/qa/static/studio_smart_search_step1.test.mjs`（新規）\n- `tests/qa/static/full_text_and_keywords.test.mjs`\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n\n## 確認結果\n- JS構文確認：PASS。\n- Node/static全テスト：597/597 PASS。\n- JSON parse・インシデントSchema：PASS。\n- ZIP変更ファイル限定・runtime生成物除外：PASS。\n- NativeShell実機操作：未確認。ユーザー確認が必要。\n\n## 残課題・次の作業\n- Step 2：`/` IntelliSense（キー入力は表示しない）、Field確定`項目名=`、Combo/Boolean候補、↑↓/Tab/Esc操作。\n- Step 2：画面操作・検索復元・Plugin/UI連動の実機回帰確認。\n- SQLite／複数人排他制御：別スコープ。"
+        },
+        {
+          "history_id": "disc_0268_005",
+          "at": "2026-10-22",
+          "speaker": "user",
+          "topic": "Step 2実装依頼・Step 1実機確認",
+          "message": "おけぇーーーーーーい！！いろいろいけちゃってます！！笑\nステップ２お願いしまーーーす"
+        },
+        {
+          "history_id": "disc_0268_006",
+          "at": "2026-10-22",
+          "speaker": "assistant",
+          "topic": "Step 2実装報告",
+          "message": "AI回答\n\n## 今回の更新\n- Step 2：Smart Searchの`/` IntelliSenseを既存全文検索欄へ統合。\n- `/`は検索式に追加せず、項目候補ポップアップを開く操作キーとする。\n- ↑↓で候補移動、Tab（またはEnter）で候補を確定、Escで閉じる。\n- 項目確定時は常に`項目名=`を挿入。Combo/Booleanは値候補を直ちに表示する。\n\n## 変更ファイル\n- `wwwroot/js/ui/studio_smart_search_editor.js`（新規：候補取得／キーボード操作／ポップアップ制御）\n- `wwwroot/app.js`（検索欄の補完初期化と検索クリア連動）\n- `wwwroot/js/renderers/field_controls.js`（ViewDef再描画時の候補クローズ）\n- `wwwroot/index.html`（補完スクリプトの読み込み）\n- `wwwroot/styles.css`（検索欄直下の候補ポップアップ）\n- `tests/qa/static/studio_smart_search_step2.test.mjs`（追加静的テスト）\n- `data/json/01_main/_studio_work_incident_data_v2.json`（判断・変更・確認結果）\n\n## 設計判断\n- 候補は現在のGrid ViewDefのFieldから取得。Combo/Enum解決済みoptionsとBooleanを利用。\n- Captionが重複するときはField IDを挿入。値の候補を曖昧な項目名から誤補完しない。\n- Comboは表示ラベルを検索式に挿入し、Step 1の検索評価で保存値へ対応付ける。\n- 値候補を強制選択しない。自由入力・演算子の手編集（`=!`・`!=`）を許可。\n- URL／パスの途中の`/`、IME変換中、Ctrl/Alt/Metaとの組み合わせは補完起動しない。\n- 既存の検索ボタン・Enter・個別検索・Plugin検索・SQLiteには変更を加えない。\n\n## 確認結果\n- JavaScript構文：PASS。\n- Node/staticテスト：602/602 PASS。\n- Chromium UI操作：PASS（`/`・↑↓・Tab・Combo・Boolean・Esc・`=!`・URL中の`/`）。\n- インシデントJSON parse／Schema：PASS。\n- 差分ZIP：変更ファイルのみ・runtime生成物なし。\n- NativeShell実機：未確認。人間による画面操作確認待ち。\n\n## 残課題・次の作業\n- NativeShellで入力候補の表示位置・フォーカス・選択操作を確認する。\n- 将来のSQLite検索Adapterは別件。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0268_001",
+          "at": "2026-10-22",
+          "decision": "検索は全項目横断を基本とし、`項目名=値` 等の演算子がある場合に項目指定検索とする。",
+          "reason": "個別検索欄を増やさず、必要な時だけ対象を絞るUIへ転換するため。"
+        },
+        {
+          "decision_id": "dec_0268_002",
+          "at": "2026-10-22",
+          "decision": "`/` は検索文字ではなく項目候補の起動キー。項目候補確定では常に `項目名=` を挿入し、Combo/Booleanは直ちに値候補を表示する。",
+          "reason": "初心者に演算子選択を強いず、入力された検索式はSEが自由に編集できるため。"
+        },
+        {
+          "decision_id": "dec_0268_003",
+          "at": "2026-10-22",
+          "decision": "`=` は型別標準検索。文字列は部分一致、数値・日付・Boolean・Comboは値一致。`==` は文字列完全一致、比較演算子の順序揺れ（!=/=!, >=/=>, <=/=<）は同じ意味とする。",
+          "reason": "まず=を覚えれば検索でき、追加の記号一文字で必要な高度条件を表せるため。"
+        },
+        {
+          "decision_id": "dec_0268_004",
+          "at": "2026-10-22",
+          "decision": "空白AND、OR、複数階層の括弧、数値・日付の`..`範囲検索を実装対象とする。引用符は任意で、値に空白がある場合の入力補助に用いる。",
+          "reason": "大量データに対する柔軟な絞り込みを1つの検索欄で実現するため。"
+        },
+        {
+          "decision_id": "dec_0268_005",
+          "at": "2026-10-22",
+          "decision": "既存個別検索項目は削除せず頻用項目のみ表示できる構成を維持し、Smart Searchは既存検索欄へ接続する。SQLite対応は別インシデントとする。",
+          "reason": "初回から導入範囲を増やさず、既存ViewDefと利用者の習慣を壊さないため。"
+        },
+        {
+          "decision_id": "dec_0268_006",
+          "at": "2026-10-22",
+          "decision": "Step 1は新規のDOM非依存SmartSearch Engineを既存SearchFilterに接続し、既存個別検索とPlugin SearchFilterの経路を温存する。",
+          "reason": "既存OperatorRegistryや検索UIを壊さず、Step 2のIntelliSenseと将来のSQLite Adapterへ接続しやすくする。"
+        },
+        {
+          "decision_id": "dec_0268_007",
+          "at": "2026-10-22",
+          "decision": "Field補完/値補完は既存検索欄に重ねて表示し、入力欄を増設しない。見出しCaptionが重複する場合はField IDを挿入し、値候補でも曖昧なCaptionの自動解決を避ける。",
+          "reason": "従来の検索UIレイアウトを維持しながら定義駆動補完を可能にし、汎用ViewDefで誤検索を防止するため。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0268_001",
+          "at": "2026-10-22",
+          "change_type": "incident_plan_added",
+          "before": "Studio Smart Search構想は会話中の合意のみで、インシデント管理には未登録。",
+          "after": "studio_work_0268として、2ステップの実装計画・責務境界・構文・入力補完・確認事項を登録（未実装）。",
+          "reason": "次回の差分実装を小さな作業単位で依頼できるようにするため。"
+        },
+        {
+          "history_id": "chg_0268_002",
+          "at": "2026-10-22",
+          "change_type": "smart_search_engine_step1_implemented",
+          "before": "全文検索は空白ANDのみで、項目別／OR／括弧ネスト／範囲指定は未実装。",
+          "after": "- SmartSearch Parser/AST/Evaluatorを追加。\n- JSON Grid全文検索へ接続。\n- 項目別検索、演算子順序揺れ、型別検索、範囲検索、OR、括弧ネストを実装。\n- 構文不正を表示し、直前の結果を保持。\n- 597件の静的テストがPASS。",
+          "reason": "検索欄1つで高表現力を提供しつつ、既存の検索経路は壊さないため。"
+        },
+        {
+          "history_id": "chg_0268_003",
+          "at": "2026-10-22",
+          "change_type": "smart_search_intellisense_step2_implemented",
+          "before": "全文検索欄はSmart Search式を実行できるが、FieldDefからの項目/値候補や/キー補完は未実装。",
+          "after": "- /で項目候補を起動（検索式に/を残さない）。\n- ↑↓・Tab・Esc対応、項目確定で項目名=を入力。\n- Combo/Booleanの候補を自動表示し、表示ラベルから既存の保存値対応を再利用。\n- 検索欄の再描画/クリアで候補を閉じる。\n- Node/static 602/602 PASS、Chromium UIスモーク PASS。\n- NativeShell実機はユーザー確認待ち。",
+          "reason": "一般利用者の簡単な検索体験とSEによる検索式の自由編集を両立するため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -38835,8 +39006,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "readable-markdown-pipe-table-preview",
-  "latest_planning_note": "studio_work_0265: 実装済み未登録責務21候補をMarkdown表で計画登録（未着手）。studio_work_0266: Markdown表プレビュー修正・ブラウザー部品確認済み（NativeShell確認待ち）。",
+  "work_revision": "studio-smart-search-plan-v0_1",
+  "latest_planning_note": "studio_work_0265: 実装済み未登録責務21候補をMarkdown表で計画登録（未着手）。studio_work_0266: Markdown表プレビュー修正・ブラウザー部品確認済み（NativeShell確認待ち）。\nstudio_work_0268：Smart Search v0.1を2ステップ（検索エンジン／IntelliSense＋統合）で計画登録。実装は未着手。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
