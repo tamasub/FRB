@@ -1,0 +1,45 @@
+{
+  "contract_version": "FRB-SmartSearch-JS-v0.1",
+  "description": "Minimal field metadata independent of the full FRB Studio ViewDef",
+  "fields": [
+    {
+      "field": "title",
+      "caption": "タイトル",
+      "type": "string"
+    },
+    {
+      "field": "priority",
+      "caption": "優先度",
+      "type": "select",
+      "options": [
+        {
+          "value": "high",
+          "label": "高"
+        },
+        {
+          "value": "medium",
+          "label": "中"
+        },
+        {
+          "value": "low",
+          "label": "低"
+        }
+      ]
+    },
+    {
+      "field": "count",
+      "caption": "件数",
+      "type": "number"
+    },
+    {
+      "field": "enabled",
+      "caption": "有効",
+      "type": "boolean"
+    },
+    {
+      "field": "created",
+      "caption": "作成日",
+      "type": "date"
+    }
+  ]
+}

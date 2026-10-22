@@ -95,3 +95,22 @@ test('Pointer can cross the gap into the Markdown help panel without closing it'
   assert.equal(tooltip.hidden,true);
   assert.equal(state.has('studio-smart-search-help-open'),false);
 });
+
+
+test('Help uses readable Markdown comparison tables, rendered by the existing Studio renderer',()=>{
+  const md=context.StudioSmartSearchHelp.markdown;
+  assert.match(md,/\| 入力① \| 入力② \| 意味 \|/);
+  assert.match(md,/\| 検索式 \| 意味 \|/);
+  assert.match(md,/\| 操作・入力例 \| 動作 \|/);
+  const count=md.split('\n').filter(line=>/^\| --- \|/.test(line)).length;
+  assert.ok(count>=4,'basic, operators, nesting and completion must each have a table');
+  const renderer={registerFieldControl(){},registerRenderer(){}};
+  vm.createContext(renderer);
+  vm.runInContext(fs.readFileSync('wwwroot/js/renderers/field_controls.js','utf8'),renderer);
+  const html=renderer.renderMarkdownContent(md,{enabled:true});
+  assert.equal((html.match(/<table>/g)||[]).length,4,'all Markdown tables must become HTML tables');
+  assert.match(html,/<th[^>]*>入力①<\/th>/);
+  assert.match(html,/<code class="md-inline-code">A=&gt;2<\/code>/);
+  assert.match(css,/#searchSection \.studio-smart-search-help-panel \.md-table-scroll th/);
+  assert.match(css,/#searchSection \.studio-smart-search-help-panel \.md-table-scroll table\s*\{[^}]*min-width:\s*0;/s, 'help table must override global 980px Grid minimum');
+});

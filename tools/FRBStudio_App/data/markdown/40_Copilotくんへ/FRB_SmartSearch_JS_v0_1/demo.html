@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FRB Smart Search v0.1 — 独立利用サンプル</title>
+<link rel="stylesheet" href="frb_smart_search.css">
+<style>body{font-family:system-ui,sans-serif;margin:2rem;max-width:840px;color:#203447;background:#f4f7fa}.card{background:white;border:1px solid #dbe2eb;border-radius:12px;padding:18px;margin:12px 0;box-shadow:0 2px 8px #1223}.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.bar input{flex:1;min-width:260px;padding:9px;border-radius:8px;border:1px solid #aebfd2}button{padding:9px;border:1px solid #abc0d7;border-radius:8px;background:white;cursor:pointer}pre{white-space:pre-wrap;word-break:break-word}small{color:#526b82}</style></head>
+<body><h1>FRB Smart Search / 外部アプリ実装例</h1>
+<p>このページにはStudioのViewDef、Python、SQLite、NativeShellは必要ありません。</p>
+<section id="host" class="card frb-smart-search-host">
+<div class="bar"><label for="query">検索</label><input id="query" placeholder="/ → 項目候補　または 優先度=高 件数=2..5" autocomplete="off">
+<button id="register" type="button">履歴登録</button><button id="history" type="button">▼</button><button id="search" type="button">検索</button></div>
+<small>/ または右クリック → 項目候補、↑↓で移動、Tab / Enter / →で確定、Escで閉じる</small></section>
+<section class="card"><h2>検索結果</h2><div id="status"></div><pre id="result"></pre></section>
+<script src="js/smart_search_engine.js"></script>
+<script src="js/studio_smart_search_editor.js"></script>
+<script src="js/studio_smart_search_history.js"></script>
+<script src="js/frb_smart_search_api.js"></script>
+<script>
+const fields=[
+  {field:'title',caption:'タイトル',type:'string'},
+  {field:'priority',caption:'優先度',type:'select',options:[{value:'high',label:'高'},{value:'medium',label:'中'},{value:'low',label:'低'}]},
+  {field:'count',caption:'件数',type:'number'},
+  {field:'enabled',caption:'有効',type:'boolean'}
+];
+const rows=[{title:'FRB Launch',priority:'high',count:3,enabled:true},{title:'Smart Search',priority:'medium',count:1,enabled:true},{title:'FRB Studio',priority:'high',count:5,enabled:false}];
+const smart=FRBSmartSearch.create({fields});
+const $=id=>document.getElementById(id);
+smart.attach({input:$('query'),host:$('host'),searchButton:$('search'),historyRegisterButton:$('register'),historyOpenButton:$('history'),getDataKey:()=> 'portable-demo'});
+function search(){try{const found=smart.filter(rows,$('query').value);$('query').removeAttribute('aria-invalid');$('status').textContent=found.length+' 件';$('result').textContent=JSON.stringify(found,null,2);}catch(err){$('query').setAttribute('aria-invalid','true');$('status').textContent=err.code+': '+err.message;}}
+$('search').addEventListener('click',search);
+// Ordinary Enter submits only when the suggestion list is closed. The editor
+// capture listener stops propagation while it is confirming a completion.
+$('query').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();search();}});
+search();
+</script></body></html>
