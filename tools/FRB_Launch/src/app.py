@@ -37,6 +37,7 @@ from launch_appearance import (normalize_theme, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
 from page_tab_focus import FocusPageTabBar
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
+from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
@@ -171,6 +172,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_action = None
         self.filter_edit = None
         self.filter_count = None
+        self.paste_button = None
         self._order_enabled_before_filter = False
         # Preserve the popup's original frame while local filtering hides rows.
         # Otherwise QMenu shrinks to the remaining matches on every keystroke.
@@ -586,6 +588,26 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_edit.installEventFilter(self)
         self._filter_ime_composing = False
         layout.addWidget(self.filter_edit, 1)
+        # This button belongs ONLY to actual filesystem directories, never
+        # Studio categories, bookmarks, apps or global search columns.
+        if self._folder_container_row() is not None:
+            self.paste_button = QPushButton('貼り付け', container)
+            self.paste_button.setObjectName('directoryPasteButton')
+            self.paste_button.setToolTip('Explorerでコピー／切り取りしたファイル・フォルダーをこの場所へ貼り付け')
+            self.paste_button.setIcon(self._clipboard_paste_icon())
+            self.paste_button.setIconSize(QSize(17, 17))
+            self.paste_button.setFixedHeight(29)
+            self.paste_button.setStyleSheet('''
+                QPushButton#directoryPasteButton { background:#eaf5ff; color:#244964;
+                    border:1px solid #89afcf; border-radius:5px; padding:2px 5px; font-size:11px; }
+                QPushButton#directoryPasteButton:hover { background:#cee8ff; }
+                QPushButton#directoryPasteButton:disabled { color:#879cab;
+                    background:#344659; border-color:#526b7b; }
+            ''')
+            self.paste_button.clicked.connect(lambda checked=False: self.launcher.paste_into_directory(self))
+            QApplication.clipboard().dataChanged.connect(self._update_paste_button)
+            self._update_paste_button()
+            layout.addWidget(self.paste_button)
         self.filter_count = QLabel('', container)
         layout.addWidget(self.filter_count)
         action = QWidgetAction(self)
@@ -605,6 +627,29 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # An empty, visible search field must not disable normal row dragging.
         self.filter_edit.textChanged.connect(self._apply_local_filter)
         # popup/showEvent transfers the actual keyboard focus after display.
+
+    @staticmethod
+    def _clipboard_paste_icon():
+        # Tiny Explorer-like outlined clipboard; drawn locally, no font/icon
+        # theme or Windows resource dependency (works in PyInstaller too).
+        pix = QPixmap(24, 24)
+        pix.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pix)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor('#427ab1'), 1.5))
+        painter.setBrush(QColor('#ffffff'))
+        painter.drawRoundedRect(5, 5, 15, 17, 2, 2)
+        painter.setBrush(QColor('#d4e7fb'))
+        painter.drawRoundedRect(9, 2, 7, 5, 1, 1)
+        painter.drawLine(8, 11, 17, 11)
+        painter.drawLine(8, 15, 17, 15)
+        painter.end()
+        return QIcon(pix)
+
+    def _update_paste_button(self):
+        button = self.paste_button
+        if button is not None:
+            button.setEnabled(bool(clipboard_sources(QApplication.clipboard().mimeData())))
 
     def _focus_initial_filter(self):
         """Start in the same keyboard mode that Tab selects from the search bar.
@@ -720,6 +765,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.filter_action = None
         self.filter_edit = None
         self.filter_count = None
+        self.paste_button = None
         self._filter_ime_composing = False
         self.order_enabled = self._order_enabled_before_filter
         self.select_first()
@@ -2824,6 +2870,55 @@ class Launcher(QWidget):
                 else:
                     menu.addAction('項目なし').setEnabled(False)
         except Exception as e:menu.addAction(str(e)).setEnabled(False)
+
+    def paste_into_directory(self, menu):
+        """Paste Explorer file URLs into the *displayed* directory column."""
+        context = menu._folder_container_row()
+        if context is None:
+            return
+        try:
+            destination = Path(self.expander().expand(context['launch_browse_target']))
+            clipboard = QApplication.clipboard()
+            mime = clipboard.mimeData()
+            sources = clipboard_sources(mime)
+            move = is_cut_clipboard(mime)
+            plan = make_paste_plan(destination, sources)
+            count = paste_items(plan, move=move)
+            if move:
+                clipboard.clear()  # Explorer cut items have been consumed.
+            self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
+            # Reconstruct only this column, not the main Launcher or siblings.
+            QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(m))
+        except (OSError, ValueError) as exc:
+            DIAG.exception('DIRECTORY_PASTE target=%s', context.get('launch_browse_target'))
+            self.error('貼り付けできませんでした: ' + str(exc))
+
+    def refresh_pasted_directory(self, previous):
+        """Preserve the popup's location and parent chain after a paste."""
+        if not previous.isVisible():
+            return
+        context = previous._folder_container_row()
+        if context is None:
+            return
+        origin = previous.pos()
+        query = previous.filter_edit.text() if previous.filter_edit is not None else ''
+        parent = previous.parentWidget()
+        is_nested = isinstance(parent, CascadeMenu)
+        replacement = CascadeMenu(parent=parent if is_nested else self, launcher=self)
+        replacement.open_mode = previous.open_mode
+        replacement.owner_action = previous.owner_action
+        replacement.owner_item = previous.owner_item
+        if is_nested:
+            parent.child = replacement
+        else:
+            self.menu = replacement
+        previous.close()
+        previous.deleteLater()
+        self.fill_cascade(replacement, context)
+        replacement.popup(origin)
+        if query and replacement.filter_edit is not None:
+            replacement.filter_edit.setText(query)
+        replacement.setFocus()
 
     def run_menu_item(self, row):
         if self.menu:self.menu.close()
