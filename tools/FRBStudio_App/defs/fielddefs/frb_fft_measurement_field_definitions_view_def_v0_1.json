@@ -526,7 +526,6 @@
               "type": "textarea",
               "grid": {
                 "visible": true,
-                "width": 360,
                 "format": ""
               },
               "edit": {
@@ -546,7 +545,8 @@
                 "required": false
               },
               "format": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "width": 781
             }
           ],
           "editorComponents": [
@@ -674,11 +674,11 @@
               "options": [
                 {
                   "cd": "LT",
-                  "name": "\u003C"
+                  "name": "<"
                 },
                 {
                   "cd": "LTE",
-                  "name": "\u003C="
+                  "name": "<="
                 },
                 {
                   "cd": "EQ",
@@ -690,11 +690,11 @@
                 },
                 {
                   "cd": "GTE",
-                  "name": "\u003E="
+                  "name": ">="
                 },
                 {
                   "cd": "GT",
-                  "name": "\u003E"
+                  "name": ">"
                 }
               ],
               "grid": {
@@ -759,8 +759,7 @@
               "caption": "Note",
               "type": "textarea",
               "grid": {
-                "visible": true,
-                "width": 420
+                "visible": true
               },
               "edit": {
                 "visible": true,
@@ -770,7 +769,8 @@
               "search": {
                 "visible": true,
                 "operator": "contains"
-              }
+              },
+              "width": 989
             }
           ],
           "editorComponents": [
@@ -799,7 +799,7 @@
           ]
         }
       ],
-      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。通常比較はA\u003CB / A=B / A\u003EBの3関係を内部代表値から導出し、未設定時はunset_policyでOK/NGを明示する。"
+      "layout_note": "関連項目チェックはField Definitionへ埋め込まず、関係そのものを独立したConstraintとして管理する。通常比較はA<B / A=B / A>Bの3関係を内部代表値から導出し、未設定時はunset_policyでOK/NGを明示する。"
     }
   ]
 }

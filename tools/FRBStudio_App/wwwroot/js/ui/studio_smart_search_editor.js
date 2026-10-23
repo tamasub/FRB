@@ -39,6 +39,13 @@ var StudioSmartSearchEditor = (function () {
     return quote + value.replaceAll('\\','\\\\').replaceAll(quote, '\\'+quote) + quote;
   }
 
+  // A selected Combo/Boolean value prepares the next condition.
+  // Reuse existing trailing whitespace, or append one ASCII space when absent.
+  function valueInsertion(rawValue, followingText) {
+    const reuseSeparator=/^\s/u.test(String(followingText ?? ''));
+    return {text:quoteAtom(rawValue)+(reuseSeparator?'':' '), reuseSeparator};
+  }
+
   function valueChoices(field) {
     const family = typeof StudioSmartSearch !== 'undefined' ? StudioSmartSearch.familyFor(field) : String(field?.type ?? '');
     if (family === 'boolean') return [
@@ -220,8 +227,13 @@ var StudioSmartSearchEditor = (function () {
         if (valueChoices(field).length) showValueList({field,valueStart:input.selectionStart,typed:''});
       } else {
         const end=input.selectionStart, start=state.valueStart;
-        const value=quoteAtom(chosen.insertValue ?? chosen.value);
-        close(); replace(start,end,value);
+        const insertion=valueInsertion(chosen.insertValue ?? chosen.value,input.value.slice(end));
+        close(); replace(start,end,insertion.text);
+        // Place the caret after an existing separator for the next '/' completion.
+        if (insertion.reuseSeparator) {
+          const next=input.selectionStart+1;
+          input.setSelectionRange(next,next);
+        }
       }
     }
     function onKeydown(event) {
@@ -271,5 +283,5 @@ var StudioSmartSearchEditor = (function () {
     close();
     return Object.freeze({close,showFieldList,isOpen:()=>Boolean(state)});
   }
-  return Object.freeze({setup,isSearchTrigger,fieldChoices,valueChoices,valueContext,quoteAtom});
+  return Object.freeze({setup,isSearchTrigger,fieldChoices,valueChoices,valueContext,quoteAtom,valueInsertion});
 })();

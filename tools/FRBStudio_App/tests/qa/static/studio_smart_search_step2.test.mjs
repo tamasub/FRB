@@ -123,3 +123,30 @@ test('Slash command consumes the key and field insertion handles required spacin
   assert.ok(js.includes("const insertion=(needsSpace?' ':'')+quoteAtom(chosen.insertName)+'=';"));
   assert.ok(js.includes('close(); replace(start,end,insertion);'));
 });
+
+// Value confirmation should leave one usable separator, never duplicate it,
+// and the following '/' completion must see the separator already present.
+test('Combo/Boolean confirmation adds exactly one separating space for next field',()=>{
+  const cases=[
+    ['完了','', '完了 ', false],
+    ['完了',' ', '完了', true],
+    ['完了',' 優先度=high', '完了', true],
+    ['完了','\t次=1', '完了', true],
+    ['複数 単語','', '"複数 単語" ', false],
+    ['true','', 'true ', false]
+  ];
+  for (const [raw,following,expected,reused] of cases) {
+    const actual=editor.valueInsertion(raw,following);
+    assert.equal(actual.text,expected);
+    assert.equal(actual.reuseSeparator,reused);
+  }
+  // A newly inserted separator is recognized by the existing field completion rule.
+  const current='状態='+editor.valueInsertion('完了','').text;
+  const caret=current.length;
+  const needsSpace=caret>0 && !/[\s(]/u.test(current[caret-1]);
+  assert.equal(needsSpace,false);
+  assert.equal(current+(needsSpace?' ':'')+'優先度=','状態=完了 優先度=');
+  const js=fs.readFileSync('wwwroot/js/ui/studio_smart_search_editor.js','utf8');
+  assert.match(js,/const insertion=valueInsertion\(chosen\.insertValue \?\? chosen\.value,input\.value\.slice\(end\)\)/);
+  assert.match(js,/if \(insertion\.reuseSeparator\)/);
+});
