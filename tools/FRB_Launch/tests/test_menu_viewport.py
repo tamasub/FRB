@@ -1,7 +1,7 @@
 """Taskbar-safe cascade popup geometry. Does not require a GUI session."""
 import unittest
 
-from menu_viewport import place_popup, MENU_SCREEN_MARGIN
+from menu_viewport import place_popup, main_cascade_anchor_x, MENU_SCREEN_MARGIN
 
 
 class PopupPlacementTests(unittest.TestCase):
@@ -37,6 +37,27 @@ class PopupPlacementTests(unittest.TestCase):
         result = place_popup(100, 100, 220, 400, 0, 0, 800, 300)
         self.assertTrue(result.scroll)
         self.assertEqual(result.y + result.height, 300 - MENU_SCREEN_MARGIN)
+
+
+class MainCascadeAnchorTests(unittest.TestCase):
+    def test_main_page_opens_at_second_column_start(self):
+        self.assertEqual(main_cascade_anchor_x(680, 235, main_columns=True), 234)
+
+    def test_resized_column_updates_anchor(self):
+        self.assertEqual(main_cascade_anchor_x(680, 310, main_columns=True), 309)
+
+    def test_non_main_mode_keeps_viewport_right_edge(self):
+        self.assertEqual(main_cascade_anchor_x(680, 235, main_columns=False), 679)
+
+    def test_unavailable_divider_falls_back_to_right_edge(self):
+        for divider in (None, 0, -10, 680, 9999):
+            with self.subTest(divider=divider):
+                self.assertEqual(main_cascade_anchor_x(680, divider, main_columns=True), 679)
+
+    def test_popup_screen_clamping_still_applies(self):
+        anchor = main_cascade_anchor_x(680, 235, main_columns=True)
+        result = place_popup(anchor, 220, 560, 230, 0, 0, 700, 500)
+        self.assertLessEqual(result.x + 560, 700 - MENU_SCREEN_MARGIN)
 
 
 if __name__ == '__main__':

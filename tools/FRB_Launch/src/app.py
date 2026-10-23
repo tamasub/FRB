@@ -39,7 +39,7 @@ from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
                                   open_folder_terminal, rename_file_or_folder)
-from menu_viewport import place_popup, MENU_SCREEN_MARGIN
+from menu_viewport import place_popup, main_cascade_anchor_x, MENU_SCREEN_MARGIN
 from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
 from ordering import save_order
@@ -2823,12 +2823,17 @@ class Launcher(QWidget):
         self.menu=(AppCascadeMenu if row.get('launch_source')=='installed_apps' else CascadeMenu)(parent=self,launcher=self)
         self.menu.open_mode=mode;self.menu.owner_item=q or self.list.currentItem()
         self.fill_cascade(self.menu,row)
-        # Do NOT anchor a popup to visualItemRect(...).topRight(): its right
-        # coordinate changes with hidden-header column widths and can extend
-        # beyond the launcher. The viewport's actual right edge is stable.
+        # Experimental main-Page layout: start the first popup at the
+        # title/description divider, overlapping the description column.
+        # The saved main-column width controls this divider dynamically.
+        # Search/selection modes keep their original viewport-right anchor;
+        # nested cascades continue to open at their parent popup's right edge.
         viewport = self.list.viewport()
         rect = self.list.visualItemRect(q or self.list.currentItem())
-        pos = viewport.mapToGlobal(QPoint(viewport.width() - 1, rect.top()))
+        main_columns = self._column_mode == 'main' and self.selection is None
+        divider = self.list.columnViewportPosition(1) if main_columns else None
+        anchor_x = main_cascade_anchor_x(viewport.width(), divider, main_columns=main_columns)
+        pos = viewport.mapToGlobal(QPoint(anchor_x, rect.top()))
         self.menu.popup(pos);self.menu.setFocus()
 
     def activate(self,row):

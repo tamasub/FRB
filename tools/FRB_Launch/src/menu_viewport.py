@@ -28,3 +28,19 @@ def place_popup(anchor_x, anchor_y, width, requested_height, left, top, right, b
     x = max(usable_left, min(int(anchor_x), usable_right - min(int(width), usable_right - usable_left)))
     y = max(usable_top, min(int(anchor_y), usable_bottom - displayed_height))
     return PopupPlacement(x, y, displayed_height, requested_height > usable_height)
+
+
+def main_cascade_anchor_x(viewport_width, second_column_x=None, *, main_columns=False):
+    """First cascade's viewport-local x coordinate.
+
+    In the two-column main Page list, start at the *actual* editable column
+    boundary, so a folder menu overlays the description column rather than
+    opening beyond the outer window. Other list modes keep their old anchor.
+    A missing/invalid divider falls back to the viewport's right edge.
+    """
+    right = max(0, int(viewport_width) - 1)
+    if main_columns and second_column_x is not None:
+        divider = int(second_column_x)
+        if 0 < divider < right:
+            return divider - 1
+    return right

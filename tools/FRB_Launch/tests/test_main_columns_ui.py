@@ -50,20 +50,28 @@ class MainMenuColumnTests(test_navigation.NavigationTests if test_navigation els
         self.w.search.setText('bat')
         self.assertEqual(self.w.list.columnWidth(0), 201)
 
-    def test_popup_anchor_not_affected_by_main_column_width(self):
+    def test_popup_anchor_tracks_main_column_width(self):
         viewport = self.w.list.viewport()
         item = self.w.list.topLevelItem(0)
         row = item.data(0, Qt.ItemDataRole.UserRole)
         if row.get('item_kind') not in ('category', 'directory'):
             self.skipTest('First row does not open a cascade menu')
-        right = viewport.mapToGlobal(QPoint(viewport.width() - 1, 0)).x()
         first_width = self.w.list.columnWidth(0)
-        self.w.list.setColumnWidth(0, min(viewport.width() - 90, first_width + 80))
+        new_width = min(viewport.width() - 90, first_width + 40)
+        self.w.list.setColumnWidth(0, new_width)
+        self.app.processEvents()
+        expected_x = viewport.mapToGlobal(
+            QPoint(self.w.list.columnViewportPosition(1) - 1, 0)).x()
         self.w.cascade(row, item)
         self.app.processEvents()
         if self.w.menu:
-            # No more 30+px gap due to visualItemRect extending off viewport.
-            self.assertLessEqual(abs(self.w.menu.pos().x() - right), 12)
+            from menu_viewport import place_popup
+            screen_rect = self.w.menu.screen().availableGeometry()
+            predicted = place_popup(
+                expected_x, self.w.menu.pos().y(), self.w.menu.sizeHint().width(),
+                self.w.menu.sizeHint().height(), screen_rect.left(), screen_rect.top(),
+                screen_rect.right() + 1, screen_rect.bottom() + 1)
+            self.assertLessEqual(abs(self.w.menu.pos().x() - predicted.x), 12)
             self.w.menu.close()
 
 

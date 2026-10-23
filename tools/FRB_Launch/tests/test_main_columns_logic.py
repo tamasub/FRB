@@ -143,10 +143,12 @@ class MainColumnLogicTests(unittest.TestCase):
         self.w.set_list_column_mode(True)
         self.assertFalse(self.w._main_divider_hit(180))
 
-    def test_popup_anchored_to_viewport_not_item_width(self):
+    def test_popup_follows_main_column_divider_not_item_width(self):
         cascade = next(node for node in launcher.body if isinstance(node, ast.FunctionDef) and node.name == 'cascade')
         body = ast.get_source_segment(source, cascade)
-        self.assertIn('viewport.width() - 1', body)
+        self.assertIn('self.list.columnViewportPosition(1)', body)
+        self.assertIn('main_cascade_anchor_x(', body)
+        self.assertIn("self._column_mode == 'main'", body)
         self.assertNotIn('visualItemRect(q or self.list.currentItem()).topRight()', body)
         # Existing keyboard/hover cascade behavior is preserved.
         self.assertIn('self.menu.popup(pos)', body)
