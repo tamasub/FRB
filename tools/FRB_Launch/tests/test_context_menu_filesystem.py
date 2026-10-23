@@ -7,7 +7,7 @@ import unittest
 
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
-from context_menu_actions import rename_file_or_folder, open_parent_folder
+from context_menu_actions import rename_file_or_folder, open_parent_folder, is_downloads_zip
 
 CONFIG = Path(__file__).resolve().parents[1] / 'config/context_menu_options.json'
 
@@ -65,7 +65,7 @@ class ConfigTests(unittest.TestCase):
     def test_exact_v1_actions_no_new_or_delete(self):
         menus = load_context_menus(CONFIG)
         self.assertEqual([x['action_id'] for x in menus['file']],
-                         ['copy_full_path', 'copy_file_name', 'open_parent_folder', 'rename', 'properties'])
+                         ['copy_full_path', 'copy_file_name', 'open_parent_folder', 'rename', 'git_commit_from_zip', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder']],
                          ['open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties'])
 
@@ -84,7 +84,7 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(len(load_context_menus(path)['file']), 4)
+            self.assertEqual(len(load_context_menus(path)['file']), 5)
 
 
 class ParentFolderTests(unittest.TestCase):
@@ -186,7 +186,8 @@ class ActualLauncherRoutingTests(unittest.TestCase):
             def isEmpty(self): return not self.actions
             def popup(self, at): self.at = at
         scope = {'QMenu': Menu, 'resolve_context_target': resolve_context_target,
-                 'load_context_menus': load_context_menus, 'CONTEXT_MENU_OPTIONS': CONFIG}
+                 'load_context_menus': load_context_menus, 'CONTEXT_MENU_OPTIONS': CONFIG,
+                 'is_downloads_zip': is_downloads_zip}
         exec(compile(code, '<real Launcher.show_launch_context_menu>', 'exec'), scope)
         holder = types.SimpleNamespace(
             data={'items': [{'item_id':'app', '_installed_app':True}]},

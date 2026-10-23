@@ -69,3 +69,103 @@ def rename_file_or_folder(path, new_name):
         raise FileExistsError('同じ名前のファイルまたはフォルダーが既に存在します: ' + str(destination))
     path.rename(destination)
     return destination
+
+
+# Git commit is deliberately independent from the Explorer selected ZIP.
+# The ZIP supplies ONLY the commit message; it is not unpacked or staged.
+def is_downloads_directory(directory):
+    """True only for this user's Downloads folder, never a similarly named subfolder."""
+    home = Path(os.environ.get('USERPROFILE') or str(Path.home()))
+    try:
+        return Path(directory).resolve() == (home / 'Downloads').resolve()
+    except (ValueError, OSError):
+        return False
+
+
+def sort_browser_entries(directory):
+    """Only Downloads uses descending filesystem modification time."""
+    directory = Path(directory)
+    entries = list(directory.iterdir())
+    if not is_downloads_directory(directory):
+        return sorted(entries, key=lambda p: (not p.is_dir(), p.name.casefold()))
+
+    def sort_key(entry):
+        try:
+            mtime = entry.stat().st_mtime_ns
+        except OSError:
+            mtime = -1
+        return (-mtime, entry.name.casefold())
+
+    return sorted(entries, key=sort_key)
+
+
+def is_downloads_zip(path):
+    path = Path(path)
+    return path.suffix.casefold() == '.zip' and is_downloads_directory(path.parent)
+
+
+def _git(repo, *arguments, timeout=30):
+    result = subprocess.run(['git', *arguments], cwd=str(repo),
+                            capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=timeout)
+    if result.returncode:
+        detail = (result.stderr or result.stdout).strip()
+        raise RuntimeError(f'Git {" ".join(arguments[:2])} 失敗: {detail or result.returncode}')
+    return result.stdout
+
+
+def read_git_commit_options(config_path):
+    import json
+    options = json.loads(Path(config_path).read_text(encoding='utf-8-sig'))
+    if not isinstance(options, dict) or options.get('version') != 1:
+        raise ValueError('Git設定: version=1 が必要です')
+    if not isinstance(options.get('enabled'), bool):
+        raise ValueError('Git設定: enabled は真偽値です')
+    value = options.get('repository_path')
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError('Git設定: repository_path を指定してください')
+    if not isinstance(options.get('include_untracked', False), bool):
+        raise ValueError('Git設定: include_untracked は真偽値です')
+    return options
+
+
+def git_commit_preview(options):
+    """Validate repo and return tracked-file changes to be committed.
+
+    Untracked files are purposefully left out; they are not silently staged.
+    """
+    if not options['enabled']:
+        raise ValueError('Gitコミット機能は設定で無効になっています')
+    repository = Path(os.path.expandvars(options['repository_path'])).expanduser().resolve()
+    if not repository.is_dir():
+        raise ValueError('Gitリポジトリのフォルダーがありません: ' + str(repository))
+    top = Path(_git(repository, 'rev-parse', '--show-toplevel').strip()).resolve()
+    if top != repository:
+        raise ValueError('Git設定はリポジトリのルートを指定してください: ' + str(top))
+    untracked_mode = 'normal' if options.get('include_untracked', False) else 'no'
+    status = _git(repository, '-c', 'core.quotepath=false', 'status', '--porcelain',
+                  f'--untracked-files={untracked_mode}')
+    lines = [line for line in status.splitlines() if line.strip()]
+    if not lines:
+        raise ValueError('コミット対象の変更がありません（未追跡ファイルは対象外）')
+    return {'repository': repository, 'changes': lines,
+            'include_untracked': options.get('include_untracked', False)}
+
+
+def commit_tracked_changes(repository, message, include_untracked=False):
+    """Stage tracked modifications/deletions and commit, never stage selected ZIP."""
+    if not isinstance(message, str) or not message.strip() or '\n' in message or '\r' in message:
+        raise ValueError('コミットメッセージを1行で入力してください')
+    repository = Path(repository)
+    # Do not let an accidentally reconfigured path cross repository boundaries.
+    top = Path(_git(repository, 'rev-parse', '--show-toplevel').strip()).resolve()
+    if top != repository.resolve():
+        raise ValueError('リポジトリのルートではありません')
+    _git(repository, 'add', '-A' if include_untracked else '-u', timeout=60)
+    status = subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=str(repository),
+                            capture_output=True, text=True, errors='replace', timeout=30)
+    if status.returncode == 0:
+        raise ValueError('ステージングされた変更はありません')
+    if status.returncode != 1:
+        raise RuntimeError('ステージ差分の確認に失敗しました: ' + status.stderr.strip())
+    _git(repository, 'commit', '-m', message.strip(), timeout=120)
+    return _git(repository, 'log', '-1', '--format=%h %s').strip()

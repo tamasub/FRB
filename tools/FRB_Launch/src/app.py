@@ -5,6 +5,7 @@ import sqlite3
 import logging
 import time
 import threading
+import subprocess
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
@@ -23,6 +24,7 @@ from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
 from menu_hotkeys import menu_shortcuts, MENU_HOTKEY_ID_START
+import jump_list
 import windows
 import installed_apps
 import browser_bookmarks
@@ -38,7 +40,9 @@ from cascade_properties import authored_cascade_row
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
-                                  open_folder_terminal, rename_file_or_folder)
+                                  open_folder_terminal, rename_file_or_folder, sort_browser_entries,
+                                  is_downloads_zip, read_git_commit_options, git_commit_preview,
+                                  commit_tracked_changes)
 from menu_viewport import place_popup, main_cascade_anchor_x, MENU_SCREEN_MARGIN
 from bookmark_menu import visible_bookmark_children
 from apps_scan_support import append_apps_log, scan_shortcuts, merge_catalog
@@ -100,6 +104,7 @@ logging.basicConfig(handlers=[RotatingFileHandler(STATE / 'error.log', maxBytes=
 DIAG = make_logger(STATE)
 LOG_RETENTION_OPTIONS = LAUNCH_HOME / 'config' / 'log_retention_options.json'
 CONTEXT_MENU_OPTIONS = LAUNCH_HOME / 'config' / 'context_menu_options.json'
+GIT_COMMIT_OPTIONS = LAUNCH_HOME / 'config' / 'git_commit_options.json'
 
 
 def prune_diagnostics():
@@ -1357,6 +1362,9 @@ class Launcher(QWidget):
             self.page_shortcuts.append(shortcut)
         self.hover_watch = QTimer(self);self.hover_watch.setInterval(60)
         self.hover_watch.timeout.connect(self.check_hover_menus);self.hover_watch.start()
+        # Refresh the taskbar Jump List at every Launch process start even if
+        # the prior version left an unchanged fingerprint on disk.
+        self._jump_list_startup_synced = False
         self.reload(True)
         self.file_index_check_timer = QTimer(self)
         interval = self.file_index_settings['auto_update']['check_interval_minutes']
@@ -2081,6 +2089,10 @@ class Launcher(QWidget):
             self.stack=[];self.selection=None;self.checked.clear();self.render()
             self._nav_reset()
             if hasattr(self,'registered_key'):self.register_key()
+            jump_list.register_async(
+                fresh, sys.executable, STATE, DIAG,
+                force=not self._jump_list_startup_synced)
+            self._jump_list_startup_synced = True
         except Exception as e:self.error('設定の読込に失敗: '+str(e))
 
     def nativeEvent(self, kind, message):
@@ -2215,7 +2227,7 @@ class Launcher(QWidget):
         if row and row.get('item_kind')=='directory':
             path=Path(self.expander().expand(row['launch_browse_target']))
             result=[]
-            for p in sorted(path.iterdir(),key=lambda p:(not p.is_dir(),p.name.casefold())):
+            for p in sort_browser_entries(path):
                 result.append(dict(item_id=str(p),title=p.name,description=str(p),item_kind='directory' if p.is_dir() else 'command',icon_key='folder.yellow' if p.is_dir() else 'file',launch_browse_target=str(p),launch_actions=[{'launch_action_type':'Open','launch_target':str(p)}],_file=str(p),**({'_browse_file': str(p)} if p.is_file() else {})))
             return result
         parent=row['item_id'] if row else ''
@@ -3421,6 +3433,8 @@ class Launcher(QWidget):
                 return False
             menu = QMenu(context_parent if context_parent is not None else self)
             for definition in actions:
+                if definition['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path):
+                    continue
                 menu.addAction(definition['title'],
                                lambda checked=False, action_id=definition['action_id'], p=path, k=origin:
                                self.perform_filesystem_context_action(action_id, p, k))
@@ -3469,6 +3483,8 @@ class Launcher(QWidget):
                 open_folder_terminal(path)
             elif action_id == 'properties':
                 show_windows_properties(path)
+            elif action_id == 'git_commit_from_zip':
+                self.git_commit_using_filename(path)
             elif action_id == 'rename':
                 name, accepted = QInputDialog.getText(self, '名前の変更', '新しい名前:', text=path.name)
                 if not accepted or name == path.name:
@@ -3493,6 +3509,47 @@ class Launcher(QWidget):
         except (OSError, ValueError, RuntimeError) as exc:
             DIAG.exception('FILESYSTEM_CONTEXT action=%s target=%s', action_id, target)
             self.error('操作を実行できませんでした: ' + str(exc))
+
+    def git_commit_using_filename(self, zip_path):
+        """Use a selected Downloads ZIP's name as a message, never as content."""
+        try:
+            if not is_downloads_zip(zip_path) or not Path(zip_path).is_file():
+                raise ValueError('Downloads直下のZIPだけが対象です')
+            options = read_git_commit_options(GIT_COMMIT_OPTIONS)
+            preview = git_commit_preview(options)
+            message, accepted = QInputDialog.getText(
+                self, 'Gitコミットメッセージ', '選択ZIPのファイル名（編集できます）:',
+                text=Path(zip_path).name)
+            if not accepted:
+                return
+            if not message.strip():
+                raise ValueError('コミットメッセージは空にできません')
+            visible_changes = '\n'.join(preview['changes'][:12])
+            if len(preview['changes']) > 12:
+                visible_changes += f'\n...ほか {len(preview["changes"])-12} 件'
+            question = QMessageBox(self)
+            question.setIcon(QMessageBox.Icon.Question)
+            question.setWindowTitle('Gitコミットの確認')
+            question.setText('現在のGit作業ツリーの変更をコミットしますか？')
+            question.setInformativeText(
+                f'リポジトリ: {preview["repository"]}\n'
+                f'コミットメッセージ: {message}\n'
+                f'変更候補: {len(preview["changes"])} 件\n\n'
+                f'{visible_changes}\n\n'
+                '※ ZIPの展開・追加はしません。'
+                + ('未追跡ファイルも対象です。' if preview['include_untracked']
+                   else '未追跡ファイルは追加しません。'))
+            question.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            question.setDefaultButton(QMessageBox.StandardButton.No)
+            if question.exec() != QMessageBox.StandardButton.Yes:
+                return
+            committed = commit_tracked_changes(preview['repository'], message,
+                                               include_untracked=preview['include_untracked'])
+            QMessageBox.information(self, 'Gitコミット完了',
+                                    'コミットしました。\n' + committed)
+        except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+            DIAG.exception('GIT_COMMIT_FROM_ZIP path=%s', zip_path)
+            self.error('Gitコミットできませんでした: ' + str(exc))
 
     def contextMenuEvent(self, event):
         # The root QWidget cannot distinguish page content from its tab,
@@ -3635,7 +3692,15 @@ class Launcher(QWidget):
 
 
 def main():
-    app=QApplication(sys.argv);app.setQuitOnLastWindowClosed(False)
+    requested_jump_item = jump_list.requested_item(sys.argv[1:])
+    # Set an explicit identity BEFORE creating any taskbar windows/Jump Lists.
+    try:
+        jump_list.set_process_app_id()
+    except Exception:
+        DIAG.exception('JUMP_LIST app identity unavailable')
+    # Qt must not interpret our Jump List switch as a Qt command-line option.
+    qt_args = [arg for arg in sys.argv if not arg.startswith(jump_list.IPC_SWITCH)]
+    app=QApplication(qt_args);app.setQuitOnLastWindowClosed(False)
     # Safety net for scrollbars added in future Qt widgets/menus. Existing
     # themed views override the track color to match their own surface.
     app.setStyleSheet(MAIN_LIST_SCROLLBAR_QSS)
@@ -3644,8 +3709,12 @@ def main():
     name='FRBLaunch-'+os.environ.get('USERNAME',os.environ.get('USER','default'))
     lock=QLockFile(str(STATE/'instance.lock'));lock.setStaleLockTime(0)
     if not lock.tryLock(0):
+        payload = (jump_list.ipc_command(requested_jump_item)
+                   if requested_jump_item else b'show\n')
         client=QLocalSocket();client.connectToServer(name)
-        if client.waitForConnected(1500):client.write(b'show');client.waitForBytesWritten(1000)
+        if client.waitForConnected(1500):
+            client.write(payload)
+            client.waitForBytesWritten(1000)
         return 0
     QLocalServer.removeServer(name)
     server=QLocalServer()
@@ -3695,12 +3764,45 @@ def main():
             except Exception:
                 DIAG.exception('DESKTOP_DOUBLE_CLICK_HOOK cleanup failed')
         desktop_click = None
+    pending_ipc = {}  # Keep sockets alive until the complete message arrives.
+
+    def finish_ipc(sock):
+        if sock not in pending_ipc:
+            return
+        payload = bytes(pending_ipc[sock]) + bytes(sock.readAll())
+        pending_ipc.pop(sock, None)
+        sock.disconnectFromServer()
+        sock.deleteLater()
+        try:
+            action, item_id = jump_list.parse_ipc_command(payload)
+            if action == 'show-menu':
+                window.summon_menu(item_id)  # Validate id/page/enabled; never execute.
+            elif not window.isVisible():
+                window.summon()
+            else:
+                window.raise_();window.activateWindow()
+        except (ValueError, UnicodeError):
+            DIAG.warning('JUMP_LIST invalid IPC command rejected')
+
     def wake():
-        sock=server.nextPendingConnection()
-        if sock:sock.close();sock.deleteLater()
-        if not window.isVisible():window.summon()
-        else:window.raise_();window.activateWindow()
+        while server.hasPendingConnections():
+            sock = server.nextPendingConnection()
+            if not sock:
+                continue
+            pending_ipc[sock] = bytearray()
+            def receive(socket=sock):
+                if socket not in pending_ipc:
+                    return
+                pending_ipc[socket].extend(bytes(socket.readAll()))
+                if b'\n' in pending_ipc[socket] or len(pending_ipc[socket]) > 2048:
+                    finish_ipc(socket)
+            sock.readyRead.connect(receive)
+            sock.disconnected.connect(lambda socket=sock: finish_ipc(socket))
     server.newConnection.connect(wake)
+    if requested_jump_item:
+        QTimer.singleShot(0, lambda: window.summon_menu(requested_jump_item))
+    # Initial registration was scheduled when Launcher first read its Data JSON.
+    # A Jump List selection only relays the item id to this resident process.
     if '--preview' in sys.argv:window.summon()
     try:
         result=app.exec()
