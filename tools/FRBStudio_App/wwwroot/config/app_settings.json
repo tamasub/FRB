@@ -53,5 +53,11 @@
   "markdown": {
     "large_file_warning_enabled": true,
     "large_file_warning_bytes": 300000
+  },
+  "smart_search": {
+    "date_search": {
+      "year_mode": "fiscal",
+      "fiscal_year_start_month": 4
+    }
   }
 }

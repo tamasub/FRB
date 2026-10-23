@@ -193,3 +193,14 @@ smart.attach({
 「**どの項目定義だけを用意すれば使えたか**」「**どのJSとCSSを追加したか**」「**どの検索・補完操作が通ったか**」「**未対応や懸念は何か**」を上記のMarkdown表で説明してください。
 
 **今回の目的はStudio全体の移植ではありません。まずはSmart Searchだけを、既存の業務アプリへ使いやすい共通JS部品として組み込むことです。** Studio全体を自然言語の責務から再構築する研究は、別の長期テーマとして扱います。
+
+## 追加契約（2026-10-23）日付・日時の省略入力
+
+| API | 設定例 | 備考 |
+| --- | --- | --- |
+| `FRBSmartSearch.create()` | `{fields,dateSearch:{year_mode:'fiscal',fiscal_year_start_month:4}}` | 年度初月を明示。`calendar`も指定可能 |
+| `smart.filter()` | `日付=202610..202611` | 2026年10月〜11月末まで |
+| `smart.filter()` | `日時=20261023_15` | 15時台全体 |
+| `smart.filter()` | `日時=20261023_1530..20261023_1730` | 15:30分台〜17:30分台（両端を含む） |
+
+設定未指定なら年度4月開始。Studio本体は `wwwroot/config/app_settings.json` の `smart_search.date_search` を読み込む。独立JS側ではAPIへ明示的に設定を渡す。保存データは `YYYY-MM-DD` / `YYYY/MM/DD` / `YYYY.MM.DD` 等を検索時に正規化するが、保存形式を変更しない。タイムゾーン付き`instant`は対象外。詳細は `FRB_SmartSearch_JS_v0_1/README_DATE_PRECISION.md`。

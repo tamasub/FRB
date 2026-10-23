@@ -37,3 +37,13 @@ test('one public script contains no ViewDef, SQLite or NativeShell calls',()=>{
   const t=fs.readFileSync(new URL('js/frb_smart_search_api.js',root),'utf8');
   assert.doesNotMatch(t.replace(/^\s*\/\/.*$/gm,''),/gridDef\(|viewDef\(|SQLITE|exec\(|NativeShell/);
 });
+test('date precision contract from create dateSearch settings',()=>{
+  const temporal=[{field:'created',caption:'登録日',type:'date'},{field:'updated',caption:'更新日時',type:'datetime'}];
+  const sample=[{created:'2026/10/31',updated:'2026-10-23T15:30:59'},
+    {created:'2026.11.30',updated:'2026-11-30T23:59:59.999'},
+    {created:'2026-12-01',updated:'2026-12-01T00:00:00'}];
+  const search=api.create({fields:temporal,dateSearch:{year_mode:'calendar',fiscal_year_start_month:4}});
+  assert.equal(search.filter(sample,'登録日=202610..202611').length,2);
+  assert.equal(search.filter(sample,'更新日時=20261023_1530').length,1);
+  assert.equal(search.filter(sample,'更新日時=202610..202611').length,2);
+});

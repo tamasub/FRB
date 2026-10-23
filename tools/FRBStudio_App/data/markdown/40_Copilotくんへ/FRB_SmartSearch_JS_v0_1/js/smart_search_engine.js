@@ -10,6 +10,7 @@ var StudioSmartSearch = (function () {
   });
   const COMPARATORS = ['==', '!=', '=!', '>=', '=>', '<=', '=<', '=', '>', '<'];
   const ORDERED_FAMILIES = new Set(['number', 'date', 'datetime', 'instant']);
+  const PERIOD_FAMILIES = new Set(['date', 'datetime']);
 
   function error(code, message, offset=0) {
     const err = new Error(message);
@@ -99,7 +100,7 @@ var StudioSmartSearch = (function () {
     return found[0];
   }
 
-  function parseTerm(token, index, parseValue) {
+  function parseTerm(token, index, parseValue, dateOptions) {
     const text = token.value;
     if (token.literalQuoted) return {kind:'text', value:text.toLowerCase()};
     // Comparator belongs to a field-specific search. No comparator = cross-field search.
@@ -116,17 +117,28 @@ var StudioSmartSearch = (function () {
       value = next;
     }
     const node = {kind:'field', field:field.field, family, operator, value, fieldDef:field};
+    const asPeriod = text => PERIOD_FAMILIES.has(family) ? parseDatePeriod(text, family, dateOptions) : null;
     if (value.includes('..') && (operator === 'default' || operator === 'exact') && ORDERED_FAMILIES.has(family)) {
       if (value.indexOf('..') !== value.lastIndexOf('..')) throw error('INVALID_RANGE', `範囲指定が不正です: ${text}`, token.offset);
       const [from, to] = value.split('..');
       if (!from && !to) throw error('INVALID_RANGE', '範囲の開始値または終了値を指定してください', token.offset);
-      if ((from && comparable(from,family) == null) || (to && comparable(to,family) == null)) {
+      const fromPeriod = from ? asPeriod(from) : null;
+      const toPeriod = to ? asPeriod(to) : null;
+      const fromValue = from ? (PERIOD_FAMILIES.has(family) ? fromPeriod?.start : comparable(from,family)) : null;
+      const toValue = to ? (PERIOD_FAMILIES.has(family) ? toPeriod?.endExclusive : comparable(to,family)) : null;
+      if ((from && fromValue == null) || (to && toValue == null)) {
         throw error('INVALID_RANGE', `範囲指定の値が不正です: ${text}`, token.offset);
       }
-      if (from && to && comparable(from,family) > comparable(to,family)) {
+      if (from && to && (PERIOD_FAMILIES.has(family) ? fromValue >= toValue : fromValue > toValue)) {
         throw error('REVERSED_RANGE', `開始値が終了値を超えています: ${text}`, token.offset);
       }
       node.kind = 'range'; node.from = from; node.to = to;
+      if (PERIOD_FAMILIES.has(family)) {
+        node.lower = fromValue; node.upperExclusive = toValue;
+      }
+    } else if (PERIOD_FAMILIES.has(family)) {
+      node.period = asPeriod(value);
+      if (!node.period) throw error('INVALID_VALUE', `日付・日時の検索値が不正です: ${name}=${value}`, token.offset);
     } else if (ORDERED_FAMILIES.has(family) && comparable(value,family) == null) {
       throw error('INVALID_VALUE', `数値・日付の検索値が不正です: ${name}=${value}`,token.offset);
     } else if (family === 'boolean' && boolValue(value) == null) {
@@ -138,7 +150,7 @@ var StudioSmartSearch = (function () {
     return node;
   }
 
-  function parse(query, fields=[]) {
+  function parse(query, fields=[], options={}) {
     const tokens = tokenize(String(query ?? ''));
     const index = fieldIndex(fields);
     let pos = 0;
@@ -161,7 +173,7 @@ var StudioSmartSearch = (function () {
         if (!next || next.type !== 'TERM') return null;
         pos++;
         return next.value;
-      });
+      }, options.date_search ?? options.dateSearch ?? options);
     }
     function andExpression() {
       let left = primary();
@@ -196,6 +208,43 @@ var StudioSmartSearch = (function () {
     const date = new Date(Date.UTC(y,m-1,d,h,min,s,ms));
     return date.getUTCFullYear()===y && date.getUTCMonth()===m-1 && date.getUTCDate()===d && date.getUTCHours()===h && date.getUTCMinutes()===min && date.getUTCSeconds()===s && date.getUTCMilliseconds()===ms;
   }
+  // Type-aware precision periods. Search tokens are local wall-clock values (UTC
+  // arithmetic is used ONLY to avoid host timezone/DST dependence); the data is
+  // never mutated. "instant" remains a distinct timezone-aware exact value type.
+  function parseDatePeriod(raw, family, settings={}) {
+    const text = String(raw ?? '').trim();
+    const config = settings && typeof settings === 'object' ? settings : {};
+    const mode = config.year_mode ?? config.yearMode ?? 'fiscal';
+    const fiscalMonth = config.fiscal_year_start_month ?? config.fiscalYearStartMonth ?? 4;
+    if (!['fiscal','calendar'].includes(mode) || !Number.isInteger(fiscalMonth) || fiscalMonth < 1 || fiscalMonth > 12) return null;
+    const compact = /^(\d{4})(?:(\d{2})(?:(\d{2})(?:_(\d{2})(?:(\d{2})(\d{2})?|))?)?)?$/.exec(text);
+    // Above optional hour/minute/second: no one-digit fragments.
+    const delimited = /^(\d{4})[-\/.](\d{2})[-\/.](\d{2})(?:[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?)?$/.exec(text);
+    const m = compact || delimited;
+    if (!m) return null;
+    const [year, monthToken, dayToken, hourToken, minuteToken, secondToken, milliToken] = [Number(m[1]), m[2], m[3], m[4], m[5], m[6], m[7]];
+    if (year < 1000 || year > 9998) return null;
+    if (family==='date' && hourToken != null) return null;
+    if (hourToken != null && dayToken == null) return null;
+    if (minuteToken != null && hourToken == null) return null;
+    if (secondToken != null && minuteToken == null) return null;
+    const month = monthToken == null ? (mode === 'fiscal' ? fiscalMonth : 1) : Number(monthToken);
+    const day = dayToken == null ? 1 : Number(dayToken);
+    const hour = Number(hourToken ?? 0), minute = Number(minuteToken ?? 0), second = Number(secondToken ?? 0);
+    const millisecond = Number((milliToken ?? '0').padEnd(3,'0'));
+    if (!validParts(year,month,day,hour,minute,second,millisecond)) return null;
+    const start = Date.UTC(year,month-1,day,hour,minute,second,millisecond);
+    let endExclusive;
+    if (milliToken != null) endExclusive = start + (10**(3-milliToken.length));
+    else if (secondToken != null) endExclusive = start + 1000;
+    else if (minuteToken != null) endExclusive = start + 60000;
+    else if (hourToken != null) endExclusive = start + 3600000;
+    else if (dayToken != null) endExclusive = Date.UTC(year,month-1,day+1);
+    else if (monthToken != null) endExclusive = Date.UTC(year,month,1);
+    else endExclusive = Date.UTC(year+1,month-1,1);
+    return {start, endExclusive};
+  }
+
   function comparable(raw,family) {
     if (raw == null || raw === '') return null;
     if (family === 'number') {
@@ -205,13 +254,13 @@ var StudioSmartSearch = (function () {
     }
     const text = String(raw).trim();
     if (family === 'date') {
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+      const m = /^(\d{4})[-\/.](\d{2})[-\/.](\d{2})$/.exec(text) || /^(\d{4})(\d{2})(\d{2})$/.exec(text);
       if (!m) return null;
       const parts=m.slice(1).map(Number);
       return validParts(...parts) ? Date.UTC(parts[0],parts[1]-1,parts[2]) : null;
     }
     if (family === 'datetime') {
-      const m = /^(\d{4})-(\d{2})-(\d{2})[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/.exec(text);
+      const m = /^(\d{4})[-\/.](\d{2})[-\/.](\d{2})[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/.exec(text) || /^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})?$/.exec(text);
       if (!m) return null;
       const [y,mo,d,h,mi,s,ms] = [Number(m[1]),Number(m[2]),Number(m[3]),Number(m[4]),Number(m[5]),Number(m[6]??0),Number((m[7]??'0').padEnd(3,'0'))];
       return validParts(y,mo,d,h,mi,s,ms) ? Date.UTC(y,mo-1,d,h,mi,s,ms) : null;
@@ -259,13 +308,23 @@ var StudioSmartSearch = (function () {
     const values = Array.isArray(actual) ? actual : [actual];
     if (node.kind === 'range') return values.some(value => {
       const n = comparable(value,family);
-      return n != null && (!node.from || n>=comparable(node.from,family)) && (!node.to || n<=comparable(node.to,family));
+      if (n == null) return false;
+      if (PERIOD_FAMILIES.has(family)) return (node.lower == null || n >= node.lower) && (node.upperExclusive == null || n < node.upperExclusive);
+      return (!node.from || n>=comparable(node.from,family)) && (!node.to || n<=comparable(node.to,family));
     });
     const expected = family==='select' ? optionValues(node.fieldDef,node.value) : [node.value];
     const positive = values.some(value => expected.some(candidate => {
       if (ORDERED_FAMILIES.has(family)) {
         const a=comparable(value,family), b=comparable(candidate,family);
-        if (a==null || b==null) return false;
+        if (a==null) return false;
+        if (node.period) {
+          if (node.operator==='gt') return a>=node.period.endExclusive;
+          if (node.operator==='gte') return a>=node.period.start;
+          if (node.operator==='lt') return a<node.period.start;
+          if (node.operator==='lte') return a<node.period.endExclusive;
+          return a>=node.period.start && a<node.period.endExclusive;
+        }
+        if (b==null) return false;
         if (node.operator==='gt') return a>b;
         if (node.operator==='gte') return a>=b;
         if (node.operator==='lt') return a<b;
@@ -299,5 +358,5 @@ var StudioSmartSearch = (function () {
     throw error('INVALID_AST','未対応の検索構文です');
   }
 
-  return Object.freeze({parse, evaluate, tokenize, familyFor, error});
+  return Object.freeze({parse, evaluate, tokenize, familyFor, parseDatePeriod, error});
 })();

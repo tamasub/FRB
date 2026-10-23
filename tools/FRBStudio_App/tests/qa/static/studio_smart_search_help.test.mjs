@@ -108,7 +108,7 @@ test('Help uses readable Markdown comparison tables, rendered by the existing St
   vm.createContext(renderer);
   vm.runInContext(fs.readFileSync('wwwroot/js/renderers/field_controls.js','utf8'),renderer);
   const html=renderer.renderMarkdownContent(md,{enabled:true});
-  assert.equal((html.match(/<table>/g)||[]).length,4,'all Markdown tables must become HTML tables');
+  assert.equal((html.match(/<table>/g)||[]).length,5,'all Markdown tables must become HTML tables');
   assert.match(html,/<th[^>]*>入力①<\/th>/);
   assert.match(html,/<code class="md-inline-code">A=&gt;2<\/code>/);
   assert.match(css,/#searchSection \.studio-smart-search-help-panel \.md-table-scroll th/);

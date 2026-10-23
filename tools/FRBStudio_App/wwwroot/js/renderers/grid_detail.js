@@ -752,7 +752,7 @@ function applySearch() {
   if (typeof SearchFilter !== 'undefined' && SearchFilter?.apply) {
     const criteria = SearchFilter.criteriaFromInputs(inputs, gd.fields ?? []);
     try {
-      const nextRows = SearchFilter.apply(currentRows, criteria, { fullText, fields: gd.fields ?? [] });
+      const nextRows = SearchFilter.apply(currentRows, criteria, { fullText, fields: gd.fields ?? [], dateSearch: typeof StudioSmartSearchDateSettings === 'undefined' ? undefined : StudioSmartSearchDateSettings.get() });
       filteredRows = nextRows;
       const errorHost = document.getElementById('studioSmartSearchError');
       if (errorHost) { errorHost.hidden = true; errorHost.textContent = ''; }

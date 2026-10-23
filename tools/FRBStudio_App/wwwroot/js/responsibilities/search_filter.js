@@ -353,7 +353,7 @@ var SearchFilter = (function () {
     const fullText = options.fullText ?? options.full_text ?? '';
     // Parse once per query, not once per row. UI catches structured errors and keeps prior result.
     const fields = options.fields ?? [];
-    const ast = typeof StudioSmartSearch !== 'undefined' ? StudioSmartSearch.parse(fullText, fields) : null;
+    const ast = typeof StudioSmartSearch !== 'undefined' ? StudioSmartSearch.parse(fullText, fields, {dateSearch: options.dateSearch ?? options.date_search}) : null;
     const filtered = entries.filter(({ row }) => (
       matchesRow(row, effectiveCriteria) && matchesFullText(row, fullText, fields, ast)
     ));

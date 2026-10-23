@@ -265,7 +265,7 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "width": 141
+              "width": 100
             },
             {
               "field": "status",
@@ -291,7 +291,7 @@
                 "visible": true,
                 "operator": "equals"
               },
-              "width": 430
+              "width": 80
             },
             {
               "field": "follow_up_status",
@@ -319,7 +319,7 @@
                 "operator": "equals"
               },
               "display_note": "follow_up_actionsの検索用代表状態。既存項目の要否未評価はUNASSESSED。個別action更新時は集約規則に従って同期する。",
-              "width": 254
+              "width": 120
             },
             {
               "field": "verification_status",
@@ -1373,12 +1373,15 @@
               "caption": "更新日",
               "type": "datetime",
               "grid": {
-                "visible": false
+                "visible": true
               },
               "edit": {
                 "visible": true
               },
-              "width": 196
+              "width": 196,
+              "search": {
+                "visible": false
+              }
             }
           ],
           "markdown": {

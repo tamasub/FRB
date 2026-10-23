@@ -49,7 +49,7 @@ var FRBSmartSearch = (function () {
       ? () => normalizeFields(options.getFields())
       : () => normalizedFields;
     const normalizedFields = options.getFields ? [] : normalizeFields(options.fields ?? []);
-    const parse = query => StudioSmartSearch.parse(String(query ?? ''),getFields());
+    const parse = query => StudioSmartSearch.parse(String(query ?? ''),getFields(),{dateSearch:options.dateSearch ?? options.date_search});
     const match = (row,queryOrAst) => StudioSmartSearch.evaluate(row,
       typeof queryOrAst === 'string' || queryOrAst == null ? parse(queryOrAst) : queryOrAst);
     const filter = (rows,query) => {
