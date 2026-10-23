@@ -260,9 +260,20 @@ var StudioSmartSearch = (function () {
       return validParts(...parts) ? Date.UTC(parts[0],parts[1]-1,parts[2]) : null;
     }
     if (family === 'datetime') {
-      const m = /^(\d{4})[-\/.](\d{2})[-\/.](\d{2})[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/.exec(text) || /^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})?$/.exec(text);
+      // Existing Studio JSON contains a mixture of date-only, local datetime and
+      // ISO datetimes with offsets, even under the same ViewDef datetime field.
+      // Search periods are *wall-clock* periods. Preserve the calendar/time as
+      // written in the JSON instead of converting +09:00 values into UTC.
+      // The instant family above/below remains responsible for absolute instants.
+      const m = /^(\d{4})[-\/.](\d{2})[-\/.](\d{2})(?:[T_ ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(Z|[+-]\d{2}:\d{2})?)?$/i.exec(text)
+        || /^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})?$/.exec(text);
       if (!m) return null;
-      const [y,mo,d,h,mi,s,ms] = [Number(m[1]),Number(m[2]),Number(m[3]),Number(m[4]),Number(m[5]),Number(m[6]??0),Number((m[7]??'0').padEnd(3,'0'))];
+      const [y,mo,d,h,mi,s,ms] = [Number(m[1]),Number(m[2]),Number(m[3]),Number(m[4]??0),Number(m[5]??0),Number(m[6]??0),Number((m[7]??'0').padEnd(3,'0'))];
+      const zone = m[8];
+      if (zone && zone.toUpperCase() !== 'Z') {
+        const hours = Number(zone.slice(1,3)), minutes = Number(zone.slice(4,6));
+        if (hours > 14 || minutes > 59 || (hours === 14 && minutes !== 0)) return null;
+      }
       return validParts(y,mo,d,h,mi,s,ms) ? Date.UTC(y,mo-1,d,h,mi,s,ms) : null;
     }
     if (family === 'instant') {

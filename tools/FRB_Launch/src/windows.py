@@ -112,7 +112,7 @@ def paste(hwnd):
         user.keybd_event(key,0,flag,0)
 
 
-def hotkey(hwnd, text):
+def hotkey(hwnd, text, hotkey_id=1):
     if not IS_WINDOWS:
         return
     parts = text.split('+'); mods = 0x4000
@@ -124,13 +124,13 @@ def hotkey(hwnd, text):
     if len(key) != 1:
         raise ValueError('呼び出しキーの末尾は1文字にしてください')
     scan = user.VkKeyScanW(key)
-    if scan == -1 or not user.RegisterHotKey(hwnd,1,mods,scan & 255):
+    if scan == -1 or not user.RegisterHotKey(hwnd,hotkey_id,mods,scan & 255):
         raise RuntimeError(f'{text}を登録できません。他のアプリとの重複を確認してください')
 
 
-def unhotkey(hwnd):
+def unhotkey(hwnd, hotkey_id=1):
     if IS_WINDOWS:
-        user.UnregisterHotKey(hwnd,1)
+        user.UnregisterHotKey(hwnd,hotkey_id)
 
 
 def chrome_path():

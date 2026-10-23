@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from search_matching import matches_search_text, matches_choice_search
+from menu_hotkeys import menu_shortcuts
 
 TYPES = {'SendKey', 'ClipboardCopy', 'Open', 'Run'}
 
@@ -54,6 +55,7 @@ def validate(data):
         # A selection group may temporarily have no candidates while the user
         # imports a replacement CSV and assigns group_id values later.
         # Keep the item valid; the selection screen already handles 0 rows.
+    menu_shortcuts(data)  # Check root-only scope and duplicates before activation.
     return data
 
 

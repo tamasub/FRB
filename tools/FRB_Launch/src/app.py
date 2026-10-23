@@ -22,6 +22,7 @@ from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_ta
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
+from menu_hotkeys import menu_shortcuts, MENU_HOTKEY_ID_START
 import windows
 import installed_apps
 import browser_bookmarks
@@ -1366,7 +1367,15 @@ class Launcher(QWidget):
         QTimer.singleShot(delay * 1000, self.auto_refresh_file_index)
         QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
+        self.registered_menu_hotkeys = {}
         self.register_key()
+        # Studio may save new shortcuts while Launch is hidden. A new key
+        # cannot invoke reload until it is registered; poll the small JSON
+        # file while hidden, without disturbing an active editing session.
+        self.shortcut_reload_timer = QTimer(self)
+        self.shortcut_reload_timer.setInterval(2000)
+        self.shortcut_reload_timer.timeout.connect(self.reload_shortcuts_if_hidden)
+        self.shortcut_reload_timer.start()
         self.restore_window_size()
         position = self.settings.value('position')
         if position: self.move(position)
@@ -2020,13 +2029,34 @@ class Launcher(QWidget):
         self.footer.setText(str(message))
 
     def register_key(self):
-        key=(self.data or {}).get('launch_hotkey','Ctrl+Shift+;')
-        if key==self.registered_key: return
-        windows.unhotkey(int(self.winId()))
-        try:
-            windows.hotkey(int(self.winId()),key);self.registered_key=key
-        except Exception as e:
-            self.registered_key='';self.error(e)
+        """Register the normal opener plus all enabled Page-root item keys."""
+        hwnd = int(self.winId())
+        key = (self.data or {}).get('launch_hotkey', 'Ctrl+Shift+;')
+        if key != self.registered_key:
+            windows.unhotkey(hwnd)
+            try:
+                windows.hotkey(hwnd, key)
+                self.registered_key = key
+            except Exception as exc:
+                self.registered_key = ''
+                self.error(exc)
+        # A reload is atomic for the document, but Windows may reserve an
+        # individual shortcut. Keep the working hotkeys and warn for failures.
+        for key_id in self.registered_menu_hotkeys:
+            windows.unhotkey(hwnd, key_id)
+        self.registered_menu_hotkeys = {}
+        for index, (item_id, shortcut) in enumerate(menu_shortcuts({
+                **self.data, 'items': self.authored_items})):
+            hotkey_id = MENU_HOTKEY_ID_START + index
+            try:
+                windows.hotkey(hwnd, shortcut, hotkey_id)
+                self.registered_menu_hotkeys[hotkey_id] = item_id
+            except Exception as exc:
+                self.error(f'メニューショートカット登録失敗 ({shortcut}): {exc}')
+
+    def reload_shortcuts_if_hidden(self):
+        if not self.isVisible() and not self.busy:
+            self.reload()
 
     def reload(self, force=False):
         try:
@@ -2057,7 +2087,14 @@ class Launcher(QWidget):
         if windows.IS_WINDOWS:
             msg=wintypes.MSG.from_address(int(message))
             if msg.message==0x0312:
-                QTimer.singleShot(0,self.summon);return True,0
+                if msg.wParam == 1:
+                    QTimer.singleShot(0, self.summon)
+                else:
+                    item_id = self.registered_menu_hotkeys.get(int(msg.wParam))
+                    if item_id is None:
+                        return True, 0
+                    QTimer.singleShot(0, lambda target=item_id: self.summon_menu(target))
+                return True,0
         return super().nativeEvent(kind,message)
 
     def summon(self):
@@ -2070,6 +2107,53 @@ class Launcher(QWidget):
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
         self.show();self.raise_();self.activateWindow();self.search.setFocus()
+
+    def summon_menu(self, item_id):
+        """Navigate only: never run a command bound to a Page-root shortcut."""
+        if self.busy:
+            self.error('処理の完了を待っています')
+            return
+        if not self.isVisible():
+            self.target = windows.foreground()
+        self.reload()
+        row = next((r for r in self.authored_items
+                    if r['item_id'] == item_id and r.get('enabled', True)
+                    and not r.get('parent_item_id')
+                    and any(p['page_id'] == r['page_id'] for p in self.pages)), None)
+        if row is None:
+            self.error('ショートカット先の項目が見つかりません')
+            return
+        self.refresh_bookmarks()
+        self.hide_history_popup()
+        if self.menu:
+            self.menu.close()
+        self.hover_timer.stop()
+        self.pending_menu_item = None
+        self.selection = None
+        self.checked.clear()
+        self.page_id = row['page_id']
+        self.tabs.blockSignals(True)
+        self.tabs.setCurrentIndex(next(i for i, p in enumerate(self.pages)
+                                      if p['page_id'] == row['page_id']))
+        self.tabs.blockSignals(False)
+        self.stack = [row] if row.get('item_kind') == 'category' else []
+        self.search.clear()
+        self.render()
+        if not self.stack:
+            for index in range(self.list.topLevelItemCount()):
+                item = self.list.topLevelItem(index)
+                if item.data(0, Qt.ItemDataRole.UserRole).get('item_id') == item_id:
+                    self.list.setCurrentItem(item)
+                    break
+        self._nav_reset()
+        if not any(screen.availableGeometry().intersects(self.frameGeometry())
+                   for screen in QApplication.screens()):
+            self.move(QApplication.primaryScreen().availableGeometry().center()
+                      - self.rect().center())
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        self.list.setFocus()
 
     def restore_keyboard_focus(self, expected_foreground=None, reason='open'):
         """Make a mouse-hook-opened Tool window actually accept keyboard input."""
@@ -3540,6 +3624,8 @@ class Launcher(QWidget):
         self._file_index_cancel.set()
         if self.apps_proc:
             self.apps_proc.kill();self.apps_proc.wait();self.apps_output.unlink(missing_ok=True)
+        for hotkey_id in self.registered_menu_hotkeys:
+            windows.unhotkey(int(self.winId()), hotkey_id)
         windows.unhotkey(int(self.winId()));self.dismiss();self.tray.hide();QApplication.quit()
 
 

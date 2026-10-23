@@ -84,3 +84,45 @@ test('settings source and portable interface wire their options',()=>{
   assert.match(fs.readFileSync('data/markdown/40_Copilotくんへ/FRB_SmartSearch_JS_v0_1/js/frb_smart_search_api.js','utf8'),/dateSearch:options\.dateSearch/);
   assert.equal(fs.readFileSync('wwwroot/js/responsibilities/smart_search_engine.js','utf8'),fs.readFileSync('data/markdown/40_Copilotくんへ/FRB_SmartSearch_JS_v0_1/js/smart_search_engine.js','utf8'));
 });
+
+// Regression: real incident data mixes date-only, Studio local datetime,
+// and ISO datetime with timezone offsets in one ViewDef datetime column.
+test('datetime stored values use calendar/time as written regardless of optional offset',()=>{
+  const mixed = [
+    {id:1,at:'2026-06-21'},
+    {id:2,at:'2026-10-11T21:02:30+09:00'},
+    {id:3,at:'2026-09-18_19:09:34'},
+    {id:4,at:'2027-03-31T23:59:59+09:00'},
+    {id:5,at:'2027-04-01'},
+    {id:6,at:'2026-10-23T00:45:00Z'},
+    {id:7,at:'2026-10-23T23:45:00-07:00'},
+    {id:8,at:'2026-02-30'},
+    {id:9,at:'2026-10-23T18:45:00+19:00'},
+    {id:10,at:null},
+  ];
+  const find=(expr,options=fiscal)=>mixed.filter(row=>engine.evaluate(row,engine.parse(expr,fields,{dateSearch:options}))).map(x=>x.id);
+  assert.deepEqual(find('日時=2026'),[1,2,3,4,6,7]);
+  assert.deepEqual(find('日時=202610'),[2,6,7]);
+  assert.deepEqual(find('日時=202610..202611'),[2,6,7]);
+  assert.deepEqual(find('日時=20261023_00'),[6]);
+  assert.deepEqual(find('日時=20261023_23'),[7]);
+  assert.deepEqual(find('日時=202610',calendar),[2,6,7]);
+  // Instant search does *not* use this local wall-clock interpretation.
+  assert.equal(engine.evaluate({stamp:'2026-10-23T15:30:00+09:00'},engine.parse('stamp=2026-10-23T06:30:00Z',fields)),true);
+});
+
+test('real 256-record incident data: 2026 fiscal-year datetime search does not lose date-only or offset rows',()=>{
+  const incident=JSON.parse(fs.readFileSync('data/json/01_main/_studio_work_incident_data_v2.json','utf8'));
+  const all=incident.work_items;
+  const names=[{field:'created_at',caption:'作成日',type:'datetime'}];
+  const search=expr=>all.filter(row=>engine.evaluate(row,engine.parse(expr,names,{dateSearch:fiscal})));
+  // Independent expected results from the yyyy-mm-dd date portion of the stored value.
+  const expected=all.filter(row=>{const d=String(row.created_at??'').slice(0,10);return d>='2026-04-01' && d<'2027-04-01';});
+  assert.ok(expected.length>=200, 'fixture contains many mixed 2026 records');
+  assert.equal(search('作成日=2026').length,expected.length);
+  const integrated=filter.apply(all,[],{fullText:'作成日=2026',fields:names,dateSearch:fiscal});
+  assert.equal(integrated.length,expected.length, 'SearchFilter / Studio UI pipeline also sees all rows');
+  assert.equal(search('作成日=202610').length,all.filter(row=>String(row.created_at??'').startsWith('2026-10')).length);
+  assert.equal(search('作成日=202610..202611').length,
+    all.filter(row=>String(row.created_at??'').slice(0,7)>='2026-10' && String(row.created_at??'').slice(0,7)<='2026-11').length);
+});

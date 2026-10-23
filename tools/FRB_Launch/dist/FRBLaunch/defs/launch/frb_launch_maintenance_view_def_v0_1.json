@@ -200,6 +200,20 @@
               }
             },
             {
+              "field": "launch_shortcut_key",
+              "caption": "ショートカットキー（Page直下のみ）",
+              "type": "text",
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
               "field": "keywords",
               "caption": "検索別名",
               "type": "stringArray",
