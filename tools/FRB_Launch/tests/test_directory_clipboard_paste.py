@@ -125,6 +125,6 @@ def test_button_only_on_directory_and_correct_refresh_contract():
     launcher = next(x for x in tree.body if isinstance(x, ast.ClassDef) and x.name == 'Launcher')
     paste = next(x for x in launcher.body if isinstance(x, ast.FunctionDef) and x.name == 'paste_into_directory')
     code = ast.get_source_segment(source, paste)
-    assert 'make_paste_plan(destination, sources)' in code
-    assert 'paste_items(plan, move=move)' in code
-    assert 'self.refresh_pasted_directory(m)' in code
+    assert 'make_paste_plan(destination, sources, allow_existing=True)' in code
+    assert 'paste_items(plan, move=move, overwrite=bool(conflicts))' in code
+    assert 'self.refresh_pasted_directory(m, reopen=True, focus_pasted=True)' in code

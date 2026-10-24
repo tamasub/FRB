@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 
 ALLOWED_ACTIONS = {
-    'file': frozenset(('copy_full_path', 'copy_file_name', 'open_parent_folder', 'rename', 'properties', 'git_commit_from_zip')),
-    'folder': frozenset(('open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties')),
+    'file': frozenset(('copy', 'cut', 'delete', 'copy_full_path', 'copy_file_name', 'open_parent_folder', 'open_parent_terminal', 'run_with_pause', 'rename', 'properties', 'git_commit_from_zip')),
+    'folder': frozenset(('copy', 'cut', 'delete', 'open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties')),
 }
 
 

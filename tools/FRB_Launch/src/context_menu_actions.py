@@ -1,5 +1,6 @@
 """Windows filesystem actions for FRB Launch's declarative context menus."""
 import ctypes
+import base64
 from ctypes import wintypes
 import os
 from pathlib import Path
@@ -49,6 +50,91 @@ def open_folder_terminal(path):
         subprocess.Popen(['wt.exe', '-d', folder], cwd=folder)
     except FileNotFoundError:
         subprocess.Popen(['powershell.exe', '-NoExit'], cwd=folder)
+
+
+def open_parent_powershell(path):
+    """Open a separate Windows PowerShell window in the selected file's folder.
+
+    Pass cwd separately instead of assembling a PowerShell command. This keeps
+    Japanese names, spaces and command metacharacters in paths as plain paths,
+    and never executes the selected file itself.
+    """
+    _windows_only()
+    directory = Path(path).resolve().parent
+    if not directory.is_dir():
+        raise FileNotFoundError('ファイルの親フォルダーが見つかりません: ' + str(directory))
+    subprocess.Popen(['powershell.exe', '-NoProfile', '-NoExit'],
+                     cwd=str(directory),
+                     creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0))
+
+
+
+def _powershell_literal(value):
+    """Quote an arbitrary Windows path as PowerShell single-quoted *data*."""
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def paused_script_command(path):
+    """Return a PowerShell EncodedCommand that retains its own console.
+
+    Do not use cmd /c string interpolation, because files may contain shell
+    metacharacters. Run scripts inside a *child* process so script-level exit
+    does not bypass the parent's final Read-Host prompt.
+    """
+    path = Path(path).resolve()
+    suffix = path.suffix.casefold()
+    if suffix not in ('.ps1', '.py'):
+        raise ValueError('Pause付き実行は .ps1 / .py ファイルのみ対象です')
+    if not path.is_file():
+        raise FileNotFoundError('実行するスクリプトが見つかりません: ' + str(path))
+    if not path.parent.is_dir():
+        raise FileNotFoundError('スクリプトのフォルダーが見つかりません: ' + str(path.parent))
+
+    # Match the existing file-index execution route (file_index.launch_steps).
+    # For .ps1, use a child PowerShell so `exit` inside the script does not
+    # close this wrapper before the user can read the output.
+    runner = "& powershell.exe -NoProfile -File " if suffix == '.ps1' else "& py.exe -3 "
+    # PowerShell may initialize its location independently of CreateProcess's
+    # working directory. Set both the PowerShell location and the process cwd
+    # before spawning the child interpreter (.ps1 or .py).
+    work_dir = _powershell_literal(path.parent)
+    command = (
+        "$ErrorActionPreference = 'Stop'\n"
+        "$exitCode = 1\n"
+        "try {\n"
+        f"    Set-Location -LiteralPath {work_dir}\n"
+        "    [System.Environment]::CurrentDirectory = (Get-Location).ProviderPath\n"
+        "    Write-Host '[実行ファイル]'\n"
+        f"    Write-Host {_powershell_literal(path)}\n"
+        "    Write-Host ''\n"
+        "    Write-Host '[作業フォルダー]'\n"
+        "    Write-Host ((Get-Location).ProviderPath)\n"
+        "    Write-Host ''\n"
+        "    Write-Host '-------- 実行開始 --------'\n"
+        "    Write-Host ''\n"
+        f"    {runner}{_powershell_literal(path)}\n"
+        "    $exitCode = $LASTEXITCODE\n"
+        "    if ($null -eq $exitCode) { $exitCode = 0 }\n"
+        "    Write-Host ''\n"
+        "    Write-Host ('[終了コード] ' + $exitCode)\n"
+        "} catch {\n"
+        "    Write-Host ('[起動エラー] ' + $_.Exception.Message) -ForegroundColor Red\n"
+        "} finally {\n"
+        "    Write-Host ''\n"
+        "    [void](Read-Host '実行終了。Enterでウィンドウを閉じます')\n"
+        "}\n"
+    )
+    encoded = base64.b64encode(command.encode('utf-16-le')).decode('ascii')
+    return ['powershell.exe', '-NoProfile', '-NoLogo', '-EncodedCommand', encoded]
+
+
+def run_script_with_pause(path):
+    """Run a local .ps1/.py in a fresh visible PowerShell console and pause."""
+    _windows_only()
+    command = paused_script_command(path)
+    subprocess.Popen(command,
+                     cwd=str(Path(path).resolve().parent),
+                     creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0))
 
 
 def rename_file_or_folder(path, new_name):
@@ -169,3 +255,41 @@ def commit_tracked_changes(repository, message, include_untracked=False):
         raise RuntimeError('ステージ差分の確認に失敗しました: ' + status.stderr.strip())
     _git(repository, 'commit', '-m', message.strip(), timeout=120)
     return _git(repository, 'log', '-1', '--format=%h %s').strip()
+
+
+def move_to_recycle_bin(path):
+    """Ask Windows Shell to recycle a file/folder; never use unlink/rmtree.
+
+    FOF_ALLOWUNDO requests Recycle Bin; FOF_WANTNUKEWARNING ensures that
+    Windows warns if the location has no recycling support. The UI also asks
+    for confirmation before calling this method.
+    """
+    _windows_only()
+    target = Path(path)
+    if not target.exists():
+        raise FileNotFoundError('削除対象が見つかりません: ' + str(target))
+    if target.is_symlink():
+        raise ValueError('リンクの削除は対象外です（リンク先の誤削除防止）')
+    if not (target.is_file() or target.is_dir()):
+        raise ValueError('通常のファイルまたはフォルダーだけ削除できます')
+
+    class SHFILEOPSTRUCTW(ctypes.Structure):
+        _fields_ = [
+            ('hwnd', wintypes.HWND), ('wFunc', wintypes.UINT),
+            ('pFrom', wintypes.LPCWSTR), ('pTo', wintypes.LPCWSTR),
+            ('fFlags', wintypes.WORD), ('fAnyOperationsAborted', wintypes.BOOL),
+            ('hNameMappings', wintypes.LPVOID), ('lpszProgressTitle', wintypes.LPCWSTR),
+        ]
+
+    buffer = ctypes.create_unicode_buffer(str(target.resolve()) + '\0\0')
+    request = SHFILEOPSTRUCTW()
+    request.wFunc = 0x0003  # FO_DELETE
+    request.pFrom = ctypes.cast(buffer, wintypes.LPCWSTR)
+    request.fFlags = 0x0040 | 0x4000  # FOF_ALLOWUNDO | FOF_WANTNUKEWARNING
+    shell32 = ctypes.WinDLL('shell32', use_last_error=True)
+    operation = shell32.SHFileOperationW
+    operation.argtypes = [ctypes.POINTER(SHFILEOPSTRUCTW)]
+    operation.restype = ctypes.c_int
+    result = operation(ctypes.byref(request))
+    if result or request.fAnyOperationsAborted:
+        raise OSError(f'ごみ箱への移動が中断・失敗しました (Shell code: {result})')

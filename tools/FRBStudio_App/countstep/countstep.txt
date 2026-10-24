@@ -1,4 +1,4 @@
-count_js_steps run_datetime: 2026/10/18 19:25:33.12
+count_js_steps run_datetime: 2026/10/24 13:03:10.18
 target_folder: F:\FRB\tools\FRBStudio_App
 exclude_folder: js\lib\mermaid
 script: F:\FRB\tools\FRBStudio_App\count_js_steps.py
@@ -6,6 +6,10 @@ script: F:\FRB\tools\FRBStudio_App\count_js_steps.py
 file                                                                                    code  blank  comment  total
 -------------------------------------------------------------------------------------------------------------------
 _archive_eternal/studio_overlays/default/plugins/multi_select_combo/plugin.js             25      2        3     30
+data/markdown/40_Copilot‚­‚ñ‚Ö/FRB_SmartSearch_JS_v0_1/js/frb_smart_search_api.js            75      5       10     90
+data/markdown/40_Copilot‚­‚ñ‚Ö/FRB_SmartSearch_JS_v0_1/js/smart_search_engine.js            341     16       16    373
+data/markdown/40_Copilot‚­‚ñ‚Ö/FRB_SmartSearch_JS_v0_1/js/studio_smart_search_editor.js     267      8       12    287
+data/markdown/40_Copilot‚­‚ñ‚Ö/FRB_SmartSearch_JS_v0_1/js/studio_smart_search_history.js    122      0        3    125
 SeleniumTaste/responsibility_aggregate_runner.js                                         124     17        5    146
 SeleniumTaste/responsibility_evidence.js                                                 247     18        0    265
 SeleniumTaste/responsibility_input_plan.js                                                48      6        3     57
@@ -20,7 +24,7 @@ studio_overlays/thought_evolution/plugins/graph_studio/plugin.js                
 tests/sqlite/sqlite_bridge_smoke.js                                                       39      1        2     42
 tests/sqlite/sqlite_error_translation_test.js                                             95      4        5    104
 tests/virtual_join/alias_join_smoke.js                                                    56      1        5     62
-wwwroot/app.js                                                                           442     43       14    499
+wwwroot/app.js                                                                           474     43       15    532
 wwwroot/js/actions/action_registry.js                                                    698     87       16    801
 wwwroot/js/actions/action_toolbar.js                                                     138     25        7    170
 wwwroot/js/components/data_subgrid_component.js                                          101     18        4    123
@@ -41,7 +45,7 @@ wwwroot/js/components/subgrid_component.js                                      
 wwwroot/js/core/data_utils.js                                                            103     16        7    126
 wwwroot/js/core/field_types.js                                                           727     94       36    857
 wwwroot/js/core/file_api.js                                                              280     44       23    347
-wwwroot/js/core/loaders.js                                                               147     21        4    172
+wwwroot/js/core/loaders.js                                                               149     21        4    174
 wwwroot/js/core/native_host_bridge.js                                                    537     65       25    627
 wwwroot/js/core/overlay_manager.js                                                       222     32        4    258
 wwwroot/js/core/plugin_host.js                                                           464     62        7    533
@@ -54,25 +58,28 @@ wwwroot/js/markdown/data_markdown.js                                            
 wwwroot/js/markdown/markdown_registry.js                                                  93     14        5    112
 wwwroot/js/markdown/viewdef_markdown.js                                                   71      7        3     81
 wwwroot/js/renderers/field_control_registry.js                                            24      8        5     37
-wwwroot/js/renderers/field_controls.js                                                  1164    173        4   1341
-wwwroot/js/renderers/grid_detail.js                                                     1203    121       25   1349
+wwwroot/js/renderers/field_controls.js                                                  1153    173        4   1330
+wwwroot/js/renderers/grid_detail.js                                                     1220    121       32   1373
 wwwroot/js/renderers/renderer_registry.js                                                  7      3        2     12
 wwwroot/js/responsibilities/csv_exporter.js                                               58      8        4     70
 wwwroot/js/responsibilities/csv_importer.js                                              112      6        3    121
 wwwroot/js/responsibilities/grid_aggregator.js                                            87     17        4    108
 wwwroot/js/responsibilities/grid_column_builder.js                                        23      5        4     32
-wwwroot/js/responsibilities/search_filter.js                                             320     46       13    379
-wwwroot/js/runtime/detail_save.js                                                        721     88       24    833
-wwwroot/js/runtime/detail_subgrid_edit.js                                               1073    112       59   1244
-wwwroot/js/runtime/json_unsaved_guard.js                                                 357     67       15    439
+wwwroot/js/responsibilities/search_filter.js                                             326     46       14    386
+wwwroot/js/responsibilities/smart_search_date_settings.js                                 26      0        2     28
+wwwroot/js/responsibilities/smart_search_engine.js                                       341     16       16    373
+wwwroot/js/runtime/detail_save.js                                                        753     89       24    866
+wwwroot/js/runtime/detail_subgrid_edit.js                                               1082    112       61   1255
+wwwroot/js/runtime/json_load_diagnostics.js                                               30      3        1     34
+wwwroot/js/runtime/json_unsaved_guard.js                                                 353     63       21    437
 wwwroot/js/runtime/live_view_design.js                                                   500     86       24    610
-wwwroot/js/runtime/load_runtime.js                                                       755     84       36    875
-wwwroot/js/runtime/related_grid_view.js                                                  746     68       22    836
+wwwroot/js/runtime/load_runtime.js                                                       785     85       36    906
+wwwroot/js/runtime/related_grid_view.js                                                  831     73       26    930
 wwwroot/js/runtime/search_state.js                                                       405     42        7    454
 wwwroot/js/runtime/sqlite_error_messages.js                                               32      3        2     37
 wwwroot/js/runtime/studio_detail_apply_indicator.js                                       83     10       12    105
 wwwroot/js/runtime/studio_json_round_trip.js                                             439     42       19    500
-wwwroot/js/runtime/studio_keyboard_standard.js                                           149      7       15    171
+wwwroot/js/runtime/studio_keyboard_standard.js                                           153      7       18    178
 wwwroot/js/runtime/subgrid_cards.js                                                       82      2        7     91
 wwwroot/js/runtime/tree_drag_move.js                                                      70      0        1     71
 wwwroot/js/runtime/tree_file_drop.js                                                      56      0        2     58
@@ -106,11 +113,14 @@ wwwroot/js/ui/frb_studio_shell.js                                               
 wwwroot/js/ui/page_setup.js                                                              229     27       10    266
 wwwroot/js/ui/section_group_navigation.js                                                180     32        7    219
 wwwroot/js/ui/studio_dialog.js                                                           221      8        3    232
-wwwroot/js/ui/studio_presentation_profile.js                                             234      3       15    252
+wwwroot/js/ui/studio_presentation_profile.js                                             277      3       19    299
+wwwroot/js/ui/studio_smart_search_editor.js                                              267      8       12    287
+wwwroot/js/ui/studio_smart_search_help.js                                                130      4        5    139
+wwwroot/js/ui/studio_smart_search_history.js                                             122      0        3    125
 wwwroot/js/virtualData/expected_builders.js                                              486     36        7    529
 wwwroot/js/virtualData/join_builders.js                                                   43      3        2     48
 wwwroot/js/virtualData/join_writeback.js                                                  75      2        3     80
 wwwroot/js/virtualData/relation_builders.js                                              861     93        6    960
 wwwroot/js/virtualData/virtual_data_registry.js                                           13      4        2     19
 -------------------------------------------------------------------------------------------------------------------
-TOTAL                                                                                  50751   4310      906  55967
+TOTAL                                                                                  52717   4373     1014  58104

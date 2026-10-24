@@ -2,19 +2,84 @@
   "version": 1,
   "menus": {
     "file": [
-      {"action_id": "copy_full_path", "title": "フルパスのコピー"},
-      {"action_id": "copy_file_name", "title": "ファイル名のコピー"},
-      {"action_id": "open_parent_folder", "title": "フォルダーを開く"},
-      {"action_id": "rename", "title": "名前の変更"},
-      {"action_id": "git_commit_from_zip", "title": "ファイル名を使ってGitコミット"},
-      {"action_id": "properties", "title": "プロパティー"}
+      {
+        "action_id": "copy",
+        "title": "コピー"
+      },
+      {
+        "action_id": "cut",
+        "title": "切り取り"
+      },
+      {
+        "action_id": "delete",
+        "title": "削除（ごみ箱へ）"
+      },
+      {
+        "action_id": "copy_full_path",
+        "title": "フルパスのコピー"
+      },
+      {
+        "action_id": "copy_file_name",
+        "title": "ファイル名のコピー"
+      },
+      {
+        "action_id": "open_parent_folder",
+        "title": "フォルダーを開く"
+      },
+      {
+        "action_id": "run_with_pause",
+        "title": "Pause付きで実行"
+      },
+      {
+        "action_id": "open_parent_terminal",
+        "title": "フォルダーをターミナルで開く"
+      },
+      {
+        "action_id": "rename",
+        "title": "名前の変更"
+      },
+      {
+        "action_id": "git_commit_from_zip",
+        "title": "ファイル名を使ってGitコミット"
+      },
+      {
+        "action_id": "properties",
+        "title": "プロパティー"
+      }
     ],
     "folder": [
-      {"action_id": "open_explorer", "title": "エクスプローラで開く"},
-      {"action_id": "open_terminal", "title": "ターミナルで開く"},
-      {"action_id": "copy_path", "title": "パスのコピー"},
-      {"action_id": "rename", "title": "名前の変更"},
-      {"action_id": "properties", "title": "プロパティー"}
+      {
+        "action_id": "copy",
+        "title": "コピー"
+      },
+      {
+        "action_id": "cut",
+        "title": "切り取り"
+      },
+      {
+        "action_id": "delete",
+        "title": "削除（ごみ箱へ）"
+      },
+      {
+        "action_id": "open_explorer",
+        "title": "エクスプローラで開く"
+      },
+      {
+        "action_id": "open_terminal",
+        "title": "ターミナルで開く"
+      },
+      {
+        "action_id": "copy_path",
+        "title": "パスのコピー"
+      },
+      {
+        "action_id": "rename",
+        "title": "名前の変更"
+      },
+      {
+        "action_id": "properties",
+        "title": "プロパティー"
+      }
     ]
   }
 }

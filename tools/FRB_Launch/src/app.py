@@ -9,8 +9,8 @@ import subprocess
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QSize, QObject, Signal
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
+from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QSize, QObject, Signal, QMimeData, QUrl
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
@@ -37,11 +37,14 @@ from launch_appearance import (normalize_theme, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
 from page_tab_focus import FocusPageTabBar
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
-from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items
+from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
+from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
+from context_menu_icons import context_action_icon
+from file_transfer_visual import transfer_state, pasted_paths_for, path_key
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
-                                  open_folder_terminal, rename_file_or_folder, sort_browser_entries,
+                                  open_folder_terminal, open_parent_powershell, run_script_with_pause, rename_file_or_folder, move_to_recycle_bin, sort_browser_entries,
                                   is_downloads_zip, read_git_commit_options, git_commit_preview,
                                   commit_tracked_changes)
 from menu_viewport import place_popup, main_cascade_anchor_x, MENU_SCREEN_MARGIN
@@ -202,6 +205,103 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # A separate context QMenu must not erase the selected row in the
         # launcher-owned tool column while the popup temporarily owns focus.
         self._context_highlight_action = None
+        self._transfer_data_changed_connected = False
+
+    @staticmethod
+    def _filesystem_row_path(row):
+        if not isinstance(row, dict) or not row.get('_file'):
+            return None
+        return row['_file']
+
+    def _transfer_state(self, row):
+        path = self._filesystem_row_path(row)
+        if path is None or self.launcher is None:
+            return ''
+        mime = QApplication.clipboard().mimeData()
+        cut_paths = clipboard_sources(mime) if is_cut_clipboard(mime) else []
+        # Paste feedback belongs only to this open folder column. A fresh
+        # column never inherits the former column's teal highlight.
+        pasted = getattr(self, '_pasted_feedback_paths', ())
+        return transfer_state(path, cut_paths=cut_paths, pasted_paths=pasted)
+
+    @staticmethod
+    def _subdued_icon(source):
+        image = source.pixmap(22, 22)
+        if image.isNull():
+            return source
+        pix = QPixmap(image.size())
+        pix.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pix)
+        painter.setOpacity(0.38)
+        painter.drawPixmap(0, 0, image)
+        painter.end()
+        return QIcon(pix)
+
+    def _refresh_transfer_visuals(self):
+        """Update cut/copy feedback without closing the folder menu."""
+        actions = self._scroll_actions if self.scroll_tree is not None else self.actions()
+        for action in actions:
+            row = action.data()
+            if not isinstance(row, dict):
+                continue
+            state = self._transfer_state(row)
+            old = action.property('launch_transfer_state') or ''
+            if old != state:
+                if old == 'cut' and action.property('launch_original_icon') is not None:
+                    action.setIcon(action.property('launch_original_icon'))
+                if state == 'cut':
+                    action.setProperty('launch_original_icon', action.icon())
+                    action.setIcon(self._subdued_icon(action.icon()))
+                action.setProperty('launch_transfer_state', state)
+        if self.scroll_tree is not None:
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                item = self.scroll_tree.topLevelItem(index)
+                action = self._scroll_item_action(item)
+                if action is None:
+                    continue
+                state = action.property('launch_transfer_state') or ''
+                item.setIcon(0, action.icon())
+                item.setBackground(0, QBrush(QColor('#d6f1e8') if state == 'pasted'
+                                              else QColor(Qt.GlobalColor.transparent)))
+                item.setForeground(0, QBrush(QColor('#9ca8af') if state == 'cut'
+                                              else QColor('#173c38') if state == 'pasted'
+                                              else QColor('#e5ebf3') if getattr(self.launcher, 'color_theme', 'dark') != 'light'
+                                              else QColor('#26384a')))
+            self.scroll_tree.viewport().update()
+        self.update()
+
+    def _on_clipboard_change(self):
+        # A new copy/cut (including one in Explorer) supersedes the previous
+        # paste result. The clipboard itself is left untouched.
+        self._pasted_feedback_paths = ()
+        self._update_paste_button()
+        self._refresh_transfer_visuals()
+
+    def handle_file_shortcut(self, key, modifiers):
+        """File copy/cut/paste while a folder column, not its editor, owns focus."""
+        if isinstance(self, AppCascadeMenu) or not (modifiers & Qt.KeyboardModifier.ControlModifier):
+            return False
+        if self.filter_edit is not None and self.filter_edit.hasFocus():
+            # Native QLineEdit Ctrl+C/V/X must never be stolen.
+            return False
+        if key == Qt.Key.Key_V:
+            if self._folder_container_row() is None:
+                return False
+            mime = QApplication.clipboard().mimeData()
+            if clipboard_sources(mime) or is_virtual_file_clipboard(mime):
+                self.launcher.paste_into_directory(self)
+            return True
+        if key not in (Qt.Key.Key_C, Qt.Key.Key_X):
+            return False
+        action = self.activeAction()
+        row = action.data() if action is not None else None
+        path = self._filesystem_row_path(row)
+        if not path:
+            return False
+        kind = 'folder' if Path(path).is_dir() else 'file'
+        self.launcher.perform_filesystem_context_action(
+            'cut' if key == Qt.Key.Key_X else 'copy', path, kind)
+        return True
 
     def _authored_context_row(self, row):
         # One menu can contain Studio-authored rows, physical files, and
@@ -516,6 +616,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         widget_action.setDefaultWidget(tree)
         self.addAction(widget_action)
         self.scroll_tree = tree
+        self._refresh_transfer_visuals()
         if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
             self.launcher.style_cascade_menu(self)
         self._scroll_action = widget_action
@@ -523,6 +624,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.order_enabled = False
 
     def popup(self, pos, at=None):
+        if not isinstance(self, AppCascadeMenu) and not self._transfer_data_changed_connected:
+            QApplication.clipboard().dataChanged.connect(self._on_clipboard_change)
+            self._transfer_data_changed_connected = True
         # A real, full-height editor exists before the popup gets native focus.
         # Never insert a 2px hidden editor: that broke QMenu layout on Windows.
         if not isinstance(self, AppCascadeMenu):
@@ -548,6 +652,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
                                     self.sizeHint().height(), rect.left(), rect.top(),
                                     rect.right()+1, rect.bottom()+1)
         target = QPoint(placement.x, placement.y)
+        self._refresh_transfer_visuals()
         return super().popup(target, at)
 
     def setFocus(self, reason=Qt.FocusReason.OtherFocusReason):
@@ -597,15 +702,17 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.paste_button.setIcon(self._clipboard_paste_icon())
             self.paste_button.setIconSize(QSize(17, 17))
             self.paste_button.setFixedHeight(29)
+            # Click must not strand keyboard focus on a tiny toolbar button:
+            # Esc and clipboard keys should continue to reach the folder menu.
+            self.paste_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             self.paste_button.setStyleSheet('''
                 QPushButton#directoryPasteButton { background:#eaf5ff; color:#244964;
                     border:1px solid #89afcf; border-radius:5px; padding:2px 5px; font-size:11px; }
                 QPushButton#directoryPasteButton:hover { background:#cee8ff; }
                 QPushButton#directoryPasteButton:disabled { color:#879cab;
-                    background:#344659; border-color:#526b7b; }
+                    background:#eaf5ff; border-color:#89afcf; }
             ''')
             self.paste_button.clicked.connect(lambda checked=False: self.launcher.paste_into_directory(self))
-            QApplication.clipboard().dataChanged.connect(self._update_paste_button)
             self._update_paste_button()
             layout.addWidget(self.paste_button)
         self.filter_count = QLabel('', container)
@@ -647,9 +754,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
         return QIcon(pix)
 
     def _update_paste_button(self):
+        """An empty clipboard must not reserve space or advertise Paste."""
         button = self.paste_button
         if button is not None:
-            button.setEnabled(bool(clipboard_sources(QApplication.clipboard().mimeData())))
+            mime = QApplication.clipboard().mimeData()
+            available = bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
+            button.setVisible(available)
+            button.setEnabled(available)
 
     def _focus_initial_filter(self):
         """Start in the same keyboard mode that Tab selects from the search bar.
@@ -896,6 +1007,26 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def order_rects(self):return [self.actionGeometry(a) for a in self.actions() if a.data()]
     def paintEvent(self,event):
         super().paintEvent(event)
+        # Result markers deliberately differ from the currently selected row.
+        # A pending cut uses Explorer-style subdued icon/text; confirmed paste
+        # uses teal and a narrow left rail. Neither modifies file contents.
+        if self.scroll_tree is None:
+            painter = QPainter(self)
+            for action in self.actions():
+                state = action.property('launch_transfer_state')
+                if state not in ('cut', 'pasted') or not action.isVisible():
+                    continue
+                rect = self.actionGeometry(action)
+                if not rect.isValid():
+                    continue
+                if state == 'cut':
+                    base = '#ffffff' if getattr(self.launcher, 'color_theme', 'dark') == 'light' else '#202b39'
+                    shade = QColor(base); shade.setAlpha(156)
+                    painter.fillRect(rect.adjusted(1, 1, -1, -1), shade)
+                else:
+                    painter.fillRect(rect.adjusted(1, 1, -1, -1), QColor(36, 177, 141, 55))
+                    painter.fillRect(rect.adjusted(2, 2, -rect.width() + 6, -2), QColor('#16a57d'))
+            painter.end()
         # QAction selection in a QMenu can go inactive as soon as a second
         # context QMenu is shown.  Draw a light, non-opaque pinned highlight
         # so the user can always tell which row was right-clicked.
@@ -913,6 +1044,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.paint_order_line()
     def mousePressEvent(self,event):
         self.order_press=(event.position().toPoint(),self.actionAt(event.position().toPoint())) if event.button()==Qt.MouseButton.LeftButton else None
+        # Clicking a result row transfers clipboard-key ownership away from
+        # the inline search QLineEdit, even for short QAction-only columns.
+        if (event.button() == Qt.MouseButton.LeftButton
+                and self.order_press is not None
+                and self.order_press[1] is not None
+                and self.order_press[1] is not self.filter_action):
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
@@ -984,6 +1122,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
+        if getattr(self, 'handle_file_shortcut', lambda *args: False)(key, mods):
+            event.accept()
+            return
         # The editor is always present. Space is ordinary input, not a
         # special Japanese-IME trigger, and never switches the IME mode.
         if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
@@ -1006,6 +1147,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.filter_edit.clear();event.accept();return
         if key in (Qt.Key.Key_Left, Qt.Key.Key_Escape):
             parent = self.parentWidget()
+            if key == Qt.Key.Key_Escape and self.launcher is not None:
+                self.launcher._cascade_dismiss_generation = (getattr(self.launcher, '_cascade_dismiss_generation', 0) + 1)
             self.close()
             if isinstance(parent, CascadeMenu):parent.setFocus()
             else:self.launcher.list.setFocus()
@@ -1044,12 +1187,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if not isinstance(self, AppCascadeMenu):
             if key == Qt.Key.Key_Backspace and self.filter_edit is not None:
                 self.filter_edit.backspace();event.accept();return
-            if mods & Qt.KeyboardModifier.ControlModifier and key == Qt.Key.Key_V:
-                clip = QApplication.clipboard().text()
-                if clip:
-                    self._ensure_local_filter()
-                    self.filter_edit.insert(clip)
-                event.accept();return
+            # Ctrl+V belongs to folder paste unless the real search QLineEdit
+            # has keyboard focus (then its own native paste behavior applies).
             if (event.text() and (event.text().isprintable() or event.text() == '\u3000')
                     and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
                 self._ensure_local_filter()
@@ -1160,6 +1299,59 @@ class AppCascadeMenu(CascadeMenu):
 class FileIndexSignals(QObject):
     finished = Signal(object)
     failed = Signal(str)
+
+
+class CascadeOutsideClickFilter(QObject):
+    """Dismiss a visible tool-column when unrelated Launcher UI is clicked.
+
+    The columns deliberately use Qt.Tool instead of Qt.Popup. Qt.Tool does
+    not auto-dismiss on every outside click; application-wide mouse presses
+    on unrelated *in-process* widgets need a separate, narrow event filter.
+    Clicks in other applications are handled by the existing Windows mouse
+    hook / application-deactivation path.
+    """
+    def __init__(self, launcher):
+        super().__init__(launcher)
+        self.launcher = launcher
+
+    def eventFilter(self, obj, event):
+        launcher = self.launcher
+        menu = getattr(launcher, 'menu', None)
+        if menu is None or not menu.isVisible():
+            return False
+        context = getattr(launcher, '_launch_context_menu', None)
+        if (getattr(launcher, '_filesystem_dialog_depth', 0)
+                or QApplication.activeModalWidget() is not None
+                or (context is not None and context.isVisible())):
+            return False
+        # After Delete, a modal dialog has stolen focus from the Qt.Tool
+        # column. Make the very next Esc close that review, even if focus
+        # remains on a main-window widget or the column search editor.
+        if (event.type() == QEvent.Type.KeyPress
+                and event.key() == Qt.Key.Key_Escape):
+            column = menu
+            while column is not None and column.child is not None and column.child.isVisible():
+                column = column.child
+            if getattr(column, '_delete_review_visible', False):
+                current = obj
+                while isinstance(current, QObject):
+                    if current is launcher or isinstance(current, CascadeMenu):
+                        launcher.close_cascade_for_main_interaction()
+                        event.accept()
+                        return True
+                    current = current.parent()
+            return False
+        if event.type() != QEvent.Type.MouseButtonPress:
+            return False
+        current = obj
+        while isinstance(current, QObject):
+            if isinstance(current, CascadeMenu):
+                return False  # The pointer is still inside a popup column.
+            if current is launcher:
+                launcher.close_cascade_for_main_interaction()
+                break
+            current = current.parent()
+        return False  # Always deliver the user's original click.
 
 
 class Launcher(QWidget):
@@ -1400,6 +1592,8 @@ class Launcher(QWidget):
         # QTreeWidget sends mouse events from its viewport, not from the tree.
         # An empty-area double-click navigates back only while inside a submenu.
         self.list.viewport().installEventFilter(self)
+        self._cascade_outside_click_filter = CascadeOutsideClickFilter(self)
+        QApplication.instance().installEventFilter(self._cascade_outside_click_filter)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
         self.page_shortcuts = []
         for index in range(12):
@@ -2231,6 +2425,8 @@ class Launcher(QWidget):
 
     def dismiss(self):
         # Never carry a half-finished double-click into the next summon.
+        # Delayed delete callbacks must not resurrect a previously hidden UI.
+        self._cascade_dismiss_generation = getattr(self, '_cascade_dismiss_generation', 0) + 1
         self.hide_history_popup()
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
@@ -2238,8 +2434,16 @@ class Launcher(QWidget):
         self.save_window_height()
         self.hover_timer.stop();self.settings.setValue('position',self.pos());self.settings.setValue('page',self.page_id);self.hide()
 
-    def app_state(self,state):
-        if state==Qt.ApplicationState.ApplicationInactive and self.isVisible():self.dismiss()
+    def app_state(self, state):
+        # A native recycle-bin operation or QMessageBox can briefly deactivate
+        # the main Tool window. Do not dismiss its folder menu mid-operation.
+        context = getattr(self, '_launch_context_menu', None)
+        if (getattr(self, '_filesystem_dialog_depth', 0)
+                or QApplication.activeModalWidget() is not None
+                or (context is not None and context.isVisible())):
+            return
+        if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
+            self.dismiss()
 
     def page_key(self, event):
         if event.modifiers()!=Qt.KeyboardModifier.NoModifier:return False
@@ -2741,7 +2945,7 @@ class Launcher(QWidget):
         # When a context menu owns the pointer, the underlying cascade must
         # remain visible and highlighted, not time out as if mouse left it.
         context = getattr(self, '_launch_context_menu', None)
-        if context is not None and context.isVisible():
+        if getattr(self, '_filesystem_dialog_depth', 0) or (context is not None and context.isVisible()):
             return
         pos=QCursor.pos() if pos is None else pos
         now=time.monotonic() if now is None else now
@@ -2751,7 +2955,7 @@ class Launcher(QWidget):
         menu=self.menu
         while menu and menu.isVisible():
             if menu.hover_timer.isActive() and menu.actionAt(menu.mapFromGlobal(pos))!=menu.activeAction():menu.hover_timer.stop()
-            if menu.open_mode=="hover":
+            if menu.open_mode == "hover":
                 related=False;desc=menu
                 while desc and desc.isVisible():
                     if desc.rect().contains(desc.mapFromGlobal(pos)):related=True;break
@@ -2871,45 +3075,156 @@ class Launcher(QWidget):
                     menu.addAction('項目なし').setEnabled(False)
         except Exception as e:menu.addAction(str(e)).setEnabled(False)
 
+    def _ask_overwrite(self, destination, conflicts):
+        """Explicit approval for replacing matching files / merging folders."""
+        shown = '\n'.join('・' + path.name for path in conflicts[:8])
+        if len(conflicts) > 8:
+            shown += f'\nほか {len(conflicts) - 8} 件'
+        self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
+        try:
+            return QMessageBox.question(
+                self, '同名の項目があります',
+                f'貼り付け先: {destination}\n\n'
+                f'次の {len(conflicts)} 件は既に存在します。\n{shown}\n\n'
+                '同名ファイルは上書きし、同名フォルダーは中身を統合しますか？\n'
+                '（フォルダー内の無関係なファイルは削除しません）',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
+        finally:
+            self._filesystem_dialog_depth -= 1
+
+    def _clear_previous_paste_feedback(self):
+        """End the prior operation's visual result, not its clipboard data.
+
+        Every new filesystem operation starts a fresh feedback cycle. Apply it
+        to the whole visible cascade chain: a highlighted row may be in a
+        nested directory rather than the menu receiving the new action.
+        """
+        menu = getattr(self, 'menu', None)
+        while menu is not None:
+            if getattr(menu, '_pasted_feedback_paths', ()):
+                menu._pasted_feedback_paths = ()
+                menu._refresh_transfer_visuals()
+            menu = getattr(menu, 'child', None)
+
     def paste_into_directory(self, menu):
-        """Paste Explorer file URLs into the *displayed* directory column."""
+        """Paste Explorer files and ZIP virtual items into displayed folder."""
         context = menu._folder_container_row()
         if context is None:
             return
+        # A new paste replaces the preceding operation's highlighted result,
+        # even when overwrite is cancelled or the paste later fails.
+        reset = getattr(self, '_clear_previous_paste_feedback', None)
+        if callable(reset):
+            reset()
         try:
             destination = Path(self.expander().expand(context['launch_browse_target']))
             clipboard = QApplication.clipboard()
             mime = clipboard.mimeData()
             sources = clipboard_sources(mime)
             move = is_cut_clipboard(mime)
-            plan = make_paste_plan(destination, sources)
-            count = paste_items(plan, move=move)
-            if move:
-                clipboard.clear()  # Explorer cut items have been consumed.
-            self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
-            # Reconstruct only this column, not the main Launcher or siblings.
-            QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(m))
+            virtual = is_virtual_file_clipboard(mime) and (
+                not sources or any(not src.exists() for src in sources))
+            if virtual:
+                names = virtual_clipboard_names(mime)
+                preflight_virtual_destination(destination, names, allow_existing=True)
+                existing = {entry.name.casefold(): entry for entry in destination.iterdir()}
+                conflicts = [existing[name.casefold()] for name in names or ()
+                             if name.casefold() in existing]
+                if conflicts and not self._ask_overwrite(destination, conflicts):
+                    return
+                before = {path.name.casefold() for path in destination.iterdir()}
+                # The Shell can show a second overwrite prompt for ZIP members.
+                # Suppress it ONLY when known name conflicts were explicitly
+                # approved in Launch. Unknown clipboard names keep native UI.
+                paste_virtual_shell_items(destination, overwrite_confirmed=bool(conflicts))
+                if names:
+                    names_done = names
+                else:
+                    names_done = [p.name for p in destination.iterdir()
+                                  if p.name.casefold() not in before]
+                self.footer.setText(f'ZIP内の項目をコピーしました → {destination}')
+            else:
+                plan = make_paste_plan(destination, sources, allow_existing=True)
+                conflicts = paste_conflicts(plan)
+                if conflicts and not self._ask_overwrite(destination, conflicts):
+                    return
+                count = paste_items(plan, move=move, overwrite=bool(conflicts))
+                names_done = [item.target.name for item in plan]
+                if move:
+                    clipboard.clear()
+                self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
+            menu._pasted_feedback_paths = pasted_paths_for(destination, names_done)
+            # Refresh only the edited menu. Preserve its parent chain, scroll
+            # and search so the newly pasted rows can be visually confirmed.
+            QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(m, reopen=True, focus_pasted=True))
         except (OSError, ValueError) as exc:
             DIAG.exception('DIRECTORY_PASTE target=%s', context.get('launch_browse_target'))
             self.error('貼り付けできませんでした: ' + str(exc))
 
-    def refresh_pasted_directory(self, previous):
-        """Preserve the popup's location and parent chain after a paste."""
-        if not previous.isVisible():
+    def _directory_menu_for_path(self, directory):
+        """Find a currently created folder column that shows this directory."""
+        menu = self.menu
+        wanted = path_key(directory)
+        while isinstance(menu, CascadeMenu):
+            context = menu._folder_container_row()
+            if context is not None:
+                try:
+                    actual = self.expander().expand(context['launch_browse_target'])
+                    if path_key(actual) == wanted:
+                        return menu
+                except (ValueError, KeyError):
+                    pass
+            menu = menu.child
+        return None
+
+    def restore_launcher_for_transfer_review(self):
+        """Re-arm the ordinary launcher's show/dismiss lifecycle after a modal.
+
+        A modal recycle-bin confirmation (or Windows Shell ZIP paste) may hide
+        the main Qt.Tool window. Replacing its separate floating folder column
+        while the main window stays hidden creates an orphan: the desktop mouse
+        hook only regards a visible launcher as dismissible. Restore the EXISTING
+        launcher, without calling summon() (which toggles visibility / resets
+        navigation), before reopening the refreshed column.
+        """
+        if not self.isVisible():
+            self.show()
+            self.raise_()
+            self.activateWindow()
+
+    def refresh_pasted_directory(self, previous, *, reopen=False, focus_pasted=False,
+                                 review_deleted=False):
+        """Replace a directory column in place, preserving tree/search/scroll."""
+        if not previous.isVisible() and not reopen:
             return
         context = previous._folder_container_row()
         if context is None:
             return
+        # The main Tool window must own the floating cascade. A modal action
+        # can hide the main window even though this asynchronous refresh runs.
+        self.restore_launcher_for_transfer_review()
         origin = previous.pos()
         query = previous.filter_edit.text() if previous.filter_edit is not None else ''
+        scroll = (previous.scroll_tree.verticalScrollBar().value()
+                  if previous.scroll_tree is not None else 0)
         parent = previous.parentWidget()
         is_nested = isinstance(parent, CascadeMenu)
         replacement = CascadeMenu(parent=parent if is_nested else self, launcher=self)
-        replacement.open_mode = previous.open_mode
+        # A delete confirmation moves the mouse to the modal dialog, outside
+        # the old hover column. Keep the result visible until user dismissal;
+        # hover mode would otherwise close it in 250ms before it can be read.
+        replacement.open_mode = 'keyboard' if review_deleted else previous.open_mode
+        replacement._delete_review_visible = review_deleted
+        replacement._pasted_feedback_paths = (
+            getattr(previous, '_pasted_feedback_paths', ()) if focus_pasted else ())
         replacement.owner_action = previous.owner_action
         replacement.owner_item = previous.owner_item
+        replacement.outside_since = None
         if is_nested:
             parent.child = replacement
+            if reopen and not parent.isVisible():
+                parent.show()
         else:
             self.menu = replacement
         previous.close()
@@ -2918,7 +3233,37 @@ class Launcher(QWidget):
         replacement.popup(origin)
         if query and replacement.filter_edit is not None:
             replacement.filter_edit.setText(query)
+        if replacement.scroll_tree is not None:
+            if focus_pasted:
+                def reveal_new_rows(tree=replacement.scroll_tree):
+                    for index in range(tree.topLevelItemCount()):
+                        item = tree.topLevelItem(index)
+                        action = item.data(0, Qt.ItemDataRole.UserRole)
+                        if (not item.isHidden() and action is not None
+                                and action.property('launch_transfer_state') == 'pasted'):
+                            tree.scrollToItem(item, QAbstractItemView.ScrollHint.PositionAtCenter)
+                            return
+                QTimer.singleShot(0, reveal_new_rows)
+            else:
+                QTimer.singleShot(0, lambda t=replacement.scroll_tree, y=scroll:
+                                  t.verticalScrollBar().setValue(y))
         replacement.setFocus()
+
+    def refresh_deleted_directory(self, menu):
+        """After confirmed deletion, SHOW the refreshed folder column.
+
+        A QMenu parented to a Qt.Tool column can become temporarily hidden
+        while QMessageBox or the row's context QMenu owns focus.  Visibility,
+        focus and dismiss-generation checks at this point are NOT evidence of
+        user dismissal: they previously skipped refresh altogether.
+
+        Reuse the exact same replacement path as successful Paste.  That path
+        restores the folder, query, scroll and normal close behaviour.
+        """
+        if menu is None:
+            return
+        self.refresh_pasted_directory(menu, reopen=True, focus_pasted=False,
+                                      review_deleted=True)
 
     def run_menu_item(self, row):
         if self.menu:self.menu.close()
@@ -3231,6 +3576,9 @@ class Launcher(QWidget):
         self.hover_timer.stop()
         self.pending_menu_item = None
         if self.menu is not None and self.menu.isVisible():
+            # Prevent a pending delete-dialog refresh from reopening a column
+            # that was intentionally dismissed by an outside click.
+            self._cascade_dismiss_generation = getattr(self, '_cascade_dismiss_generation', 0) + 1
             self.menu.close()  # CascadeMenu.hideEvent also closes all children.
 
     def page_empty_area_can_open_context(self, viewport_pos):
@@ -3369,6 +3717,16 @@ class Launcher(QWidget):
             return super().eventFilter(obj,event)
         if event.type()==QEvent.Type.KeyPress:
             k=event.key();ctrl=bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+            if ctrl and k in (Qt.Key.Key_C, Qt.Key.Key_X, Qt.Key.Key_V):
+                # Non-grabbing Qt.Tool cascades can leave focus on the main
+                # tree. Only an *actually focused* search field owns text
+                # clipboard keys; otherwise route to the folder column.
+                editor_focused = (obj is self.search and self.search.hasFocus())
+                if not editor_focused:
+                    cascade = self.visible_cascade_for_keyboard()
+                    if cascade is not None and cascade.handle_file_shortcut(k, event.modifiers()):
+                        event.accept()
+                        return True
             if ctrl and k==Qt.Key.Key_F:
                 self.focus_search();return True
             # When the caret is in the main search editor, cursor navigation
@@ -3425,6 +3783,14 @@ class Launcher(QWidget):
                 event.accept()
                 return True
             if k==Qt.Key.Key_Escape:
+                # Qt.Tool columns sometimes leave real keyboard focus on the
+                # main grid. First Esc should close the visible column, not
+                # clear the global search or dismiss the whole launcher.
+                active_column = self.visible_cascade_for_keyboard()
+                if active_column is not None and not (obj is self.search and self.search.hasFocus()):
+                    active_column.close()
+                    event.accept()
+                    return True
                 if self.search.text():self.search.clear()
                 elif self.selection or self.stack:
                     self._nav_before_change()
@@ -3512,14 +3878,20 @@ class Launcher(QWidget):
             if self.stack or self.search.text().strip():
                 return False
             menu = QMenu(context_parent if context_parent is not None else self)
-            menu.addAction('新規作成（カテゴリー）',
-                           lambda: self.launch_configuration_studio(new_category=True))
-            menu.addAction('プロパティ',
-                           lambda: self.launch_configuration_studio(page_properties=True))
+            created = menu.addAction('新規作成（カテゴリー）',
+                                     lambda: self.launch_configuration_studio(new_category=True))
+            props = menu.addAction('プロパティ',
+                                   lambda: self.launch_configuration_studio(page_properties=True))
+            if created is not None:
+                created.setIcon(context_action_icon('new_category'))
+            if props is not None:
+                props.setIcon(context_action_icon('properties'))
         elif origin == 'studio':
             menu = QMenu(context_parent if context_parent is not None else self)
-            menu.addAction('プロパティ',
-                           lambda checked=False, item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
+            props = menu.addAction('プロパティ',
+                                   lambda checked=False, item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
+            if props is not None:
+                props.setIcon(context_action_icon('properties'))
         elif origin in ('file', 'folder'):
             try:
                 actions = load_context_menus(CONTEXT_MENU_OPTIONS)[origin]
@@ -3530,9 +3902,14 @@ class Launcher(QWidget):
             for definition in actions:
                 if definition['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path):
                     continue
-                menu.addAction(definition['title'],
-                               lambda checked=False, action_id=definition['action_id'], p=path, k=origin:
-                               self.perform_filesystem_context_action(action_id, p, k))
+                if definition['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'):
+                    continue
+                action = menu.addAction(definition['title'],
+                                        lambda checked=False, action_id=definition['action_id'], p=path, k=origin:
+                                        self.perform_filesystem_context_action(action_id, p, k))
+                if action is not None:
+                    action.setIcon(context_action_icon(definition['action_id']))
+                    action.setIconVisibleInMenu(True)
             if menu.isEmpty():
                 return False
         else:
@@ -3566,12 +3943,66 @@ class Launcher(QWidget):
             if (kind == 'file' and not path.is_file()) or (kind == 'folder' and not path.is_dir()):
                 self.error('対象の種類が変更されています: ' + str(path))
                 return
-            if action_id in ('copy_full_path', 'copy_path'):
+            # Copy/cut/delete/rename (and other file actions) start a new
+            # interaction: do not leave the previous paste's teal rows visible.
+            # Clipboard cut state is separately controlled by the OS clipboard.
+            reset = getattr(self, '_clear_previous_paste_feedback', None)
+            if callable(reset):
+                reset()
+            if action_id in ('copy', 'cut'):
+                # QMimeData local file URLs interoperate with Explorer and with
+                # the existing directory paste button. Mark cut as MOVE, not COPY.
+                mime = QMimeData()
+                mime.setUrls([QUrl.fromLocalFile(str(path.resolve()))])
+                mime.setData('application/x-qt-windows-mime;value="Preferred DropEffect"',
+                             (2 if action_id == 'cut' else 1).to_bytes(4, 'little'))
+                QApplication.clipboard().setMimeData(mime)
+                self.footer.setText(f'{path.name} を{"切り取り" if action_id == "cut" else "コピー"}しました')
+            elif action_id == 'delete':
+                visible_menu = self._directory_menu_for_path(path.parent)
+                self.hover_timer.stop()
+                self.pending_menu_item = None
+                self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
+                try:
+                    answer = QMessageBox.question(
+                        self, 'ごみ箱へ移動',
+                        f'次の{"フォルダー" if kind == "folder" else "ファイル"}を削除しますか？\n\n{path}\n\n'
+                        'Windowsのごみ箱へ移動します。ごみ箱に対応しない場所ではOSの警告を確認してください。',
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.No)
+                    if answer != QMessageBox.StandardButton.Yes:
+                        return
+                    move_to_recycle_bin(path)
+                finally:
+                    self._filesystem_dialog_depth -= 1
+                # A delete refresh does not carry over old paste highlights.
+                if visible_menu is not None:
+                    # The row context QMenu may still own Qt focus when the
+                    # modal confirmation exits. Close it FIRST so the new
+                    # folder column is not hidden by its subsequent cleanup.
+                    context_menu = getattr(self, '_launch_context_menu', None)
+                    if context_menu is not None:
+                        context_menu.close()
+                    # Never skip the visual confirmation just because the old
+                    # Qt.Tool popup temporarily became invisible in the dialog.
+                    QTimer.singleShot(0, lambda m=visible_menu:
+                                      self.refresh_deleted_directory(m))
+                else:
+                    # A file-index result has no opened directory column.
+                    self.render()
+                if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
+                    QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
+                self.footer.setText(f'削除を完了しました: {path.name}')
+            elif action_id in ('copy_full_path', 'copy_path'):
                 QApplication.clipboard().setText(str(path))
             elif action_id == 'copy_file_name':
                 QApplication.clipboard().setText(path.name)
             elif action_id == 'open_parent_folder' and kind == 'file':
                 open_parent_folder(path)
+            elif action_id == 'open_parent_terminal' and kind == 'file':
+                open_parent_powershell(path)
+            elif action_id == 'run_with_pause' and kind == 'file':
+                run_script_with_pause(path)
             elif action_id == 'open_explorer':
                 open_file_explorer(path)
             elif action_id == 'open_terminal':
@@ -3837,10 +4268,25 @@ def main():
         QTimer.singleShot(400, lambda: DIAG.info(
             'DESKTOP_OPEN_AFTER_400MS visible=%s active=%s foreground=%s',
             window.isVisible(), window.isActiveWindow(), windows.foreground()))
+    def launcher_surface_visible():
+        # Folder cascades are independent Qt.Tool windows. If the main Tool
+        # window is temporarily hidden by a native modal operation, the mouse
+        # hook must still consider the surviving cascade dismissible.
+        if window.isVisible():
+            return True
+        menu = getattr(window, 'menu', None)
+        try:
+            return menu is not None and menu.isVisible()
+        except RuntimeError:
+            # Qt may have destroyed a column whose Python wrapper still exists.
+            return False
+
     def dismiss_from_outside_click():
-        # A Tool/always-on-top window may not receive ApplicationInactive when
-        # summoned from the desktop. Use the existing mouse hook as fallback.
-        if window.isVisible() and QApplication.activeModalWidget() is None:
+        # An outside mouse press closes the ENTIRE UI, including an orphaned
+        # folder cascade. Never do this while the OS confirmation is active.
+        if (launcher_surface_visible()
+                and not getattr(window, '_filesystem_dialog_depth', 0)
+                and QApplication.activeModalWidget() is None):
             DIAG.info('OUTSIDE_CLICK_DISMISS')
             window.dismiss()
 
@@ -3848,7 +4294,7 @@ def main():
         desktop_click = DesktopDoubleClick(
             open_from_desktop, DIAG,
             on_outside_click=dismiss_from_outside_click,
-            is_launcher_visible=window.isVisible,
+            is_launcher_visible=launcher_surface_visible,
         )
         DIAG.info('DESKTOP_DOUBLE_CLICK_HOOK active=%s', desktop_click.start())
     except Exception:
