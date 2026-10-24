@@ -469,6 +469,7 @@
   ('menu_viewport',
    'F:\\FRB\\tools\\FRB_Launch\\src\\menu_viewport.py',
    'PYMODULE'),
+  ('menu_wheel', 'F:\\FRB\\tools\\FRB_Launch\\src\\menu_wheel.py', 'PYMODULE'),
   ('mimetypes',
    'C:\\Users\\tsub-\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\mimetypes.py',
    'PYMODULE'),

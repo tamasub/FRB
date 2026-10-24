@@ -23,6 +23,7 @@ from ime_input import initialize_halfwidth_english
 from search_result_order import display_columns, sort_search_pairs
 from selection_scope import update_visible_checks
 from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
+from menu_wheel import wheel_motion, wheel_neighbor
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
@@ -4409,7 +4410,49 @@ class Launcher(QWidget):
         event.accept()
         return True
 
+    def wheel_classic_menu(self, event):
+        """Wheel over the old main list = select and preview one row at a time.
+
+        Deliberately excludes the expanded file browser: there the wheel must
+        continue scrolling files.  A leaf command is NEVER triggered by wheel.
+        """
+        if (self.view_mode != 'classic' or not self.list.isVisible()
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier):
+            return False
+        angle = event.angleDelta().y()
+        pixels = event.pixelDelta().y()
+        if not angle and not pixels:
+            return False
+        steps, self._classic_wheel_remainder = wheel_motion(
+            angle, pixels, getattr(self, '_classic_wheel_remainder', 0))
+        if not steps:
+            return True
+        items = [self.list.topLevelItem(i) for i in range(self.list.topLevelItemCount())
+                 if not self.list.topLevelItem(i).isHidden()
+                 and not self.list.topLevelItem(i).isDisabled()]
+        previous = self.list.currentItem()
+        selected = wheel_neighbor(items, previous, -steps)
+        if selected is None:
+            return True
+        self.hover_timer.stop()
+        self.pending_menu_item = None
+        if selected is previous:
+            return True
+        self.list.setCurrentItem(selected)
+        self.list.scrollToItem(selected)
+        row = selected.data(0, Qt.ItemDataRole.UserRole)
+        if isinstance(row, dict) and row.get('item_kind') in ('category', 'directory'):
+            self.cascade(row, selected, 'keyboard')
+        elif self.menu is not None and self.menu.isVisible():
+            self.menu.close()
+        return True
+
     def eventFilter(self,obj,event):
+        if (obj in (self.list, self.list.viewport())
+                and event.type() == getattr(QEvent.Type, 'Wheel', None)
+                and self.wheel_classic_menu(event)):
+            event.accept()
+            return True
         if (obj is self.list.viewport() and
                 event.type() == getattr(QEvent.Type, 'MouseButtonPress', None) and
                 event.button() in (Qt.MouseButton.LeftButton,
