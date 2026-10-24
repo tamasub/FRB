@@ -453,6 +453,7 @@ class ExpandedLauncherView(QWidget):
         self.root_buttons = []
         self._wheel_root_id = None
         self._wheel_root_delta = 0
+        self._wheel_files_delta = 0
         self.files_root = None
         self.bookmarks_root = None
         self.path = []
@@ -514,6 +515,10 @@ class ExpandedLauncherView(QWidget):
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        # Files' first column is a short navigation list: wheel = select and
+        # preview in the middle. Other columns keep native wheel scrolling.
+        self.left.tree.installEventFilter(self)
+        self.left.tree.viewport().installEventFilter(self)
         self.left.header.hide()
         self.middle.header.hide()
         # Reuse the old Back button/signal, but position it in the shared header.
@@ -879,6 +884,11 @@ class ExpandedLauncherView(QWidget):
 
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
+                and obj in (self.left.tree, self.left.tree.viewport())):
+            if self.wheel_files_first_column(event):
+                event.accept()
+                return True
+        if (event.type() == QEvent.Type.Wheel and self.isVisible()
                 and (obj in self.root_buttons or
                      obj in (self.root_widget, self.toolbar_scroller,
                              self.toolbar_scroller.viewport()))):
@@ -886,6 +896,42 @@ class ExpandedLauncherView(QWidget):
                 event.accept()
                 return True
         return super().eventFilter(obj, event)
+
+    def wheel_files_first_column(self, event):
+        """Browse first-column folders by wheel without scrolling other panes.
+
+        Reuse choose_files(), the same preview as a click/Up/Down key.  This
+        never calls execute()/activate(), even for an authored command row.
+        """
+        tree = self.left.tree
+        count = tree.topLevelItemCount()
+        if not count or event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return False
+        angle = event.angleDelta().y()
+        delta = angle if angle else event.pixelDelta().y() * 3
+        if not delta:
+            return False
+        self._wheel_files_delta += delta
+        steps = int(abs(self._wheel_files_delta) // 120)
+        if not steps:
+            return True  # Precision touchpad: wait for one complete step.
+        direction = -1 if self._wheel_files_delta > 0 else 1
+        self._wheel_files_delta -= (1 if self._wheel_files_delta > 0 else -1) * steps * 120
+        current = tree.currentItem()
+        index = tree.indexOfTopLevelItem(current) if current is not None else -1
+        if index < 0:
+            index = 0
+        target = root_wheel_target(index, direction * steps, count)
+        if target is None or target == index:
+            return True  # Stop at the ends; never scroll the folder list.
+        item = tree.topLevelItem(target)
+        tree.setCurrentItem(item)
+        tree.scrollToItem(item)  # Keep the current row visible in long lists.
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        row = self.row_data(item)
+        if row and row.get('item_kind') in ('category', 'directory'):
+            self.choose_files(item, 0)
+        return True
 
     def wheel_first_level(self, event, source):
         """Wheel = select/preview; never execute a command or mutate JSON.
