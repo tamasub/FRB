@@ -46,6 +46,23 @@ def expanded_targets(items, options):
     return roots, left, right
 
 
+def toolbar_roots(roots, files_root, bookmarks_root):
+    """Visible first-level commands only; keep protected panel roots in data.
+
+    Files and bookmarks already have persistent, separate panels in expanded
+    view. Match stable item IDs, never Japanese/user-edited display titles.
+    """
+    panel_ids = {files_root.get('item_id'), bookmarks_root.get('item_id')}
+    return [row for row in roots if row.get('item_id') not in panel_ids]
+
+
+def root_wheel_target(index, steps, count):
+    """Move through first-level buttons without wrapping or executing them."""
+    if count <= 0:
+        return None
+    return max(0, min(count - 1, index + steps))
+
+
 def should_expand(*, view_mode, page_id, query, stack, selection, options, available):
     return (view_mode == 'expanded' and options['enabled'] and available
             and page_id == options['page_id'] and not query.strip()

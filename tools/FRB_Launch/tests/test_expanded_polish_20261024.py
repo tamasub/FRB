@@ -59,7 +59,7 @@ def test_first_level_ctrl_fn_shortcuts_follow_visible_order():
     assert "self.execute_expanded_root_shortcut(i)" in APP
     assert "view.root_action(view.root_rows[index], button)" in APP
     assert "view.toolbar_scroller.ensureWidgetVisible(button)" in APP
-    assert "enumerate(roots)" in VIEW
+    assert "enumerate(visible_roots)" in VIEW
     assert "f'Ctrl+F{index+1}'" in VIEW
 
 

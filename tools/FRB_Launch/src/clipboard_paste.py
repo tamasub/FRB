@@ -52,7 +52,31 @@ def is_cut_clipboard(mime):
     return False
 
 
-def make_paste_plan(destination, sources, *, allow_existing=False):
+def next_copy_name(source, *, reserved=()):
+    """Pick a free Japanese Explorer-style name without replacing originals.
+
+    004.txt -> 004 - コピー.txt -> 004 - コピー (2).txt.
+    For a directory, append the suffix after the full directory name.
+    """
+    source = Path(source)
+    if source.is_symlink() or not (source.is_file() or source.is_dir()):
+        raise ValueError('通常のファイル・フォルダーだけ複製できます: ' + str(source))
+    stem = source.stem if source.is_file() else source.name
+    ext = source.suffix if source.is_file() else ''
+    # Hidden extension-less dotfiles retain their full basename.
+    if source.is_file() and not ext:
+        stem = source.name
+    reserved_keys = set(reserved)
+    for number in range(1, 10001):
+        suffix = ' - コピー' if number == 1 else f' - コピー ({number})'
+        candidate = source.with_name(f'{stem}{suffix}{ext}')
+        key = os.path.normcase(os.path.abspath(str(candidate)))
+        if key not in reserved_keys and not candidate.exists() and not candidate.is_symlink():
+            return candidate
+    raise FileExistsError('複製用の空きファイル名がありません: ' + source.name)
+
+
+def make_paste_plan(destination, sources, *, allow_existing=False, duplicate_in_place=False):
     """Preflight ALL items, preventing unintended overwrite and self-copy.
 
     A batch with any conflict does no work.  Race-time collisions are still
@@ -71,6 +95,10 @@ def make_paste_plan(destination, sources, *, allow_existing=False):
         if source.is_symlink() or not (source.is_file() or source.is_dir()):
             raise ValueError('通常のファイル・フォルダーだけ貼り付けできます: ' + str(source))
         target = destination / source.name
+        # Explorer-like duplicate on copy+paste in the SAME folder. Never
+        # duplicate on CUT: moving to the same directory is a no-op/error.
+        if duplicate_in_place and source.resolve() == target.resolve():
+            target = next_copy_name(source, reserved=targets)
         target_key = os.path.normcase(os.path.abspath(str(target)))
         if target_key in targets:
             raise ValueError('同じ名前の貼り付け対象が重複しています: ' + source.name)

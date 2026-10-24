@@ -1,4 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
- <rect x="0.5" y="0.5" width="15" height="15" rx="3" fill="#172B43" stroke="#35D9ED" stroke-width="1"/>
- <path d="M4 3H12V5H6V7H11V9H6V13H4Z" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="leaf" x1="15%" y1="18%" x2="92%" y2="78%">
+      <stop offset="0" stop-color="#a9d562"/>
+      <stop offset="0.35" stop-color="#98ca4c"/>
+      <stop offset="0.76" stop-color="#79ad36"/>
+      <stop offset="1" stop-color="#639b2a"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="5%" y1="10%" x2="95%" y2="100%">
+      <stop offset="0" stop-color="#b2dd70" stop-opacity="0.56"/>
+      <stop offset="0.5" stop-color="#94bd50" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#578b28" stop-opacity="0.22"/>
+    </linearGradient>
+  </defs>
+  <!-- Slightly curved petiole extending from the leaf's lower-left side. -->
+  <path d="M17.8 44.8 C13.1 50.0 10.2 53.8 6.5 57.7" stroke="#70a33a" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+  <!-- Asymmetric pointed green leaf. -->
+  <path d="M18.0 47.7 C11.9 44.1 10.7 36.5 12.3 29.7 C15.1 18.9 23.6 16.8 32.4 14.9 C41.3 13.1 47.4 9.6 54.0 5.9 C54.6 18.4 53.0 30.4 45.8 39.6 C37.6 49.7 25.7 52.4 18.0 47.7 Z" fill="url(#leaf)"/>
+  <path d="M18.0 47.7 C11.9 44.1 10.7 36.5 12.3 29.7 C15.1 18.9 23.6 16.8 32.4 14.9 C41.3 13.1 47.4 9.6 54.0 5.9 C53.0 18.2 40.0 27.6 31.2 34.3 C24.7 39.3 20.5 44.5 18.0 47.7 Z" fill="url(#blade)"/>
+  <!-- Light central vein; the sample shows a short pale stroke. -->
+  <path d="M18.8 45.3 C22.9 39.6 28.6 33.5 36.0 26.9" fill="none" stroke="#eef7dc" stroke-width="2.0" stroke-linecap="round"/>
 </svg>

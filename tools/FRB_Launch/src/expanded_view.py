@@ -3,9 +3,9 @@
 This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
-from PySide6.QtCore import Qt, QPoint, QSize, QTimer, QEvent
+from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette
-from PySide6.QtWidgets import (QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
+from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
     QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QStyledItemDelegate)
 
@@ -13,6 +13,15 @@ from file_drag import ExternalFileDragTree
 
 from directory_address import (breadcrumb_segments, compact_segments,
                                directory_row, row_directory, normalized_directory)
+from browser_nav_icons import browser_navigation_icon
+from system_drives import drive_rows, pc_preview_row
+from expanded_view_model import toolbar_roots, root_wheel_target
+from expanded_selection import context_paths, physical_paths
+from clipboard_paste import clipboard_sources
+from virtual_clipboard_paste import is_virtual_file_clipboard
+from context_menu_resolver import resolve_context_target
+from context_menu_actions import rename_file_or_folder
+from pathlib import Path
 
 
 def header_icon(kind, theme):
@@ -105,20 +114,85 @@ def link_icon(theme):
     return QIcon(pix)
 
 
+def density_lines_icon(theme):
+    """Three crisp horizontal strokes, high-DPI instead of tiny font glyphs."""
+    pix = QPixmap(56, 56)
+    pix.setDevicePixelRatio(2)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(QColor('#3a6254' if theme == 'light' else '#e4f0e8'), 2.0)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    for y in (8, 14, 20):
+        painter.drawLine(5, y, 21, y)
+    painter.end()
+    return QIcon(pix)
+
+
+class _InlineRenameDelegate(QStyledItemDelegate):
+    """Keep the editor text exactly the same size as its surrounding row."""
+
+    def createEditor(self, parent, option, index):
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, QLineEdit):
+            editor.setObjectName('inlineRenameEditor')
+            editor.setFont(option.font)
+            pixels = option.font.pixelSize()
+            if pixels <= 0:
+                pixels = parent.font().pixelSize()
+            # The generic application QLineEdit rule is 15px, whereas the
+            # expanded list uses 13px. Override the generic stylesheet here.
+            editor.setStyleSheet(
+                'QLineEdit#inlineRenameEditor { '
+                f'font-size:{pixels if pixels > 0 else 13}px; '
+                'padding:0px 3px; }')
+        return editor
+
+
 class _SeparatedFileTree(ExternalFileDragTree):
-    """One thin full-width separator per item, including the chevron column."""
+    """Inset, hairline row separators (including chevron column)."""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.separator_color = QColor('#e1e8e3')
+        self.separator_color = QColor('#eaf0eb')
+        self.separator_inset = 12
+        self.separator_width = 0.65
+
+    def mousePressEvent(self, event):
+        if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
+                and event.button() == Qt.MouseButton.RightButton):
+            # Qt's default right-press can silently ClearAndSelect. Keep all
+            # selected rows if clicked inside the selection, like Explorer.
+            item = self.itemAt(event.position().toPoint())
+            if item is not None and not item.isSelected():
+                self.clearSelection()
+                self.setCurrentItem(item)
+                item.setSelected(True)
+            # ContextMenu event is dispatched separately by Qt; never send
+            # this right press through QTreeWidget's selection handler.
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
+                and event.button() == Qt.MouseButton.RightButton):
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
     def drawRow(self, painter, option, index):
         super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
         painter.save()
-        painter.setPen(QPen(self.separator_color, 1.0))
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(self.separator_color, self.separator_width))
         y = option.rect.bottom()
-        painter.drawLine(0, y, self.viewport().width() - 1, y)
+        inset = self.separator_inset
+        if self.viewport().width() > 2 * inset:
+            painter.drawLine(QPointF(inset, y),
+                             QPointF(self.viewport().width() - inset - 1, y))
         painter.restore()
 
 
@@ -296,15 +370,18 @@ class ExpandedPanel(QFrame):
         header.setSpacing(8)
         self.icon_label = QLabel()
         self.icon_label.setFixedSize(28, 28)
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header.addWidget(self.icon_label)
         self.label = QLabel(label)
         self.label.setObjectName('expandedTitle')
         header.addWidget(self.label, 1)
-        self.back = QPushButton('←')
+        self.back = QPushButton('')
         self.back.setObjectName('expandedBack')
-        self.back.setFixedSize(31, 31)
+        self.back.setFixedSize(34, 34)
+        self.back.setIconSize(QSize(22, 22))
         self.back.setToolTip('一つ上の階層へ戻る')
         self.back.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.back.setIcon(browser_navigation_icon('back', self._theme))
         header.addWidget(self.back)
         self.back.hide()
         self.layout_box.addWidget(self.header)
@@ -317,6 +394,8 @@ class ExpandedPanel(QFrame):
         self.tree.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
         self.tree.setColumnWidth(1, 40)
         self.tree.setItemDelegateForColumn(1, _NavigationChevronDelegate(self.tree))
+        if kind == 'folder':
+            self.tree.setItemDelegateForColumn(0, _InlineRenameDelegate(self.tree))
         self.tree.setHeaderHidden(True)
         self.tree.setRootIsDecorated(False)
         self.tree.setIndentation(0)
@@ -340,6 +419,12 @@ class ExpandedPanel(QFrame):
             for col in (0, 1):
                 item.setSizeHint(col, QSize(0, self.row_height))
             item.setData(0, Qt.ItemDataRole.UserRole, row)
+            if self.kind == 'folder':
+                # Middle panel filenames can be edited by clicking the already
+                # selected row. Directory single click still means navigation.
+                origin, path = resolve_context_target(row, ())
+                if origin == 'file' and path:
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             if (self.kind == 'bookmark'
                     and row.get('item_kind') not in ('category', 'directory')):
                 item.setIcon(0, link_icon(self._theme))
@@ -366,6 +451,8 @@ class ExpandedLauncherView(QWidget):
         self.options = None
         self.root_rows = []
         self.root_buttons = []
+        self._wheel_root_id = None
+        self._wheel_root_delta = 0
         self.files_root = None
         self.bookmarks_root = None
         self.path = []
@@ -386,6 +473,11 @@ class ExpandedLauncherView(QWidget):
         self.root_layout.setContentsMargins(4, 2, 4, 2)
         self.root_layout.setSpacing(5)
         self.toolbar_scroller.setWidget(self.root_widget)
+        # Catch wheel gestures on buttons AND on the whitespace in the strip.
+        # This has no effect on the Page tab bar or the file-list scrollbars.
+        for source in (self.root_widget, self.toolbar_scroller.viewport(),
+                       self.toolbar_scroller):
+            source.installEventFilter(self)
         outer.addWidget(self.toolbar_scroller)
         # Shared Explorer header sits ACROSS Files and directory; only the
         # content below is divided. The bookmark panel stays independent.
@@ -410,20 +502,36 @@ class ExpandedLauncherView(QWidget):
         self.density_button = QToolButton(self.shared_header)
         self.density_button.setObjectName('expandedDensityToggle')
         self.density_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.density_button.setFixedSize(29, 29)
+        self.density_button.setFixedSize(31, 31)
+        self.density_button.setIconSize(QSize(22, 22))
+        self.density_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         self.density_button.clicked.connect(self.toggle_row_density)
         shared_layout.addWidget(self.density_button)
         self.address_bar = DirectoryAddressBar(self.go_to_directory, self.shared_header)
         shared_layout.addWidget(self.address_bar, 1)
         self.left = ExpandedPanel('Files', 'folder')
         self.middle = ExpandedPanel('フォルダー', 'folder')
+        # Only the directory-content column is multi-select. Qt supplies
+        # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
+        self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.left.header.hide()
         self.middle.header.hide()
         # Reuse the old Back button/signal, but position it in the shared header.
         self.middle.header.layout().removeWidget(self.middle.back)
         self.middle.back.setParent(self.shared_header)
+        self.paste_button = QPushButton('貼り付け', self.shared_header)
+        self.paste_button.setText('📋貼り付け')
+        self.paste_button.setObjectName('expandedPasteButton')
+        self.paste_button.setToolTip('現在のフォルダーへコピー／切り取りしたファイルを貼り付け')
+        self.paste_button.setFixedHeight(30)
+        self.paste_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.paste_button.clicked.connect(lambda checked=False:
+                                          self.launcher.paste_into_expanded_directory())
+        shared_layout.addWidget(self.paste_button)
         shared_layout.addWidget(self.middle.back)
         self.middle.back.show()
+        QApplication.clipboard().dataChanged.connect(self.update_paste_button)
+        self.update_paste_button()
         group_layout.addWidget(self.shared_header)
         self.files_splitter = QSplitter(Qt.Orientation.Horizontal, self.files_group)
         self.files_splitter.setObjectName('expandedFilesSplitter')
@@ -452,6 +560,11 @@ class ExpandedLauncherView(QWidget):
         self.row_density = str(launcher.settings.value('expanded_row_density', 'normal') or 'normal')
         if self.row_density not in ('normal', 'compact'):
             self.row_density = 'normal'
+        # Only the middle panel enables Explorer-like edit-on-selected-click.
+        # Double-click/Right-arrow navigation remain unchanged.
+        self.middle.tree.setEditTriggers(QAbstractItemView.EditTrigger.SelectedClicked)
+        self.middle.tree.itemChanged.connect(self.finish_inline_rename)
+        self._inline_rename_active = False
         self.middle.back.clicked.connect(self.go_up)
         self.left.tree.itemClicked.connect(self.choose_files)
         self.middle.tree.itemClicked.connect(self.choose_middle)
@@ -482,11 +595,12 @@ class ExpandedLauncherView(QWidget):
             ('#222e2c', '#4b6660', '#344a42', '#e6f0eb', '#344d47', '#416457', '#32433e'))
         tight = self.row_density == 'compact'
         height, pad = (23, 1) if tight else (29, 3)
-        self.density_button.setText('☷' if tight else '≡')
+        self.density_button.setText('')
+        self.density_button.setIcon(density_lines_icon(theme))
         self.density_button.setToolTip('行間隔：コンパクト（クリックで切替）' if not tight
                                        else '行間隔：標準（クリックで切替）')
         for pane in (self.left, self.middle, self.right):
-            pane.tree.separator_color = QColor('#e1e8e3' if light else '#455851')
+            pane.tree.separator_color = QColor('#eaf0eb' if light else '#455851')
             pane.tree.viewport().update()
         self.setStyleSheet(f'''
             QWidget#expandedRootBar {{ background:transparent; }}
@@ -503,17 +617,21 @@ class ExpandedLauncherView(QWidget):
             QToolButton#expandedDensityToggle {{background:transparent;border:1px solid {border};
                 border-radius:7px;color:{text};font-size:17px;}}
             QToolButton#expandedDensityToggle:hover {{background:{hover};}}
+            QPushButton#expandedPasteButton {{background:{hdr};color:{text};border:1px solid {border};
+                border-radius:7px;padding:3px 9px;font-size:12px;}}
+            QPushButton#expandedPasteButton:hover {{background:{hover};}}
             QFrame#expandedPanel {{ background:{bg}; border:1px solid {border};border-radius:12px; }}
             QWidget#expandedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
                 border-top-left-radius:11px;border-top-right-radius:11px;}}
             QLabel#expandedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
-            QPushButton#expandedBack {{background:transparent;border:0;color:{text};font-size:18px;}}
-            QPushButton#expandedBack:hover {{background:{hover};border-radius:7px;}}
+            QPushButton#expandedBack {{background:{hdr};border:1px solid {border};color:{text};border-radius:9px;padding:0;}}
+            QPushButton#expandedBack:hover {{background:{hover};border-radius:9px;}}
+            QPushButton#expandedBack:pressed {{background:{active};border-radius:9px;}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
             QTreeWidget#expandedTree::item {{min-height:{height}px;padding:{pad}px 7px;border:0;}}
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
             QTreeWidget#expandedTree::item:selected {{background:{active};color:{text};}}
-            QTreeWidget#expandedTree::item:selected:!active {{background:{stripe};color:{text};}}
+            QTreeWidget#expandedTree::item:selected:!active {{background:{active};color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
             QFrame#addressBreadcrumbSurface {{border:1px solid {border};border-radius:5px;background:{bg};}}
@@ -531,6 +649,7 @@ class ExpandedLauncherView(QWidget):
                 if root.get('item_id') == self.bookmarks_root.get('item_id'):
                     self.root_buttons[index].setIcon(header_icon('bookmark', theme))
         for pane in (self.left, self.middle, self.right):
+            pane.back.setIcon(browser_navigation_icon('back', theme))
             pane.tree.verticalScrollBar().setSingleStep(26 if tight else 35)
             pane.row_height = 27 if tight else 37
             for row_index in range(pane.tree.topLevelItemCount()):
@@ -538,7 +657,19 @@ class ExpandedLauncherView(QWidget):
                 for column in (0, 1):
                     item.setSizeHint(column, QSize(0, pane.row_height))
             pane._theme = theme
-            pane.icon_label.setPixmap(header_icon(pane.kind, theme).pixmap(28, 28))
+            # Ribbon appears visually larger than Files' green folder at 28px.
+            pane.icon_label.setPixmap(header_icon(pane.kind, theme).pixmap(
+                24 if pane.kind == 'bookmark' else 28,
+                24 if pane.kind == 'bookmark' else 28))
+
+    def browser_rows(self, parent):
+        """Resolve dynamic 'This PC' drives only in the expanded Files pane."""
+        if parent.get('_system_drives_root'):
+            return drive_rows()
+        rows = self.launcher.displayed_children(parent)
+        if self.files_root and parent.get('item_id') == self.files_root.get('item_id'):
+            return [pc_preview_row(row) for row in rows]
+        return rows
 
     def refresh(self, roots, left, right, options):
         if self._refreshing:
@@ -547,18 +678,25 @@ class ExpandedLauncherView(QWidget):
         try:
             self.options = options
             self.root_buttons = []
-            self.root_rows, self.files_root, self.bookmarks_root = roots, left, right
+            # Do not alter Launch DataJSON: the two permanent panel roots are
+            # simply not duplicated as buttons in this expanded-view toolbar.
+            visible_roots = toolbar_roots(roots, left, right)
+            self.root_rows, self.files_root, self.bookmarks_root = visible_roots, left, right
+            if self._wheel_root_id not in {row.get('item_id') for row in visible_roots}:
+                self._wheel_root_id = None
+            self._wheel_root_delta = 0
             while self.root_layout.count():
                 item = self.root_layout.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
-            for index, row in enumerate(roots):
+            for index, row in enumerate(visible_roots):
                 button = QPushButton(row.get('title', ''), self.root_widget)
                 button.setObjectName('expandedRootButton')
                 button.setCheckable(True)
-                button.setChecked(row.get('item_id') in (left['item_id'], right['item_id']))
+                button.setChecked(row.get('item_id') == self._wheel_root_id)
                 button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
                 button.installEventFilter(self.launcher)
+                button.installEventFilter(self)
                 button.setIcon(header_icon('bookmark', self.launcher.color_theme)
                                if row.get('item_id') == right['item_id'] else self.launcher.row_icon(row))
                 hint = f'Ctrl+F{index+1}' if index < 12 else ''
@@ -570,7 +708,7 @@ class ExpandedLauncherView(QWidget):
             self.left.label.setText(left['title'])
             self.shared_title.setText(left['title'])
             self.right.label.setText(right['title'])
-            files_rows = self.launcher.displayed_children(left)
+            files_rows = self.browser_rows(left)
             self.left.fill(files_rows, self.launcher.row_icon)
             self.right.fill(self.launcher.displayed_children(right), self.launcher.row_icon)
             # Start with one real folder in the middle, never invented PC data.
@@ -595,7 +733,7 @@ class ExpandedLauncherView(QWidget):
                     updated.append(directory_row(actual))
                     continue
                 parent = updated[-1] if updated else left
-                matching = next((r for r in self.launcher.displayed_children(parent)
+                matching = next((r for r in self.browser_rows(parent)
                                  if r.get('item_id') == old.get('item_id')), None)
                 if matching is None:
                     break
@@ -614,16 +752,119 @@ class ExpandedLauncherView(QWidget):
         self.middle.back.setEnabled(bool(self.path))
         if current:
             try:
-                rows = self.launcher.displayed_children(current)
+                rows = self.browser_rows(current)
             except (OSError, ValueError, PermissionError) as exc:
                 rows = []
                 self.middle.label.setToolTip(str(exc))
             self.middle.fill(rows, self.launcher.row_icon)
         else:
             self.middle.tree.clear()
+        self.update_paste_button()
 
     def current_directory(self):
         return row_directory(self.path[-1], self.launcher.expander().expand) if self.path else None
+
+    def update_paste_button(self):
+        if not hasattr(self, 'paste_button'):
+            return
+        mime = QApplication.clipboard().mimeData()
+        available = bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
+        folder = self.current_directory()
+        self.paste_button.setVisible(bool(folder and available))
+        self.paste_button.setEnabled(bool(folder and available))
+
+    def middle_selected_paths(self):
+        rows = [self.row_data(item) for item in self.middle.tree.selectedItems()]
+        return physical_paths(rows, self.launcher.authored_items)
+
+
+    def begin_context_inline_rename(self, item):
+        """Keep a Qt.Tool launch window visible while the context menu closes."""
+        launcher = self.launcher
+        launcher._filesystem_dialog_depth = getattr(launcher, '_filesystem_dialog_depth', 0) + 1
+        def open_editor():
+            try:
+                self.begin_inline_rename(item)
+            finally:
+                QTimer.singleShot(650, launcher._finish_batch_delete_guard)
+        QTimer.singleShot(0, open_editor)
+
+    def begin_inline_rename(self, item):
+        """Edit filename in the middle grid; never rename authored commands."""
+        tree = self.middle.tree
+        if not item or tree.indexOfTopLevelItem(item) < 0:
+            return False
+        row = self.row_data(item)
+        origin, path = resolve_context_target(row, self.launcher.authored_items)
+        if origin not in ('file', 'folder') or not path or not Path(path).exists():
+            return False
+        # Temporarily enable directory editing; normal folder clicks still
+        # enter the folder. The context menu invokes this method explicitly.
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+        tree.setCurrentItem(item)
+        self._inline_rename_active = True
+        tree.editItem(item, 0)
+        # QLineEdit should select only the stem, leaving the extension intact.
+        editor = tree.findChild(QLineEdit)
+        if editor is not None:
+            if origin == 'file':
+                length = len(Path(path).stem)
+                editor.setSelection(0, length)
+            else:
+                # A canceled folder edit must not turn future folder clicks
+                # into SelectedClicked editing. They still browse by click.
+                def reset_folder_edit_flag():
+                    try:
+                        if tree.indexOfTopLevelItem(item) >= 0:
+                            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                    except RuntimeError:
+                        pass  # The refreshed row was already released by Qt.
+                editor.editingFinished.connect(
+                    lambda: QTimer.singleShot(0, reset_folder_edit_flag))
+        return True
+
+    def finish_inline_rename(self, item, column):
+        """Commit a real filesystem rename, rejecting invalid/colliding names."""
+        if column != 0:
+            return
+        row = self.row_data(item)
+        if not row:
+            return
+        origin, path = resolve_context_target(row, self.launcher.authored_items)
+        if origin not in ('file', 'folder') or not path:
+            return
+        old_path = Path(path)
+        new_name = item.text(0)
+        if new_name == old_path.name:
+            return
+        try:
+            # The default extension selection avoids changing .txt by accident.
+            if (origin == 'file' and Path(new_name).suffix.casefold() != old_path.suffix.casefold()):
+                from PySide6.QtWidgets import QMessageBox
+                self.launcher._filesystem_dialog_depth = getattr(
+                    self.launcher, '_filesystem_dialog_depth', 0) + 1
+                try:
+                    answer = QMessageBox.question(
+                        self.launcher, '拡張子の変更',
+                        '拡張子が変わります。名前を変更しますか？',
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.No)
+                finally:
+                    self.launcher._filesystem_dialog_depth -= 1
+                if answer != QMessageBox.StandardButton.Yes:
+                    raise ValueError('拡張子の変更を取り消しました')
+            rename_file_or_folder(old_path, new_name)
+            self.launcher.footer.setText(f'名前を変更しました: {old_path.name} → {new_name}')
+            QTimer.singleShot(0, self.refresh_middle)
+        except (OSError, ValueError) as exc:
+            tree = self.middle.tree
+            tree.blockSignals(True)
+            try:
+                item.setText(0, old_path.name)
+            finally:
+                tree.blockSignals(False)
+            if str(exc) != '拡張子の変更を取り消しました':
+                self.launcher.error('名前を変更できませんでした: ' + str(exc))
 
     def go_to_directory(self, path):
         """Breadcrumb/edit navigation may go ABOVE the configured Files root."""
@@ -634,6 +875,61 @@ class ExpandedLauncherView(QWidget):
         self.path = [directory_row(target)]
         self.refresh_middle()
         self.focus_panel(self.middle)
+        return True
+
+    def eventFilter(self, obj, event):
+        if (event.type() == QEvent.Type.Wheel and self.isVisible()
+                and (obj in self.root_buttons or
+                     obj in (self.root_widget, self.toolbar_scroller,
+                             self.toolbar_scroller.viewport()))):
+            if self.wheel_first_level(event, obj):
+                event.accept()
+                return True
+        return super().eventFilter(obj, event)
+
+    def wheel_first_level(self, event, source):
+        """Wheel = select/preview; never execute a command or mutate JSON.
+
+        Each 120 angle units is one item. Accumulate smaller high-resolution
+        trackpad movements rather than skipping buttons on tiny deltas.
+        """
+        if not self.root_buttons or event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return False
+        angle = event.angleDelta().y()
+        # Pixel-only precision touchpads need a separate, modest conversion.
+        delta = angle if angle else event.pixelDelta().y() * 3
+        if not delta:
+            return False
+        self._wheel_root_delta += delta
+        steps = int(abs(self._wheel_root_delta) // 120)
+        if steps == 0:
+            return True
+        direction = -1 if self._wheel_root_delta > 0 else 1
+        self._wheel_root_delta -= (1 if self._wheel_root_delta > 0 else -1) * steps * 120
+        index = next((i for i, row in enumerate(self.root_rows)
+                      if row.get('item_id') == self._wheel_root_id), None)
+        if index is None:
+            focus = QApplication.focusWidget()
+            if focus in self.root_buttons:
+                index = self.root_buttons.index(focus)
+            elif source in self.root_buttons:
+                index = self.root_buttons.index(source)
+            else:
+                index = 0
+        target = root_wheel_target(index, direction * steps, len(self.root_buttons))
+        if target is None:
+            return True
+        row, button = self.root_rows[target], self.root_buttons[target]
+        self._wheel_root_id = row.get('item_id')
+        for i, entry in enumerate(self.root_buttons):
+            entry.setChecked(i == target)
+        self.focus_root(index=target)
+        # Show a navigable folder's menu immediately, just as changing Page
+        # switches its content. Pure commands stay SELECTED, never executed.
+        if row.get('item_kind') in ('category', 'directory'):
+            self.open_cascade(row, button)
+        elif self.launcher.menu is not None and self.launcher.menu.isVisible():
+            self.launcher.menu.close()
         return True
 
     def focus_panel(self, panel):
@@ -729,6 +1025,11 @@ class ExpandedLauncherView(QWidget):
             self.middle.tree.clear()
 
     def choose_middle(self, item, _col):
+        # Extended-selection clicks must not descend into a folder: doing so
+        # clears the selection while Ctrl/Shift is adding files and folders.
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier):
+            return
         row = self.row_data(item)
         if row and row.get('item_kind') in ('category', 'directory'):
             # Keep QTreeWidgetItem alive until Qt finishes clicked/activated
@@ -766,6 +1067,35 @@ class ExpandedLauncherView(QWidget):
         if not item:
             return
         row = self.row_data(item)
-        pane.tree.setCurrentItem(item)
-        self.launcher.show_launch_context_menu(
-            pane.tree.viewport().mapToGlobal(point), row, context_parent=self.launcher)
+        if pane is self.middle:
+            tree = pane.tree
+            # A right-click on a selected row keeps the full extended selection.
+            # A right-click elsewhere changes the target to that one row.
+            if not item.isSelected():
+                tree.clearSelection()
+                tree.setCurrentItem(item)
+                item.setSelected(True)
+            selected_rows = [self.row_data(i) for i in tree.selectedItems()]
+            targets = context_paths(row, selected_rows, self.launcher.authored_items)
+            shown = self.launcher.show_launch_context_menu(
+                tree.viewport().mapToGlobal(point), row,
+                context_parent=self.launcher, selected_paths=targets)
+            if shown and len(targets) == 1:
+                menu = getattr(self.launcher, '_launch_context_menu', None)
+                if menu is not None:
+                    for action in menu.actions():
+                        # Built-in context rename uses a modal text dialog.
+                        # Replace ONLY this pane's Rename action with inline.
+                        if '名前の変更' in action.text():
+                            try:
+                                action.triggered.disconnect()
+                            except (TypeError, RuntimeError):
+                                pass
+                            action.triggered.connect(
+                                lambda checked=False, i=item:
+                                self.begin_context_inline_rename(i))
+                            break
+        else:
+            pane.tree.setCurrentItem(item)
+            self.launcher.show_launch_context_menu(
+                pane.tree.viewport().mapToGlobal(point), row, context_parent=self.launcher)
