@@ -3,6 +3,8 @@ from PySide6.QtCore import Qt, QMimeData, QEvent, QRect
 from PySide6.QtGui import QDrag, QPainter, QColor, QBrush, QPen
 from PySide6.QtWidgets import QApplication, QTreeWidget, QStyledItemDelegate, QStyle, QStyleOptionViewItem
 from main_grid_visual_state import ROW_PALETTE, row_visual_state, row_fill, row_has_outline
+from file_drag import begin_file_copy_drag
+from file_drag_paths import file_path_for_drag
 
 MIME='application/x-frb-launch-order'
 
@@ -155,8 +157,15 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
         super().mousePressEvent(event)
 
     def startDrag(self, actions):
-        q=self.currentItem()
-        self.begin_order_drag(q.data(0,Qt.ItemDataRole.UserRole) if q else None)
+        q = self.currentItem()
+        row = q.data(0, Qt.ItemDataRole.UserRole) if q else None
+        if file_path_for_drag(row):
+            self.launcher.hover_timer.stop()
+            self.launcher.pending_menu_item = None
+            begin_file_copy_drag(self, row)
+        else:
+            # Authored rows keep their existing drag-to-reorder behavior.
+            self.begin_order_drag(row)
 
     def order_surface(self):return self.viewport()
     def order_rects(self):return [self.visualItemRect(self.topLevelItem(i)) for i in range(self.topLevelItemCount())]

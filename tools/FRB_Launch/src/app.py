@@ -14,6 +14,8 @@ from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, Q
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
+from file_drag import ExternalFileDragTree, begin_file_copy_drag
+from file_drag_paths import file_path_for_drag
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text, matches_choice_search
 from ime_input import initialize_halfwidth_english
@@ -570,7 +572,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self._scroll_actions = original
         for action in original:
             self.removeAction(action)  # Keep QAction objects and callbacks alive.
-        tree = QTreeWidget(self)
+        tree = ExternalFileDragTree(
+            self, row_resolver=lambda item: (
+                self._scroll_item_action(item).data()
+                if self._scroll_item_action(item) is not None else None))
         tree.setObjectName('cascadeScrollView')
         tree.setColumnCount(1)
         tree.setHeaderHidden(True)
@@ -940,7 +945,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self._open_folder_after_release()
                 event.accept()
                 return True
-            if event.type() == QEvent.Type.MouseMove:
+            if (event.type() == QEvent.Type.MouseMove
+                    and not event.buttons() & Qt.MouseButton.LeftButton):
                 self._scroll_hover(self.scroll_tree.itemAt(event.position().toPoint()))
             return False
         if obj is self.filter_edit and event.type() == QEvent.Type.KeyPress:
@@ -1088,11 +1094,22 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         super().mouseReleaseEvent(event)
     def mouseMoveEvent(self, event):
-        if self.order_enabled and self.order_press and event.buttons() & Qt.MouseButton.LeftButton:
-            pos,action=self.order_press
-            if (event.position().toPoint()-pos).manhattanLength()>=QApplication.startDragDistance():
-                self.order_press=None
-                self.begin_order_drag(action.data() if action else None);return
+        if self.order_press and event.buttons() & Qt.MouseButton.LeftButton:
+            pos, action = self.order_press
+            if (event.position().toPoint() - pos).manhattanLength() >= QApplication.startDragDistance():
+                row = action.data() if action else None
+                if file_path_for_drag(row):
+                    self.order_press = None
+                    self.folder_click_timer.stop()
+                    self.hover_timer.stop()
+                    self.launcher.hover_timer.stop()
+                    self.launcher.pending_menu_item = None
+                    begin_file_copy_drag(self, row)
+                    return
+                if self.order_enabled:
+                    self.order_press = None
+                    self.begin_order_drag(row)
+                    return
         before = self.activeAction()
         super().mouseMoveEvent(event)
         if self.activeAction() != before:
@@ -1113,6 +1130,34 @@ class CascadeMenu(OrderDragMixin,QMenu):
             while isinstance(m,CascadeMenu):
                 m.open_mode="keyboard";m.outside_since=None;m=m.parentWidget()
         if action in self.openers:self.openers[action](mode)
+
+    def close_one_level(self):
+        """Left/Esc: close only this column, then focus the precise opener.
+
+        A nested cascade returns to the selected parent QAction.  A cascade
+        opened from an expanded root button or panel row returns to that very
+        widget, not to an unrelated bookmark panel.  Never collapse ancestors.
+        """
+        parent = self.parentWidget()
+        source_widget = getattr(self, 'return_focus_widget', None)
+        source_item = getattr(self, 'return_focus_item', None)
+        owner_action = self.owner_action
+        self.close()  # Closing a child must not close its parent column.
+        if isinstance(parent, CascadeMenu):
+            if parent.isVisible():
+                if owner_action is not None:
+                    parent.setActiveAction(owner_action)
+                parent.setFocus(Qt.FocusReason.TabFocusReason)
+        elif source_widget is not None and source_widget.isVisible():
+            if source_item is not None and isinstance(source_widget, QTreeWidget):
+                source_widget.setCurrentItem(source_item)
+                source_widget.scrollToItem(source_item)
+            source_widget.setFocus(Qt.FocusReason.TabFocusReason)
+        elif (getattr(self.launcher, 'expanded_view', None) is not None
+              and self.launcher.expanded_view.isVisible()):
+            self.launcher.expanded_view.focus_root()
+        elif self.launcher is not None:
+            self.launcher.list.setFocus()
 
     def keyPressEvent(self, event):
         if self.scroll_tree is not None and event.key() in (
@@ -1146,12 +1191,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 and self.filter_edit.text()):
             self.filter_edit.clear();event.accept();return
         if key in (Qt.Key.Key_Left, Qt.Key.Key_Escape):
-            parent = self.parentWidget()
             if key == Qt.Key.Key_Escape and self.launcher is not None:
                 self.launcher._cascade_dismiss_generation = (getattr(self.launcher, '_cascade_dismiss_generation', 0) + 1)
-            self.close()
-            if isinstance(parent, CascadeMenu):parent.setFocus()
-            else:self.launcher.list.setFocus()
+            self.close_one_level()
             event.accept();return
         action=self.activeAction()
         if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and action is not None and action.isEnabled():
@@ -1354,6 +1396,14 @@ class CascadeOutsideClickFilter(QObject):
         return False  # Always deliver the user's original click.
 
 
+from expanded_view_model import normalize_options, expanded_targets, should_expand
+from expanded_view import ExpandedLauncherView
+from focus_session import (normalize_focus_state, focus_area_for_reopen,
+                           resolve_path_ids)
+from expanded_keyboard_model import (tab_target, root_step, middle_back_target,
+                                     row_right_action)
+
+
 class Launcher(QWidget):
     CORNER_RADIUS = 10  # Main window corner radius in logical pixels.
     def __init__(self):
@@ -1394,6 +1444,17 @@ class Launcher(QWidget):
         self._nav_search_timer.timeout.connect(self._nav_flush_search)
         self.menu = None; self.pending_menu_item = None; self.file_icons = QFileIconProvider();self.icon_cache={}
         self.settings = QSettings(str(STATE / 'state.ini'), QSettings.Format.IniFormat)
+        # The keyboard's last meaningful current is persisted when hidden.
+        # Do not use QApplication.focusWidget() after losing foreground: Qt
+        # may already have cleared it by the time app_state() calls dismiss().
+        try:
+            self._saved_focus_state = normalize_focus_state(
+                json.loads(str(self.settings.value('last_current', '{}'))))
+        except (ValueError, TypeError):
+            self._saved_focus_state = {'area': 'search'}
+        self._last_focus_area = None
+        self._last_root_id = self._saved_focus_state.get('item_id') if self._saved_focus_state.get('area') == 'roots' else None
+        self._restoring_last_focus = False
         self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
@@ -1401,6 +1462,10 @@ class Launcher(QWidget):
         self.result_sort_column = int(sort_col) if sort_col in ('0', '1') else -1
         self.result_sort_desc = str(self.settings.value('result_sort_desc', 'false')).lower() in ('true', '1')
         self.page_id = self.settings.value('page', 'work')
+        self.view_mode = str(self.settings.value('view_mode', 'classic')).lower()
+        if self.view_mode not in ('classic', 'expanded'):
+            self.view_mode = 'classic'
+        self.expanded_options = self._read_expanded_options()
         self.bookmark_browser = str(self.settings.value('bookmark_browser', 'chrome')).lower()
         if self.bookmark_browser not in browser_bookmarks.BROWSERS:self.bookmark_browser = 'chrome'
         self.bookmark_signature = None
@@ -1509,7 +1574,22 @@ class Launcher(QWidget):
             button = QPushButton(title); button.clicked.connect(callback); buttons.addWidget(button)
         buttons.addStretch()
         self.selection_tools.hide()
-        for w in (self.search_bar,self.tabs,self.selection_tools,self.list,self.footer): layout.addWidget(w)
+        self.mode_bar = QWidget(self)
+        mode_row = QHBoxLayout(self.mode_bar)
+        mode_row.setContentsMargins(0, 0, 0, 0)
+        mode_row.setSpacing(6)
+        mode_row.addWidget(self.tabs, 1)
+        self.mode_button = QPushButton('▦ 展開ビュー', self.mode_bar)
+        self.mode_button.setObjectName('expandedModeButton')
+        self.mode_button.setToolTip('従来表示と、Files／ブックマークを並べた展開ビューを切替')
+        self.mode_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.mode_button.clicked.connect(self.toggle_expanded_view)
+        mode_row.addWidget(self.mode_button)
+        self.expanded_view = ExpandedLauncherView(self)
+        self.expanded_view.hide()
+        for w in (self.search_bar, self.mode_bar, self.selection_tools, self.list,
+                  self.expanded_view, self.footer):
+            layout.addWidget(w)
         self._dark_main_qss = '''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QTreeWidget#mainLaunchList::item:selected{background:transparent;color:#e5ebf3;} QTreeWidget#mainLaunchList::item:hover{background:transparent;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}'''
         # Search mode may show both scroll axes.  Keep their look consistent
         # with the slim cascade scrollbar; do not change their policies or sorting.
@@ -1589,12 +1669,25 @@ class Launcher(QWidget):
         self.list.itemEntered.connect(self.hover)
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True); self.hover_timer.timeout.connect(self.open_hover)
         self.search.installEventFilter(self); self.list.installEventFilter(self); self.tabs.installEventFilter(self)
+        for panel in (self.expanded_view.left, self.expanded_view.middle, self.expanded_view.right):
+            panel.tree.installEventFilter(self)
+            panel.tree.viewport().installEventFilter(self)
+        # Root toolbar buttons are recreated when Data/Page definitions reload.
+        # Install filters in ExpandedLauncherView.refresh() for each new button.
         # QTreeWidget sends mouse events from its viewport, not from the tree.
         # An empty-area double-click navigates back only while inside a submenu.
         self.list.viewport().installEventFilter(self)
+        QApplication.instance().focusChanged.connect(self.capture_last_focus_change)
         self._cascade_outside_click_filter = CascadeOutsideClickFilter(self)
         QApplication.instance().installEventFilter(self._cascade_outside_click_filter)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
+        # Ctrl+F1..Ctrl+F12 run/open the corresponding visible first-level
+        # button, left-to-right. F1..F12 remain Page navigation as before.
+        self.root_action_shortcuts = []
+        for index in range(12):
+            shortcut = QShortcut(QKeySequence(f'Ctrl+F{index+1}'), self)
+            shortcut.activated.connect(lambda i=index: self.execute_expanded_root_shortcut(i))
+            self.root_action_shortcuts.append(shortcut)
         self.page_shortcuts = []
         for index in range(12):
             shortcut = QShortcut(QKeySequence(f'F{index+1}'), self)
@@ -1686,6 +1779,13 @@ class Launcher(QWidget):
         """Restyle existing widgets without rebuilding search results or pages."""
         light = self.color_theme == 'light'
         self.setStyleSheet(LIGHT_MAIN_QSS if light else self._dark_main_qss)
+        self.expanded_view.apply_theme(self.color_theme)
+        palette = (('#aac9b6','#e0f1e7','#275943','#cbe7d8') if light
+                   else ('#55766c','#314b41','#def1e7','#416559'))
+        self.mode_button.setStyleSheet(
+            'QPushButton#expandedModeButton { border:1px solid %s; border-radius:9px; '
+            'padding:5px 9px; background:%s; color:%s; } '
+            'QPushButton#expandedModeButton:hover {background:%s;}' % palette)
         self.list.set_row_theme(self.color_theme)
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
@@ -1753,19 +1853,26 @@ class Launcher(QWidget):
             dimension = default
         return max(minimum, min(dimension, maximum))
 
+    def view_size_keys(self):
+        # Wide view must never overwrite the user's compact layout dimensions.
+        if getattr(self, 'view_mode', 'classic') == 'expanded':
+            return 'expanded_window_width', 'expanded_window_height', 1060, 670
+        return 'window_width', 'window_height', 390, 440
+
     def restore_window_height(self):
-        # Kept for existing callers: restore only the vertical dimension.
         bounds = self.screen().availableGeometry()
-        height = self.saved_dimension(self.settings.value('window_height', 440),
-                                      440, self.minimumHeight(), bounds.height())
+        _, key, _, default = self.view_size_keys()
+        height = self.saved_dimension(self.settings.value(key, default),
+                                      default, self.minimumHeight(), bounds.height())
         self.resize(self.width(), height)
 
     def restore_window_size(self):
         bounds = self.screen().availableGeometry()
-        width = self.saved_dimension(self.settings.value('window_width', 390),
-                                     390, self.minimumWidth(), bounds.width())
-        height = self.saved_dimension(self.settings.value('window_height', 440),
-                                      440, self.minimumHeight(), bounds.height())
+        key_w, key_h, default_w, default_h = self.view_size_keys()
+        width = self.saved_dimension(self.settings.value(key_w, default_w),
+                                     default_w, self.minimumWidth(), bounds.width())
+        height = self.saved_dimension(self.settings.value(key_h, default_h),
+                                      default_h, self.minimumHeight(), bounds.height())
         self.resize(width, height)
 
     def resize_edge(self, pos):
@@ -1790,8 +1897,9 @@ class Launcher(QWidget):
         return Qt.CursorShape.ArrowCursor
 
     def save_window_size(self):
-        self.settings.setValue('window_width', self.width())
-        self.settings.setValue('window_height', self.height())
+        key_w, key_h, _, _ = self.view_size_keys()
+        self.settings.setValue(key_w, self.width())
+        self.settings.setValue(key_h, self.height())
         self.settings.sync()
 
     def save_window_height(self):
@@ -1886,8 +1994,9 @@ class Launcher(QWidget):
         if getattr(self, 'history_popup', None) and self.history_popup.isVisible():
             self.position_history_popup()
         if self.isVisible() and hasattr(self, 'settings'):
-            self.settings.setValue('window_width', self.width())
-            self.settings.setValue('window_height', self.height())
+            key_w, key_h, _, _ = self.view_size_keys()
+            self.settings.setValue(key_w, self.width())
+            self.settings.setValue(key_h, self.height())
 
     def showEvent(self, event):
         if self.data is not None:self.reload()
@@ -2349,6 +2458,162 @@ class Launcher(QWidget):
                 return True,0
         return super().nativeEvent(kind,message)
 
+    @staticmethod
+    def _selected_item_id(tree):
+        item = tree.currentItem()
+        if item is None:
+            return None
+        row = item.data(0, Qt.ItemDataRole.UserRole)
+        if not isinstance(row, dict):
+            return None
+        return row.get('item_id') or row.get('choice_id')
+
+    @staticmethod
+    def _focus_tree_row(tree, item_id):
+        if not item_id:
+            return False
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            row = item.data(0, Qt.ItemDataRole.UserRole)
+            if isinstance(row, dict) and (row.get('item_id') == item_id or
+                                          row.get('choice_id') == item_id):
+                tree.setCurrentItem(item)
+                tree.scrollToItem(item)
+                return True
+        return False
+
+    def _focus_area_of(self, widget):
+        if widget is None:
+            return None
+        if widget is self.search:
+            return 'search'
+        if widget is self.tabs:
+            return 'pages'
+        if widget in (self.list, self.list.viewport()):
+            return 'list'
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            return self.expanded_focus_area(widget)
+        return None
+
+    def capture_last_focus_change(self, previous, widget):
+        # Qt's focusChanged signal catches mouse, Tab and arrow navigation
+        # without modifying the legacy eventFilter / menu event routing.
+        if self.isVisible() and not self._restoring_last_focus:
+            area = self._focus_area_of(widget)
+            if area is not None:
+                self._last_focus_area = area
+                if area == 'roots':
+                    view = self.expanded_view
+                    if widget in view.root_buttons:
+                        index = view.root_buttons.index(widget)
+                        self._last_root_id = view.root_rows[index].get('item_id')
+
+    def save_last_current(self):
+        """Capture the keyboard anchor BEFORE popups and windows are hidden."""
+        view = self.expanded_view
+        area = self._last_focus_area or self._saved_focus_state.get('area', 'search')
+        # A Qt.Tool cascade lives outside the main widget. Reopen at its
+        # exact parent, not at the now-closed popup or the hidden classic list.
+        menu = self.menu
+        if menu is not None and menu.isVisible():
+            opener = getattr(menu, 'return_focus_widget', None)
+            anchor = self._focus_area_of(opener)
+            if anchor is not None:
+                area = anchor
+            elif view.isVisible() and self.selection is None:
+                # Original classic menu source: main selection was its parent.
+                area = 'roots' if self._saved_focus_state.get('area') == 'roots' else 'list'
+        root_item_id = None
+        if self.selection and self.view_mode == 'expanded':
+            # Selection is a temporary classic grid. Resume at the actual
+            # first-level opener (e.g. メール宛先) after dismissing it.
+            parent = self.selection.get('parent_item_id')
+            if any(r.get('item_id') == parent for r in view.root_rows):
+                area, root_item_id = 'roots', parent
+        if area == 'roots' and root_item_id is None:
+            for button, row in zip(view.root_buttons, view.root_rows):
+                if button.hasFocus():
+                    root_item_id = row.get('item_id')
+                    break
+            if root_item_id is None and menu is not None:
+                opener = getattr(menu, 'return_focus_widget', None)
+                if opener in view.root_buttons:
+                    root_item_id = view.root_rows[view.root_buttons.index(opener)].get('item_id')
+            if root_item_id is None:
+                root_item_id = self._last_root_id or self._saved_focus_state.get('item_id')
+        # Only persist stable IDs, never Qt pointers or transient QWidgetItems.
+        state = normalize_focus_state({
+            'area': area,
+            'page_id': self.page_id,
+            'mode': self.view_mode,
+            'item_id': root_item_id if area == 'roots' else self._selected_item_id(self.list),
+            'left_id': self._selected_item_id(view.left.tree),
+            'middle_id': self._selected_item_id(view.middle.tree),
+            'bookmarks_id': self._selected_item_id(view.right.tree),
+            'path_ids': [r.get('item_id') for r in view.path if r.get('item_id')],
+            'middle_path': view.current_directory(),
+        })
+        self._saved_focus_state = state
+        self.settings.setValue('last_current', json.dumps(state, ensure_ascii=False))
+        self.settings.sync()
+        return state
+
+    def restore_last_current(self):
+        """Focus previously used Page / root / panel / row after summon()."""
+        if not self.isVisible() or not self.data:
+            return
+        state = normalize_focus_state(self._saved_focus_state)
+        view = self.expanded_view
+        expanded = view.isVisible()
+        area = focus_area_for_reopen(state['area'], expanded=expanded)
+        self._restoring_last_focus = True
+        try:
+            if expanded:
+                # Restore nested directory path using freshly loaded rows.
+                ids = state.get('path_ids', [])
+                if ids and view.files_root:
+                    path = resolve_path_ids(view.files_root, ids,
+                                            self.displayed_children)
+                    if path:
+                        view.path = path
+                        view.refresh_middle()
+                # A breadcrumb may have navigated *above* a Files shortcut,
+                # where an ordinary item-ID chain cannot resolve. Restore its
+                # canonical absolute location when the directory still exists.
+                stored_path = state.get('middle_path')
+                if stored_path and view.current_directory() != stored_path:
+                    from directory_address import directory_row
+                    if os.path.isdir(stored_path):
+                        view.path = [directory_row(stored_path)]
+                        view.refresh_middle()
+                self._focus_tree_row(view.left.tree, state.get('left_id'))
+                self._focus_tree_row(view.middle.tree, state.get('middle_id'))
+                self._focus_tree_row(view.right.tree, state.get('bookmarks_id'))
+                if area == 'roots':
+                    view.focus_root(item_id=state.get('item_id'))
+                elif area in ('files', 'directory', 'bookmarks'):
+                    panel = {'files': view.left, 'directory': view.middle,
+                             'bookmarks': view.right}[area]
+                    view.focus_panel(panel)
+                elif area == 'pages':
+                    self.tabs.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+                else:
+                    self.search.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+            else:
+                self._focus_tree_row(self.list, state.get('item_id'))
+                if area == 'pages':
+                    self.tabs.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+                elif area == 'list':
+                    self.list.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+                else:
+                    self.search.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+            self._last_focus_area = area
+            if area == 'roots':
+                self._last_root_id = state.get('item_id')
+        finally:
+            self._restoring_last_focus = False
+
     def summon(self):
         if self.busy:self.error('処理の完了を待っています');return
         if self.isVisible():self.dismiss();return
@@ -2358,7 +2623,7 @@ class Launcher(QWidget):
         self._nav_reset()
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
-        self.show();self.raise_();self.activateWindow();self.search.setFocus()
+        self.show();self.raise_();self.activateWindow();self.restore_last_current()
 
     def summon_menu(self, item_id):
         """Navigate only: never run a command bound to a Page-root shortcut."""
@@ -2419,11 +2684,13 @@ class Launcher(QWidget):
             hwnd, expected_foreground=expected_foreground))
         if active:
             self.activateWindow()
-            self.search.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
-        DIAG.info('KEYBOARD_FOCUS reason=%s success=%s before=%s after=%s search_focus=%s',
-                  reason, active, before, windows.foreground(), self.search.hasFocus())
+            self.restore_last_current()
+        DIAG.info('KEYBOARD_FOCUS reason=%s success=%s before=%s after=%s restored_area=%s',
+                  reason, active, before, windows.foreground(), self._last_focus_area)
 
     def dismiss(self):
+        if self.isVisible():
+            self.save_last_current()
         # Never carry a half-finished double-click into the next summon.
         # Delayed delete callbacks must not resurrect a previously hidden UI.
         self._cascade_dismiss_generation = getattr(self, '_cascade_dismiss_generation', 0) + 1
@@ -2636,6 +2903,79 @@ class Launcher(QWidget):
         self.list.header().setSortIndicator(self.result_sort_column, order)
         # Items are already sorted by sort_search_pairs() before insertion.
 
+    def _read_expanded_options(self):
+        # Configuration chooses IDs, never displayed captions or ViewDef.
+        path = LAUNCH_HOME / 'config' / 'expanded_view_options.json'
+        try:
+            import json
+            if path.is_file():
+                return normalize_options(json.loads(path.read_text(encoding='utf-8-sig')))
+        except (OSError, ValueError) as exc:
+            DIAG.warning('EXPANDED_VIEW invalid config: %s', exc)
+        return normalize_options(None)
+
+    def toggle_expanded_view(self):
+        self.set_view_mode('classic' if self.view_mode == 'expanded' else 'expanded')
+
+    def set_view_mode(self, mode):
+        if mode not in ('classic', 'expanded') or mode == self.view_mode:
+            return
+        self.save_window_size()
+        if self.menu:
+            self.menu.close()
+        self.hide_history_popup()
+        self.view_mode = mode
+        self.settings.setValue('view_mode', mode)
+        self.settings.sync()
+        self.restore_window_size()
+        geometry = self.screen().availableGeometry()
+        x = max(geometry.left(), min(self.x(), geometry.right() - self.width() + 1))
+        y = max(geometry.top(), min(self.y(), geometry.bottom() - self.height() + 1))
+        self.move(x, y)
+        self.render()
+        self.search.setFocus()
+
+    def update_expanded_visibility(self):
+        if not hasattr(self, 'expanded_view') or self.data is None:
+            return
+        self.expanded_options = self._read_expanded_options()
+        targets = expanded_targets(self.data.get('items', []), self.expanded_options)
+        active = should_expand(view_mode=self.view_mode, page_id=self.page_id,
+                               query=self.search.text(), stack=self.stack,
+                               selection=self.selection, options=self.expanded_options,
+                               available=targets is not None)
+        if active:
+            roots, left, right = targets
+            self.expanded_view.refresh(roots, left, right, self.expanded_options)
+            self.footer.setText('↑↓ 選択   → 進む   ← 戻る   Enter 実行   Tab エリア切替   Esc 閉じる')
+        self.list.setVisible(not active)
+        self.expanded_view.setVisible(active)
+        self.mode_button.setText('☷ 従来ビュー' if self.view_mode == 'expanded' else '▦ 展開ビュー')
+        self.mode_button.setToolTip(
+            '仕事Pageで展開ビューを使えます' if self.view_mode == 'expanded'
+            and self.page_id != self.expanded_options['page_id'] else
+            '従来表示とFiles／ブックマーク同時表示を切替')
+
+    def open_expanded_cascade(self, row, widget, item=None):
+        # Transient deep menu reuses Launcher's existing actions/keyboard logic.
+        if self.menu:
+            self.menu.close()
+        self.hover_timer.stop()
+        menu_type = AppCascadeMenu if row.get('launch_source') == 'installed_apps' else CascadeMenu
+        self.menu = menu_type(parent=self, launcher=self)
+        self.menu.open_mode = 'keyboard'
+        # Remember the exact expanded root button / panel row for Left-to-back.
+        self.menu.return_focus_widget = widget
+        self.menu.return_focus_item = item
+        self.fill_cascade(self.menu, row)
+        if isinstance(widget, QTreeWidget) and item is not None:
+            rect = widget.visualItemRect(item)
+            pos = widget.viewport().mapToGlobal(QPoint(widget.viewport().width() - 2, rect.top()))
+        else:
+            pos = widget.mapToGlobal(QPoint(widget.width() - 2, widget.height()))
+        self.menu.popup(pos)
+        self.menu.setFocus()
+
     def render(self,*args):
         if not self.data:return
         # Stop this brief reaction when switching pages, views or search terms.
@@ -2696,6 +3036,7 @@ class Launcher(QWidget):
             self.footer.setText(('↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開/実行   Enter 実行   F1〜F12 / Ctrl+PageUp/Down Page切替'))
         except Exception as e:self.error(e)
         finally:self.list.blockSignals(False)
+        self.update_expanded_visibility()
 
     def check_changed(self,item,col):
         if not self.selection:
@@ -2834,12 +3175,30 @@ class Launcher(QWidget):
         self._nav_after_change()
 
     def go_back(self):
+        # A selection opened from the expanded Page's first-level menu
+        # temporarily switches to the classic choice grid.  When Left (or
+        # the on-screen Back button) dismisses that grid, return keyboard
+        # focus to its *own* opener, e.g. メール宛先, not the hidden classic list.
+        # Only direct first-level children qualify: nested menus retain their
+        # established one-level-back behaviour and classic mode is unchanged.
+        expanded_return_root = None
+        if (self.selection and self.view_mode == 'expanded' and not self.stack
+                and not self.search.text().strip()):
+            parent_id = self.selection.get('parent_item_id')
+            view = getattr(self, 'expanded_view', None)
+            if (parent_id and view is not None
+                    and any(row.get('item_id') == parent_id for row in view.root_rows)):
+                expanded_return_root = parent_id
         self._nav_before_change()
         if self.selection:
             self.selection = None; self.checked.clear()
         elif self.stack:
             self.stack.pop()
-        self.search.clear(); self.render(); self.list.setFocus()
+        self.search.clear(); self.render()
+        if expanded_return_root and self.expanded_view.isVisible():
+            self.expanded_view.focus_root(item_id=expanded_return_root)
+        else:
+            self.list.setFocus()
         self._nav_after_change()
 
     def hide_root_left_feedback(self):
@@ -3599,6 +3958,192 @@ class Launcher(QWidget):
                 return rect.isValid() and viewport_pos.y() > rect.bottom()
         return True   # An empty Page has no last row.
 
+    def expanded_focus_area(self, obj):
+        """Identify the active keyboard region, never the hidden classic tree."""
+        if not self.expanded_view.isVisible():
+            return None
+        if obj is self.search:
+            return 'search'
+        if obj is self.tabs:
+            return 'pages'
+        if obj in self.expanded_view.root_buttons:
+            return 'roots'
+        for name, pane in (('files', self.expanded_view.left),
+                           ('directory', self.expanded_view.middle),
+                           ('bookmarks', self.expanded_view.right)):
+            if obj is pane.tree or obj is pane.tree.viewport():
+                return name
+        return None
+
+    def expanded_focus_key(self, obj, event):
+        """Tab switches areas; arrows are deliberately NOT area traversal."""
+        area = self.expanded_focus_area(obj)
+        if area is None:
+            return False
+        if event.key() not in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
+            return False
+        if area == 'search' and (getattr(self, 'composing', False) or
+                                 (getattr(self, 'history_popup', None) is not None
+                                  and self.history_popup.isVisible())):
+            return False  # IME/history candidate keys belong to the search UI.
+        mods = event.modifiers()
+        if mods not in (Qt.KeyboardModifier.NoModifier,
+                        Qt.KeyboardModifier.ShiftModifier):
+            return False
+        backward = (event.key() == Qt.Key.Key_Backtab or
+                    bool(mods & Qt.KeyboardModifier.ShiftModifier))
+        target = tab_target(area, backward=backward)
+        view = self.expanded_view
+        if target == 'search':
+            self.search.setFocus(Qt.FocusReason.TabFocusReason)
+        elif target == 'pages':
+            self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+        elif target == 'roots':
+            view.focus_root()
+        elif target == 'files':
+            view.focus_panel(view.left)
+        elif target == 'directory':
+            view.focus_panel(view.middle)
+        elif target == 'bookmarks':
+            view.focus_panel(view.right)
+        event.accept()
+        return True
+
+    def execute_expanded_root_shortcut(self, index):
+        """Dispatch by *current displayed order*, not hardcoded item names."""
+        view = self.expanded_view
+        if (not view.isVisible() or not 0 <= index < len(view.root_rows)
+                or index >= len(view.root_buttons)):
+            return
+        button = view.root_buttons[index]
+        view.toolbar_scroller.ensureWidgetVisible(button)
+        view.root_action(view.root_rows[index], button)
+
+    def expanded_root_key(self, button, event):
+        """First-level horizontal button strip: Left/Right select, Down enters."""
+        if not self.expanded_view.isVisible() or button not in self.expanded_view.root_buttons:
+            return False
+        if self.page_key(event):
+            event.accept()
+            return True
+        key = event.key()
+        if event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return False
+        view = self.expanded_view
+        if key in (Qt.Key.Key_Left, Qt.Key.Key_Right):
+            index = view.root_buttons.index(button)
+            target = root_step(index, -1 if key == Qt.Key.Key_Left else 1,
+                               len(view.root_buttons))
+            view.focus_root(index=target)
+        elif key == Qt.Key.Key_Up:
+            self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+        elif key == Qt.Key.Key_Down:
+            row = view.root_rows[view.root_buttons.index(button)]
+            if row.get('item_id') == view.files_root.get('item_id'):
+                view.focus_panel(view.left)
+            elif row.get('item_id') == view.bookmarks_root.get('item_id'):
+                view.focus_panel(view.right)
+            elif row.get('item_kind') in ('category', 'directory'):
+                view.open_cascade(row, button)
+            else:
+                # Down means "choose" in the first-level strip, including
+                # leaf commands such as Settings (same action as Enter).
+                view.root_action(row, button)
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Space):
+            row = view.root_rows[view.root_buttons.index(button)]
+            view.root_action(row, button)
+        elif key == Qt.Key.Key_Escape:
+            if self.menu and self.menu.isVisible():
+                self.menu.close()
+            else:
+                self.dismiss()
+        else:
+            return False
+        event.accept()
+        return True
+
+    def expanded_tab_key(self, event):
+        """Page Left/Right retains its original meaning; Down enters roots."""
+        if not self.expanded_view.isVisible():
+            return False
+        if self.page_key(event):
+            event.accept()
+            return True
+        if event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return False
+        if event.key() in (Qt.Key.Key_Down, Qt.Key.Key_Up):
+            self.expanded_view.focus_root(index=(0 if event.key() == Qt.Key.Key_Down else
+                                                len(self.expanded_view.root_buttons) - 1))
+            event.accept()
+            return True
+        return False
+
+    def expanded_tree_key(self, tree, event):
+        if not self.expanded_view.isVisible():
+            return False
+        pane = next((p for p in (self.expanded_view.left, self.expanded_view.middle,
+                                  self.expanded_view.right)
+                     if p.tree is tree or p.tree.viewport() is tree), None)
+        if pane is None:
+            return False
+        if self.page_key(event):
+            event.accept()
+            return True
+        key = event.key()
+        if (event.modifiers() & Qt.KeyboardModifier.ControlModifier
+                and key == Qt.Key.Key_F):
+            self.focus_search()
+            event.accept()
+            return True
+        if event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return False
+        view = self.expanded_view
+        if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            selected = move_tree_selection(pane.tree, -1 if key == Qt.Key.Key_Up else 1)
+            if selected is not None and pane is view.left:
+                # Preview follows Files selection, but keyboard focus stays left.
+                view.choose_files(selected, 0)
+        elif key == Qt.Key.Key_Escape:
+            if self.menu and self.menu.isVisible():
+                self.menu.close()
+            else:
+                self.dismiss()
+        elif key == Qt.Key.Key_Left:
+            if pane is view.middle:
+                if middle_back_target(len(view.path)) == 'parent':
+                    view.go_up(keep_middle_focus=True)
+                else:
+                    view.focus_panel(view.left)
+            else:
+                view.focus_root(item_id=(view.files_root if pane is view.left else
+                                         view.bookmarks_root).get('item_id'))
+        elif key == Qt.Key.Key_Right:
+            item = pane.tree.currentItem()
+            if item is not None:
+                row = view.row_data(item)
+                is_folder = row.get('item_kind') in ('category', 'directory')
+                name = ('files' if pane is view.left else
+                        'directory' if pane is view.middle else 'bookmarks')
+                action = row_right_action(name, is_folder)
+                if action == 'enter_directory_panel':
+                    view.choose_files(item, 0)
+                    view.focus_panel(view.middle)
+                elif action == 'descend':
+                    view.navigate_middle(row)
+                elif action == 'cascade':
+                    view.open_cascade(row, pane.tree, item)
+                else:
+                    view.launcher.activate(row)
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            item = pane.tree.currentItem()
+            if item is not None:
+                view.enter_row(pane, item)
+        else:
+            # Keep ordinary Qt shortcuts/text editing out of classic hidden grid.
+            return False
+        event.accept()
+        return True
+
     def eventFilter(self,obj,event):
         if (obj is self.list.viewport() and
                 event.type() == getattr(QEvent.Type, 'MouseButtonPress', None) and
@@ -3694,6 +4239,29 @@ class Launcher(QWidget):
                                   self.activate_after_mouse_release(r,fg))
                 event.accept()
                 return True
+        if event.type() == QEvent.Type.KeyPress and hasattr(self, 'expanded_view'):
+            view = self.expanded_view
+            expanded_sources = (view.root_buttons + [pane.tree for pane in
+                (view.left, view.middle, view.right)] + [pane.tree.viewport() for pane in
+                (view.left, view.middle, view.right)])
+            if view.isVisible() and obj in expanded_sources:
+                # A Qt.Tool cascade can leave real keyboard focus in the panel.
+                # Its deeper rows must own arrows/Enter/Esc until dismissed.
+                column = self.visible_cascade_for_keyboard()
+                if column is not None and QApplication.activePopupWidget() is None:
+                    column.keyPressEvent(event)
+                    event.accept()
+                    return True
+            if self.expanded_focus_key(obj, event):
+                return True
+            if self.expanded_root_key(obj, event):
+                return True
+            if obj is self.tabs and self.expanded_tab_key(event):
+                return True
+            for panel in (self.expanded_view.left, self.expanded_view.middle,
+                          self.expanded_view.right):
+                if obj in (panel.tree, panel.tree.viewport()) and self.expanded_tree_key(obj, event):
+                    return True
         # Legacy mouse-event test stubs reuse this method without a full UI.
         if getattr(self, 'handle_history_event', None) and self.handle_history_event(obj, event):
             return True

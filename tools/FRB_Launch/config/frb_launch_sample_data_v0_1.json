@@ -10,19 +10,19 @@
   "pages": [
     {
       "page_id": "work",
-      "title": "仕事",
+      "title": "💼 仕事",
       "sort_order": 10,
       "enabled": true
     },
     {
       "page_id": "frb",
-      "title": "FRB実験",
+      "title": "🎣 FRB実験",
       "sort_order": 30,
       "enabled": true
     },
     {
       "page_id": "windows",
-      "title": "Windows",
+      "title": "🪟 Windows",
       "sort_order": 20,
       "enabled": true
     }
