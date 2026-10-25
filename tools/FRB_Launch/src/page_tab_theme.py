@@ -13,17 +13,19 @@ QTabBar {
     outline: none;
 }
 QTabBar::tab {
-    background: #263532;
+    /* Idle sits one subtle step below hover, not lost in the dark header. */
+    background: #304340;
     color: #afbdc9;
-    border: 1px solid #263532;
-    border-bottom: 2px solid #263532;
+    border: 1px solid #42595b;
+    border-bottom: 2px solid #42595b;
     border-radius: 7px;
     margin-right: 5px;
     padding: 4px 15px;
     min-height: 23px;
 }
 QTabBar::tab:hover:!selected {
-    background: #334746;
+    /* Only a very small color lift on pointer hover. */
+    background: #344746;
     color: #eef5f7;
     border-color: #465e61;
     border-bottom-color: #465e61;

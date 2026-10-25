@@ -25,6 +25,7 @@ from pathlib import Path
 from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
+from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
 
 
 def header_icon(kind, theme):
@@ -532,6 +533,7 @@ class ExpandedLauncherView(QWidget):
         self._wheel_root_id = None
         self._wheel_root_delta = 0
         self._wheel_files_delta = 0
+        self._wheel_bookmark_delta = 0
         self.files_root = None
         self.bookmarks_root = None
         self.path = []
@@ -658,6 +660,11 @@ class ExpandedLauncherView(QWidget):
         self.files_splitter.setChildrenCollapsible(False)
         group_layout.addWidget(self.files_splitter, 1)
         self.right = ExpandedPanel('ブックマーク', 'bookmark')
+        # Bookmarks first level is also a wheel-driven selector.  Only the
+        # tree/viewport are hooked: scrollbar dragging and deeper tool
+        # columns continue to use their original native behavior.
+        self.right.tree.installEventFilter(self)
+        self.right.tree.viewport().installEventFilter(self)
         self.splitter.addWidget(self.files_group)
         self.splitter.addWidget(self.right)
         self.splitter.setChildrenCollapsible(False)
@@ -706,24 +713,31 @@ class ExpandedLauncherView(QWidget):
         self.apply_theme(self.launcher.color_theme)
 
     def apply_theme(self, theme):
-        light = theme == 'light'
+        colors = theme_palette(theme)
+        light = theme_family(theme) == 'light'
         bg, border, hdr, text, hover, active, stripe = (
-            ('#fcfffd', '#bbd8c7', '#eaf6ec', '#233e32', '#ecf7f1', '#d7ece1', '#e7f3ed')
-            if light else
-            ('#222e2c', '#4b6660', '#344a42', '#e6f0eb', '#344d47', '#416457', '#32433e'))
+            colors[key] for key in ('panel', 'panel_border', 'panel_header',
+                                   'text', 'hover', 'selection', 'stripe'))
+        root_border = colors['root_button_border']
         tight = self.row_density == 'compact'
         height, pad = (23, 1) if tight else (29, 3)
         self.density_button.setText('')
-        self.density_button.setIcon(density_lines_icon(theme))
+        self.density_button.setIcon(density_lines_icon(theme_family(theme)))
         self.density_button.setToolTip('行間隔：コンパクト（クリックで切替）' if not tight
                                        else '行間隔：標準（クリックで切替）')
         for pane in (self.left, self.middle, self.right):
-            pane.tree.separator_color = QColor('#eaf0eb' if light else '#455851')
+            pane.tree.separator_color = QColor(colors['row_separator'])
+            pane.tree.inactive_current_border = QColor(colors['focus_outline'])
+            for bar in (pane.tree.verticalScrollBar(), pane.tree.horizontalScrollBar()):
+                bar.setStyleSheet(scrollbar_for_theme(theme, bg))
             pane.tree.viewport().update()
+        for bar in (self.favorite_choices.verticalScrollBar(),
+                    self.favorite_choices.horizontalScrollBar()):
+            bar.setStyleSheet(scrollbar_for_theme(theme, colors['history_bg']))
         self.setStyleSheet(f'''
             QWidget#expandedRootBar {{ background:transparent; }}
             QScrollArea#expandedRootScroller {{ background:transparent;border:0; }}
-            QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {border};
+            QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
                 border-radius:9px;padding:6px 10px;text-align:left;font-size:12px; }}
             QPushButton#expandedRootButton:hover {{background:{hover};}}
             QPushButton#expandedRootButton:checked {{background:{active};border:1px solid #81bca4;font-weight:600;}}
@@ -758,13 +772,9 @@ class ExpandedLauncherView(QWidget):
                 border-bottom:2px solid #167f72;border-radius:17px;padding:3px 5px;selection-background-color:#138c8d;
                 selection-color:white;}}
         ''')
-        self.favorite_popup.setStyleSheet(f'''
-            QFrame#expandedFavoritesPopup {{background:{bg};border:1px solid {border};border-radius:8px;}}
-            QTreeWidget#expandedFavoritesChoices {{background:{bg};color:{text};border:0;outline:0;}}
-            QTreeWidget#expandedFavoritesChoices::item {{height:30px;padding:2px 5px;}}
-            QTreeWidget#expandedFavoritesChoices::item:selected {{background:{active};color:{text};}}
-            QTreeWidget#expandedFavoritesChoices::item:hover {{background:{hover};}}
-        ''')
+        self.favorite_popup.setStyleSheet(history_popup_qss(
+            theme, frame_name='expandedFavoritesPopup',
+            tree_name='expandedFavoritesChoices', height=30, padding=5))
         self.favorite_save.setStyleSheet(f'''
             QToolButton#expandedFavoriteSave {{color:{text};background:transparent;border:0;
                 border-radius:6px;padding:0;font-size:14px;}}
@@ -775,15 +785,15 @@ class ExpandedLauncherView(QWidget):
                 border-radius:5px;padding:0;}}
             QToolButton#expandedFavoriteDropdown:hover {{background:{hover};}}
         ''')
-        self.favorite_dropdown.setIcon(combo_chevron_icon(theme))
+        self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
-        self.shared_icon.setPixmap(header_icon('folder', theme).pixmap(28, 28))
+        self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
         if self.bookmarks_root is not None:
             for index, root in enumerate(self.root_rows):
                 if root.get('item_id') == self.bookmarks_root.get('item_id'):
-                    self.root_buttons[index].setIcon(header_icon('bookmark', theme))
+                    self.root_buttons[index].setIcon(header_icon('bookmark', theme_family(theme)))
         for pane in (self.left, self.middle, self.right):
-            pane.back.setIcon(browser_navigation_icon('back', theme))
+            pane.back.setIcon(browser_navigation_icon('back', theme_family(theme)))
             pane.tree.verticalScrollBar().setSingleStep(26 if tight else 35)
             pane.row_height = 27 if tight else 37
             for row_index in range(pane.tree.topLevelItemCount()):
@@ -791,8 +801,14 @@ class ExpandedLauncherView(QWidget):
                 for column in (0, 1):
                     item.setSizeHint(column, QSize(0, pane.row_height))
             pane._theme = theme
+            if pane.kind == 'bookmark':
+                for i in range(pane.tree.topLevelItemCount()):
+                    item = pane.tree.topLevelItem(i)
+                    row = item.data(0, Qt.ItemDataRole.UserRole)
+                    if row and row.get('item_kind') not in ('category', 'directory'):
+                        item.setIcon(0, link_icon(theme_family(theme)))
             # Ribbon appears visually larger than Files' green folder at 28px.
-            pane.icon_label.setPixmap(header_icon(pane.kind, theme).pixmap(
+            pane.icon_label.setPixmap(header_icon(pane.kind, theme_family(theme)).pixmap(
                 24 if pane.kind == 'bookmark' else 28,
                 24 if pane.kind == 'bookmark' else 28))
 
@@ -819,6 +835,7 @@ class ExpandedLauncherView(QWidget):
             if self._wheel_root_id not in {row.get('item_id') for row in visible_roots}:
                 self._wheel_root_id = None
             self._wheel_root_delta = 0
+            self._wheel_bookmark_delta = 0
             while self.root_layout.count():
                 item = self.root_layout.takeAt(0)
                 if item.widget():
@@ -1136,6 +1153,11 @@ class ExpandedLauncherView(QWidget):
             if self.wheel_files_first_column(event):
                 event.accept()
                 return True
+        if (event.type() == QEvent.Type.Wheel and self.isVisible()
+                and obj in (self.right.tree, self.right.tree.viewport())):
+            if self.wheel_bookmarks_first_level(event):
+                event.accept()
+                return True
         if (self.isVisible() and self.root_buttons
                 and obj in (self.root_widget, self.toolbar_scroller.viewport(),
                             self.toolbar_scroller)
@@ -1195,6 +1217,55 @@ class ExpandedLauncherView(QWidget):
         row = self.row_data(item)
         if row and row.get('item_kind') in ('category', 'directory'):
             self.choose_files(item, 0)
+        return True
+
+    def wheel_bookmarks_first_level(self, event):
+        """Wheel through top-level bookmarks; scrollbar drag stays available.
+
+        This right-hand QTreeWidget contains *only* first-level rows.  Child
+        categories open in separate existing cascade columns, whose native
+        scrolling is unaffected.  One 120-unit notch moves one item; tiny
+        precision touchpad deltas accumulate.  No URL or command is run.
+        """
+        tree = self.right.tree
+        count = tree.topLevelItemCount()
+        if not count:
+            return False
+        # Never let modifiers accidentally restore scroll inside this pane.
+        # For bulk scrolling the user can drag the native scrollbar thumb.
+        if event.modifiers() != Qt.KeyboardModifier.NoModifier:
+            return True
+        angle = event.angleDelta().y()
+        delta = angle if angle else event.pixelDelta().y() * 3
+        if not delta:
+            return True
+        self._wheel_bookmark_delta += delta
+        steps = int(abs(self._wheel_bookmark_delta) // 120)
+        if not steps:
+            return True
+        direction = -1 if self._wheel_bookmark_delta > 0 else 1
+        self._wheel_bookmark_delta -= (1 if self._wheel_bookmark_delta > 0 else -1) * steps * 120
+        current = tree.currentItem()
+        index = tree.indexOfTopLevelItem(current) if current is not None else -1
+        if index < 0:
+            index = 0
+        target = root_wheel_target(index, direction * steps, count)
+        if target is None or target == index:
+            return True  # Stop at both ends; no scroll and no repeated popup.
+        item = tree.topLevelItem(target)
+        tree.setCurrentItem(item)
+        tree.scrollToItem(item)  # Auto-follow beyond the visible rows.
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        row = self.row_data(item)
+        if row and row.get('item_kind') in ('category', 'directory'):
+            # Preview a folder using the original cascade; never execute it.
+            self.choose_bookmark(item, 0)
+            # The cascade is a non-grabbing Qt.Tool window. Keep the outline
+            # and subsequent wheel navigation anchored to the bookmarks pane.
+            tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        else:
+            # Leaving a folder for a URL should dismiss its stale preview.
+            self.launcher.close_cascade_for_main_interaction()
         return True
 
     def wheel_first_level(self, event, source):

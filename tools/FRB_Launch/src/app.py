@@ -11,7 +11,7 @@ from ctypes import wintypes
 import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
+from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
@@ -36,7 +36,8 @@ import browser_bookmarks
 import file_index
 from frame_geometry import resize_frame
 from page_tab_theme import PAGE_TABS_QSS
-from launch_appearance import (normalize_theme, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
+from launch_appearance import (normalize_theme, theme_palette, theme_family, available_themes,
+    context_menu_spacing_qss, history_popup_qss, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
     LIGHT_HISTORY_QSS, LIGHT_MENU_QSS, LIGHT_CASCADE_TREE_QSS,
     LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss, CONTEXT_MENU_SPACING_QSS)
 from page_tab_focus import FocusPageTabBar
@@ -1668,7 +1669,7 @@ class Launcher(QWidget):
         self.search_glyph.setObjectName('searchGlyph')
         self.search_glyph.setFixedSize(32, 32)
         self.search_glyph.setIconSize(QSize(28, 28))
-        self.search_glyph.setIcon(toolbar_outline_icon('search', self.color_theme))
+        self.search_glyph.setIcon(toolbar_outline_icon('search', theme_family(self.color_theme)))
         self.search_glyph.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.search_glyph.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.search_glyph.setToolTip('全Pageから検索')
@@ -1709,9 +1710,10 @@ class Launcher(QWidget):
         self.theme_button.setObjectName('headerSettingsButton')
         self.theme_button.setFixedSize(36, 36)
         self.theme_button.setIconSize(QSize(26, 26))
-        self.theme_button.setToolTip('Studioくんでメニュー設定を開く')
+        self.theme_button.setToolTip('表示テーマを切り替え／Studioくんで設定')
         self.theme_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.theme_button.clicked.connect(lambda checked=False: self.launch_configuration_studio(page_properties=True))
+        self.theme_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.theme_button.clicked.connect(self.open_theme_menu)
         search_row.addWidget(self.theme_button)
 
         self.header_divider = QFrame(self.search_bar)
@@ -1768,12 +1770,24 @@ class Launcher(QWidget):
         self.save_history_button.clicked.connect(lambda checked=False: self.remember_search())
         self.layout_search_inner_controls()
         self.theme_menu = QMenu(self)
-        self.light_theme_action = self.theme_menu.addAction('ライトモード')
-        self.dark_theme_action = self.theme_menu.addAction('ダークモード')
-        for action in (self.light_theme_action, self.dark_theme_action):
+        heading = self.theme_menu.addAction('外観テーマ')
+        heading.setEnabled(False)
+        self.theme_action_group = QActionGroup(self)
+        self.theme_action_group.setExclusive(True)
+        self.theme_actions = {}
+        # Adding a new registered theme also creates its menu entry.
+        for theme_id in available_themes():
+            action = self.theme_menu.addAction(theme_palette(theme_id)['label'])
             action.setCheckable(True)
-        self.light_theme_action.triggered.connect(lambda checked=False: self.set_color_theme('light'))
-        self.dark_theme_action.triggered.connect(lambda checked=False: self.set_color_theme('dark'))
+            self.theme_action_group.addAction(action)
+            action.triggered.connect(lambda checked=False, key=theme_id: self.set_color_theme(key))
+            self.theme_actions[theme_id] = action
+        self.light_theme_action = self.theme_actions['light']
+        self.dark_theme_action = self.theme_actions['dark']
+        self.theme_menu.addSeparator()
+        self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
+        self.theme_studio_action.triggered.connect(
+            lambda checked=False: self.launch_configuration_studio(page_properties=True))
         self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
         # Non-grabbing folder columns sometimes leave native keyboard focus on
         # the Page tabs; it must still be possible to start an IME composition.
@@ -1852,11 +1866,7 @@ class Launcher(QWidget):
         # focus handoff, which is important for this frameless Tool launcher.
         self.history_popup = QFrame(self)
         self.history_popup.setObjectName('historyPopup')
-        self._dark_history_qss = '''QFrame#historyPopup{background:#223043;border:1px solid #58718c;border-radius:7px;}
-            QTreeWidget#historyChoices{background:#223043;color:#e8f1fa;border:0;outline:0;}
-            QTreeWidget#historyChoices::item{height:31px;padding:2px 6px;}
-            QTreeWidget#historyChoices::item:selected{background:#365778;color:#ffffff;}
-            QTreeWidget#historyChoices::item:hover{background:#344b63;}'''
+        self._dark_history_qss = history_popup_qss('dark')
         history_layout = QVBoxLayout(self.history_popup)
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
         self.history_choices = ReorderablePopupTree(self.history_popup)
@@ -2050,20 +2060,28 @@ class Launcher(QWidget):
         self.search_glyph.raise_()
 
     def update_header_icons(self):
-        self.search_glyph.setIcon(toolbar_outline_icon('search', self.color_theme))
+        self.search_glyph.setIcon(toolbar_outline_icon('search', theme_family(self.color_theme)))
         self.theme_button.setText('')
-        self.theme_button.setIcon(toolbar_outline_icon('settings', self.color_theme))
+        self.theme_button.setIcon(toolbar_outline_icon('settings', theme_family(self.color_theme)))
         icon_name = 'restore' if self.windowState() & Qt.WindowState.WindowMaximized else 'maximize'
-        self.maximize_button.setIcon(toolbar_outline_icon(icon_name, self.color_theme))
-        self.close_button.setIcon(toolbar_outline_icon('close', self.color_theme))
+        self.maximize_button.setIcon(toolbar_outline_icon(icon_name, theme_family(self.color_theme)))
+        self.close_button.setIcon(toolbar_outline_icon('close', theme_family(self.color_theme)))
 
     def open_theme_menu(self):
         """Only visual appearance changes; never write to Launch DataJSON."""
         self.close_cascade_for_main_interaction()
         self.hide_history_popup()
-        self.light_theme_action.setChecked(self.color_theme == 'light')
-        self.dark_theme_action.setChecked(self.color_theme == 'dark')
-        position = self.theme_button.mapToGlobal(QPoint(0, self.theme_button.height() + 3))
+        for theme_id, action in self.theme_actions.items():
+            action.setChecked(self.color_theme == theme_id)
+        # The menu opens below the cog, aligned to its right edge.  Clamp it
+        # inside the current monitor, even if the launcher is near the edge.
+        width = self.theme_menu.sizeHint().width()
+        position = self.theme_button.mapToGlobal(
+            QPoint(self.theme_button.width() - width, self.theme_button.height() + 3))
+        screen = self.theme_button.screen() or QApplication.primaryScreen()
+        if screen is not None:
+            area = screen.availableGeometry()
+            position.setX(max(area.left(), min(position.x(), area.right() - width + 1)))
         self.theme_menu.popup(position)
 
     def set_color_theme(self, theme):
@@ -2079,8 +2097,9 @@ class Launcher(QWidget):
 
     def style_cascade_menu(self, menu):
         """Match both normal and long scrollable child menus to main palette."""
-        if self.color_theme != 'light':
-            return  # The existing dark popup appearance remains intact.
+        if theme_family(self.color_theme) != 'light':
+            menu.setStyleSheet('')  # Drop any prior light QSS after switching dark.
+            return
         menu.setStyleSheet(LIGHT_MENU_QSS)
         tree = getattr(menu, 'scroll_tree', None)
         if tree is not None:
@@ -2099,11 +2118,12 @@ class Launcher(QWidget):
 
     def update_history_chevron(self):
         """Search/folder-history glyphs share their shape and alignment."""
-        self.history_action.setIcon(combo_chevron_icon(self.color_theme, offset_x=-1))
+        self.history_action.setIcon(combo_chevron_icon(theme_family(self.color_theme), offset_x=-1))
 
     def apply_color_theme(self):
         """Restyle existing widgets without rebuilding search results or pages."""
-        light = self.color_theme == 'light'
+        light = theme_family(self.color_theme) == 'light'
+        colors = theme_palette(self.color_theme)
         self.setStyleSheet(LIGHT_MAIN_QSS if light else self._dark_main_qss)
         self.expanded_view.apply_theme(self.color_theme)
         palette = (('#aac9b6','#e0f1e7','#275943','#cbe7d8') if light
@@ -2114,8 +2134,8 @@ class Launcher(QWidget):
             'QPushButton#expandedModeButton:hover {background:%s;}' % palette)
         self.mode_button.setIcon(view_mode_icon(
             'classic' if self.view_mode == 'expanded' else 'expanded',
-            self.color_theme))
-        self.list.set_row_theme(self.color_theme)
+            theme_family(self.color_theme)))
+        self.list.set_row_theme(theme_family(self.color_theme))
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
         self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
@@ -2129,20 +2149,19 @@ class Launcher(QWidget):
         self.brand_icon_label.setStyleSheet('QLabel#brandIconLabel { background:transparent; border:0; }')
         self.brand_title_label.setStyleSheet('QLabel#brandTitleLabel { background:transparent;color:%s;font-size:18px;font-weight:600;border:0; }'
                                              % ('#20362f' if light else '#eef4ef'))
-        header_fill = '#dbe7df' if light else '#263532'
-        subheader_fill = '#f8fcfa' if light else '#263a35'
+        header_fill = colors['header']
+        subheader_fill = colors['subheader']
         header_line = '#cfddd4' if light else '#455a54'
         self.main_body.setStyleSheet('QWidget#mainBody { background:transparent; border:0; }')
         self.search_bar.setStyleSheet(
             f'QWidget#searchBar {{ background:{header_fill}; border:0; border-bottom:1px solid {header_line}; }}')
         self.search.setStyleSheet(
-            ('QLineEdit#mainSearchField { background:#ffffff; color:#2b433a; border:1px solid #8fb29f; '
-             'border-radius:17px; padding:5px 14px; font-size:15px; } '
-             'QLineEdit#mainSearchField:focus { border-color:#6e9f8b; }')
-            if light else
-            ('QLineEdit#mainSearchField { background:#1a2422; color:#e8f2eb; border:1px solid #5d7b71; '
-             'border-radius:17px; padding:5px 14px; font-size:15px; } '
-             'QLineEdit#mainSearchField:focus { border-color:#88b4a1; }'))
+            'QLineEdit#mainSearchField { '
+            f'background:{colors["search_bg"]};color:{colors["search_fg"]};'
+            f'border:1px solid {colors["search_border"]};'
+            'border-radius:17px;padding:5px 14px;font-size:15px; } '
+            'QLineEdit#mainSearchField:focus { '
+            f'border-color:{colors["search_focus"]}; }}')
         self.search_glyph.setStyleSheet(
             'QToolButton#searchGlyph { background:transparent; border:0; padding:0; }')
         header_hover = '#e4eee8' if light else '#334744'
@@ -2172,7 +2191,7 @@ class Launcher(QWidget):
         for button, name in (
                 (self.nav_back_button, 'back'),
                 (self.nav_home_button, 'home')):
-            button.setIcon(browser_navigation_icon(name, self.color_theme))
+            button.setIcon(browser_navigation_icon(name, theme_family(self.color_theme)))
         nav_hover = '#dbe6e0' if light else '#354b50'
         nav_pressed = '#cbdad4' if light else '#496168'
         nav_border = '#c8ddd1' if light else '#405650'
@@ -2303,7 +2322,7 @@ class Launcher(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         outer = QRectF(self.rect()).adjusted(.5, .5, -.5, -.5)
         gradient = QLinearGradient(0, 0, 0, self.FRAME_TOP)
-        top, bottom, outer_line, inner_line, fill, content_line, fine_line, _ = FRAME_COLORS[self.color_theme]
+        top, bottom, outer_line, inner_line, fill, content_line, fine_line, _ = FRAME_COLORS[theme_family(self.color_theme)]
         gradient.setColorAt(0, QColor(top))
         gradient.setColorAt(1, QColor(bottom))
         painter.setBrush(gradient)
@@ -5102,9 +5121,9 @@ class Launcher(QWidget):
                 self._launch_context_menu = menu
                 menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
                 if getattr(self, 'color_theme', 'dark') == 'light':
-                    menu.setStyleSheet(LIGHT_MENU_QSS + CONTEXT_MENU_SPACING_QSS)
+                    menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
                 elif hasattr(menu, 'setStyleSheet'):
-                    menu.setStyleSheet(CONTEXT_MENU_SPACING_QSS)
+                    menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
                 menu.popup(global_pos)
                 return True
             try:
@@ -5147,9 +5166,9 @@ class Launcher(QWidget):
         if hasattr(menu, 'aboutToHide'):
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         if getattr(self, 'color_theme', 'dark') == 'light':
-            menu.setStyleSheet(LIGHT_MENU_QSS + CONTEXT_MENU_SPACING_QSS)
+            menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
         elif origin in ('file', 'folder') and hasattr(menu, 'setStyleSheet'):
-            menu.setStyleSheet(CONTEXT_MENU_SPACING_QSS)
+            menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
         menu.popup(global_pos)
         return True
 

@@ -137,6 +137,6 @@ def test_event_filter_only_hooks_files_first_column():
     assert 'self.wheel_files_first_column(event)' in source
     assert 'self.choose_files(item, 0)' in source
     assert 'tree.scrollToItem(item)' in source
-    # No eventFilter installed on the middle and bookmark columns by the view.
+    # Middle stays native.  Right bookmarks now have their own wheel selector.
     assert 'self.middle.tree.viewport().installEventFilter(self)' not in source
-    assert 'self.right.tree.viewport().installEventFilter(self)' not in source
+    assert 'self.right.tree.viewport().installEventFilter(self)' in source

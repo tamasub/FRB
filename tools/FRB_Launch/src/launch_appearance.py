@@ -6,8 +6,85 @@ stay unchanged.  Keep the original dark theme as the default.
 
 
 def normalize_theme(value):
-    return 'light' if str(value).strip().lower() == 'light' else 'dark'
+    key = str(value).strip().lower()
+    return key if key in THEME_REGISTRY else 'dark'
 
+
+
+# Central theme catalog.  Display names, base family, and semantic colors live
+# together so a new scheme can be registered without changing the gear menu or
+# three-layer widget.  The original compact dark palette is intentionally kept.
+THEME_REGISTRY = {
+    'light': {
+        'label': 'Light（ライト）', 'family': 'light',
+        'window': '#edf5f0', 'header': '#dbe7df', 'subheader': '#f8fcfa',
+        'panel': '#fcfffd', 'panel_border': '#bbd8c7', 'panel_header': '#eaf6ec',
+        'text': '#233e32', 'muted_text': '#607a6d', 'hover': '#ecf7f1',
+        'selection': '#d7ece1', 'stripe': '#e7f3ed',
+        'focus_outline': '#8fc7ab', 'row_separator': '#eaf0eb',
+        'root_button_border': '#bbd8c7',
+        'history_bg': '#ffffff', 'history_border': '#acc9ba',
+        'history_text': '#284338', 'history_selected': '#d6e7f8',
+        'history_selected_text': '#1d3b4b', 'history_hover': '#e4eee8',
+        'search_bg': '#ffffff', 'search_fg': '#2b433a',
+        'search_border': '#8fb29f', 'search_focus': '#6e9f8b',
+    },
+    'dark': {
+        'label': 'Dark（ダーク）', 'family': 'dark',
+        'window': '#202b29', 'header': '#263532', 'subheader': '#263a35',
+        'panel': '#222e2c', 'panel_border': '#4b6660', 'panel_header': '#344a42',
+        'text': '#e6f0eb', 'muted_text': '#a2b9ae', 'hover': '#344d47',
+        'selection': '#416457', 'stripe': '#32433e',
+        'focus_outline': '#86bea7', 'row_separator': '#455851',
+        'root_button_border': '#698779',
+        'history_bg': '#223043', 'history_border': '#58718c',
+        'history_text': '#e8f1fa', 'history_selected': '#365778',
+        'history_selected_text': '#ffffff', 'history_hover': '#344b63',
+        'search_bg': '#1a2422', 'search_fg': '#e8f2eb',
+        'search_border': '#5d7b71', 'search_focus': '#88b4a1',
+    },
+}
+
+
+def theme_palette(theme):
+    """Shared semantic palette for header, compact view and three-layer UI."""
+    return THEME_REGISTRY[normalize_theme(theme)]
+
+
+def theme_family(theme):
+    """Legacy QSS/icon family (light/dark), even for future named schemes."""
+    return theme_palette(theme)['family']
+
+
+def available_themes():
+    """Ordered IDs for automatically populated theme menus."""
+    return tuple(THEME_REGISTRY)
+
+
+def history_popup_qss(theme, *, frame_name='historyPopup',
+                      tree_name='historyChoices', height=31, padding=6):
+    """Shared search-history / folder-favorites popup colors.
+
+    The widget names and row geometry may differ, but the background and
+    selection colors always come from the *same theme tokens*.
+    """
+    colors = theme_palette(theme)
+    return (
+        f'QFrame#{frame_name} {{background:{colors["history_bg"]};'
+        f'border:1px solid {colors["history_border"]};border-radius:7px;}} '
+        f'QTreeWidget#{tree_name} {{background:{colors["history_bg"]};'
+        f'color:{colors["history_text"]};border:0;outline:0;}} '
+        f'QTreeWidget#{tree_name}::item {{height:{height}px;padding:2px {padding}px;}} '
+        f'QTreeWidget#{tree_name}::item:selected {{background:{colors["history_selected"]};'
+        f'color:{colors["history_selected_text"]};}} '
+        f'QTreeWidget#{tree_name}::item:hover {{background:{colors["history_hover"]};}}'
+    )
+
+
+def context_menu_spacing_qss(theme):
+    """Keep quiet separators readable in both color schemes."""
+    color = '#e1e5e2' if theme_family(theme) == 'light' else '#4b5b56'
+    return CONTEXT_MENU_SPACING_QSS.replace('#e1e5e2', color)
 
 # Based on the pastel green/white FRB Studio compact-light appearance.
 LIGHT_MAIN_QSS = '''
@@ -115,6 +192,16 @@ def light_scrollbar_qss(background='#ffffff'):
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
     QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }
     ''' % (background, background)
+
+def scrollbar_for_theme(theme, background):
+    """Unified slim scrollbar for three-layer files, bookmarks and popups."""
+    style = light_scrollbar_qss(background)
+    if theme_family(theme) == 'light':
+        return style
+    return (style.replace('#a5bfb0', '#607c71')
+                 .replace('#76a593', '#8db3a4')
+                 .replace('#548a72', '#abcbbd'))
+
 
 # Context menu row icons should sit near their labels, with just a small left inset.
 CONTEXT_MENU_SPACING_QSS = """

@@ -26,7 +26,8 @@ def test_apply_theme_stylesheets_evaluate_at_runtime_without_nameerror():
     for scheme in ('light', 'dark'):
         values = dict(
             bg='#fcfffd' if scheme == 'light' else '#222e2c',
-            border='#bbd8c7', hdr='#eaf6ec', text='#233e32',
+            border='#bbd8c7', root_border='#bbd8c7' if scheme == 'light' else '#698779',
+            hdr='#eaf6ec', text='#233e32',
             hover='#ecf7f1', active='#d7ece1', stripe='#e7f3ed',
             height=29, pad=3)
         sheets = []

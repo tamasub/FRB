@@ -57,7 +57,9 @@ class FocusPageTabBar(QTabBar):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.setBrush(QColor(0, 0, 0, 0))
-        painter.setPen(QPen(QColor('#82958c' if getattr(self, '_light_theme', False) else '#d2e6ff'), 1.8))
+        # Slim the dark keyboard-focus stroke; keep the original light theme.
+        focus_width = 1.8 if getattr(self, '_light_theme', False) else 0.75
+        painter.setPen(QPen(QColor('#82958c' if getattr(self, '_light_theme', False) else '#d2e6ff'), focus_width))
         # QSS gives each tab a 5px right margin to separate Page buttons.
         # QTabBar.tabRect() includes that reserved gap, so drawing directly
         # against its right edge makes the focus outline stick out past the
