@@ -113,7 +113,7 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
 
     def wheelEvent(self, event):
         if (not self.adaptive_compact_wheel or
-                getattr(self.launcher, 'view_mode', None) != 'classic'):
+                getattr(self.launcher, 'view_mode', None) not in ('classic', 'expanded')):
             return super().wheelEvent(event)
         bar = self.verticalScrollBar()
         before = bar.value()

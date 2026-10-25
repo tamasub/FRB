@@ -4693,7 +4693,10 @@ class Launcher(QWidget):
         values. The optional no-scroll arguments preserve the legacy menu
         selection entry point for existing callers/tests.
         """
-        if (self.view_mode != 'classic' or not self.list.isVisible()
+        if (self.view_mode not in ('classic', 'expanded') or not self.list.isVisible()
+                or (self.view_mode == 'expanded' and
+                    (getattr(self, 'expanded_view', None) is None or
+                     self.expanded_view.isVisible()))
                 or event.modifiers() != Qt.KeyboardModifier.NoModifier):
             return False
         angle = event.angleDelta().y()
@@ -4792,7 +4795,7 @@ class Launcher(QWidget):
             return
         item, original_pos = pending
         tree = self.list
-        if (self.view_mode != 'classic' or not tree.isVisible()
+        if (self.view_mode not in ('classic', 'expanded') or not tree.isVisible()
                 or tree.currentItem() is not item
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
             return
@@ -4830,6 +4833,13 @@ class Launcher(QWidget):
         return True
 
     def eventFilter(self,obj,event):
+        # The middle viewport is already filtered here for keyboard/navigation.
+        # Handle its invisible Back hit areas before Qt sends itemClicked,
+        # without installing competing wheel filters on the same viewport.
+        view = getattr(self, 'expanded_view', None)
+        if (view is not None and view.isVisible() and
+                view.handle_middle_back_double_click(obj, event)):
+            return True
         if self.focus_first_page_from_header_space(obj, event):
             return True
         # Compact WAN needs the native scroll result first. ReorderTree.wheelEvent

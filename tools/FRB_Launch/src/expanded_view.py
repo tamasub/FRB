@@ -27,7 +27,11 @@ from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from wheel_adaptive import wheel_steps, can_follow_at_edge
+from wheel_edge_hold import EdgeWheelHold
 from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
+
+
+MIDDLE_BACK_LANE_WIDTH = 24  # Invisible double-click-to-back strip after the chevron.
 
 
 def header_icon(kind, theme):
@@ -79,11 +83,15 @@ def header_icon(kind, theme):
 class _NavigationChevronDelegate(QStyledItemDelegate):
     """Quiet, small chevron with an intentional right-side inset."""
 
+    def __init__(self, parent=None, right_inset=20):
+        super().__init__(parent)
+        self.right_inset = right_inset
+
     def paint(self, painter, option, index):
         super().paint(painter, option, index)
         if not index.data(Qt.ItemDataRole.UserRole):
             return
-        center_x = option.rect.right() - 20  # sample: visible 18 px right gap
+        center_x = option.rect.right() - self.right_inset  # leave the middle Back lane clear
         center_y = option.rect.center().y()
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -562,6 +570,8 @@ class ExpandedLauncherView(QWidget):
         self._middle_follow_pending = None
         self._middle_follow_scheduled = False
         self._middle_warp_global = None
+        self._middle_back_hold = EdgeWheelHold()
+        self._middle_back_warp_pending = None
         self._bookmark_follow_pending = None
         self._bookmark_follow_scheduled = False
         self._bookmark_warp_global = None
@@ -669,6 +679,11 @@ class ExpandedLauncherView(QWidget):
         QApplication.instance().installEventFilter(self)
         self.left = ExpandedPanel('Files', 'folder')
         self.middle = ExpandedPanel('フォルダー', 'folder')
+        # Widen only the middle column's trailing chevron cell. The last
+        # 24 px are a blank Back lane, not part of any row activation target.
+        self.middle.tree.setColumnWidth(1, 40 + MIDDLE_BACK_LANE_WIDTH)
+        self.middle.tree.setItemDelegateForColumn(
+            1, _NavigationChevronDelegate(self.middle.tree, right_inset=20 + MIDDLE_BACK_LANE_WIDTH))
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -950,6 +965,8 @@ class ExpandedLauncherView(QWidget):
             self._refreshing = False
 
     def refresh_middle(self):
+        self._middle_back_hold.reset()
+        self._middle_back_warp_pending = None
         current = self.path[-1] if self.path else None
         self.middle.label.setText(current['title'] if current else 'フォルダーを選択')
         self.address_bar.set_directory(
@@ -1169,7 +1186,45 @@ class ExpandedLauncherView(QWidget):
         self.focus_panel(self.middle)
         return True
 
+    def middle_back_lane_at(self, point):
+        """Rightmost empty strip of the middle *viewport* (not the scrollbar)."""
+        viewport = self.middle.tree.viewport()
+        return (viewport.rect().contains(point) and
+                point.x() >= viewport.width() - MIDDLE_BACK_LANE_WIDTH)
+
+    def middle_blank_back_at(self, point):
+        """Only below/between items: real rows remain standard click targets."""
+        viewport = self.middle.tree.viewport()
+        return (viewport.rect().contains(point) and
+                self.middle.tree.itemAt(point) is None)
+
+    def handle_middle_back_double_click(self, obj, event):
+        """Double-click blank lower area or invisible right lane = existing Back."""
+        if (getattr(self, 'middle', None) is None or
+                obj is not self.middle.tree.viewport() or not self.isVisible() or
+                event.type() not in (QEvent.Type.MouseButtonPress,
+                                     QEvent.Type.MouseButtonRelease,
+                                     QEvent.Type.MouseButtonDblClick) or
+                event.button() != Qt.MouseButton.LeftButton or
+                event.modifiers() != Qt.KeyboardModifier.NoModifier):
+            return False
+        point = event.position().toPoint()
+        lane = self.middle_back_lane_at(point)
+        if event.type() == QEvent.Type.MouseButtonDblClick:
+            if lane or self.middle_blank_back_at(point):
+                self.go_up()
+                event.accept()
+                return True
+        if lane:
+            # Block the first click as well: it must not open or rename an
+            # actual folder beneath the invisible Back strip.
+            event.accept()
+            return True
+        return False
+
     def eventFilter(self, obj, event):
+        if self.handle_middle_back_double_click(obj, event):
+            return True
         if (getattr(self, 'left', None) is not None and
                 obj is self.left.tree.viewport() and
                 event.type() == QEvent.Type.MouseMove and
@@ -1280,20 +1335,27 @@ class ExpandedLauncherView(QWidget):
         No click, folder preview/expansion, activation, or file operations.
         Keep Ctrl/Shift wheel and active inline editors unchanged.
         """
+        hold = getattr(self, '_middle_back_hold', None)
         if (not self.isVisible() or
                 event.modifiers() != Qt.KeyboardModifier.NoModifier or
                 QApplication.mouseButtons() != Qt.MouseButton.NoButton or
                 self.middle.tree.state() == QAbstractItemView.State.EditingState):
             self._wheel_middle_delta = 0
+            if hold is not None:
+                hold.reset()
             return False
         tree = self.middle.tree
         if not tree.topLevelItemCount():
             self._wheel_middle_delta = 0
+            if hold is not None:
+                hold.reset()
             return False
         # Any real scroll is Target Flow: keep the OS cursor where it is.
         if scroll_before != scroll_after:
             self._wheel_middle_delta = 0
             self._middle_follow_pending = None
+            if hold is not None:
+                hold.reset()
             return False
         angle = event.angleDelta().y()
         pixels = event.pixelDelta().y()
@@ -1305,10 +1367,14 @@ class ExpandedLauncherView(QWidget):
         if not can_follow_at_edge(scroll_before, scroll_after,
                                   scrollbar.minimum(), scrollbar.maximum(), movement):
             self._wheel_middle_delta = 0
+            if hold is not None:
+                hold.reset()
             return False
         viewport = tree.viewport()
         cursor_local = viewport.mapFromGlobal(QCursor.pos())
         if not viewport.rect().contains(cursor_local):
+            if hold is not None:
+                hold.reset()
             return False
         # Anchor to the *item under the mouse*, not a stale keyboard current
         # item. It can differ after many normal wheel scroll events.
@@ -1320,6 +1386,14 @@ class ExpandedLauncherView(QWidget):
         if index < 0:
             return True
         target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        # Count only extra upward input AFTER the first row has become current.
+        # The last wheel event used to *reach* row 0 is never counted.
+        at_first = (index == 0 and movement < 0 and
+                    tree.currentItem() is tree.topLevelItem(0) and
+                    cursor_local.y() >= 0)
+        if hold is not None and hold.feed(at_first, abs(movement)):
+            self.schedule_middle_back_pointer(cursor_global=QCursor.pos())
+            return True
         if target is None or target == index:
             return True  # Stop at first/last file; no wrap and no warp.
         item = tree.topLevelItem(target)
@@ -1367,6 +1441,27 @@ class ExpandedLauncherView(QWidget):
             return
         self._middle_warp_global = (destination.x(), destination.y())
         QCursor.setPos(destination)
+
+    def schedule_middle_back_pointer(self, cursor_global):
+        # Warp to Back without clicking, only if the pointer has not moved.
+        self._middle_back_warp_pending = cursor_global
+        QTimer.singleShot(0, self.follow_middle_back_pointer)
+
+    def follow_middle_back_pointer(self):
+        original = self._middle_back_warp_pending
+        self._middle_back_warp_pending = None
+        if (original is None or not self.isVisible()
+                or not self.middle.back.isVisible() or not self.middle.back.isEnabled()
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton
+                or QCursor.pos() != original):
+            return
+        viewport = self.middle.tree.viewport()
+        if not viewport.rect().contains(viewport.mapFromGlobal(original)):
+            return
+        button = self.middle.back
+        destination = button.mapToGlobal(button.rect().center())
+        if destination != original:
+            QCursor.setPos(destination)  # Never synthesize a click or Back action.
 
     def sync_first_files_hover_from_cursor(self):
         """In Target Flow, preview the folder that came beneath the cursor."""
