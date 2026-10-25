@@ -12,7 +12,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
@@ -5629,15 +5629,30 @@ class Launcher(QWidget):
                 raise ValueError('Downloads直下のZIPだけが対象です')
             options = read_git_commit_options(GIT_COMMIT_OPTIONS)
             preview = git_commit_preview(options)
-            dialog = QInputDialog(self)
+            # QInputDialog#setMinimumWidth only widened the outer dialog on
+            # some Windows Qt styles: the actual QLineEdit stayed ~150px.
+            # Give the editor its OWN minimum width in a normal QDialog.
+            dialog = QDialog(self)
             dialog.setWindowTitle('Gitコミットメッセージ')
-            dialog.setLabelText('選択ZIPのファイル名（編集できます）:')
-            dialog.setInputMode(QInputDialog.InputMode.TextInput)
-            dialog.setTextValue(Path(zip_path).name)
-            # Keep long Git ZIP filenames legible without horizontal panning.
-            dialog.setMinimumWidth(680)  # Approximately twice the old default.
+            form = QVBoxLayout(dialog)
+            form.setContentsMargins(14, 12, 14, 12)
+            form.setSpacing(8)
+            form.addWidget(QLabel('選択ZIPのファイル名（編集できます）:', dialog))
+            message_editor = QLineEdit(dialog)
+            message_editor.setText(Path(zip_path).name)
+            message_editor.setMinimumWidth(510)  # The real text input, not its frame.
+            message_editor.selectAll()
+            form.addWidget(message_editor)
+            actions = QDialogButtonBox(
+                QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+                dialog)
+            actions.accepted.connect(dialog.accept)
+            actions.rejected.connect(dialog.reject)
+            form.addWidget(actions)
+            dialog.setMinimumWidth(680)
+            dialog.resize(720, dialog.sizeHint().height())
             accepted = dialog.exec() == QDialog.DialogCode.Accepted
-            message = dialog.textValue()
+            message = message_editor.text()
             if not accepted:
                 return
             if not message.strip():

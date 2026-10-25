@@ -66,7 +66,8 @@ def test_shared_cooldown_and_no_legacy_layout_behavior_change():
 def test_git_text_field_doubled_and_bookmark_popup_only():
     commit = method_source(APP, 'Launcher', 'git_commit_using_filename')
     assert 'dialog.setMinimumWidth(680)' in commit
-    assert 'dialog.setTextValue(Path(zip_path).name)' in commit
+    assert 'message_editor.setText(Path(zip_path).name)' in commit
+    assert 'message_editor.setMinimumWidth(510)' in commit
     open_cascade = method_source(APP, 'Launcher', 'open_expanded_cascade')
     assert 'widget is view.right.tree' in open_cascade
     assert 'bookmark_compact_width = True' in open_cascade

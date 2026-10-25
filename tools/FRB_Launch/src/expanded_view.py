@@ -559,6 +559,8 @@ class ExpandedLauncherView(QWidget):
         self.root_buttons = []
         self._wheel_root_id = None
         self._wheel_root_delta = 0
+        self._wheel_back_delta = 0
+        self._reverse_zone_entry = False
         self._wheel_files_delta = 0
         self._files_first_wan_enabled = True
         self._files_edge_follow_active = False
@@ -713,6 +715,9 @@ class ExpandedLauncherView(QWidget):
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
+        # The header Back button is an explicit, non-scrolling Wheel Tab zone.
+        # Never synthesize its click; a sustained UP gesture goes to Files last.
+        self.middle.back.installEventFilter(self)
         # WAN for Files first column: native scrolling first, then select and
         # follow at the relevant edge (also when all rows fit on screen).
         # The older wheel_files_first_column remains as a safe rollback path.
@@ -726,6 +731,9 @@ class ExpandedLauncherView(QWidget):
         self.middle.back.setParent(self.shared_header)
         shared_layout.addWidget(self.middle.back)
         self.middle.back.show()
+        # Unlike mouse-only Back, Wheel Tab must visibly LAND with keyboard
+        # focus on this button. The other pane Back buttons stay unchanged.
+        self.middle.back.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         group_layout.addWidget(self.shared_header)
         self.files_splitter = QSplitter(Qt.Orientation.Horizontal, self.files_group)
         self.files_splitter.setObjectName('expandedFilesSplitter')
@@ -1293,49 +1301,72 @@ class ExpandedLauncherView(QWidget):
         if obj in (self.root_widget, self.toolbar_scroller,
                    self.toolbar_scroller.viewport()) or obj in self.root_buttons:
             return True
+        if (getattr(self, 'middle', None) is not None and
+                obj is self.middle.back):
+            return True
         for pane in (getattr(self, 'left', None), getattr(self, 'middle', None),
                      getattr(self, 'right', None)):
             if pane is not None and obj in (pane.tree, pane.tree.viewport()):
                 return True
         return False
 
-    def zone_jump(self, target):
-        """Move focus and cursor, never click/activate a command or directory."""
+    def zone_jump(self, target, position='first'):
+        """Move focus and cursor to a zone endpoint; never activate an item.
+
+        The reverse route enters at the LAST row/button. Forward navigation
+        still enters at the FIRST. Back is a separate focusable header button.
+        """
         source = QCursor.pos()
+        last = position == 'last'
         if target == 'pages':
             tabs = self.launcher.tabs
             if tabs.count():
-                tabs.setCurrentIndex(0)
+                tabs.setCurrentIndex(tabs.count() - 1 if last else 0)
                 tabs.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return
-            self._wheel_root_id = self.root_rows[0].get('item_id')
-            for index, button in enumerate(self.root_buttons):
-                button.setChecked(index == 0)
-            self.focus_root(index=0)
+            index = len(self.root_buttons) - 1 if last else 0
+            self._wheel_root_id = self.root_rows[index].get('item_id')
+            for i, button in enumerate(self.root_buttons):
+                button.setChecked(i == index)
+            self.focus_root(index=index)
+            self._reverse_zone_entry = last
+        elif target == 'back':
+            if not self.isVisible() or not self.middle.back.isEnabled():
+                return
+            self.middle.back.setFocus(Qt.FocusReason.TabFocusReason)
         else:
             pane = {'files': self.left, 'directory': self.middle,
                     'bookmarks': self.right}.get(target)
             if pane is None or not self.isVisible():
                 return
+            tree = pane.tree
+            if last and tree.topLevelItemCount():
+                tree.setCurrentItem(tree.topLevelItem(tree.topLevelItemCount() - 1))
             self.focus_panel(pane)
-        QTimer.singleShot(0, lambda dest=target, src=source:
-                          self._finish_zone_jump(dest, src))
+        QTimer.singleShot(0, lambda dest=target, src=source, end=position:
+                          self._finish_zone_jump(dest, src, end))
 
-    def _finish_zone_jump(self, target, source):
+    def _finish_zone_jump(self, target, source, position='first'):
         if (QApplication.mouseButtons() != Qt.MouseButton.NoButton or
                 QCursor.pos() != source or not self.launcher.isVisible()):
             return
+        last = position == 'last'
         if target == 'pages':
             tabs = self.launcher.tabs
             if not tabs.count() or not tabs.isVisible():
                 return
-            destination = tabs.mapToGlobal(tabs.tabRect(0).center())
+            destination = tabs.mapToGlobal(tabs.tabRect(tabs.count()-1 if last else 0).center())
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return
-            button = self.root_buttons[0]
+            button = self.root_buttons[-1 if last else 0]
+            destination = button.mapToGlobal(button.rect().center())
+        elif target == 'back':
+            button = self.middle.back
+            if not button.isVisible() or not button.isEnabled():
+                return
             destination = button.mapToGlobal(button.rect().center())
         else:
             pane = {'files': self.left, 'directory': self.middle,
@@ -1355,7 +1386,32 @@ class ExpandedLauncherView(QWidget):
                 max(4, min(rect.center().x(), viewport.width() - 12)),
                 rect.center().y()))
         if destination != source:
+            if target == 'files':
+                self._files_warp_global = (destination.x(), destination.y())
+            elif target == 'directory':
+                self._middle_warp_global = (destination.x(), destination.y())
+            elif target == 'bookmarks':
+                self._bookmark_warp_global = (destination.x(), destination.y())
             QCursor.setPos(destination)
+
+    def wheel_back_button(self, event):
+        """On the Back header, an extra sustained UP wheel enters Files last.
+
+        Back CLICK remains the only way to navigate up a directory.
+        """
+        if (not self.isVisible() or
+                event.modifiers() != Qt.KeyboardModifier.NoModifier or
+                QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            self._wheel_back_delta = 0
+            self.wheel_zone_navigation.reset('back-up')
+            return False
+        angle = event.angleDelta().y()
+        pixels = event.pixelDelta().y()
+        self._wheel_back_delta, movement = wheel_steps(self._wheel_back_delta, angle, pixels)
+        if movement:
+            if self.wheel_zone_navigation.feed('back-up', movement < 0, abs(movement)):
+                self.zone_jump('files', position='last')
+        return bool(angle or pixels)
 
     def jump_from_last_page(self):
         """The rightmost Page can enter the Work Page's second layer."""
@@ -1400,6 +1456,11 @@ class ExpandedLauncherView(QWidget):
                 self.wheel_zone_navigation.wheel_is_locked()):
             event.accept()
             return True  # Ignore momentum across an inter-area warp.
+        if (event.type() == QEvent.Type.Wheel and self.isVisible() and
+                obj is getattr(getattr(self, 'middle', None), 'back', None) and
+                self.wheel_back_button(event)):
+            event.accept()
+            return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible() and
                 self.wheel_directory_favorite_history(obj, event)):
             event.accept()
@@ -1534,6 +1595,7 @@ class ExpandedLauncherView(QWidget):
         # Any real scroll is Target Flow: keep the OS cursor where it is.
         if scroll_before != scroll_after:
             getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('directory-last')
+            getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('directory-first')
             self._wheel_middle_delta = 0
             self._middle_follow_pending = None
             if hold is not None:
@@ -1573,7 +1635,15 @@ class ExpandedLauncherView(QWidget):
         at_first = (index == 0 and movement < 0 and
                     tree.currentItem() is tree.topLevelItem(0) and
                     cursor_local.y() >= 0)
+        legacy_hold_fired = False
         if hold is not None and hold.feed(at_first, abs(movement)):
+            legacy_hold_fired = True
+        navigator = getattr(self, 'wheel_zone_navigation', None)
+        if (navigator is not None and
+                navigator.feed('directory-first', at_first, abs(movement))):
+            self.zone_jump('back')
+            return True
+        if navigator is None and legacy_hold_fired:
             self.schedule_middle_back_pointer(cursor_global=QCursor.pos())
             return True
         at_last = (index == tree.topLevelItemCount() - 1 and movement > 0
@@ -1683,6 +1753,7 @@ class ExpandedLauncherView(QWidget):
             return False
         if scroll_before != scroll_after:
             getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('files-last')
+            getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('files-first')
             self._files_edge_follow_active = False
             self._wheel_files_delta = 0
             self._files_follow_pending = None
@@ -1711,6 +1782,12 @@ class ExpandedLauncherView(QWidget):
         if index < 0:
             return True
         target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        at_first = (index == 0 and movement < 0 and
+                    tree.currentItem() is tree.topLevelItem(0))
+        if (getattr(self, 'wheel_zone_navigation', None) is not None and
+                self.wheel_zone_navigation.feed('files-first', at_first, abs(movement))):
+            self.zone_jump('roots', position='last')
+            return True
         at_last = (index == tree.topLevelItemCount() - 1 and movement > 0
                    and tree.currentItem() is tree.topLevelItem(index))
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
@@ -1886,6 +1963,7 @@ class ExpandedLauncherView(QWidget):
             return False
         if scroll_before != scroll_after:
             getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('bookmarks-last')
+            getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('bookmarks-first')
             self._bookmark_edge_follow_active = False
             # Target Flow: content flows beneath a stationary pointer. Hover
             # after the native scroll, not at the pre-scroll item position.
@@ -1919,6 +1997,12 @@ class ExpandedLauncherView(QWidget):
         if index < 0:
             return True
         target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        at_first = (index == 0 and movement < 0 and
+                    tree.currentItem() is tree.topLevelItem(0))
+        if (getattr(self, 'wheel_zone_navigation', None) is not None and
+                self.wheel_zone_navigation.feed('bookmarks-first', at_first, abs(movement))):
+            self.zone_jump('directory', position='last')
+            return True
         at_last = (index == tree.topLevelItemCount() - 1 and movement > 0
                    and tree.currentItem() is tree.topLevelItem(index))
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
@@ -1971,6 +2055,10 @@ class ExpandedLauncherView(QWidget):
         # destination, even if the user disables the Hybrid A/B experiment.
         at_last = index == count - 1 and direction > 0 and target == index
         navigation = getattr(self, 'wheel_zone_navigation', None)
+        at_first = index == 0 and direction < 0 and target == index
+        if navigation is not None and navigation.feed('bookmarks-first', at_first, steps):
+            self.zone_jump('directory', position='last')
+            return True
         if navigation is not None and navigation.feed('bookmarks-last', at_last, steps):
             self.zone_jump('pages')
             return True
@@ -2074,7 +2162,11 @@ class ExpandedLauncherView(QWidget):
         at_right = target == index == len(self.root_buttons) - 1 and direction > 0
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('roots-left', at_left, steps)):
-            self.zone_jump('pages')
+            if self._reverse_zone_entry:
+                self.zone_jump('pages', position='last')
+                self._reverse_zone_entry = False
+            else:
+                self.zone_jump('pages')
             return True
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('roots-right', at_right, steps)):
