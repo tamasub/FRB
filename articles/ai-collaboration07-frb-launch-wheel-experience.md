@@ -205,7 +205,7 @@ FRB Launchでは、メニューのデータをJSONに置き、Viewと分離し�
 
 ![alt text](/images/ai-collaboration07-frb-launch-wheel-experience/image-4.png)
 
-- アプリ検索も名称できます。
+- アプリも名称で検索できます。別途別名を登録しておけば、別名で検索もできます。
  
 ![alt text](/images/ai-collaboration07-frb-launch-wheel-experience/image-5.png)
 
@@ -221,6 +221,10 @@ FRB Launchでは、メニューのデータをJSONに置き、Viewと分離し�
 - チャレンジ案件として、スピーカーの切り替えもできるようにしてもらいました💦
 ![alt text](/images/ai-collaboration07-frb-launch-wheel-experience/image-9.png)
 
+- 検索には　OR検索もサポートしてもらいました
+
+![alt text](/images/ai-collaboration07-frb-launch-wheel-experience/image-10.png)
+  
 ---
 
 追伸：
