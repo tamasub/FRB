@@ -5265,6 +5265,10 @@ class Launcher(QWidget):
         action.setIcon(context_action_icon('paste'))
         action.setIconVisibleInMenu(True)
         action.setEnabled(self._context_paste_enabled(self))
+        # Explorer-like New shares the blank-area context menu with Paste.
+        # The separate right-side Back lane uses the same submenu builder.
+        menu.addSeparator()
+        self.expanded_view.add_lane_new_submenu(menu)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
                            + CONTEXT_MENU_SPACING_QSS)
         self._launch_context_menu = menu

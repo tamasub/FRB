@@ -6,7 +6,7 @@ All rows/actions are supplied by Launcher and use its existing menu data.
 from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
-    QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView, QInputDialog,
+    QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
     QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QStyleOptionViewItem, QStyle)
 
 from file_drag import ExternalFileDragTree
@@ -1492,22 +1492,14 @@ class ExpandedLauncherView(QWidget):
                 self.zone_jump('files', position='last')
         return bool(angle or pixels)
 
-    def show_lane_new_menu(self, global_pos):
-        """Explorer-style New > submenu on the independent right Back lane.
+    def add_lane_new_submenu(self, menu):
+        """Populate a real Explorer-style New submenu on a supplied menu.
 
-        The Back gesture stays left-double-click.  Registry-only formats are
-        disabled until their actual ShellNew creation handler is implemented.
+        Used by both the independent right Back lane and the existing blank
+        area Paste context menu, so their creation options stay identical.
         """
-        target = self.current_directory()
-        if not target or not Path(target).is_dir():
-            self.launcher.error('新規作成できるフォルダーが選択されていません')
-            return
-        # Preserve dark/light context-menu styling and icons.
         from context_menu_icons import context_action_icon
         from launch_appearance import context_menu_spacing_qss, LIGHT_MENU_QSS
-        menu = QMenu(self.launcher)
-        menu.setObjectName('expandedNewContextMenu')
-        menu.setToolTipsVisible(True)
         submenu = menu.addMenu('新規作成')
         submenu.setToolTipsVisible(True)
         submenu.setObjectName('expandedNewFileSubmenu')
@@ -1541,9 +1533,22 @@ class ExpandedLauncherView(QWidget):
                 action.setToolTip(f'Windows登録: ShellNew ({creation_kind})。この形式の作成は未対応です')
                 action.setEnabled(False)
         palette = (LIGHT_MENU_QSS if self.launcher.color_theme == 'light' else '') + context_menu_spacing_qss(self.launcher.color_theme)
-        menu.setStyleSheet(palette)
         submenu.setStyleSheet(palette)
-        # Keep a reference during async popup lifetime (as other context menus do).
+        return submenu
+
+    def show_lane_new_menu(self, global_pos):
+        """Right-click the independent Back lane: New > file types."""
+        target = self.current_directory()
+        if not target or not Path(target).is_dir():
+            self.launcher.error('新規作成できるフォルダーが選択されていません')
+            return
+        from launch_appearance import context_menu_spacing_qss, LIGHT_MENU_QSS
+        menu = QMenu(self.launcher)
+        menu.setObjectName('expandedNewContextMenu')
+        menu.setToolTipsVisible(True)
+        self.add_lane_new_submenu(menu)
+        menu.setStyleSheet((LIGHT_MENU_QSS if self.launcher.color_theme == 'light' else '')
+                           + context_menu_spacing_qss(self.launcher.color_theme))
         self._lane_new_menu = menu
         self.launcher._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self.launcher._forget_launch_context_menu(m))
@@ -1554,50 +1559,49 @@ class ExpandedLauncherView(QWidget):
         self._lane_new_menu = None
 
     def create_from_lane(self, kind):
-        """Ask for a name before creating anything; never execute on menu hover."""
+        """Explorer behavior: create FIRST, then edit its filename in the grid.
+
+        Escape cancels the rename, NOT the creation.  The freshly created
+        folder/file stays on disk (just like Windows Explorer).  Selecting
+        another row simply commits/closes the built-in inline editor.
+        """
         current = self.current_directory()
         if not current or not Path(current).is_dir():
             self.launcher.error('作成先フォルダーが見つかりません')
             return
         defaults = {
-            'folder': ('新しいフォルダー', '', 'フォルダー'),
-            'txt': ('新しいテキスト ドキュメント', '.txt', 'テキスト ドキュメント'),
-            'md': ('新しいMarkdown文書', '.md', 'Markdown 文書'),
+            'folder': ('新しいフォルダー', ''),
+            'txt': ('新しいテキスト ドキュメント', '.txt'),
+            'md': ('新しいMarkdown文書', '.md'),
         }
         if kind not in defaults:
             self.launcher.error('未対応の新規作成形式です')
             return
-        base, suffix, title = defaults[kind]
+        base, suffix = defaults[kind]
         try:
-            initial = suggest_name(current, base, suffix)
-        except OSError as exc:
-            self.launcher.error('新規作成の準備に失敗しました: ' + str(exc))
-            return
-        launcher = self.launcher
-        launcher._filesystem_dialog_depth = getattr(launcher, '_filesystem_dialog_depth', 0) + 1
-        try:
-            name, ok = QInputDialog.getText(launcher, f'{title} の新規作成',
-                                            '名前を入力してください:', text=initial)
-        finally:
-            QTimer.singleShot(650, launcher._finish_batch_delete_guard)
-        if not ok:
-            return
-        try:
+            # No dialog: create a collision-free real filesystem object.
+            name = suggest_name(current, base, suffix)
             created = create_new_item(current, name, kind)
         except (OSError, ValueError) as exc:
-            launcher.error('新規作成できませんでした: ' + str(exc))
+            self.launcher.error('新規作成できませんでした: ' + str(exc))
             return
         self.refresh_middle()
-        # Highlight the newly-created item without automatically opening it.
         tree = self.middle.tree
         for idx in range(tree.topLevelItemCount()):
             item = tree.topLevelItem(idx)
             row = self.row_data(item)
             if row and row.get('title') == created.name:
+                tree.clearSelection()
                 tree.setCurrentItem(item)
+                item.setSelected(True)
                 tree.scrollToItem(item)
-                break
-        launcher.footer.setText(f'新規作成しました: {created.name}')
+                # Editing is queued until the QMenu is fully dismissed, to
+                # avoid Qt.Tool focus loss closing the editor immediately.
+                self.begin_context_inline_rename(item)
+                self.launcher.footer.setText(f'新規作成しました: {created.name}')
+                return
+        # Do not leave the user thinking a successful creation was lost.
+        self.launcher.error('作成しましたが、一覧で選択できませんでした: ' + created.name)
 
     def handle_middle_back_double_click(self, obj, event):
         """Double-click blank lower area or invisible right lane = existing Back."""
@@ -2538,6 +2542,8 @@ class ExpandedLauncherView(QWidget):
             # With no header Paste button, an empty folder must still be
             # pasteable via right-click on its empty middle pane.
             if pane is self.middle and self.current_directory():
+                # The lower blank area is both Back (double click) and
+                # Paste + New (right click). Keep the existing Paste contract.
                 self.launcher.show_expanded_background_paste_menu(
                     pane.tree.viewport().mapToGlobal(point))
             return
