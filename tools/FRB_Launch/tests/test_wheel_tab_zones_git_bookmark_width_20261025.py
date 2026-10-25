@@ -22,17 +22,16 @@ def method_source(source, class_name, method_name):
 def test_horizontal_page_and_root_boundaries():
     tab = method_source(TABS, 'FocusPageTabBar', 'wheelEvent')
     root = method_source(VIEW, 'ExpandedLauncherView', 'wheel_first_level')
-    assert "controller.feed('pages-right'" in tab
-    assert "after == self.count() - 1" in tab
+    assert "controller.feed('pages-right'" not in tab
+    assert "_zone_right_jump" not in tab
     assert "'roots-left', at_left, steps" in root
     assert "'roots-right', at_right, steps" in root
-    assert "self.zone_jump('pages')" in root
+    assert "self.zone_jump('pages', position='current')" in root
     assert "self.zone_jump('files')" in root
     assert "'roots':" in method_source(VIEW, 'ExpandedLauncherView', 'zone_jump')
-    # Only Three-layer Work can display the second-layer toolbar.
-    page = method_source(VIEW, 'ExpandedLauncherView', 'jump_from_last_page')
-    assert 'self.launcher.view_mode' in page
-    assert "self.zone_jump('roots')" in page
+    # Page tabs remain terminal even at the right edge.
+    assert "jump_from_last_page" not in VIEW
+    assert "_zone_right_jump" not in APP
     assert '_zone_enabled' in APP and '_zone_enabled' in TABS
 
 

@@ -1874,7 +1874,6 @@ class Launcher(QWidget):
         self.expanded_view = ExpandedLauncherView(self)
         # Wheel Tab: share one cooldown across Page, toolbar and Files panels.
         self.tabs._zone_navigation = self.expanded_view.wheel_zone_navigation
-        self.tabs._zone_right_jump = self.expanded_view.jump_from_last_page
         self.tabs._zone_enabled = lambda: self.view_mode == 'expanded'
         self.expanded_view.hide()
         layout.addWidget(self.search_bar)
@@ -5640,7 +5639,7 @@ class Launcher(QWidget):
             form.addWidget(QLabel('選択ZIPのファイル名（編集できます）:', dialog))
             message_editor = QLineEdit(dialog)
             message_editor.setText(Path(zip_path).name)
-            message_editor.setMinimumWidth(510)  # The real text input, not its frame.
+            message_editor.setMinimumWidth(360)  # The real text input, not its frame.
             message_editor.selectAll()
             form.addWidget(message_editor)
             actions = QDialogButtonBox(
@@ -5649,8 +5648,8 @@ class Launcher(QWidget):
             actions.accepted.connect(dialog.accept)
             actions.rejected.connect(dialog.reject)
             form.addWidget(actions)
-            dialog.setMinimumWidth(680)
-            dialog.resize(720, dialog.sizeHint().height())
+            dialog.setMinimumWidth(480)
+            dialog.resize(500, dialog.sizeHint().height())
             accepted = dialog.exec() == QDialog.DialogCode.Accepted
             message = message_editor.text()
             if not accepted:

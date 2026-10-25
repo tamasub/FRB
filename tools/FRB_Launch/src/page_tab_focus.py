@@ -52,20 +52,8 @@ class FocusPageTabBar(QTabBar):
         before = self.currentIndex()
         super().wheelEvent(event)
         after = self.currentIndex()
-        if (controller is not None and self.isVisible() and self.count() > 0
-                and event.modifiers() == Qt.KeyboardModifier.NoModifier
-                and QApplication.mouseButtons() == Qt.MouseButton.NoButton):
-            delta = event.angleDelta().y()
-            if not delta:
-                delta = event.pixelDelta().y() * 3
-            if controller.feed('pages-right',
-                               bool(delta < 0 and before == after == self.count() - 1),
-                               abs(delta) / 120.0):
-                jump = getattr(self, '_zone_right_jump', None)
-                if callable(jump):
-                    jump()
-                event.accept()
-                return
+        # Page tabs are a terminal region: even a sustained wheel push past
+        # the rightmost Page stays on that Page.  No Wheel Tab to layer two.
         if (before == after or after < 0
                 or event.modifiers() != Qt.KeyboardModifier.NoModifier
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton):

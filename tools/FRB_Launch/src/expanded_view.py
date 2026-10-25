@@ -296,6 +296,8 @@ class DirectoryAddressBar(QStackedWidget):
         self.setCurrentWidget(self.surface)
         self._overlay_dropdown = None
         self._overlay_favorite = None
+        self._overlay_apply = None
+        self.editor.textChanged.connect(self._update_apply_visibility)
 
     def attach_history_dropdown(self, button):
         """Attach a search-style history chevron to the breadcrumb's own frame.
@@ -322,9 +324,32 @@ class DirectoryAddressBar(QStackedWidget):
         button.show()
         self._build_crumbs()
 
+    def attach_path_apply(self, button):
+        """Show a confirmation arrow left of the heart for a pending path."""
+        self._overlay_apply = button
+        button.setParent(self)
+        button.setFixedSize(25, 26)
+        button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._position_dropdown()
+        self._update_apply_visibility()
+
+    def _update_apply_visibility(self, _text=None):
+        """Never show the arrow for the folder that is already on screen."""
+        from directory_address import pending_directory_change
+        candidate = self.editor.text()
+        pending = (self.currentWidget() is self.editor and
+                   pending_directory_change(candidate, self.current_path))
+        if self._overlay_apply is not None:
+            self._overlay_apply.setVisible(pending)
+            self._overlay_apply.setToolTip(
+                f'このフォルダーを表示: {candidate}' if pending else 'このフォルダーを表示')
+        # Leave path text unobscured by the arrow / heart / dropdown overlays.
+        self.editor.setTextMargins(0, 0, 91 if pending else 60, 0)
+
     def _position_dropdown(self):
         combo = self._overlay_dropdown
         favorite = self._overlay_favorite
+        apply = self._overlay_apply
         if combo is not None:
             combo.move(max(0, self.width() - combo.width() - 4),
                        max(0, (self.height() - combo.height()) // 2))
@@ -333,6 +358,12 @@ class DirectoryAddressBar(QStackedWidget):
             favorite.move(max(0, combo_start - favorite.width() - 3),
                           max(0, (self.height() - favorite.height()) // 2))
             favorite.raise_()
+        if apply is not None:
+            left_edge = (favorite.x() if favorite is not None else
+                         combo.x() if combo is not None else self.width() - 30)
+            apply.move(max(0, left_edge - apply.width() - 3),
+                       max(0, (self.height() - apply.height()) // 2))
+            apply.raise_()
         if combo is not None:
             combo.raise_()
 
@@ -350,6 +381,7 @@ class DirectoryAddressBar(QStackedWidget):
         if self.currentWidget() is self.editor:
             self.show_breadcrumbs()
         self._build_crumbs()
+        self._update_apply_visibility()
         self.setToolTip(self.current_path or self._fallback_label)
 
     def begin_edit(self):
@@ -358,6 +390,7 @@ class DirectoryAddressBar(QStackedWidget):
         self.editor.setText(self.current_path)
         self.setCurrentWidget(self.editor)
         self._position_dropdown()
+        self._update_apply_visibility()
         self.editor.setFocus(Qt.FocusReason.MouseFocusReason)
         # Mouse event completion otherwise can reset QLineEdit's selection.
         QTimer.singleShot(0, self.editor.selectAll)
@@ -366,6 +399,7 @@ class DirectoryAddressBar(QStackedWidget):
         self.setCurrentWidget(self.surface)
         self._build_crumbs()
         self._position_dropdown()
+        self._update_apply_visibility()
 
     def _submit(self):
         target = normalized_directory(self.editor.text())
@@ -560,7 +594,6 @@ class ExpandedLauncherView(QWidget):
         self._wheel_root_id = None
         self._wheel_root_delta = 0
         self._wheel_back_delta = 0
-        self._reverse_zone_entry = False
         self._wheel_files_delta = 0
         self._files_first_wan_enabled = True
         self._files_edge_follow_active = False
@@ -664,6 +697,15 @@ class ExpandedLauncherView(QWidget):
         self.favorite_dropdown.clicked.connect(self.toggle_directory_favorites)
         self.address_bar.attach_history_dropdown(self.favorite_dropdown)
         self.address_bar.attach_favorite_save(self.favorite_save)
+        self.directory_apply = QToolButton(self.address_bar)
+        self.directory_apply.setObjectName('expandedDirectoryApply')
+        self.directory_apply.setText('➡️')
+        self.directory_apply.setToolTip('選択したパスのフォルダーを表示')
+        self.directory_apply.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.directory_apply.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        # Exactly the same navigation/validation contract as pressing Enter.
+        self.directory_apply.clicked.connect(self.address_bar._submit)
+        self.address_bar.attach_path_apply(self.directory_apply)
         self.favorite_popup = QFrame(self.launcher)
         self.favorite_popup.setObjectName('expandedFavoritesPopup')
         favorite_layout = QVBoxLayout(self.favorite_popup)
@@ -878,6 +920,11 @@ class ExpandedLauncherView(QWidget):
                 border-radius:5px;padding:0;}}
             QToolButton#expandedFavoriteDropdown:hover {{background:{hover};}}
         ''')
+        self.directory_apply.setStyleSheet(f'''
+            QToolButton#expandedDirectoryApply {{color:{text};background:{active};border:1px solid {border};
+                border-radius:6px;padding:0;font-size:15px;font-weight:600;}}
+            QToolButton#expandedDirectoryApply:hover {{background:{hover};border-color:#55a38c;}}
+        ''')
         self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
@@ -1084,7 +1131,8 @@ class ExpandedLauncherView(QWidget):
         in_address = (obj is bar or obj is bar.editor or obj is bar.surface or
                       (isinstance(obj, QWidget) and
                        bar.isAncestorOf(obj) and obj not in (
-                           self.favorite_save, self.favorite_dropdown)))
+                           self.favorite_save, self.favorite_dropdown,
+                           self.directory_apply)))
         in_popup = (self.favorite_popup.isVisible() and
                     (obj in (choices, choices.viewport()) or in_address))
         if not in_popup and not in_address:
@@ -1131,6 +1179,7 @@ class ExpandedLauncherView(QWidget):
         bar.editor.setText(paths[index])
         bar.setCurrentWidget(bar.editor)
         bar._position_dropdown()
+        bar._update_apply_visibility()
         bar.editor.setCursorPosition(len(paths[index]))
         bar.editor.setFocus(Qt.FocusReason.MouseFocusReason)
         return True
@@ -1310,19 +1359,46 @@ class ExpandedLauncherView(QWidget):
                 return True
         return False
 
+    def close_transients_for_zone_jump(self):
+        """Dismiss temporary overlays before a Wheel Tab leaves its region.
+
+        Keep the displayed directory, rows, breadcrumb, current Page, and
+        selection intact.  Only opened cascades and popups are transient.
+        This central entry point covers both forward and reverse routes.
+        """
+        self.cancel_bookmark_hover()
+        self.cancel_bookmark_pointer_follow()
+        if self.favorite_popup.isVisible():
+            self.hide_favorite_popup()
+        if self.launcher.history_popup.isVisible():
+            self.launcher.hide_history_popup()
+        self.launcher.close_cascade_for_main_interaction()
+        context_menu = getattr(self.launcher, '_launch_context_menu', None)
+        if context_menu is not None and context_menu.isVisible():
+            context_menu.close()
+
     def zone_jump(self, target, position='first'):
         """Move focus and cursor to a zone endpoint; never activate an item.
 
-        The reverse route enters at the LAST row/button. Forward navigation
-        still enters at the FIRST. Back is a separate focusable header button.
+        Reverse enters at the LAST row/button and forward at the FIRST.
+        'current' preserves the selected Page tab on return from layer two.
+        Back is a separate focusable header button.
         """
         source = QCursor.pos()
         last = position == 'last'
+        # Reject an unavailable destination *before* dismissing the opener.
+        if target == 'roots' and (not self.isVisible() or not self.root_buttons):
+            return
+        if target == 'back' and (not self.isVisible() or not self.middle.back.isEnabled()):
+            return
+        if target == 'pages' and not self.launcher.tabs.count():
+            return
+        self.close_transients_for_zone_jump()
         if target == 'pages':
             tabs = self.launcher.tabs
-            if tabs.count():
+            if position != 'current':
                 tabs.setCurrentIndex(tabs.count() - 1 if last else 0)
-                tabs.setFocus(Qt.FocusReason.TabFocusReason)
+            tabs.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return
@@ -1331,7 +1407,6 @@ class ExpandedLauncherView(QWidget):
             for i, button in enumerate(self.root_buttons):
                 button.setChecked(i == index)
             self.focus_root(index=index)
-            self._reverse_zone_entry = last
         elif target == 'back':
             if not self.isVisible() or not self.middle.back.isEnabled():
                 return
@@ -1357,7 +1432,10 @@ class ExpandedLauncherView(QWidget):
             tabs = self.launcher.tabs
             if not tabs.count() or not tabs.isVisible():
                 return
-            destination = tabs.mapToGlobal(tabs.tabRect(tabs.count()-1 if last else 0).center())
+            index = tabs.currentIndex() if position == 'current' else (tabs.count() - 1 if last else 0)
+            if index < 0:
+                return
+            destination = tabs.mapToGlobal(tabs.tabRect(index).center())
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return
@@ -1412,19 +1490,6 @@ class ExpandedLauncherView(QWidget):
             if self.wheel_zone_navigation.feed('back-up', movement < 0, abs(movement)):
                 self.zone_jump('files', position='last')
         return bool(angle or pixels)
-
-    def jump_from_last_page(self):
-        """The rightmost Page can enter the Work Page's second layer."""
-        if self.launcher.view_mode != 'expanded':
-            return
-        work = self.launcher.expanded_options.get('page_id')
-        index = next((i for i, p in enumerate(self.launcher.pages)
-                      if p.get('page_id') == work), None)
-        if index is None:
-            return
-        if self.launcher.tabs.currentIndex() != index:
-            self.launcher.tabs.setCurrentIndex(index)
-        QTimer.singleShot(0, lambda: self.zone_jump('roots'))
 
     def handle_middle_back_double_click(self, obj, event):
         """Double-click blank lower area or invisible right lane = existing Back."""
@@ -2158,15 +2223,12 @@ class ExpandedLauncherView(QWidget):
             return True
         # A sustained extra turn at either END of the root strip acts like a
         # deliberate Wheel Tab gesture; normal one-notch selection is unchanged.
+        # The left exit returns to the CURRENT Page, not a hardcoded endpoint.
         at_left = target == index == 0 and direction < 0
         at_right = target == index == len(self.root_buttons) - 1 and direction > 0
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('roots-left', at_left, steps)):
-            if self._reverse_zone_entry:
-                self.zone_jump('pages', position='last')
-                self._reverse_zone_entry = False
-            else:
-                self.zone_jump('pages')
+            self.zone_jump('pages', position='current')
             return True
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('roots-right', at_right, steps)):

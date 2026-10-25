@@ -22,8 +22,8 @@ def method_text(filename, cls, name):
 def test_backward_routes_include_last_endpoints_and_back_button():
     body = (SRC / 'expanded_view.py').read_text('utf8')
     first_roots = method_text('expanded_view.py', 'ExpandedLauncherView', 'wheel_first_level')
-    assert "self.zone_jump('pages', position='last')" in first_roots
-    assert 'self._reverse_zone_entry' in first_roots
+    assert "self.zone_jump('pages', position='current')" in first_roots
+    assert 'self._reverse_zone_entry' not in first_roots
     for method, edge, target in (
         ('wheel_bookmarks_at_edge', 'bookmarks-first', 'directory'),
         ('wheel_bookmarks_first_level', 'bookmarks-first', 'directory'),
@@ -46,11 +46,13 @@ def test_zone_jump_focus_and_pointer_for_last_destinations():
     code = method_text('expanded_view.py', 'ExpandedLauncherView', 'zone_jump')
     assert "position='first'" in code
     assert "tree.topLevelItem(tree.topLevelItemCount() - 1)" in code
+    assert "if position != 'current':" in code
     assert 'tabs.setCurrentIndex(tabs.count() - 1 if last else 0)' in code
     assert 'self.middle.back.setFocus' in code
     done = method_text('expanded_view.py', 'ExpandedLauncherView', '_finish_zone_jump')
     assert "button = self.middle.back" in done
-    assert "tabs.tabRect(tabs.count()-1 if last else 0).center()" in done
+    assert "tabs.currentIndex() if position == 'current'" in done
+    assert "tabs.tabRect(index).center()" in done
     assert 'QCursor.pos() != source' in done
     assert 'QCursor.setPos(destination)' in done
     assert 'self.middle.back.click(' not in done and 'go_up(' not in done

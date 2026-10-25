@@ -20,6 +20,20 @@ def normalized_directory(path):
     return text
 
 
+def pending_directory_change(candidate, displayed):
+    """Whether a candidate absolute path differs from the displayed folder.
+
+    Windows directory comparisons are case-insensitive. Relative and empty
+    entries are not actionable. In particular, an untouched current-path edit
+    must never display the confirmation arrow.
+    """
+    candidate = normalized_directory(candidate)
+    if not candidate:
+        return False
+    shown = normalized_directory(displayed)
+    return shown is None or ntpath.normcase(candidate) != ntpath.normcase(shown)
+
+
 def breadcrumb_segments(path):
     """Absolute ancestor segments; labels and targets are both real filesystem paths.
 
