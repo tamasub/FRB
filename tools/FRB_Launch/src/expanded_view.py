@@ -26,6 +26,7 @@ from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
+from wheel_adaptive import wheel_steps, can_follow_at_edge
 from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
 
 
@@ -164,6 +165,17 @@ class _SeparatedFileTree(ExternalFileDragTree):
         self.separator_inset = 12
         self.separator_width = 0.65
         self.inactive_current_border = QColor('#8fc7ab')
+        self.adaptive_wheel_callback = None  # Only enabled on Files middle pane.
+
+    def wheelEvent(self, event):
+        # Preserve native smooth scrolling first; only the actual change in
+        # scrollbar position may trigger WAN's cursor-follow fallback.
+        scrollbar = self.verticalScrollBar()
+        before = scrollbar.value()
+        super().wheelEvent(event)
+        callback = self.adaptive_wheel_callback
+        if callback is not None and callback(event, before, scrollbar.value()):
+            event.accept()
 
     def mousePressEvent(self, event):
         if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
@@ -535,6 +547,10 @@ class ExpandedLauncherView(QWidget):
         self._wheel_root_delta = 0
         self._wheel_files_delta = 0
         self._wheel_bookmark_delta = 0
+        self._wheel_middle_delta = 0
+        self._middle_follow_pending = None
+        self._middle_follow_scheduled = False
+        self._middle_warp_global = None
         self._bookmark_follow_pending = None
         self._bookmark_follow_scheduled = False
         self._bookmark_warp_global = None
@@ -645,6 +661,9 @@ class ExpandedLauncherView(QWidget):
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        # WAN: only this pane measures actual native scroll movement before
+        # using wheel steps to move the current row and the mouse cursor.
+        self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
         # Files' first column is a short navigation list: wheel = select and
         # preview in the middle. Other columns keep native wheel scrolling.
         self.left.tree.installEventFilter(self)
@@ -1126,6 +1145,16 @@ class ExpandedLauncherView(QWidget):
         return True
 
     def eventFilter(self, obj, event):
+        if (getattr(self, 'middle', None) is not None and
+                obj is self.middle.tree.viewport() and
+                event.type() == QEvent.Type.MouseMove and
+                self._middle_warp_global is not None):
+            position = event.globalPosition().toPoint()
+            warp = self._middle_warp_global
+            self._middle_warp_global = None
+            if is_warp_generated_mouse_move((position.x(), position.y()), warp):
+                event.accept()
+                return True
         if (getattr(self, 'right', None) is not None and
                 obj is self.right.tree.viewport() and
                 event.type() == QEvent.Type.MouseMove and
@@ -1199,6 +1228,100 @@ class ExpandedLauncherView(QWidget):
                 event.accept()
                 return True
         return super().eventFilter(obj, event)
+
+    def wheel_middle_at_edge(self, event, scroll_before, scroll_after):
+        """WAN fallback: native scroll first, cursor-follow at a real edge.
+
+        No click, folder preview/expansion, activation, or file operations.
+        Keep Ctrl/Shift wheel and active inline editors unchanged.
+        """
+        if (not self.isVisible() or
+                event.modifiers() != Qt.KeyboardModifier.NoModifier or
+                QApplication.mouseButtons() != Qt.MouseButton.NoButton or
+                self.middle.tree.state() == QAbstractItemView.State.EditingState):
+            self._wheel_middle_delta = 0
+            return False
+        tree = self.middle.tree
+        if not tree.topLevelItemCount():
+            self._wheel_middle_delta = 0
+            return False
+        # Any real scroll is Target Flow: keep the OS cursor where it is.
+        if scroll_before != scroll_after:
+            self._wheel_middle_delta = 0
+            self._middle_follow_pending = None
+            return False
+        angle = event.angleDelta().y()
+        pixels = event.pixelDelta().y()
+        pending, movement = wheel_steps(self._wheel_middle_delta, angle, pixels)
+        self._wheel_middle_delta = pending
+        if not movement:
+            return bool(angle or pixels)  # Incomplete high-res wheel step.
+        scrollbar = tree.verticalScrollBar()
+        if not can_follow_at_edge(scroll_before, scroll_after,
+                                  scrollbar.minimum(), scrollbar.maximum(), movement):
+            self._wheel_middle_delta = 0
+            return False
+        viewport = tree.viewport()
+        cursor_local = viewport.mapFromGlobal(QCursor.pos())
+        if not viewport.rect().contains(cursor_local):
+            return False
+        # Anchor to the *item under the mouse*, not a stale keyboard current
+        # item. It can differ after many normal wheel scroll events.
+        hovered = tree.itemAt(cursor_local)
+        current = hovered if hovered is not None else tree.currentItem()
+        if current is None:
+            return True
+        index = tree.indexOfTopLevelItem(current)
+        if index < 0:
+            return True
+        target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        if target is None or target == index:
+            return True  # Stop at first/last file; no wrap and no warp.
+        item = tree.topLevelItem(target)
+        # A wheel step is navigation, not a filesystem operation.  Do not
+        # invoke choose_middle(), activate_row(), or itemClicked handlers.
+        # Wheel navigation should visibly mark the current row. Preserve an
+        # existing Ctrl/Shift multi-selection rather than silently discarding
+        # the user's file selection while browsing.
+        preserve_multi = len(tree.selectedItems()) > 1
+        if not preserve_multi:
+            tree.clearSelection()
+        tree.setCurrentItem(item)
+        if not preserve_multi:
+            item.setSelected(True)
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        self._middle_follow_pending = item
+        if not self._middle_follow_scheduled:
+            self._middle_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_middle_pointer)
+        return True
+
+    def follow_middle_pointer(self):
+        """Move vertically onto the newly current visible file row."""
+        self._middle_follow_scheduled = False
+        item = self._middle_follow_pending
+        self._middle_follow_pending = None
+        tree = self.middle.tree
+        if (item is None or not self.isVisible() or not tree.isVisible()
+                or tree.currentItem() is not item
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        viewport = tree.viewport()
+        position = QCursor.pos()
+        local = viewport.mapFromGlobal(position)
+        if not viewport.rect().contains(local):
+            return  # User has already moved elsewhere.
+        bounds = tree.visualItemRect(item)
+        target = cursor_target((viewport.width(), viewport.height()),
+                               (bounds.left(), bounds.top(), bounds.width(), bounds.height()),
+                               local.x())
+        if target is None:
+            return
+        destination = viewport.mapToGlobal(QPoint(*target))
+        if destination == position:
+            return
+        self._middle_warp_global = (destination.x(), destination.y())
+        QCursor.setPos(destination)
 
     def wheel_files_first_column(self, event):
         """Browse first-column folders by wheel without scrolling other panes.
