@@ -115,3 +115,10 @@ def light_scrollbar_qss(background='#ffffff'):
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
     QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background:transparent; }
     ''' % (background, background)
+
+# Context menu row icons should sit near their labels, with just a small left inset.
+CONTEXT_MENU_SPACING_QSS = """
+QMenu::item { padding:7px 9px 7px 5px; }
+QMenu::icon { margin-left:4px; margin-right:1px; }
+QMenu::separator { height:1px; background:#e1e5e2; margin:5px 3px; }
+"""

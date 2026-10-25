@@ -146,7 +146,11 @@ def test_left_arrow_first_column_resets_to_first_row_not_files_root():
 
 
 def test_expanded_paste_button_and_reduced_density_icon():
-    assert "self.paste_button = QPushButton('貼り付け', self.shared_header)" in VIEW
-    assert "QApplication.clipboard().dataChanged.connect(self.update_paste_button)" in VIEW
+    assert "self.paste_button = QPushButton('貼り付け', self.shared_header)" not in VIEW
+    assert 'show_expanded_background_paste_menu' in VIEW
     assert "self.density_button.setIconSize(QSize(22, 22))" in VIEW
-    assert "QTreeWidget#expandedTree::item:selected:!active {{background:{active}" in VIEW
+    # When focus is in another pane, the current row must show an outline,
+    # not the old permanently-filled selection background.
+    assert "QTreeWidget#expandedTree::item:selected:!active {{background:transparent;" in VIEW
+    assert 'QStyle.StateFlag.State_Selected' in VIEW
+    assert 'painter.drawRoundedRect(rect, 6.5, 6.5)' in VIEW

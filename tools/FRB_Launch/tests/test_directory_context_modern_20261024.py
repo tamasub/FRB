@@ -123,11 +123,11 @@ def test_menu_icons_attached_without_changing_json_routing():
     config = SRC.parent.parent / 'config' / 'context_menu_options.json'
     actions = load_context_menus(config)
     for kind in ('file', 'folder'):
-        assert [x['action_id'] for x in actions[kind]][:3] == ['copy', 'cut', 'delete']
+        assert [x['action_id'] for x in actions[kind] if 'action_id' in x][:3] == ['copy', 'cut', 'paste']
     menu_fn = next(x for c in TREE.body if isinstance(c, ast.ClassDef) and c.name == 'Launcher'
                    for x in c.body if isinstance(x, ast.FunctionDef) and x.name == 'show_launch_context_menu')
     snippet = ast.get_source_segment(TEXT, menu_fn)
-    assert "action.setIcon(context_action_icon(definition['action_id']))" in snippet
+    assert "action.setIcon(context_action_icon(action_id))" in snippet
     assert "props.setIcon(context_action_icon('properties'))" in snippet
 
 

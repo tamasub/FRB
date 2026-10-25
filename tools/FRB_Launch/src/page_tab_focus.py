@@ -6,7 +6,7 @@ QTabBar selection/navigation, then paint a thin inner outline only when the
 bar actually owns focus.  The outline is *not* the selected-page marker.
 """
 
-from PySide6.QtCore import QRectF
+from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QTabBar
 
@@ -18,6 +18,22 @@ class FocusPageTabBar(QTabBar):
         """Make keyboard focus visible over either Page-tab palette."""
         self._light_theme = bool(light)
         self.update()
+
+    def mousePressEvent(self, event):
+        """A left click on unused Page-tab space focuses the first tab.
+
+        QTabBar is expanded to fill the header row; QTabBar's built-in
+        mouse handler does not select a tab when tabAt() returns -1.
+        Leave clicks on real tabs (and right/middle clicks) to Qt.
+        """
+        if (event.button() == Qt.MouseButton.LeftButton
+                and self.count() > 0
+                and self.tabAt(event.position().toPoint()) == -1):
+            self.setCurrentIndex(0)
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
+            event.accept()
+            return
+        super().mousePressEvent(event)
 
     def focusInEvent(self, event):
         super().focusInEvent(event)

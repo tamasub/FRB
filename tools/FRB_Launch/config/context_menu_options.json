@@ -11,8 +11,11 @@
         "title": "切り取り"
       },
       {
-        "action_id": "delete",
-        "title": "削除（ごみ箱へ）"
+        "action_id": "paste",
+        "title": "貼り付け"
+      },
+      {
+        "type": "separator"
       },
       {
         "action_id": "copy_full_path",
@@ -23,24 +26,46 @@
         "title": "ファイル名のコピー"
       },
       {
+        "type": "separator"
+      },
+      {
         "action_id": "open_parent_folder",
         "title": "フォルダーを開く"
       },
       {
-        "action_id": "run_with_pause",
-        "title": "Pause付きで実行"
+        "type": "separator"
       },
       {
         "action_id": "open_parent_terminal",
         "title": "フォルダーをターミナルで開く"
       },
       {
+        "type": "separator"
+      },
+      {
+        "action_id": "delete",
+        "title": "削除（ごみ箱へ）"
+      },
+      {
+        "type": "separator"
+      },
+      {
         "action_id": "rename",
         "title": "名前の変更"
       },
       {
+        "type": "separator"
+      },
+      {
+        "action_id": "run_with_pause",
+        "title": "Pause付きで実行"
+      },
+      {
         "action_id": "git_commit_from_zip",
         "title": "ファイル名を使ってGitコミット"
+      },
+      {
+        "type": "separator"
       },
       {
         "action_id": "properties",
@@ -57,8 +82,11 @@
         "title": "切り取り"
       },
       {
-        "action_id": "delete",
-        "title": "削除（ごみ箱へ）"
+        "action_id": "paste",
+        "title": "貼り付け"
+      },
+      {
+        "type": "separator"
       },
       {
         "action_id": "open_explorer",
@@ -73,8 +101,21 @@
         "title": "パスのコピー"
       },
       {
+        "type": "separator"
+      },
+      {
+        "action_id": "delete",
+        "title": "削除（ごみ箱へ）"
+      },
+      {
+        "type": "separator"
+      },
+      {
         "action_id": "rename",
         "title": "名前の変更"
+      },
+      {
+        "type": "separator"
       },
       {
         "action_id": "properties",

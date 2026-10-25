@@ -79,11 +79,12 @@ class SearchHistoryUITests(test_navigation.NavigationTests if test_navigation el
             y = view.visualItemRect(row).center().y()
             QTest.mouseClick(view.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(x,y))
             self.app.processEvents()
-        click(1, 1)  # FRB*.md -> up
+        # Drag-drop reports a new row order; verify callback and persistence.
+        self.w.history_choices.orderChanged.emit(['FRB*.md', '*.ps1', 'make'])
         self.assertEqual(self.w.search_history.keywords[:2], ['FRB*.md', '*.ps1'])
-        click(0, 2)  # FRB*.md -> down
+        self.w.history_choices.orderChanged.emit(['*.ps1', 'FRB*.md', 'make'])
         self.assertEqual(self.w.search_history.keywords[:2], ['*.ps1', 'FRB*.md'])
-        click(0, 3)  # delete *.ps1
+        click(0, 1)  # delete *.ps1; only two columns remain
         self.assertEqual(self.w.search_history.keywords, ['FRB*.md', 'make'])
         self.assertEqual(type(self.w.search_history)(self.w.search_history.path).keywords,
                          self.w.search_history.keywords)

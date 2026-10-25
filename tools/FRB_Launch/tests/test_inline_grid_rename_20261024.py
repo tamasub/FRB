@@ -59,5 +59,6 @@ def test_inline_wiring_and_folder_navigation_contract():
     assert 'self.middle.tree.itemChanged.connect(self.finish_inline_rename)' in VIEW
     assert 'self.middle.tree.itemClicked.connect(self.choose_middle)' in VIEW
     assert 'self.begin_context_inline_rename(i)' in VIEW
-    assert "self.paste_button.setText('📋貼り付け')" in VIEW
+    assert "self.paste_button.setText('📋貼り付け')" not in VIEW
+    assert 'show_expanded_background_paste_menu' in VIEW
     assert "QTimer.singleShot(650, self._finish_batch_delete_guard)" in APP

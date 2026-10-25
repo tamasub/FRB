@@ -4,6 +4,7 @@ import base64
 from ctypes import wintypes
 import os
 from pathlib import Path
+from filesystem_visibility import is_hidden_attribute
 import subprocess
 
 INVALID_WIN_CHARS = set('<>:"/\\|?*')
@@ -171,7 +172,8 @@ def is_downloads_directory(directory):
 def sort_browser_entries(directory):
     """Only Downloads uses descending filesystem modification time."""
     directory = Path(directory)
-    entries = list(directory.iterdir())
+    entries = [entry for entry in directory.iterdir()
+               if not is_hidden_attribute(entry)]
     if not is_downloads_directory(directory):
         return sorted(entries, key=lambda p: (not p.is_dir(), p.name.casefold()))
 

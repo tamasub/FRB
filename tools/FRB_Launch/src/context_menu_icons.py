@@ -27,6 +27,11 @@ def context_action_icon(action_id):
         line(5, 16, 4, 16)
         painter.drawRoundedRect(QRectF(4, 4, 12, 13), 2, 2)
         line(7, 8, 12, 8)
+    elif action_id == 'paste':
+        painter.drawRoundedRect(QRectF(6, 6, 13, 15), 2, 2)
+        painter.drawRoundedRect(QRectF(9, 3, 7, 5), 1.2, 1.2)
+        line(9, 12, 16, 12)
+        line(9, 16, 15, 16)
     elif action_id == 'cut':
         painter.drawEllipse(QRectF(3, 13, 6, 6))
         painter.drawEllipse(QRectF(13, 13, 6, 6))

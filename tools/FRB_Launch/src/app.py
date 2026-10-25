@@ -11,7 +11,7 @@ from ctypes import wintypes
 import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QLinearGradient
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
@@ -27,6 +27,7 @@ from menu_wheel import wheel_motion, wheel_neighbor
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
+from reorderable_tree import ReorderablePopupTree
 from menu_hotkeys import menu_shortcuts, MENU_HOTKEY_ID_START
 import jump_list
 import windows
@@ -37,8 +38,9 @@ from frame_geometry import resize_frame
 from page_tab_theme import PAGE_TABS_QSS
 from launch_appearance import (normalize_theme, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
     LIGHT_HISTORY_QSS, LIGHT_MENU_QSS, LIGHT_CASCADE_TREE_QSS,
-    LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss)
+    LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss, CONTEXT_MENU_SPACING_QSS)
 from page_tab_focus import FocusPageTabBar
+from combo_chevron_icon import combo_chevron_icon
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
@@ -46,7 +48,7 @@ from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard
 from context_menu_icons import context_action_icon
 from file_transfer_visual import transfer_state, pasted_paths_for, path_key
 from context_menu_resolver import resolve_context_target
-from context_menu_config import load_context_menus
+from context_menu_config import load_context_menus, visible_context_entries
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
                                   open_folder_terminal, open_parent_powershell, run_script_with_pause, rename_file_or_folder, move_to_recycle_bin, sort_browser_entries,
                                   is_downloads_zip, read_git_commit_options, git_commit_preview,
@@ -142,6 +144,19 @@ def icon(kind):
     p.end(); return QIcon(pix)
 
 
+def history_clock_icon():
+    """Color-emoji history marker without altering the saved keyword text."""
+    pix = QPixmap(48, 48)
+    pix.setDevicePixelRatio(2)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    painter.setFont(QFont('Segoe UI Emoji', 15))
+    painter.drawText(QRect(0, 0, 24, 24), Qt.AlignmentFlag.AlignCenter, '🕔')
+    painter.end()
+    return QIcon(pix)
+
+
 def application_icon():
     # PyInstaller bundles assets below _MEIPASS; source runs use the project root.
     resources = Path(getattr(sys, '_MEIPASS', ROOT))
@@ -203,8 +218,6 @@ def toolbar_outline_icon(name, theme='light'):
         outline.closeSubpath()
         painter.drawPath(outline)
         painter.drawEllipse(QRectF(cx-3.1, cy-3.1, 6.2, 6.2))
-    elif name == 'minimize':
-        painter.drawLine(5.4, 16.0, 18.6, 16.0)
     elif name == 'maximize':
         painter.drawRoundedRect(5.8, 5.8, 12.4, 12.4, 1.9, 1.9)
     elif name == 'restore':
@@ -218,6 +231,38 @@ def toolbar_outline_icon(name, theme='light'):
     else:
         painter.end()
         raise ValueError(f'Unknown toolbar icon: {name}')
+    painter.end()
+    return QIcon(pix)
+
+
+def view_mode_icon(mode, theme='light'):
+    """Compact/Three-layer: same 16px stroke footprint as Files density glyph.
+
+    Drawing in the SAME 28dp coordinate system as density_lines_icon() prevents
+    Windows button styles from inflating these icons to oversized artwork.
+    Four compact lines have identical lengths and regular vertical spacing.
+    """
+    side, scale = 28, 2
+    pix = QPixmap(side * scale, side * scale)
+    pix.setDevicePixelRatio(scale)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    pen = QPen(QColor('#557eaa' if theme == 'light' else '#cfe0ff'), 2.0)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    if mode == 'classic':
+        # Compact: four equal-length, evenly spaced strokes (16dp across).
+        for y in (6.5, 11.5, 16.5, 21.5):
+            painter.drawLine(QPointF(7, y), QPointF(23, y))
+    elif mode == 'expanded':
+        # Three-layer: three paired strokes, same 16dp outer width.
+        for y in (9, 14, 19):
+            painter.drawLine(QPointF(7, y), QPointF(13, y))
+            painter.drawLine(QPointF(17, y), QPointF(23, y))
+    else:
+        painter.end()
+        raise ValueError(f'Unknown view mode icon: {mode}')
     painter.end()
     return QIcon(pix)
 
@@ -1422,6 +1467,65 @@ class FileIndexSignals(QObject):
     failed = Signal(str)
 
 
+class FrameEdgeCursorResetFilter(QObject):
+    """Release a resize cursor when entering a child widget or leaving frame.
+
+    Qt mouseMoveEvent on the top-level widget does not run while moving over
+    embedded controls, so a parent-size cursor otherwise leaks to children.
+    """
+    def __init__(self, launcher):
+        super().__init__(launcher)
+        self.launcher = launcher
+
+    def eventFilter(self, obj, event):
+        launcher = self.launcher
+        if not launcher.isVisible() or getattr(launcher, '_size_drag', None):
+            return False
+        if event.type() not in (QEvent.Type.MouseMove, QEvent.Type.Leave,
+                                QEvent.Type.Enter, QEvent.Type.HoverMove,
+                                QEvent.Type.HoverEnter):
+            return False
+        if launcher.cursor().shape() == Qt.CursorShape.ArrowCursor:
+            return False
+        # A true edge hover remains the resize zone. Child widget movement
+        # must drop the sticky cursor inherited from the main frame.
+        pos = launcher.mapFromGlobal(QCursor.pos())
+        if not launcher.resize_edge(QPointF(pos)):
+            launcher.unsetCursor()
+        return False
+
+
+class HistoryOutsideClickFilter(QObject):
+    """Dismiss main search history when clicking anywhere else in the application.
+
+    The history is a child QFrame (not a Qt.Popup), so Qt does not close it
+    automatically. A launcher-local filter missed clicks in sibling widgets
+    such as Files, bookmarks, the title bar and other toolbar buttons.
+    Keep clicks *inside* the history or its search input, including native
+    QLineEdit clear/chevron actions, untouched.
+    """
+    def __init__(self, launcher):
+        super().__init__(launcher)
+        self.launcher = launcher
+
+    def eventFilter(self, obj, event):
+        launcher = self.launcher
+        if (event.type() != QEvent.Type.MouseButtonPress
+                or not isinstance(obj, QWidget)
+                or not getattr(launcher, 'history_popup', None)
+                or not launcher.history_popup.isVisible()):
+            return False
+        current = obj
+        while isinstance(current, QObject):
+            if current is launcher.history_popup or current is launcher.search:
+                return False
+            current = current.parent()
+        launcher.hide_history_popup()
+        # Preserve the click: page switching, folder navigation and all
+        # command buttons must still work on their very first click.
+        return False
+
+
 class CascadeOutsideClickFilter(QObject):
     """Dismiss a visible tool-column when unrelated Launcher UI is clicked.
 
@@ -1554,8 +1658,8 @@ class Launcher(QWidget):
         self.search.setObjectName('mainSearchField')
         self.search.setPlaceholderText('アプリ・ファイル・ブックマークを検索…')
         self.search.setClearButtonEnabled(True)
-        self.search.setMinimumHeight(38)
-        self.search.setMaximumHeight(38)
+        self.search.setMinimumHeight(36)
+        self.search.setMaximumHeight(36)
         self.search.setMinimumWidth(240)
         self.search.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         # A child QToolButton retains an actual 28dp icon.  A leading
@@ -1581,7 +1685,7 @@ class Launcher(QWidget):
         self.search_bar.setObjectName('searchBar')
         self.search_bar.setMinimumHeight(50)
         search_row = QHBoxLayout(self.search_bar)
-        search_row.setContentsMargins(10, 4, 8, 2)
+        search_row.setContentsMargins(10, 3, 8, 3)
         search_row.setSpacing(10)
 
         self.brand_widget = QWidget(self.search_bar)
@@ -1616,11 +1720,11 @@ class Launcher(QWidget):
         self.header_divider.setFixedHeight(28)
         search_row.addWidget(self.header_divider)
 
-        self.minimize_button = QPushButton('', self.search_bar)
+        # This launcher dismisses to the tray; a separate Minimize control is
+        # redundant. Keep only Maximize/Restore and Close in the title bar.
         self.maximize_button = QPushButton('', self.search_bar)
         self.close_button = QPushButton('', self.search_bar)
         for button, object_name, tip in (
-            (self.minimize_button, 'windowFrameButton', '最小化'),
             (self.maximize_button, 'windowFrameButton', '最大化 / 元に戻す'),
             (self.close_button, 'windowCloseButton', '閉じる')):
             button.setObjectName(object_name)
@@ -1629,7 +1733,6 @@ class Launcher(QWidget):
             button.setToolTip(tip)
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             search_row.addWidget(button)
-        self.minimize_button.clicked.connect(self.showMinimized)
         self.maximize_button.clicked.connect(self.toggle_maximize_restore)
         self.close_button.clicked.connect(self.dismiss)
 
@@ -1657,6 +1760,7 @@ class Launcher(QWidget):
         # chevron actions.  Never add it to search_row, which puts it OUTSIDE.
         self.save_history_button = QPushButton('履歴登録', self.search)
         self.save_history_button.setObjectName('saveHistoryButton')
+        self.save_history_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.save_history_button.setToolTip('現在の検索文字列を履歴へ登録')
         self.save_history_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.save_history_button.setFixedSize(82, 26)
@@ -1725,8 +1829,9 @@ class Launcher(QWidget):
         mode_row.setSpacing(10)
         mode_row.addWidget(self.nav_toolbar, 0)
         mode_row.addWidget(self.tabs, 1)
-        self.mode_button = QPushButton('▦ 展開ビュー', self.mode_bar)
+        self.mode_button = QPushButton('Three-layer', self.mode_bar)
         self.mode_button.setObjectName('expandedModeButton')
+        self.mode_button.setIconSize(QSize(22, 22))
         self.mode_button.setToolTip('従来表示と、Files／ブックマークを並べた展開ビューを切替')
         self.mode_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.mode_button.clicked.connect(self.toggle_expanded_view)
@@ -1754,9 +1859,9 @@ class Launcher(QWidget):
             QTreeWidget#historyChoices::item:hover{background:#344b63;}'''
         history_layout = QVBoxLayout(self.history_popup)
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
-        self.history_choices = QTreeWidget(self.history_popup)
+        self.history_choices = ReorderablePopupTree(self.history_popup)
         self.history_choices.setObjectName('historyChoices')
-        self.history_choices.setColumnCount(4)
+        self.history_choices.setColumnCount(2)
         self.history_choices.setHeaderHidden(True)
         self.history_choices.setRootIsDecorated(False)
         self.history_choices.setIndentation(0)
@@ -1769,10 +1874,12 @@ class Launcher(QWidget):
         apply_scrollbar_theme(self.history_choices, '#223043')
         self.history_choices.header().setStretchLastSection(False)
         self.history_choices.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        for c in (1, 2, 3):
-            self.history_choices.header().setSectionResizeMode(c, QHeaderView.ResizeMode.Fixed)
-            self.history_choices.setColumnWidth(c, 31)
+        self.history_choices.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        self.history_choices.setColumnWidth(1, 34)
+        self.history_choices.setIconSize(QSize(19, 19))
+        self.history_clock_icon = history_clock_icon()
         self.history_choices.itemClicked.connect(self.history_row_clicked)
+        self.history_choices.orderChanged.connect(self.history_reordered)
         history_layout.addWidget(self.history_choices)
         self.history_popup.hide()
         self.history_choices.installEventFilter(self)
@@ -1817,6 +1924,9 @@ class Launcher(QWidget):
         self.list.itemEntered.connect(self.hover)
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True); self.hover_timer.timeout.connect(self.open_hover)
         self.search.installEventFilter(self); self.list.installEventFilter(self); self.tabs.installEventFilter(self)
+        # The thin margins around the Page QTabBar belong to its containing
+        # header, not the tab widget; make those blank clicks focus Page 1 too.
+        self.mode_bar.installEventFilter(self)
         for panel in (self.expanded_view.left, self.expanded_view.middle, self.expanded_view.right):
             panel.tree.installEventFilter(self)
             panel.tree.viewport().installEventFilter(self)
@@ -1828,6 +1938,10 @@ class Launcher(QWidget):
         QApplication.instance().focusChanged.connect(self.capture_last_focus_change)
         self._cascade_outside_click_filter = CascadeOutsideClickFilter(self)
         QApplication.instance().installEventFilter(self._cascade_outside_click_filter)
+        self._history_outside_click_filter = HistoryOutsideClickFilter(self)
+        QApplication.instance().installEventFilter(self._history_outside_click_filter)
+        self._frame_cursor_reset_filter = FrameEdgeCursorResetFilter(self)
+        QApplication.instance().installEventFilter(self._frame_cursor_reset_filter)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
         # Ctrl+F1..Ctrl+F12 run/open the corresponding visible first-level
         # button, left-to-right. F1..F12 remain Page navigation as before.
@@ -1871,11 +1985,47 @@ class Launcher(QWidget):
         else:
             screen=QApplication.primaryScreen().availableGeometry();self.move(screen.center()-self.rect().center())
 
-    def toggle_maximize_restore(self):
-        if self.windowState() & Qt.WindowState.WindowMaximized:
+    def restore_normal_window_geometry(self):
+        """Restore real dimensions after Qt.Tool hide/maximize/restore.
+
+        Clearing WindowMaximized is insufficient for frameless Qt.Tool windows:
+        the underlying HWND can retain its full-screen rectangle. Apply the
+        last *normal* width, height, and position after showNormal() as well.
+        """
+        self._maximizing_window = True  # Do not persist intermediary Qt resizes.
+        try:
             self.showNormal()
+            self.restore_window_size()
+            saved_pos = self.settings.value('position')
+            if saved_pos is not None:
+                self.move(saved_pos)
+            self._restore_normal_on_show = False
+        finally:
+            self._maximizing_window = False
+        self.update_header_icons()
+
+    def show_launcher_normal_or_saved(self):
+        """Always re-open maximized/hidden launcher using normal dimensions."""
+        if (getattr(self, '_restore_normal_on_show', False)
+                or self.isMaximized()
+                or bool(self.windowState() & Qt.WindowState.WindowMaximized)):
+            self.restore_normal_window_geometry()
         else:
-            self.showMaximized()
+            self.show()
+
+    def toggle_maximize_restore(self):
+        if self.isMaximized() or bool(self.windowState() & Qt.WindowState.WindowMaximized):
+            # showNormal() alone may leave an all-screen rectangle behind.
+            self.restore_normal_window_geometry()
+        else:
+            self.save_window_size()
+            self.settings.setValue('position', self.pos())
+            self.settings.sync()
+            self._maximizing_window = True
+            try:
+                self.showMaximized()
+            finally:
+                self._maximizing_window = False
         self.update_header_icons()
 
     def layout_search_inner_controls(self):
@@ -1888,7 +2038,7 @@ class Launcher(QWidget):
         if not hasattr(self, 'search_glyph') or not hasattr(self, 'save_history_button'):
             return
         height, width = self.search.height(), self.search.width()
-        self.search_glyph.move(13, max(0, (height - self.search_glyph.height()) // 2))
+        self.search_glyph.move(11, max(0, (height - self.search_glyph.height()) // 2 + 2))
         is_visible = bool(self.search.text().strip())
         right_space = 71  # native ×, history ▼, and their breathing room
         self.save_history_button.move(
@@ -1903,7 +2053,6 @@ class Launcher(QWidget):
         self.search_glyph.setIcon(toolbar_outline_icon('search', self.color_theme))
         self.theme_button.setText('')
         self.theme_button.setIcon(toolbar_outline_icon('settings', self.color_theme))
-        self.minimize_button.setIcon(toolbar_outline_icon('minimize', self.color_theme))
         icon_name = 'restore' if self.windowState() & Qt.WindowState.WindowMaximized else 'maximize'
         self.maximize_button.setIcon(toolbar_outline_icon(icon_name, self.color_theme))
         self.close_button.setIcon(toolbar_outline_icon('close', self.color_theme))
@@ -1949,16 +2098,8 @@ class Launcher(QWidget):
             edit.parentWidget().setStyleSheet(LIGHT_COLUMN_FILTER_QSS)
 
     def update_history_chevron(self):
-        """The inline history arrow needs contrast on white and dark inputs."""
-        pix = QPixmap(14, 14)
-        pix.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(pix)
-        painter.setPen(QPen(QColor('#557667' if self.color_theme == 'light'
-                                   else '#a9bed2'), 1.7))
-        painter.drawLine(3, 5, 7, 9)
-        painter.drawLine(7, 9, 11, 5)
-        painter.end()
-        self.history_action.setIcon(QIcon(pix))
+        """Search/folder-history glyphs share their shape and alignment."""
+        self.history_action.setIcon(combo_chevron_icon(self.color_theme, offset_x=-1))
 
     def apply_color_theme(self):
         """Restyle existing widgets without rebuilding search results or pages."""
@@ -1968,9 +2109,12 @@ class Launcher(QWidget):
         palette = (('#aac9b6','#e0f1e7','#275943','#cbe7d8') if light
                    else ('#55766c','#314b41','#def1e7','#416559'))
         self.mode_button.setStyleSheet(
-            'QPushButton#expandedModeButton { border:1px solid %s; border-radius:9px; '
-            'padding:5px 9px; background:%s; color:%s; } '
+            'QPushButton#expandedModeButton { border:1px solid %s; border-radius:11px; '
+            'padding:5px 8px; background:%s; color:%s; text-align:center; } '
             'QPushButton#expandedModeButton:hover {background:%s;}' % palette)
+        self.mode_button.setIcon(view_mode_icon(
+            'classic' if self.view_mode == 'expanded' else 'expanded',
+            self.color_theme))
         self.list.set_row_theme(self.color_theme)
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
@@ -1993,11 +2137,11 @@ class Launcher(QWidget):
             f'QWidget#searchBar {{ background:{header_fill}; border:0; border-bottom:1px solid {header_line}; }}')
         self.search.setStyleSheet(
             ('QLineEdit#mainSearchField { background:#ffffff; color:#2b433a; border:1px solid #8fb29f; '
-             'border-radius:19px; padding:5px 14px; font-size:15px; } '
+             'border-radius:17px; padding:5px 14px; font-size:15px; } '
              'QLineEdit#mainSearchField:focus { border-color:#6e9f8b; }')
             if light else
             ('QLineEdit#mainSearchField { background:#1a2422; color:#e8f2eb; border:1px solid #5d7b71; '
-             'border-radius:19px; padding:5px 14px; font-size:15px; } '
+             'border-radius:17px; padding:5px 14px; font-size:15px; } '
              'QLineEdit#mainSearchField:focus { border-color:#88b4a1; }'))
         self.search_glyph.setStyleSheet(
             'QToolButton#searchGlyph { background:transparent; border:0; padding:0; }')
@@ -2016,7 +2160,6 @@ class Launcher(QWidget):
             f'QPushButton#windowFrameButton:pressed {{ background:{header_pressed}; }} '
             f'QPushButton#windowCloseButton:hover {{ background:#e37d7d; }} '
             f'QPushButton#windowCloseButton:pressed {{ background:#d46565; }}')
-        self.minimize_button.setStyleSheet(common_window_style)
         self.maximize_button.setStyleSheet(common_window_style)
         self.close_button.setStyleSheet(common_window_style)
         self.save_history_button.setStyleSheet(
@@ -2101,6 +2244,15 @@ class Launcher(QWidget):
                                      default_w, self.minimumWidth(), bounds.width())
         height = self.saved_dimension(self.settings.value(key_h, default_h),
                                       default_h, self.minimumHeight(), bounds.height())
+        # Repair legacy state.ini entries poisoned by the previous behavior:
+        # maximizing used to save work-area-sized width AND height. If BOTH
+        # dimensions fill the work area, restore this view's sensible default.
+        if (width >= bounds.width() - 2 and height >= bounds.height() - 2
+                and (default_w < bounds.width() or default_h < bounds.height())):
+            width = self.saved_dimension(default_w, default_w,
+                                         self.minimumWidth(), bounds.width())
+            height = self.saved_dimension(default_h, default_h,
+                                          self.minimumHeight(), bounds.height())
         self.resize(width, height)
 
     def resize_edge(self, pos):
@@ -2127,7 +2279,15 @@ class Launcher(QWidget):
             return Qt.CursorShape.SizeVerCursor
         return Qt.CursorShape.ArrowCursor
 
+    def can_save_normal_window_geometry(self):
+        """Never persist maximized dimensions/position as the normal frame."""
+        return (not getattr(self, '_maximizing_window', False)
+                and not self.isMaximized()
+                and not bool(self.windowState() & Qt.WindowState.WindowMaximized))
+
     def save_window_size(self):
+        if not self.can_save_normal_window_geometry():
+            return
         key_w, key_h, _, _ = self.view_size_keys()
         self.settings.setValue(key_w, self.width())
         self.settings.setValue(key_h, self.height())
@@ -2206,8 +2366,9 @@ class Launcher(QWidget):
             if getattr(self, '_size_drag', None):
                 self._size_drag = None
                 self.save_window_size()
-                self.settings.setValue('position', self.pos())
-                self.settings.sync()
+                if self.can_save_normal_window_geometry():
+                    self.settings.setValue('position', self.pos())
+                    self.settings.sync()
         super().mouseReleaseEvent(event)
 
     def leaveEvent(self, event):
@@ -2224,7 +2385,10 @@ class Launcher(QWidget):
         self.update_window_shape()
         if getattr(self, 'history_popup', None) and self.history_popup.isVisible():
             self.position_history_popup()
-        if self.isVisible() and hasattr(self, 'settings'):
+        if hasattr(self, 'expanded_view') and self.expanded_view.favorite_popup.isVisible():
+            self.expanded_view.position_directory_favorites()
+        if (self.isVisible() and hasattr(self, 'settings')
+                and self.can_save_normal_window_geometry()):
             key_w, key_h, _, _ = self.view_size_keys()
             self.settings.setValue(key_w, self.width())
             self.settings.setValue(key_h, self.height())
@@ -2440,6 +2604,15 @@ class Launcher(QWidget):
         DIAG.info('FILE_INDEX complete count=%s changed=%s unchanged=%s failed=%s applied=%s',
                   stats['count'], len(stats['changed_roots']),
                   len(stats['unchanged_roots']), len(stats['failed_roots']), stats['applied'])
+        # Root-by-root evidence is essential when an entire drive silently
+        # disappears from search despite a successful overall update.
+        if stats.get('applied'):
+            for root_info in file_index.index_root_status(self.file_index_db):
+                DIAG.info('FILE_INDEX root_stats root=%s count=%s excluded=%s',
+                          root_info['root_path'], root_info['count'], root_info['excluded'])
+                if root_info['count'] == 0:
+                    DIAG.warning('FILE_INDEX empty_root root=%s (check scan warnings and hidden attributes)',
+                                 root_info['root_path'])
         if self._file_index_manual:
             summary = (f"ファイル索引: {stats['count']:,}件 / 更新{len(stats['changed_roots'])}ルート"
                        f" / 変更なし{len(stats['unchanged_roots'])}ルート"
@@ -2863,7 +3036,7 @@ class Launcher(QWidget):
         self._nav_reset()
         if not any(s.availableGeometry().intersects(self.frameGeometry()) for s in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()-self.rect().center())
-        self.show();self.raise_();self.activateWindow();self.restore_last_current()
+        self.show_launcher_normal_or_saved();self.raise_();self.activateWindow();self.restore_last_current()
 
     def summon_menu(self, item_id):
         """Navigate only: never run a command bound to a Page-root shortcut."""
@@ -2907,7 +3080,7 @@ class Launcher(QWidget):
                    for screen in QApplication.screens()):
             self.move(QApplication.primaryScreen().availableGeometry().center()
                       - self.rect().center())
-        self.show()
+        self.show_launcher_normal_or_saved()
         self.raise_()
         self.activateWindow()
         self.list.setFocus()
@@ -2935,11 +3108,33 @@ class Launcher(QWidget):
         # Delayed delete callbacks must not resurrect a previously hidden UI.
         self._cascade_dismiss_generation = getattr(self, '_cascade_dismiss_generation', 0) + 1
         self.hide_history_popup()
+        self.expanded_view.hide_favorite_popup()
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
         if self.menu:self.menu.close()
         self.save_window_height()
-        self.hover_timer.stop();self.settings.setValue('position',self.pos());self.settings.setValue('page',self.page_id);self.hide()
+        self.hover_timer.stop()
+        if self.can_save_normal_window_geometry():
+            self.settings.setValue('position', self.pos())
+        self.settings.setValue('page', self.page_id)
+        # QWidget.hide()/show() can preserve WindowMaximized. Clear the flag
+        # WHILE hidden so reopening uses the normal geometry, with no flash.
+        was_maximized = (self.isMaximized()
+                         or bool(self.windowState() & Qt.WindowState.WindowMaximized))
+        self.hide()
+        if was_maximized:
+            self._restore_normal_on_show = True
+            # Clear Qt's maximized flag, then explicitly restore the underlying
+            # hidden frame: clearing the flag alone may preserve its huge size.
+            self._maximizing_window = True
+            try:
+                self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMaximized)
+                self.restore_window_size()
+                saved_pos = self.settings.value('position')
+                if saved_pos is not None:
+                    self.move(saved_pos)
+            finally:
+                self._maximizing_window = False
 
     def app_state(self, state):
         # A native recycle-bin operation or QMessageBox can briefly deactivate
@@ -3189,8 +3384,13 @@ class Launcher(QWidget):
             self.expanded_view.refresh(roots, left, right, self.expanded_options)
             self.footer.setText('↑↓ 選択   → 進む   ← 戻る   Enter 実行   Tab エリア切替   Esc 閉じる')
         self.list.setVisible(not active)
+        if not active:
+            self.expanded_view.hide_favorite_popup()
         self.expanded_view.setVisible(active)
-        self.mode_button.setText('☷ 従来ビュー' if self.view_mode == 'expanded' else '▦ 展開ビュー')
+        showing_classic = self.view_mode == 'expanded'
+        self.mode_button.setText('Compact' if showing_classic else 'Three-layer')
+        self.mode_button.setIcon(view_mode_icon('classic' if showing_classic else 'expanded',
+                                                self.color_theme))
         self.mode_button.setToolTip(
             '仕事Pageで展開ビューを使えます' if self.view_mode == 'expanded'
             and self.page_id != self.expanded_options['page_id'] else
@@ -3250,13 +3450,33 @@ class Launcher(QWidget):
                     DIAG.warning('FILE_INDEX search options invalid: %s', exc)
                     self.file_index_settings = {'index_mode': 'off', 'enabled': False}
                 if file_index.index_mode(self.file_index_settings) != 'off':
-                    for hit in file_index.search_index(self.file_index_db, query,
-                                                       self.file_index_settings['search_limit']):
-                        row = dict(item_id='__file_index_'+hit['path'],
-                                   title=hit['name'], description=hit['directory'],
-                                   item_kind='command', icon_key='file',
-                                   _indexed_file=hit['path'], _file=hit['path'])
-                        pairs.append((row, 'ファイル索引'))
+                    for hit in file_index.search_index(
+                            self.file_index_db, query,
+                            self.file_index_settings['search_limit'],
+                            entry_type=self.file_index_settings.get('index_target')):
+                        # The SQLite table is shared between files and folders.
+                        # Classify each hit individually in 'both' mode rather
+                        # than treating the entire result as one kind.
+                        target = self.file_index_settings.get('index_target', 'files')
+                        is_folder = hit['extension'] == ''
+                        if (target == 'folders' and not is_folder or
+                                target == 'files' and is_folder):
+                            continue
+                        if is_folder:
+                            row = dict(item_id='__folder_index_'+hit['path'],
+                                       title=hit['name'], description=hit['directory'],
+                                       item_kind='directory', icon_key='folder.yellow',
+                                       _file=hit['path'],
+                                       launch_browse_target=hit['path'],
+                                       launch_actions=[{'launch_action_type':'Open',
+                                                        'launch_target':hit['path']}])
+                            pairs.append((row, 'フォルダー索引'))
+                        else:
+                            row = dict(item_id='__file_index_'+hit['path'],
+                                       title=hit['name'], description=hit['directory'],
+                                       item_kind='command', icon_key='file',
+                                       _indexed_file=hit['path'], _file=hit['path'])
+                            pairs.append((row, 'ファイル索引'))
             else:pairs=[(x,'') for x in (self.displayed_children(self.stack[-1]) if self.stack else self.children())]
             if query and self.result_sort_column in (0, 1):
                 pairs = sort_search_pairs(pairs, self.result_sort_column,
@@ -3992,19 +4212,16 @@ class Launcher(QWidget):
         self.history_choices.clear()
         keywords = self.search_history.keywords
         if not keywords:
-            row = QTreeWidgetItem(['（履歴はありません）', '', '', ''])
+            row = QTreeWidgetItem(['（履歴はありません）', ''])
             row.setFlags(Qt.ItemFlag.NoItemFlags)
             self.history_choices.addTopLevelItem(row)
         else:
             for index, keyword in enumerate(keywords):
-                row = QTreeWidgetItem([keyword, '▲' if index else '',
-                                       '▼' if index < len(keywords)-1 else '', '×'])
-                for col in (1, 2, 3):
-                    row.setTextAlignment(col, Qt.AlignmentFlag.AlignCenter)
-                row.setToolTip(0, keyword + '  — クリックで検索')
-                row.setToolTip(1, '1つ上へ移動')
-                row.setToolTip(2, '1つ下へ移動')
-                row.setToolTip(3, '履歴を削除')
+                row = QTreeWidgetItem([keyword, '×'])
+                row.setIcon(0, self.history_clock_icon)
+                row.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+                row.setToolTip(0, keyword + '  — クリックで検索／ドラッグで並び替え')
+                row.setToolTip(1, '履歴を削除')
                 self.history_choices.addTopLevelItem(row)
             target = next((i for i, k in enumerate(keywords) if k == selected), 0)
             self.history_choices.setCurrentItem(self.history_choices.topLevelItem(target))
@@ -4016,6 +4233,7 @@ class Launcher(QWidget):
         if self.menu:
             self.menu.close()
         self.hover_timer.stop(); self.pending_menu_item = None
+        self.expanded_view.hide_favorite_popup()
         self.populate_history_popup()
         self.position_history_popup()
         self.history_popup.show()
@@ -4059,16 +4277,20 @@ class Launcher(QWidget):
                     return
                 remaining = self.search_history.keywords
                 selected = remaining[min(index, len(remaining)-1)] if remaining else None
-            elif action in ('up', 'down'):
-                if not self.search_history.move(value, -1 if action == 'up' else 1):
-                    return
-                selected = value
             else:
                 return
             self.populate_history_popup(selected)
             self.history_choices.setFocus(Qt.FocusReason.ShortcutFocusReason)
         except (OSError, ValueError):
             DIAG.exception('SEARCH_HISTORY update failed')
+
+    def history_reordered(self, order):
+        try:
+            if not self.search_history.reorder(order):
+                self.populate_history_popup()
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY drag reorder failed')
+            self.populate_history_popup()
 
     def history_row_clicked(self, item, column):
         if not self.search_history.keywords:
@@ -4078,10 +4300,6 @@ class Launcher(QWidget):
             self.history_choices.setCurrentItem(item)
             self.select_history_keyword()
         elif column == 1:
-            self.change_history_row(value, 'up')
-        elif column == 2:
-            self.change_history_row(value, 'down')
-        elif column == 3:
             self.change_history_row(value, 'delete')
 
     def handle_history_event(self, obj, event):
@@ -4115,10 +4333,7 @@ class Launcher(QWidget):
             count = len(self.search_history.keywords)
             if row is not None and count:
                 offset = -1 if key == Qt.Key.Key_Up else 1
-                if modifiers & Qt.KeyboardModifier.AltModifier:
-                    self.change_history_row(row.text(0), 'up' if offset == -1 else 'down')
-                else:
-                    move_tree_selection(self.history_choices, offset)
+                move_tree_selection(self.history_choices, offset)
         elif key == Qt.Key.Key_Delete:
             row = self.history_choices.currentItem()
             if row is not None and self.search_history.keywords:
@@ -4447,7 +4662,25 @@ class Launcher(QWidget):
             self.menu.close()
         return True
 
+    def focus_first_page_from_header_space(self, obj, event):
+        """Focus the leftmost Page button when the Page row background is clicked.
+
+        Real tab hits are handled by FocusPageTabBar and navigation/view-mode
+        buttons retain their own click actions. No page change on right click.
+        """
+        if (obj is not self.mode_bar or event.type() != QEvent.Type.MouseButtonPress
+                or event.button() != Qt.MouseButton.LeftButton
+                or self.tabs.count() == 0):
+            return False
+        self.close_cascade_for_main_interaction()
+        self.tabs.setCurrentIndex(0)
+        self.tabs.setFocus(Qt.FocusReason.MouseFocusReason)
+        event.accept()
+        return True
+
     def eventFilter(self,obj,event):
+        if self.focus_first_page_from_header_space(obj, event):
+            return True
         if (obj in (self.list, self.list.viewport())
                 and event.type() == getattr(QEvent.Type, 'Wheel', None)
                 and self.wheel_classic_menu(event)):
@@ -4750,6 +4983,65 @@ class Launcher(QWidget):
             }]
         })
 
+    def _paste_context_destination(self, context_parent=None):
+        """Use the CURRENT folder, never the right-clicked file's path.
+
+        Search results have no implied destination, so paste remains disabled.
+        """
+        if isinstance(context_parent, CascadeMenu):
+            container = context_parent._folder_container_row()
+            if container:
+                try:
+                    target = Path(self.expander().expand(container['launch_browse_target']))
+                    if target.is_dir():
+                        return 'cascade'
+                except (KeyError, ValueError, OSError):
+                    pass
+        if (context_parent is self and self.expanded_view.isVisible()):
+            path = self.expanded_view.current_directory()
+            if path and Path(path).is_dir():
+                return 'expanded'
+        return None
+
+    def _context_paste_enabled(self, context_parent=None):
+        if not self._paste_context_destination(context_parent):
+            return False
+        mime = QApplication.clipboard().mimeData()
+        return bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
+
+    def _paste_from_context_menu(self, context_parent=None):
+        if not self._context_paste_enabled(context_parent):
+            return
+        if self._paste_context_destination(context_parent) == 'cascade':
+            self.paste_into_directory(context_parent)
+        else:
+            self.paste_into_expanded_directory()
+
+    def show_expanded_background_paste_menu(self, global_pos):
+        """Paste is available even when the current directory has zero rows."""
+        if not self.expanded_view.current_directory():
+            return False
+        try:
+            definitions = load_context_menus(CONTEXT_MENU_OPTIONS)['folder']
+        except (OSError, ValueError, KeyError) as exc:
+            self.error('コンテキストメニュー定義が不正です: ' + str(exc))
+            return False
+        paste = next((x for x in definitions if x.get('action_id') == 'paste'), None)
+        if paste is None:
+            return False
+        menu = QMenu(self)
+        action = menu.addAction(paste['title'],
+                                lambda checked=False: self._paste_from_context_menu(self))
+        action.setIcon(context_action_icon('paste'))
+        action.setIconVisibleInMenu(True)
+        action.setEnabled(self._context_paste_enabled(self))
+        menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
+                           + CONTEXT_MENU_SPACING_QSS)
+        self._launch_context_menu = menu
+        menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+        menu.popup(global_pos)
+        return True
+
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None,
                                  selected_paths=None):
         """Choose context actions by authoritative source, not displayed item ID."""
@@ -4780,14 +5072,29 @@ class Launcher(QWidget):
             # The expanded middle pane passes its actual selection, rather
             # than silently acting on the one row that was right-clicked.
             if selected_paths is not None and len(selected_paths) > 1:
+                try:
+                    entries = load_context_menus(CONTEXT_MENU_OPTIONS)['file']
+                except (OSError, ValueError, KeyError) as exc:
+                    self.error('コンテキストメニュー定義が不正です: ' + str(exc))
+                    return False
                 menu = QMenu(context_parent if context_parent is not None else self)
                 batch = tuple(selected_paths)
-                for action_id, label in (('copy', 'コピー'), ('cut', '切り取り'),
-                                         ('delete', '削除（ごみ箱へ）')):
-                    action = menu.addAction(
-                        f'{label}（{len(batch)}件）',
-                        lambda checked=False, a=action_id, ps=batch:
-                        self.perform_filesystem_batch_action(a, ps))
+                batch_allowed = {'copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'delete'}
+                for definition in visible_context_entries(entries, batch_allowed):
+                    action_id = definition.get('action_id')
+                    if definition.get('type') == 'separator':
+                        menu.addSeparator()
+                        continue
+                    if action_id == 'paste':
+                        action = menu.addAction(definition['title'],
+                            lambda checked=False, parent=context_parent:
+                            self._paste_from_context_menu(parent))
+                        action.setEnabled(self._context_paste_enabled(context_parent))
+                    else:
+                        action = menu.addAction(
+                            f'{definition["title"]}（{len(batch)}件）',
+                            lambda checked=False, a=action_id, ps=batch:
+                            self.perform_filesystem_batch_action(a, ps))
                     action.setIcon(context_action_icon(action_id))
                     action.setIconVisibleInMenu(True)
                 self.hover_timer.stop()
@@ -4795,7 +5102,9 @@ class Launcher(QWidget):
                 self._launch_context_menu = menu
                 menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
                 if getattr(self, 'color_theme', 'dark') == 'light':
-                    menu.setStyleSheet(LIGHT_MENU_QSS)
+                    menu.setStyleSheet(LIGHT_MENU_QSS + CONTEXT_MENU_SPACING_QSS)
+                elif hasattr(menu, 'setStyleSheet'):
+                    menu.setStyleSheet(CONTEXT_MENU_SPACING_QSS)
                 menu.popup(global_pos)
                 return True
             try:
@@ -4804,16 +5113,25 @@ class Launcher(QWidget):
                 self.error('コンテキストメニュー定義が不正です: ' + str(exc))
                 return False
             menu = QMenu(context_parent if context_parent is not None else self)
-            for definition in actions:
-                if definition['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path):
+            allowed = {d['action_id'] for d in actions if d.get('action_id')
+                       and not (d['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path))
+                       and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))}
+            for definition in visible_context_entries(actions, allowed):
+                if definition.get('type') == 'separator':
+                    menu.addSeparator()
                     continue
-                if definition['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'):
-                    continue
-                action = menu.addAction(definition['title'],
-                                        lambda checked=False, action_id=definition['action_id'], p=path, k=origin:
-                                        self.perform_filesystem_context_action(action_id, p, k))
+                action_id = definition['action_id']
+                if action_id == 'paste':
+                    action = menu.addAction(definition['title'],
+                        lambda checked=False, parent=context_parent:
+                        self._paste_from_context_menu(parent))
+                    action.setEnabled(self._context_paste_enabled(context_parent))
+                else:
+                    action = menu.addAction(definition['title'],
+                        lambda checked=False, a=action_id, p=path, k=origin:
+                        self.perform_filesystem_context_action(a, p, k))
                 if action is not None:
-                    action.setIcon(context_action_icon(definition['action_id']))
+                    action.setIcon(context_action_icon(action_id))
                     action.setIconVisibleInMenu(True)
             if menu.isEmpty():
                 return False
@@ -4829,7 +5147,9 @@ class Launcher(QWidget):
         if hasattr(menu, 'aboutToHide'):
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         if getattr(self, 'color_theme', 'dark') == 'light':
-            menu.setStyleSheet(LIGHT_MENU_QSS)
+            menu.setStyleSheet(LIGHT_MENU_QSS + CONTEXT_MENU_SPACING_QSS)
+        elif origin in ('file', 'folder') and hasattr(menu, 'setStyleSheet'):
+            menu.setStyleSheet(CONTEXT_MENU_SPACING_QSS)
         menu.popup(global_pos)
         return True
 
@@ -4868,7 +5188,12 @@ class Launcher(QWidget):
             if not targets:
                 return
             self._clear_previous_paste_feedback()
-            if action_id in ('copy', 'cut'):
+            if action_id in ('copy_full_path', 'copy_file_name'):
+                lines = (str(path) if action_id == 'copy_full_path' else path.name
+                         for path in targets)
+                QApplication.clipboard().setText('\n'.join(lines))
+                self.footer.setText(f'{len(targets)}件の{ "フルパス" if action_id == "copy_full_path" else "ファイル名" }をコピーしました')
+            elif action_id in ('copy', 'cut'):
                 mime = QMimeData()
                 mime.setUrls([QUrl.fromLocalFile(str(path)) for path in targets])
                 mime.setData('application/x-qt-windows-mime;value="Preferred DropEffect"',
@@ -4992,7 +5317,12 @@ class Launcher(QWidget):
                         return
                     move_to_recycle_bin(path)
                 finally:
-                    self._filesystem_dialog_depth -= 1
+                    # Windows native recycle-bin and Qt.Tool focus events can
+                    # arrive AFTER the modal dialog returns. The previous
+                    # immediate decrement dismissed the whole launcher.
+                    QTimer.singleShot(900, lambda: setattr(
+                        self, '_filesystem_dialog_depth',
+                        max(0, getattr(self, '_filesystem_dialog_depth', 0) - 1)))
                 # A delete refresh does not carry over old paste highlights.
                 if visible_menu is not None:
                     # The row context QMenu may still own Qt focus when the
@@ -5006,8 +5336,15 @@ class Launcher(QWidget):
                     QTimer.singleShot(0, lambda m=visible_menu:
                                       self.refresh_deleted_directory(m))
                 else:
-                    # A file-index result has no opened directory column.
-                    self.render()
+                    # Files in the expanded middle panel have no classic
+                    # CascadeMenu; refresh that live panel rather than losing
+                    # it through a main-list render during shell deactivation.
+                    if (getattr(self, 'expanded_view', None) is not None and
+                            self.expanded_view.isVisible() and
+                            self.expanded_view.current_directory() == str(path.parent)):
+                        QTimer.singleShot(0, self.expanded_view.refresh_middle)
+                    else:
+                        self.render()
                 if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
                     QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
                 self.footer.setText(f'削除を完了しました: {path.name}')
@@ -5026,6 +5363,11 @@ class Launcher(QWidget):
             elif action_id == 'open_terminal':
                 open_folder_terminal(path)
             elif action_id == 'properties':
+                # FRB Launch is a permanently topmost Qt.Tool window. Native
+                # Shell property sheets do not share that topmost z-order and
+                # can be obscured. Dismiss our launcher before opening them;
+                # the desktop hotkey/double click will summon it again.
+                self.dismiss()
                 show_windows_properties(path)
             elif action_id == 'git_commit_from_zip':
                 self.git_commit_using_filename(path)

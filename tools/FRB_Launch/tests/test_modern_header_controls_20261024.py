@@ -28,7 +28,7 @@ class ModernHeaderControlsTests(unittest.TestCase):
         self.assertIn('self.search_glyph = QToolButton(self.search)', APP)
         self.assertIn('self.search_glyph.setIconSize(QSize(28, 28))', APP)
         self.assertNotIn("self.search.addAction(toolbar_outline_icon('search'", APP)
-        self.assertIn('self.search_glyph.move(13,', method('layout_search_inner_controls'))
+        self.assertIn('self.search_glyph.move(11,', method('layout_search_inner_controls'))
 
     def test_header_repaint_and_resize_wiring(self):
         self.assertIn("QWidget#brandWidget { background:transparent", method('apply_color_theme'))

@@ -64,10 +64,10 @@ class SourceRoutingTests(unittest.TestCase):
 class ConfigTests(unittest.TestCase):
     def test_all_supported_v1_actions(self):
         menus = load_context_menus(CONFIG)
-        self.assertEqual([x['action_id'] for x in menus['file']],
-                         ['copy', 'cut', 'delete', 'copy_full_path', 'copy_file_name', 'open_parent_folder', 'run_with_pause', 'open_parent_terminal', 'rename', 'git_commit_from_zip', 'properties'])
-        self.assertEqual([x['action_id'] for x in menus['folder']],
-                         ['copy', 'cut', 'delete', 'open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties'])
+        self.assertEqual([x['action_id'] for x in menus['file'] if 'action_id' in x],
+                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
+        self.assertEqual([x['action_id'] for x in menus['folder'] if 'action_id' in x],
+                         ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'delete', 'rename', 'properties'])
 
     def test_actions_are_validated_against_allowlist(self):
         with TemporaryDirectory() as folder:
@@ -84,7 +84,7 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(len(load_context_menus(path)['file']), 10)
+            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 11)
 
 
 class ParentFolderTests(unittest.TestCase):
@@ -117,7 +117,7 @@ class ParentFolderTests(unittest.TestCase):
 
     def test_parent_folder_action_not_permitted_on_folder_entries(self):
         self.assertNotIn('open_parent_folder',
-                         [x['action_id'] for x in load_context_menus(CONFIG)['folder']])
+                         [x['action_id'] for x in load_context_menus(CONFIG)['folder'] if 'action_id' in x])
 
     def test_file_context_menu_exposes_new_action_and_routes_its_click(self):
         fn, holder = ActualLauncherRoutingTests.setup()
@@ -125,7 +125,7 @@ class ParentFolderTests(unittest.TestCase):
         self.assertTrue(fn(holder, (3, 4), row))
         # The display title is user-editable in context_menu_options.json.
         label = next(item['title'] for item in load_context_menus(CONFIG)['file']
-                     if item['action_id'] == 'open_parent_folder')
+                     if item.get('action_id') == 'open_parent_folder')
         action = next(callback for name, callback in holder._launch_context_menu.actions
                       if name == label)
         action(True)
@@ -136,9 +136,9 @@ class ParentFolderTests(unittest.TestCase):
 class ParentPowerShellTests(unittest.TestCase):
     def test_file_menu_has_terminal_action_but_folder_menu_is_unchanged(self):
         menus = load_context_menus(CONFIG)
-        action = next(item for item in menus['file'] if item['action_id'] == 'open_parent_terminal')
+        action = next(item for item in menus['file'] if item.get('action_id') == 'open_parent_terminal')
         self.assertEqual(action['title'], 'フォルダーをターミナルで開く')
-        self.assertNotIn('open_parent_terminal', [item['action_id'] for item in menus['folder']])
+        self.assertNotIn('open_parent_terminal', [item['action_id'] for item in menus['folder'] if 'action_id' in item])
 
     def test_powershell_starts_in_parent_directory_and_does_not_run_file(self):
         with TemporaryDirectory(prefix='Terminal テスト ') as root:
@@ -166,7 +166,7 @@ class ParentPowerShellTests(unittest.TestCase):
         row = {'item_id': '__file_index_demo', '_indexed_file': 'C:/docs/demo.ps1'}
         self.assertTrue(fn(holder, (3, 4), row))
         label = next(item['title'] for item in load_context_menus(CONFIG)['file']
-                     if item['action_id'] == 'open_parent_terminal')
+                     if item.get('action_id') == 'open_parent_terminal')
         callback = next(cb for name, cb in holder._launch_context_menu.actions if name == label)
         callback(True)
         holder.perform_filesystem_context_action.assert_called_once_with(
@@ -242,11 +242,16 @@ class ActualLauncherRoutingTests(unittest.TestCase):
 
         class Menu:
             def __init__(self, parent): self.parent = parent; self.actions = []; self.at = None
-            def addAction(self, title, callback): self.actions.append((title, callback))
+            def addAction(self, title, callback):
+                self.actions.append((title, callback))
+                return Mock(setEnabled=Mock(), setIcon=Mock(), setIconVisibleInMenu=Mock())
+            def addSeparator(self): self.actions.append(('separator', None))
             def isEmpty(self): return not self.actions
             def popup(self, at): self.at = at
+        from context_menu_config import visible_context_entries
         scope = {'QMenu': Menu, 'resolve_context_target': resolve_context_target,
-                 'load_context_menus': load_context_menus, 'CONTEXT_MENU_OPTIONS': CONFIG,
+                 'load_context_menus': load_context_menus, 'visible_context_entries': visible_context_entries,
+                 'CONTEXT_MENU_OPTIONS': CONFIG, 'context_action_icon': Mock(),
                  'is_downloads_zip': is_downloads_zip, 'Path': Path}
         exec(compile(code, '<real Launcher.show_launch_context_menu>', 'exec'), scope)
         holder = types.SimpleNamespace(
@@ -254,15 +259,16 @@ class ActualLauncherRoutingTests(unittest.TestCase):
             selection=None, stack=[], search=types.SimpleNamespace(text=lambda: ''),
             authored_items=[{'item_id':'my_setting','item_kind':'command'}],
             hover_timer=types.SimpleNamespace(stop=lambda: None), pending_menu_item=None,
-            launch_configuration_studio=Mock(), perform_filesystem_context_action=Mock())
+            launch_configuration_studio=Mock(), perform_filesystem_context_action=Mock(),
+            _context_paste_enabled=Mock(return_value=False), _paste_from_context_menu=Mock())
         return scope['show_launch_context_menu'], holder
 
     def test_physical_folder_menu_calls_correct_action_including_checked(self):
         fn, holder = self.setup()
         self.assertTrue(fn(holder, (3, 4), {'item_kind': 'directory', '_file': 'C:/x'}))
         menu = holder._launch_context_menu
-        self.assertEqual(len(menu.actions), 8)
-        menu.actions[6][1](True)  # Qt QAction.triggered(bool) must not override action ID
+        self.assertEqual(len([a for a in menu.actions if a[0] != 'separator']), 9)
+        next(cb for label, cb in menu.actions if label == '名前の変更')(True)  # Qt QAction.triggered(bool) must not override action ID
         holder.perform_filesystem_context_action.assert_called_once_with('rename', 'C:/x', 'folder')
         holder.launch_configuration_studio.assert_not_called()
 
@@ -285,5 +291,5 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         holder.search.text = lambda: 'report'
         row = {'item_id':'__file_index_foo', '_indexed_file': 'C:/x/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
-        self.assertEqual(len(holder._launch_context_menu.actions), 9)
+        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 10)
 

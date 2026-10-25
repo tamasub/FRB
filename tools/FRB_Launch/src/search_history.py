@@ -102,3 +102,21 @@ class SearchHistory:
             self.keywords[current], self.keywords[target] = self.keywords[target], self.keywords[current]
             raise
         return True
+
+    def reorder(self, keywords):
+        """Store the exact drag order, without adding/removing any keyword."""
+        ordered = list(keywords)
+        if (len(ordered) != len(self.keywords) or
+                set(ordered) != set(self.keywords) or
+                len(set(ordered)) != len(ordered)):
+            return False
+        if ordered == self.keywords:
+            return False
+        previous = self.keywords[:] 
+        self.keywords = ordered
+        try:
+            self._save()
+        except OSError:
+            self.keywords = previous
+            raise
+        return True

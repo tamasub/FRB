@@ -23,3 +23,22 @@ def file_path_for_drag(row):
         except (OSError, ValueError):
             pass
     return None
+
+
+def file_paths_for_drag(rows):
+    """Return unique physical paths for a file-only multi-selection drag.
+
+    Preserve the supplied row order.  Unsupported rows (including directories
+    and virtual bookmarks) are ignored instead of being treated as file names.
+    """
+    paths = []
+    seen = set()
+    for row in rows:
+        path = file_path_for_drag(row)
+        if path is None:
+            continue
+        key = str(Path(path)).casefold()
+        if key not in seen:
+            paths.append(path)
+            seen.add(key)
+    return paths

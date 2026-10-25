@@ -24,6 +24,7 @@
   ],
   "exclude_directories": [
     ".venv",
+    ".venv_backup",
     ".git",
     "node_modules",
     "__pycache__",
@@ -40,5 +41,6 @@
     "max_scan_workers": 99
   },
   "exclude_directory_globs": [],
-  "scan_error_policy": "preserve_cached"
+  "scan_error_policy": "preserve_cached",
+  "index_target": "both"
 }

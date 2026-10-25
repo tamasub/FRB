@@ -19,10 +19,12 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from search_matching import sql_search_condition, parse_search_query
+from filesystem_visibility import is_hidden_attribute
 
 DEFAULT_OPTIONS = {
     'enabled': True,  # Backward-compatible switch; false overrides index_mode.
     'index_mode': 'registered',  # registered / configured / off
+    'index_target': 'files',  # files / folders (legacy) / both (eligible files + containing folders)
     'index_folders': [],  # Used only in configured mode; absolute paths, spaces OK.
     'max_depth': None,  # None=recursive, 0=files in root only, 1=one child level.
     'extensions': ['.bat', '.py', '.ps1', '.json', '.xlsx', '.md'],
@@ -44,6 +46,8 @@ def load_options(path):
     if not isinstance(raw, dict):
         raise ValueError('file_index_options.json はJSONオブジェクトにしてください')
     options = {**DEFAULT_OPTIONS, **raw}
+    if options['index_target'] not in ('files', 'folders', 'both'):
+        raise ValueError('index_target は files / folders / both を指定してください')
     if options['index_mode'] not in ('registered', 'configured', 'off'):
         raise ValueError('index_mode は registered / configured / off を指定してください')
     if not isinstance(options['index_folders'], list) or not all(
@@ -158,6 +162,18 @@ def clear_index(database):
                 if name in tables:
                     db.execute(f'DELETE FROM {name}')
     return True
+
+
+def _windows_drive_root(path):
+    """True for an explicit drive root such as F:\\ (also with Win32 \\?\\ prefix).
+
+    Windows can report root-level volume attributes that should not cause an
+    explicitly requested *entire drive* to vanish from the index. Hidden child
+    files and folders are still excluded individually during traversal.
+    """
+    path = _original_scan_path(os.fspath(path))
+    drive, tail = ntpath.splitdrive(path)
+    return len(drive) == 2 and drive[1] == ':' and bool(tail) and not tail.strip('\\/')
 
 
 def _normalized_path(path):
@@ -300,34 +316,61 @@ def _scan(roots, options, connection):
     def onerror(error):
         errors.append(str(error))
     for root in roots:
+        if is_hidden_attribute(root) and not _windows_drive_root(root):
+            skipped += 1
+            continue
+        folders_only = options.get('index_target') == 'folders'
+        include_parents = options.get('index_target') == 'both'
+        if folders_only and not is_hidden_attribute(root):
+            name = os.path.basename(os.path.normpath(root))
+            cur.execute('INSERT OR IGNORE INTO files(path, name, name_fold, directory, extension) VALUES(?,?,?,?,?)',
+                        (root, name, name.casefold(), os.path.dirname(os.path.normpath(root)), ''))
+            inserted += cur.rowcount
         if not os.path.isdir(root):
             raise FileNotFoundError(f'索引更新中に対象フォルダーが見つからなくなりました: {root}')
         # Detect root permission failures before accepting a partial scan.
         with os.scandir(root) as check:
             next(check, None)
         for parent, dirs, files in os.walk(root, topdown=True, followlinks=False, onerror=onerror):
-            if max_depth is not None and os.path.relpath(parent, scan_root).count(os.sep) + (parent != scan_root) >= max_depth:
+            if max_depth is not None and os.path.relpath(parent, root).count(os.sep) + (parent != root) >= max_depth:
                 skipped += len(dirs)
                 dirs[:] = []
             retained = []
             for dirname in dirs:
                 child = os.path.join(parent, dirname)
                 if (dirname.casefold() in excluded_dirs or _excluded_folder(options, root, child)
-                    or os.path.islink(child) or (
+                    or is_hidden_attribute(child) or os.path.islink(child) or (
                     hasattr(os.path, 'isjunction') and os.path.isjunction(child))):
                     skipped += 1
                 else:
                     retained.append(dirname)
             dirs[:] = retained
+            if folders_only:
+                for dirname in retained:
+                    child = os.path.join(parent, dirname)
+                    cur.execute('INSERT OR IGNORE INTO files(path, name, name_fold, directory, extension) VALUES(?,?,?,?,?)',
+                                (child, dirname, dirname.casefold(), parent, ''))
+                    inserted += cur.rowcount
+                continue
+            indexed_parent = False
             for name in files:
                 extension = os.path.splitext(name)[1].casefold()
                 if extension not in extensions or any(token in name.casefold() for token in hidden):
                     skipped += 1; continue
                 path = os.path.join(parent, name)
-                if os.path.islink(path):
+                if os.path.islink(path) or is_hidden_attribute(path):
                     skipped += 1; continue
                 cur.execute('INSERT OR IGNORE INTO files(path, name, name_fold, directory, extension) VALUES(?,?,?,?,?)',
                             (path, name, name.casefold(), parent, extension))
+                inserted += cur.rowcount
+                indexed_parent = True
+            # 'both': include a directory only when it directly contains at
+            # least one eligible file (same extension/hidden/exclusion rules).
+            if include_parents and indexed_parent:
+                parent_path = os.path.normpath(parent)
+                parent_name = os.path.basename(parent_path)
+                cur.execute('INSERT OR IGNORE INTO files(path, name, name_fold, directory, extension) VALUES(?,?,?,?,?)',
+                            (parent_path, parent_name, parent_name.casefold(), os.path.dirname(parent_path), ''))
                 inserted += cur.rowcount
         connection.commit()
     return inserted, skipped, errors
@@ -378,20 +421,28 @@ def index_status(database):
         return None
 
 
-def search_index(database, query, limit=100):
-    """Match each space-separated term against the indexed file's full path.
+def search_index(database, query, limit=100, *, entry_type=None):
+    """Match full paths; optionally return only indexed directories.
 
-    Full path includes the filename, so terms may independently match folder
-    names or filenames. Retain name_fold for Unicode-insensitive basename
-    matching and compatibility with indexes built by older versions.
+    The existing SQLite table name stays `files` for old database compatibility.
+    Folder entries have an empty extension. A folder-only SQL predicate runs
+    BEFORE LIMIT so stale file entries cannot crowd out folder hits. 'both'
+    returns eligible file and parent-folder entries together.
     """
     if not parse_search_query(query) or not Path(database).is_file():
         return []
     condition, params = sql_search_condition(query)
     try:
         with closing(sqlite3.connect(database, timeout=1)) as db:
+            kind_clause = (" AND extension = ''" if entry_type == 'folders' else
+                           " AND extension <> ''" if entry_type == 'files' else '')
+            # In mixed mode a folder name also matches every child's full
+            # path. Show actual folder hits first so many matching files do
+            # not hide the folder entirely behind the search_limit cap.
+            order = ("CASE WHEN extension = '' THEN 0 ELSE 1 END, name_fold, path"
+                     if entry_type == 'both' else 'name_fold, path')
             sql = ('SELECT path, name, directory, extension FROM files WHERE '
-                   + condition + ' ORDER BY name_fold, path LIMIT ?')
+                   + condition + kind_clause + ' ORDER BY ' + order + ' LIMIT ?')
             return [dict(path=p, name=n, directory=d, extension=e)
                     for p,n,d,e in db.execute(sql, (*params, limit))]
     except (sqlite3.Error, OSError):
@@ -481,9 +532,12 @@ def route_registered_open_step(step, studio_root=''):
 # the live launcher uses refresh_index, which never replaces an open SQLite file.
 
 def _index_options_digest(options):
-    relevant = {key: options[key] for key in
+    relevant = {'index_target': options.get('index_target', 'files'),
+                'hidden_attribute_filter': 2,
+                'windows_drive_root_visible': True,
+                **{key: options[key] for key in
                 ('extensions', 'exclude_name_contains', 'exclude_directories',
-                 'exclude_directory_globs', 'scan_error_policy', 'max_depth')}
+                 'exclude_directory_globs', 'scan_error_policy', 'max_depth')}}
     return hashlib.sha256(json.dumps(relevant, ensure_ascii=False,
                                     sort_keys=True).encode('utf-8')).hexdigest()
 
@@ -508,6 +562,12 @@ def _root_scan(root, options, cancelled=None):
         scan_root = root
     if not os.path.isdir(scan_root):
         raise FileNotFoundError(f'対象フォルダーが利用できません: {root}')
+    # A root itself marked Hidden must not expose any of its descendants.
+    if is_hidden_attribute(scan_root) and not _windows_drive_root(root):
+        return {'root': root, 'key': _root_key(root), 'rows': [],
+                'digest': _digest_rows([]), 'count': 0, 'excluded': 1,
+                'failed_dirs': [],
+                'warnings': [f'索引対象ルートが隠し属性のため除外: {root}']}
     try:
         with os.scandir(scan_root) as entries:
             next(entries, None)  # fail fast on an inaccessible root
@@ -522,6 +582,11 @@ def _root_scan(root, options, cancelled=None):
     excluded_dirs = {v.casefold() for v in options['exclude_directories']}
     max_depth = options.get('max_depth')
     rows, excluded = [], 0
+    folders_only = options.get('index_target') == 'folders'
+    include_parents = options.get('index_target') == 'both'
+    if folders_only and not is_hidden_attribute(scan_root):
+        name = os.path.basename(os.path.normpath(root))
+        rows.append((root, name, name.casefold(), os.path.dirname(os.path.normpath(root)), '', _root_key(root)))
     failures, failed_dirs = [], []
     def on_error(exc):
         path = _original_scan_path(getattr(exc, 'filename', '') or root)
@@ -538,23 +603,39 @@ def _root_scan(root, options, cancelled=None):
         for dirname in dirs:
             child = os.path.join(parent, dirname)
             if (dirname.casefold() in excluded_dirs or
-                    _excluded_folder(options, root, _original_scan_path(child)) or os.path.islink(child)
+                    _excluded_folder(options, root, _original_scan_path(child)) or is_hidden_attribute(child) or os.path.islink(child)
                     or (hasattr(os.path, 'isjunction') and os.path.isjunction(child))):
                 excluded += 1
             else:
                 retained.append(dirname)
         dirs[:] = retained
+        if folders_only:
+            for dirname in retained:
+                child = os.path.join(parent, dirname)
+                rows.append((_original_scan_path(child), dirname, dirname.casefold(),
+                             _original_scan_path(parent), '', _root_key(root)))
+            continue
+        indexed_parent = False
         for name in files:
             extension = os.path.splitext(name)[1].casefold()
             if extension not in extensions or any(token in name.casefold() for token in hidden):
                 excluded += 1
                 continue
             path = os.path.join(parent, name)
-            if os.path.islink(path):
+            if os.path.islink(path) or is_hidden_attribute(path):
                 excluded += 1
                 continue
             rows.append((_original_scan_path(path), name, name.casefold(),
                          _original_scan_path(parent), extension, _root_key(root)))
+            indexed_parent = True
+        # Store the containing folder once per directory with matching files.
+        # Excluded descendants, hidden files, and unsupported extensions do not
+        # cause an otherwise empty folder to become searchable.
+        if include_parents and indexed_parent:
+            parent_path = _original_scan_path(parent)
+            parent_name = os.path.basename(os.path.normpath(parent_path))
+            rows.append((parent_path, parent_name, parent_name.casefold(),
+                         os.path.dirname(os.path.normpath(parent_path)), '', _root_key(root)))
     if failures and options.get('scan_error_policy', 'preserve_cached') == 'fail_root':
         raise OSError(f'{root}: サブフォルダーの走査に失敗: {failures[0]}（{len(failures)}件）')
     rows.sort(key=lambda row: _normalized_path(row[0]))
@@ -602,7 +683,7 @@ def _save_index_metadata(db, roots, options, warnings):
         'roots': [item[0] for item in root_info],
         'extensions': options['extensions'],
         'warnings': list(warnings)[:15], 'scan_errors': len(warnings),
-        'index_version': 2,
+        'index_version': 2, 'index_target': options.get('index_target', 'files'),
     }
     db.executemany('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)',
                    [(key, json.dumps(value, ensure_ascii=False)) for key, value in metadata.items()])
@@ -654,7 +735,7 @@ def refresh_index(database, roots, options, *, force=False, root_warnings=(),
                     continue
                 if scanned.get('failed_dirs'):
                     scanned = _preserve_failed_subtrees(db, scanned)
-                    warnings.extend(scanned['warnings'][:15])
+                warnings.extend(scanned['warnings'][:15])
                 completed[scanned['key']] = scanned
                 old = stored.get(scanned['key'])
                 needs_update = (force or topology_changed or old is None or

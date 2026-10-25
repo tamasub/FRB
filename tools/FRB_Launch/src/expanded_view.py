@@ -3,11 +3,11 @@
 This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
-from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent
+from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
-    QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QStyledItemDelegate)
+    QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QStyleOptionViewItem, QStyle)
 
 from file_drag import ExternalFileDragTree
 
@@ -22,6 +22,9 @@ from virtual_clipboard_paste import is_virtual_file_clipboard
 from context_menu_resolver import resolve_context_target
 from context_menu_actions import rename_file_or_folder
 from pathlib import Path
+from folder_favorites import FolderFavorites
+from combo_chevron_icon import combo_chevron_icon
+from reorderable_tree import ReorderablePopupTree
 
 
 def header_icon(kind, theme):
@@ -115,7 +118,7 @@ def link_icon(theme):
 
 
 def density_lines_icon(theme):
-    """Three crisp horizontal strokes, high-DPI instead of tiny font glyphs."""
+    """Three crisp horizontal strokes, visually centered in the square button."""
     pix = QPixmap(56, 56)
     pix.setDevicePixelRatio(2)
     pix.fill(Qt.GlobalColor.transparent)
@@ -124,8 +127,9 @@ def density_lines_icon(theme):
     pen = QPen(QColor('#3a6254' if theme == 'light' else '#e4f0e8'), 2.0)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     painter.setPen(pen)
-    for y in (8, 14, 20):
-        painter.drawLine(5, y, 21, y)
+    # Slightly right/down vs. the previous icon so it reads optically centered.
+    for y in (10, 16, 22):
+        painter.drawLine(7, y, 23, y)
     painter.end()
     return QIcon(pix)
 
@@ -151,12 +155,13 @@ class _InlineRenameDelegate(QStyledItemDelegate):
 
 
 class _SeparatedFileTree(ExternalFileDragTree):
-    """Inset, hairline row separators (including chevron column)."""
+    """Inset, hairline row separators and a passive current-row outline."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.separator_color = QColor('#eaf0eb')
         self.separator_inset = 12
         self.separator_width = 0.65
+        self.inactive_current_border = QColor('#8fc7ab')
 
     def mousePressEvent(self, event):
         if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
@@ -181,12 +186,40 @@ class _SeparatedFileTree(ExternalFileDragTree):
             return
         super().mouseReleaseEvent(event)
 
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.viewport().update()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.viewport().update()
+
+    def _column_is_focused(self):
+        """A rename editor is part of the middle pane's keyboard focus."""
+        focused = QApplication.focusWidget()
+        return bool(self.hasFocus() or
+                    (focused is not None and self.isAncestorOf(focused)))
+
     def drawRow(self, painter, option, index):
-        super().drawRow(painter, option, index)
+        # Keep a single pale-green active column. A different pane's current
+        # item remains visible as an outline, with no filled selection behind it.
+        focused = self._column_is_focused()
+        row_option = option
+        if not focused:
+            row_option = QStyleOptionViewItem(option)
+            row_option.state &= ~QStyle.StateFlag.State_Selected
+        super().drawRow(painter, row_option, index)
         if not option.rect.isValid():
             return
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        current = self.currentItem()
+        if (not focused and current is not None and
+                self.indexOfTopLevelItem(current) == index.row()):
+            rect = QRectF(option.rect.adjusted(5, 3, -5, -3))
+            painter.setPen(QPen(self.inactive_current_border, 1.15))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(rect, 6.5, 6.5)
         painter.setPen(QPen(self.separator_color, self.separator_width))
         y = option.rect.bottom()
         inset = self.separator_inset
@@ -222,7 +255,7 @@ class DirectoryAddressBar(QStackedWidget):
         self._scheduled = False
         self.surface = _BreadcrumbSurface(self)
         self.crumb_layout = QHBoxLayout(self.surface)
-        self.crumb_layout.setContentsMargins(4, 1, 3, 1)
+        self.crumb_layout.setContentsMargins(4, 1, 64, 1)
         self.crumb_layout.setSpacing(1)
         self.addWidget(self.surface)
         self.editor = QLineEdit(self)
@@ -233,6 +266,47 @@ class DirectoryAddressBar(QStackedWidget):
         self.addWidget(self.editor)
         self.setMinimumWidth(75)
         self.setCurrentWidget(self.surface)
+        self._overlay_dropdown = None
+        self._overlay_favorite = None
+
+    def attach_history_dropdown(self, button):
+        """Attach a search-style history chevron to the breadcrumb's own frame.
+
+        It remains in place for both breadcrumb and editable-path views.
+        """
+        self._overlay_dropdown = button
+        button.setParent(self)
+        button.setFixedSize(24, 26)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        button.setIconSize(QSize(14, 14))
+        self.editor.setTextMargins(0, 0, 60, 0)
+        self._position_dropdown()
+        button.show()
+        button.raise_()
+        self._build_crumbs()
+
+    def attach_favorite_save(self, button):
+        """Place register/registered heart inside the same address frame."""
+        self._overlay_favorite = button
+        button.setParent(self)
+        button.setFixedSize(27, 26)
+        self._position_dropdown()
+        button.show()
+        self._build_crumbs()
+
+    def _position_dropdown(self):
+        combo = self._overlay_dropdown
+        favorite = self._overlay_favorite
+        if combo is not None:
+            combo.move(max(0, self.width() - combo.width() - 4),
+                       max(0, (self.height() - combo.height()) // 2))
+        if favorite is not None:
+            combo_start = combo.x() if combo is not None else self.width() - 28
+            favorite.move(max(0, combo_start - favorite.width() - 3),
+                          max(0, (self.height() - favorite.height()) // 2))
+            favorite.raise_()
+        if combo is not None:
+            combo.raise_()
 
     def sizeHint(self):
         # A long path must never expand the whole splitter beyond its width.
@@ -255,6 +329,7 @@ class DirectoryAddressBar(QStackedWidget):
             return
         self.editor.setText(self.current_path)
         self.setCurrentWidget(self.editor)
+        self._position_dropdown()
         self.editor.setFocus(Qt.FocusReason.MouseFocusReason)
         # Mouse event completion otherwise can reset QLineEdit's selection.
         QTimer.singleShot(0, self.editor.selectAll)
@@ -262,6 +337,7 @@ class DirectoryAddressBar(QStackedWidget):
     def show_breadcrumbs(self):
         self.setCurrentWidget(self.surface)
         self._build_crumbs()
+        self._position_dropdown()
 
     def _submit(self):
         target = normalized_directory(self.editor.text())
@@ -283,6 +359,7 @@ class DirectoryAddressBar(QStackedWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        self._position_dropdown()
         if not self._scheduled:
             self._scheduled = True
             QTimer.singleShot(0, self._rebuild_after_resize)
@@ -314,7 +391,8 @@ class DirectoryAddressBar(QStackedWidget):
         fm = self.fontMetrics()
         def measure(label):
             return fm.horizontalAdvance(label) + (12 if label != ' › ' else 6)
-        segments = compact_segments(self._segments, self.width() - 18, measure)
+        # Reserve space for the inside heart + dropdown (also in edit mode).
+        segments = compact_segments(self._segments, self.width() - 18 - 64, measure)
         for index, (label, path) in enumerate(segments):
             if index:
                 sep = QLabel('›', self.surface)
@@ -510,6 +588,52 @@ class ExpandedLauncherView(QWidget):
         shared_layout.addWidget(self.density_button)
         self.address_bar = DirectoryAddressBar(self.go_to_directory, self.shared_header)
         shared_layout.addWidget(self.address_bar, 1)
+        # Ad-hoc work-directory favorites stay outside the authored Launch JSON.
+        from os import environ
+        self.folder_favorites = FolderFavorites(
+            Path(environ.get('LOCALAPPDATA', str(Path.home()))) / 'FRBLaunch' / 'folder_favorites.json')
+        self.favorite_save = QToolButton(self.address_bar)
+        self.favorite_save.setObjectName('expandedFavoriteSave')
+        self.favorite_save.setText('💛')
+        self.favorite_save.setToolTip('今表示しているフォルダーをお気に入りに登録')
+        self.favorite_save.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.favorite_save.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.favorite_save.clicked.connect(self.register_directory_favorite)
+        self.favorite_dropdown = QToolButton(self.address_bar)
+        self.favorite_dropdown.setObjectName('expandedFavoriteDropdown')
+        self.favorite_dropdown.setText('')
+        self.favorite_dropdown.setIcon(combo_chevron_icon(self.launcher.color_theme))
+        self.favorite_dropdown.setToolTip('作業フォルダーのお気に入り一覧')
+        self.favorite_dropdown.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.favorite_dropdown.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.favorite_dropdown.clicked.connect(self.toggle_directory_favorites)
+        self.address_bar.attach_history_dropdown(self.favorite_dropdown)
+        self.address_bar.attach_favorite_save(self.favorite_save)
+        self.favorite_popup = QFrame(self.launcher)
+        self.favorite_popup.setObjectName('expandedFavoritesPopup')
+        favorite_layout = QVBoxLayout(self.favorite_popup)
+        favorite_layout.setContentsMargins(5, 5, 5, 5)
+        favorite_layout.setSpacing(0)
+        self.favorite_choices = ReorderablePopupTree(self.favorite_popup)
+        self.favorite_choices.setObjectName('expandedFavoritesChoices')
+        self.favorite_choices.setColumnCount(2)
+        self.favorite_choices.setHeaderHidden(True)
+        self.favorite_choices.setRootIsDecorated(False)
+        self.favorite_choices.setIndentation(0)
+        self.favorite_choices.setSortingEnabled(False)
+        self.favorite_choices.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.favorite_choices.header().setStretchLastSection(False)
+        self.favorite_choices.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.favorite_choices.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        self.favorite_choices.setColumnWidth(1, 34)
+        self.favorite_choices.setIconSize(QSize(19, 19))
+        self.favorite_choices.itemClicked.connect(self.directory_favorite_clicked)
+        self.favorite_choices.orderChanged.connect(self.directory_favorites_reordered)
+        self.favorite_choices.installEventFilter(self)
+        self.favorite_choices.viewport().installEventFilter(self)
+        favorite_layout.addWidget(self.favorite_choices)
+        self.favorite_popup.hide()
+        QApplication.instance().installEventFilter(self)
         self.left = ExpandedPanel('Files', 'folder')
         self.middle = ExpandedPanel('フォルダー', 'folder')
         # Only the directory-content column is multi-select. Qt supplies
@@ -524,19 +648,8 @@ class ExpandedLauncherView(QWidget):
         # Reuse the old Back button/signal, but position it in the shared header.
         self.middle.header.layout().removeWidget(self.middle.back)
         self.middle.back.setParent(self.shared_header)
-        self.paste_button = QPushButton('貼り付け', self.shared_header)
-        self.paste_button.setText('📋貼り付け')
-        self.paste_button.setObjectName('expandedPasteButton')
-        self.paste_button.setToolTip('現在のフォルダーへコピー／切り取りしたファイルを貼り付け')
-        self.paste_button.setFixedHeight(30)
-        self.paste_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.paste_button.clicked.connect(lambda checked=False:
-                                          self.launcher.paste_into_expanded_directory())
-        shared_layout.addWidget(self.paste_button)
         shared_layout.addWidget(self.middle.back)
         self.middle.back.show()
-        QApplication.clipboard().dataChanged.connect(self.update_paste_button)
-        self.update_paste_button()
         group_layout.addWidget(self.shared_header)
         self.files_splitter = QSplitter(Qt.Orientation.Horizontal, self.files_group)
         self.files_splitter.setObjectName('expandedFilesSplitter')
@@ -622,9 +735,6 @@ class ExpandedLauncherView(QWidget):
             QToolButton#expandedDensityToggle {{background:transparent;border:1px solid {border};
                 border-radius:7px;color:{text};font-size:17px;}}
             QToolButton#expandedDensityToggle:hover {{background:{hover};}}
-            QPushButton#expandedPasteButton {{background:{hdr};color:{text};border:1px solid {border};
-                border-radius:7px;padding:3px 9px;font-size:12px;}}
-            QPushButton#expandedPasteButton:hover {{background:{hover};}}
             QFrame#expandedPanel {{ background:{bg}; border:1px solid {border};border-radius:12px; }}
             QWidget#expandedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
                 border-top-left-radius:11px;border-top-right-radius:11px;}}
@@ -636,18 +746,37 @@ class ExpandedLauncherView(QWidget):
             QTreeWidget#expandedTree::item {{min-height:{height}px;padding:{pad}px 7px;border:0;}}
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
             QTreeWidget#expandedTree::item:selected {{background:{active};color:{text};}}
-            QTreeWidget#expandedTree::item:selected:!active {{background:{active};color:{text};}}
+            QTreeWidget#expandedTree::item:selected:!active {{background:transparent;color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
-            QFrame#addressBreadcrumbSurface {{border:1px solid {border};border-radius:5px;background:{bg};}}
+            QFrame#addressBreadcrumbSurface {{border:1px solid {border};border-radius:17px;background:{bg};}}
             QToolButton#addressCrumb {{border:0;background:transparent;color:{text};padding:2px 3px;}}
             QToolButton#addressCrumb:hover {{background:{active};border-radius:4px;}}
             QLabel#addressSeparator {{border:0;color:{text};background:transparent;padding:0 2px;}}
             QLabel#addressPlaceholder {{border:0;color:{text};background:transparent;}}
             QLineEdit#directoryAddressEdit {{background:{bg};color:{text};border:1px solid #55a38c;
-                border-bottom:2px solid #167f72;border-radius:5px;padding:3px 5px;selection-background-color:#138c8d;
+                border-bottom:2px solid #167f72;border-radius:17px;padding:3px 5px;selection-background-color:#138c8d;
                 selection-color:white;}}
         ''')
+        self.favorite_popup.setStyleSheet(f'''
+            QFrame#expandedFavoritesPopup {{background:{bg};border:1px solid {border};border-radius:8px;}}
+            QTreeWidget#expandedFavoritesChoices {{background:{bg};color:{text};border:0;outline:0;}}
+            QTreeWidget#expandedFavoritesChoices::item {{height:30px;padding:2px 5px;}}
+            QTreeWidget#expandedFavoritesChoices::item:selected {{background:{active};color:{text};}}
+            QTreeWidget#expandedFavoritesChoices::item:hover {{background:{hover};}}
+        ''')
+        self.favorite_save.setStyleSheet(f'''
+            QToolButton#expandedFavoriteSave {{color:{text};background:transparent;border:0;
+                border-radius:6px;padding:0;font-size:14px;}}
+            QToolButton#expandedFavoriteSave:hover {{background:{hover};}}
+        ''')
+        self.favorite_dropdown.setStyleSheet(f'''
+            QToolButton#expandedFavoriteDropdown {{color:{text};background:transparent;border:0;
+                border-radius:5px;padding:0;}}
+            QToolButton#expandedFavoriteDropdown:hover {{background:{hover};}}
+        ''')
+        self.favorite_dropdown.setIcon(combo_chevron_icon(theme))
+        self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme).pixmap(28, 28))
         if self.bookmarks_root is not None:
             for index, root in enumerate(self.root_rows):
@@ -704,6 +833,12 @@ class ExpandedLauncherView(QWidget):
                 button.installEventFilter(self)
                 button.setIcon(header_icon('bookmark', self.launcher.color_theme)
                                if row.get('item_id') == right['item_id'] else self.launcher.row_icon(row))
+                # The short ZIP label clips when the focus outline grows from
+                # 1px to 2px and the checked button switches to a bold font.
+                # Reserve a few extra pixels for ZIP only; other roots keep
+                # their original natural widths.
+                if row.get('title') == 'ZIP':
+                    button.setMinimumWidth(button.sizeHint().width() + 10)
                 hint = f'Ctrl+F{index+1}' if index < 12 else ''
                 button.setToolTip((' / '.join(v for v in (row.get('description', ''), hint) if v)))
                 button.clicked.connect(lambda checked=False, r=row, b=button: self.root_action(r, b))
@@ -764,19 +899,105 @@ class ExpandedLauncherView(QWidget):
             self.middle.fill(rows, self.launcher.row_icon)
         else:
             self.middle.tree.clear()
-        self.update_paste_button()
+        self.update_directory_favorite_button()
+
+    def update_directory_favorite_button(self):
+        target = self.current_directory()
+        import ntpath
+        registered = bool(target and any(ntpath.normcase(p) == ntpath.normcase(target)
+                        for p in self.folder_favorites.paths))
+        self.favorite_save.setText('🩶' if registered else '💛')
+        self.favorite_save.setToolTip('お気に入り登録済み' if registered else '今のフォルダーをお気に入りに登録')
+        self.favorite_save.setEnabled(bool(target))
+        self.favorite_dropdown.setEnabled(bool(self.folder_favorites.paths))
+        self.favorite_dropdown.setToolTip(
+            f'お気に入りフォルダーを選択（{len(self.folder_favorites.paths)}件）')
+
+    def register_directory_favorite(self):
+        target = self.current_directory()
+        if not target:
+            return
+        try:
+            self.folder_favorites.add(target)
+        except OSError:
+            self.launcher.error('お気に入りの保存に失敗しました')
+            return
+        self.update_directory_favorite_button()
+        if self.favorite_popup.isVisible():
+            self.populate_directory_favorites(target)
+
+    def populate_directory_favorites(self, selected=None):
+        self.favorite_choices.blockSignals(True)
+        self.favorite_choices.clear()
+        for path in self.folder_favorites.paths:
+            row = QTreeWidgetItem([path, '×'])
+            row.setIcon(0, self.launcher.file_icons.icon(QFileIconProvider.IconType.Folder))
+            row.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+            row.setToolTip(0, path + '  — クリックでLaunch内のフォルダーへ移動／ドラッグで並び替え')
+            row.setToolTip(1, 'お気に入りを削除（実フォルダーは削除されません）')
+            self.favorite_choices.addTopLevelItem(row)
+            if path == selected:
+                self.favorite_choices.setCurrentItem(row)
+        if self.favorite_choices.topLevelItemCount() and self.favorite_choices.currentItem() is None:
+            self.favorite_choices.setCurrentItem(self.favorite_choices.topLevelItem(0))
+        self.favorite_choices.blockSignals(False)
+
+    def position_directory_favorites(self):
+        # Same left edge and width as the breadcrumb input, not the ▼ button.
+        anchor = self.address_bar.mapTo(self.launcher, QPoint(0, self.address_bar.height() + 4))
+        width = min(self.address_bar.width(), max(1, self.launcher.width() - 12))
+        x = max(6, min(anchor.x(), self.launcher.width() - width - 6))
+        y = anchor.y()
+        # Allow ~2x the old popup height, with a generous minimum when saved
+        # favorites exist; keep the popup completely inside the launcher.
+        desired_height = max(180, min(600, (len(self.folder_favorites.paths) * 31 + 12) * 2))
+        height = max(1, min(desired_height, self.launcher.height() - y - 12))
+        self.favorite_popup.setGeometry(x, y, width, height)
+
+    def toggle_directory_favorites(self):
+        if self.favorite_popup.isVisible():
+            self.hide_favorite_popup()
+            return
+        if not self.folder_favorites.paths:
+            return
+        if self.launcher.history_popup.isVisible():
+            self.launcher.hide_history_popup()
+        self.populate_directory_favorites()
+        self.position_directory_favorites()
+        self.favorite_popup.show()
+        self.favorite_popup.raise_()
+        self.favorite_choices.setFocus(Qt.FocusReason.MouseFocusReason)
+
+    def hide_favorite_popup(self):
+        self.favorite_popup.hide()
+
+    def directory_favorite_clicked(self, item, column):
+        path = item.text(0)
+        if column == 1:
+            try:
+                self.folder_favorites.remove(path)
+            except OSError:
+                self.launcher.error('お気に入りの削除に失敗しました')
+                return
+            self.populate_directory_favorites()
+            self.update_directory_favorite_button()
+            if not self.folder_favorites.paths:
+                self.hide_favorite_popup()
+            return
+        self.hide_favorite_popup()
+        if not self.go_to_directory(path):
+            self.launcher.error('フォルダーが見つかりません: ' + path)
+
+    def directory_favorites_reordered(self, paths):
+        try:
+            if not self.folder_favorites.reorder(paths):
+                self.populate_directory_favorites()
+        except OSError:
+            self.launcher.error('お気に入りの並び替えを保存できませんでした')
+            self.populate_directory_favorites()
 
     def current_directory(self):
         return row_directory(self.path[-1], self.launcher.expander().expand) if self.path else None
-
-    def update_paste_button(self):
-        if not hasattr(self, 'paste_button'):
-            return
-        mime = QApplication.clipboard().mimeData()
-        available = bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
-        folder = self.current_directory()
-        self.paste_button.setVisible(bool(folder and available))
-        self.paste_button.setEnabled(bool(folder and available))
 
     def middle_selected_paths(self):
         rows = [self.row_data(item) for item in self.middle.tree.selectedItems()]
@@ -872,7 +1093,7 @@ class ExpandedLauncherView(QWidget):
                 self.launcher.error('名前を変更できませんでした: ' + str(exc))
 
     def go_to_directory(self, path):
-        """Breadcrumb/edit navigation may go ABOVE the configured Files root."""
+        """Breadcrumb/edit/favorite navigation stays inside FRB Launch."""
         import os
         target = normalized_directory(path)
         if not target or not os.path.isdir(target):
@@ -883,11 +1104,54 @@ class ExpandedLauncherView(QWidget):
         return True
 
     def eventFilter(self, obj, event):
+        # Combo-like behavior: dismiss favorites on an unrelated click, but
+        # don't consume the click or interfere with file/keyboard actions.
+        if (hasattr(self, 'favorite_popup') and self.favorite_popup.isVisible()
+                and event.type() == QEvent.Type.MouseButtonPress
+                and isinstance(obj, QWidget) and obj.window() is self.launcher
+                and obj is not self.favorite_dropdown
+                and not self.favorite_dropdown.isAncestorOf(obj)
+                and obj is not self.favorite_popup
+                and not self.favorite_popup.isAncestorOf(obj)):
+            self.hide_favorite_popup()
+        if (hasattr(self, 'favorite_choices') and self.favorite_popup.isVisible()
+                and obj in (self.favorite_choices, self.favorite_choices.viewport())
+                and event.type() == QEvent.Type.KeyPress):
+            if event.key() == Qt.Key.Key_Escape:
+                self.hide_favorite_popup()
+                self.focus_panel(self.middle)
+                return True
+            if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Right):
+                row = self.favorite_choices.currentItem()
+                if row:
+                    self.directory_favorite_clicked(row, 0)
+                return True
+            if event.key() == Qt.Key.Key_Delete:
+                row = self.favorite_choices.currentItem()
+                if row:
+                    self.directory_favorite_clicked(row, 1)
+                return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
                 and obj in (self.left.tree, self.left.tree.viewport())):
             if self.wheel_files_first_column(event):
                 event.accept()
                 return True
+        if (self.isVisible() and self.root_buttons
+                and obj in (self.root_widget, self.toolbar_scroller.viewport(),
+                            self.toolbar_scroller)
+                and event.type() == QEvent.Type.MouseButtonPress
+                and event.button() == Qt.MouseButton.LeftButton):
+            # The second-level toolbar is mostly empty when it has just a
+            # few buttons. A click on that *blank* region focuses the first
+            # button, not an arbitrary previous button or its cascade.
+            # Actual button clicks are delivered to the QPushButtons above.
+            self.launcher.close_cascade_for_main_interaction()
+            self._wheel_root_id = self.root_rows[0].get('item_id')
+            for index, button in enumerate(self.root_buttons):
+                button.setChecked(index == 0)
+            self.focus_root(index=0)
+            event.accept()
+            return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
                 and (obj in self.root_buttons or
                      obj in (self.root_widget, self.toolbar_scroller,
@@ -1111,6 +1375,11 @@ class ExpandedLauncherView(QWidget):
     def context_menu(self, pane, point):
         item = pane.tree.itemAt(point)
         if not item:
+            # With no header Paste button, an empty folder must still be
+            # pasteable via right-click on its empty middle pane.
+            if pane is self.middle and self.current_directory():
+                self.launcher.show_expanded_background_paste_menu(
+                    pane.tree.viewport().mapToGlobal(point))
             return
         row = self.row_data(item)
         if pane is self.middle:
