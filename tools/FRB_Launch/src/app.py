@@ -1980,18 +1980,23 @@ class Launcher(QWidget):
         self._frame_cursor_reset_filter = FrameEdgeCursorResetFilter(self)
         QApplication.instance().installEventFilter(self._frame_cursor_reset_filter)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
-        # Ctrl+F1..Ctrl+F12 run/open the corresponding visible first-level
-        # button, left-to-right. F1..F12 remain Page navigation as before.
+        # Page: Ctrl+F1..F12. Second layer (visible roots): Ctrl+Shift+F1..F12.
+        # Free unmodified F2 for Explorer-style inline rename, and F5 for
+        # refreshing the displayed folder. Selection's F12 confirm is retained.
         self.root_action_shortcuts = []
         for index in range(12):
-            shortcut = QShortcut(QKeySequence(f'Ctrl+F{index+1}'), self)
+            shortcut = QShortcut(QKeySequence(f'Ctrl+Shift+F{index+1}'), self)
             shortcut.activated.connect(lambda i=index: self.execute_expanded_root_shortcut(i))
             self.root_action_shortcuts.append(shortcut)
         self.page_shortcuts = []
         for index in range(12):
-            shortcut = QShortcut(QKeySequence(f'F{index+1}'), self)
+            shortcut = QShortcut(QKeySequence(f'Ctrl+F{index+1}'), self)
             shortcut.activated.connect(lambda i=index:self.switch_page(i))
             self.page_shortcuts.append(shortcut)
+        self.file_rename_shortcut = QShortcut(QKeySequence('F2'), self)
+        self.file_rename_shortcut.activated.connect(self.rename_current_middle_item)
+        self.folder_refresh_shortcut = QShortcut(QKeySequence('F5'), self)
+        self.folder_refresh_shortcut.activated.connect(self.refresh_current_middle_folder)
         self.hover_watch = QTimer(self);self.hover_watch.setInterval(60)
         self.hover_watch.timeout.connect(self.check_hover_menus);self.hover_watch.start()
         # Refresh the taskbar Jump List at every Launch process start even if
@@ -3216,16 +3221,26 @@ class Launcher(QWidget):
             self.dismiss()
 
     def page_key(self, event):
-        if event.modifiers()!=Qt.KeyboardModifier.NoModifier:return False
+        # Only Ctrl+Fn changes Page; plain F2/F5 belong to file operations.
+        if event.modifiers()!=Qt.KeyboardModifier.ControlModifier:return False
         index=event.key()-Qt.Key.Key_F1
         if 0<=index<12:
             self.switch_page(index);return True
         return False
 
+    def rename_current_middle_item(self):
+        """F2 edits the selected file/folder in Files' second column only."""
+        view = self.expanded_view
+        if view.isVisible():
+            view.rename_selected_middle_item()
+
+    def refresh_current_middle_folder(self):
+        """F5 re-reads the displayed folder without changing Page or focus."""
+        view = self.expanded_view
+        if view.isVisible():
+            view.refresh_current_directory()
+
     def switch_page(self, index):
-        # F12 keeps its existing send/confirm meaning in the selection screen.
-        if index==11 and self.selection:
-            self.confirm_selection();return
         if index>=self.tabs.count():return
         self._nav_before_change()
         self._nav_transition = True
@@ -3574,7 +3589,7 @@ class Launcher(QWidget):
             # persisted manual sort_order and mouse drag operations.
             if query:self.apply_search_sort()
             if self.list.topLevelItemCount():self.list.setCurrentItem(self.list.topLevelItem(0))
-            self.footer.setText(('↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開/実行   Enter 実行   F1〜F12 / Ctrl+PageUp/Down Page切替'))
+            self.footer.setText(('↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  '+str(len(self.checked))+'件') if self.selection else (' / '.join(x['title'] for x in self.stack) or '↑↓ 選択   → 展開/実行   Enter 実行   Ctrl+F1〜F12 / Ctrl+PageUp/Down Page切替'))
         except Exception as e:self.error(e)
         finally:self.list.blockSignals(False)
         self.update_expanded_visibility()
@@ -4669,6 +4684,13 @@ class Launcher(QWidget):
                                   self.expanded_view.right)
                      if p.tree is tree or p.tree.viewport() is tree), None)
         if pane is None:
+            return False
+        # A filename QLineEdit owns Enter while editing. Do not dispatch
+        # that same key through the normal expanded Files activation route.
+        if (pane is self.expanded_view.middle and
+                (getattr(pane.tree, '_rename_enter_guard', False) or
+                 (hasattr(pane.tree, 'state') and
+                  pane.tree.state() == QAbstractItemView.State.EditingState))):
             return False
         if self.page_key(event):
             event.accept()

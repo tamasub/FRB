@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, Q
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
-    QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QStyleOptionViewItem, QStyle)
+    QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QAbstractItemDelegate, QStyleOptionViewItem, QStyle)
 
 from file_drag import ExternalFileDragTree
 
@@ -215,6 +215,35 @@ class _InlineRenameDelegate(QStyledItemDelegate):
                 f'font-size:{pixels if pixels > 0 else 13}px; '
                 'padding:0px 3px; }')
         return editor
+
+    def eventFilter(self, obj, event):
+        """Enter commits the filename ONLY; it must never activate the row.
+
+        QTreeWidget.itemActivated (and the launcher's Enter keyboard router)
+        otherwise may treat the same Enter as a request to open the file,
+        which dismisses the FRB Launch window. Intercept at the actual Qt
+        editor, where both SelectedClicked and context-menu renames arrive.
+        """
+        if (isinstance(obj, QLineEdit)
+                and obj.objectName() == 'inlineRenameEditor'
+                and event.type() == QEvent.Type.KeyPress
+                and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+            tree = self.parent()
+            if isinstance(tree, QTreeWidget):
+                # Guard synchronous AND shortly deferred itemActivated signals.
+                # Epoch protects a newer edit from an older release timer.
+                tree._rename_enter_epoch = getattr(tree, '_rename_enter_epoch', 0) + 1
+                epoch = tree._rename_enter_epoch
+                tree._rename_enter_guard = True
+                def release_guard():
+                    if getattr(tree, '_rename_enter_epoch', None) == epoch:
+                        tree._rename_enter_guard = False
+                QTimer.singleShot(120, release_guard)
+            self.commitData.emit(obj)
+            self.closeEditor.emit(obj, QAbstractItemDelegate.EndEditHint.NoHint)
+            event.accept()
+            return True
+        return super().eventFilter(obj, event)
 
 
 class _SeparatedFileTree(ExternalFileDragTree):
@@ -1053,7 +1082,7 @@ class ExpandedLauncherView(QWidget):
                 # their original natural widths.
                 if row.get('title') == 'ZIP':
                     button.setMinimumWidth(button.sizeHint().width() + 10)
-                hint = f'Ctrl+F{index+1}' if index < 12 else ''
+                hint = f'Ctrl+Shift+F{index+1}' if index < 12 else ''
                 button.setToolTip((' / '.join(v for v in (row.get('description', ''), hint) if v)))
                 button.clicked.connect(lambda checked=False, r=row, b=button: self.root_action(r, b))
                 self.root_layout.addWidget(button)
@@ -1288,6 +1317,61 @@ class ExpandedLauncherView(QWidget):
         rows = [self.row_data(item) for item in self.middle.tree.selectedItems()]
         return physical_paths(rows, self.launcher.authored_items)
 
+
+    def rename_selected_middle_item(self):
+        """F2: invoke the same in-place filename editor as context Rename.
+
+        The shortcut is scoped to the middle file list (not the search box,
+        Page tabs or other columns). Never guess a target on multi-selection.
+        """
+        tree = self.middle.tree
+        focused = QApplication.focusWidget()
+        if (not self.isVisible() or focused is None or
+                not (focused is tree or tree.isAncestorOf(focused)) or
+                tree.state() == QAbstractItemView.State.EditingState or
+                len(tree.selectedItems()) > 1):
+            return False
+        item = tree.currentItem()
+        return bool(item is not None and self.begin_inline_rename(item))
+
+    def refresh_current_directory(self):
+        """F5: re-read filesystem entries while preserving selection/scroll.
+
+        Qt rebuilds the QTreeWidgetItems on refresh. Restore matching paths
+        by displayed name so keyboard navigation doesn't jump to another row.
+        This is a manual refresh; it does not modify the file index catalog.
+        """
+        directory = self.current_directory()
+        tree = self.middle.tree
+        if (not self.isVisible() or not directory or not Path(directory).is_dir() or
+                tree.state() == QAbstractItemView.State.EditingState):
+            return False
+        selected_names = {self.row_data(item).get('title') for item in tree.selectedItems()
+                          if self.row_data(item)}
+        current = tree.currentItem()
+        current_row = self.row_data(current) if current else None
+        current_name = current_row.get('title') if current_row else None
+        scroll = tree.verticalScrollBar().value()
+        self.refresh_middle()
+        tree.clearSelection()
+        restored_current = None
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            row = self.row_data(item)
+            name = row.get('title') if row else None
+            if name == current_name:
+                restored_current = item
+        if restored_current is not None:
+            tree.setCurrentItem(restored_current)
+        # setCurrentItem may reset the selection: put the multi-select set
+        # back after restoring the current row, not before it.
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            row = self.row_data(item)
+            if row and row.get('title') in selected_names:
+                item.setSelected(True)
+        tree.verticalScrollBar().setValue(scroll)
+        return True
 
     def begin_context_inline_rename(self, item):
         """Keep a Qt.Tool launch window visible while the context menu closes."""
@@ -2501,6 +2585,11 @@ class ExpandedLauncherView(QWidget):
 
     def enter_row(self, pane, item):
         """Enter runs a filesystem directory; Right instead browses it."""
+        if (pane is self.middle and
+                (getattr(pane.tree, '_rename_enter_guard', False) or
+                 (hasattr(pane.tree, 'state') and
+                  pane.tree.state() == QAbstractItemView.State.EditingState))):
+            return
         row = self.row_data(item)
         if not row:
             return
@@ -2564,6 +2653,12 @@ class ExpandedLauncherView(QWidget):
             self.open_cascade(row, self.right.tree, item)
 
     def activate_row(self, pane, item):
+        # Enter committed inside the inline filename editor is NOT an open.
+        if (pane is self.middle and
+                (getattr(pane.tree, '_rename_enter_guard', False) or
+                 (hasattr(pane.tree, 'state') and
+                  pane.tree.state() == QAbstractItemView.State.EditingState))):
+            return
         row = self.row_data(item)
         if not row:
             return

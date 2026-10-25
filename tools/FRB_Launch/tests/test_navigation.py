@@ -69,28 +69,33 @@ class NavigationTests(unittest.TestCase):
         self.assertTrue(self.w.menu.isVisible())
 
     def test_function_page_keys(self):
-        QTest.keyClick(self.w.search, Qt.Key.Key_F2)
-        self.assertEqual(self.w.tabs.currentIndex(),1)
-        QTest.keyClick(self.w.list, Qt.Key.Key_F3)
-        self.assertEqual(self.w.tabs.currentIndex(),2)
-        QTest.keyClick(self.w.search, Qt.Key.Key_F1)
-        self.assertEqual(self.w.tabs.currentIndex(),0)
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        QTest.keyClick(self.w.search, Qt.Key.Key_F2, ctrl)
+        self.assertEqual(self.w.tabs.currentIndex(), 1)
+        QTest.keyClick(self.w.list, Qt.Key.Key_F3, ctrl)
+        self.assertEqual(self.w.tabs.currentIndex(), 2)
+        QTest.keyClick(self.w.search, Qt.Key.Key_F1, ctrl)
+        self.assertEqual(self.w.tabs.currentIndex(), 0)
         self.w.cascade(self.w.children()[0])
-        menu=self.w.menu
-        QTest.keyClick(menu,Qt.Key.Key_F2)
+        menu = self.w.menu
+        QTest.keyClick(menu, Qt.Key.Key_F2, ctrl)
         self.assertFalse(menu.isVisible())
-        self.assertEqual(self.w.tabs.currentIndex(),1)
-        QTest.keyClick(self.w.search,Qt.Key.Key_F11)
-        self.assertEqual(self.w.tabs.currentIndex(),1)
+        self.assertEqual(self.w.tabs.currentIndex(), 1)
+        QTest.keyClick(self.w.search, Qt.Key.Key_F11, ctrl)
+        self.assertEqual(self.w.tabs.currentIndex(), 1)
         self.w.search.setText('test')
-        QTest.keyClick(self.w.search,Qt.Key.Key_F1)
-        self.assertEqual(self.w.search.text(),'')
-        row=next(x for x in self.w.data['items'] if x['item_kind']=='selection')
+        QTest.keyClick(self.w.search, Qt.Key.Key_F1, ctrl)
+        self.assertEqual(self.w.search.text(), '')
+        # Bare F2/F5 must not alter Page; F12 is selection confirm.
+        QTest.keyClick(self.w.search, Qt.Key.Key_F2)
+        QTest.keyClick(self.w.search, Qt.Key.Key_F5)
+        self.assertEqual(self.w.tabs.currentIndex(), 0)
+        row = next(x for x in self.w.data['items'] if x['item_kind'] == 'selection')
         self.w.activate(row)
-        sent=[]
-        self.w.confirm_selection=lambda:sent.append(True)
-        QTest.keyClick(self.w.list,Qt.Key.Key_F12)
-        self.assertEqual(sent,[True])
+        sent = []
+        self.w.confirm_selection = lambda: sent.append(True)
+        QTest.keyClick(self.w.list, Qt.Key.Key_F12)
+        self.assertEqual(sent, [True])
 
     def test_main_list_right_executes_leaf(self):
         row = next(x for x in self.w.data['items'] if x['page_id']=='work' and x['item_kind'] not in {'category','directory'})

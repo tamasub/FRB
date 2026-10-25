@@ -54,17 +54,17 @@ def test_ribbon_uses_multistop_gradient_with_bookmark_notch():
     assert "p.drawPath(ribbon)" in VIEW
 
 
-def test_first_level_ctrl_fn_shortcuts_follow_visible_order():
-    assert "QKeySequence(f'Ctrl+F{index+1}')" in APP
+def test_first_level_ctrl_shift_fn_shortcuts_follow_visible_order():
+    assert "QKeySequence(f'Ctrl+Shift+F{index+1}')" in APP
     assert "self.execute_expanded_root_shortcut(i)" in APP
     assert "view.root_action(view.root_rows[index], button)" in APP
     assert "view.toolbar_scroller.ensureWidgetVisible(button)" in APP
     assert "enumerate(visible_roots)" in VIEW
-    assert "f'Ctrl+F{index+1}'" in VIEW
+    assert "f'Ctrl+Shift+F{index+1}'" in VIEW
 
 
-def test_original_page_function_keys_are_kept():
-    assert "QKeySequence(f'F{index+1}')" in APP
+def test_page_ctrl_function_keys():
+    assert "QKeySequence(f'Ctrl+F{index+1}')" in APP
     assert "shortcut.activated.connect(lambda i=index:self.switch_page(i))" in APP
 
 
