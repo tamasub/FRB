@@ -6,9 +6,9 @@ QTabBar selection/navigation, then paint a thin inner outline only when the
 bar actually owns focus.  The outline is *not* the selected-page marker.
 """
 
-from PySide6.QtCore import QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen
-from PySide6.QtWidgets import QTabBar
+from PySide6.QtCore import QRectF, Qt, QPoint, QTimer
+from PySide6.QtGui import QColor, QPainter, QPen, QCursor
+from PySide6.QtWidgets import QApplication, QTabBar
 
 
 class FocusPageTabBar(QTabBar):
@@ -34,6 +34,48 @@ class FocusPageTabBar(QTabBar):
             event.accept()
             return
         super().mousePressEvent(event)
+
+    def wheelEvent(self, event):
+        """Keep native Page wheel switching, then follow its selected tab.
+
+        This is a cursor-only enhancement: no synthetic click/activation, and
+        no changes to shortcuts or page selection semantics.
+        """
+        before = self.currentIndex()
+        super().wheelEvent(event)
+        after = self.currentIndex()
+        if (before == after or after < 0
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        self._wheel_follow_index = after
+        if not getattr(self, '_wheel_follow_scheduled', False):
+            self._wheel_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_wheel_tab_pointer)
+
+    def follow_wheel_tab_pointer(self):
+        """Land inside the visible Page button only while still over tabs."""
+        self._wheel_follow_scheduled = False
+        index = getattr(self, '_wheel_follow_index', -1)
+        self._wheel_follow_index = -1
+        if (not self.isVisible() or index != self.currentIndex()
+                or not 0 <= index < self.count()
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        position = QCursor.pos()
+        local = self.mapFromGlobal(position)
+        if not self.rect().contains(local):
+            return
+        bounds = self.tabRect(index)
+        # The stylesheet reserves 5px to separate adjacent Page buttons.
+        visible_right = bounds.right() - 5
+        if visible_right <= bounds.left():
+            return
+        x = (bounds.left() + visible_right) // 2
+        y = max(bounds.top() + 3, min(local.y(), bounds.bottom() - 3))
+        destination = self.mapToGlobal(QPoint(x, y))
+        if destination != position:
+            QCursor.setPos(destination)
 
     def focusInEvent(self, event):
         super().focusInEvent(event)

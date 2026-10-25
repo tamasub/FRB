@@ -98,11 +98,15 @@ class WheelDemo(real_wheel_method()):
         self.opens = []
         self.focuses = []
         self.launches = []
+        self.pointer_follows = []
         self.launcher = SimpleNamespace(menu=SimpleNamespace(isVisible=lambda: True,
                                                               close=lambda: self.opens.append('closed')))
 
     def focus_root(self, index):
         self.focuses.append(index)
+
+    def schedule_root_pointer_follow(self, button):
+        self.pointer_follows.append(self.root_buttons.index(button))
 
     def open_cascade(self, row, button):
         self.opens.append(row['item_id'])
@@ -113,6 +117,7 @@ def test_down_wheel_switches_buttons_opens_only_categories():
     assert demo.wheel_first_level(FakeEvent(angle=-120), demo.root_buttons[0])
     assert demo.focuses == [1]
     assert demo.opens == ['1']
+    assert demo.pointer_follows == [1]
     assert [b.checked for b in demo.root_buttons] == [False, True, False, False]
     # Next item is a command. It gets highlighted, but never executed.
     assert demo.wheel_first_level(FakeEvent(angle=-120), demo.root_buttons[0])

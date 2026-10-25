@@ -24,6 +24,8 @@ from search_result_order import display_columns, sort_search_pairs
 from selection_scope import update_visible_checks
 from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
 from menu_wheel import wheel_motion, wheel_neighbor
+from wheel_adaptive import can_follow_at_edge
+from bookmark_cursor_follow import cursor_target
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
@@ -1640,6 +1642,8 @@ class Launcher(QWidget):
         self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
         self.bookmark_pointer_follow = str(self.settings.value(
             'bookmark_pointer_follow', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
+        self.bookmark_wan_enabled = str(self.settings.value(
+            'bookmark_wan_enabled', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
         sort_col = str(self.settings.value('result_sort_column', -1))
@@ -1794,6 +1798,11 @@ class Launcher(QWidget):
         self.bookmark_pointer_follow_action.setCheckable(True)
         self.bookmark_pointer_follow_action.setChecked(self.bookmark_pointer_follow)
         self.bookmark_pointer_follow_action.triggered.connect(self.set_bookmark_pointer_follow)
+        self.bookmark_wan_action = self.theme_menu.addAction(
+            'ブックマーク：WANハイブリッド（実験）')
+        self.bookmark_wan_action.setCheckable(True)
+        self.bookmark_wan_action.setChecked(self.bookmark_wan_enabled)
+        self.bookmark_wan_action.triggered.connect(self.set_bookmark_wan_enabled)
         self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
@@ -2102,6 +2111,15 @@ class Launcher(QWidget):
         view = getattr(self, 'expanded_view', None)
         if view is not None:
             view.cancel_bookmark_pointer_follow()
+
+    def set_bookmark_wan_enabled(self, enabled):
+        """A/B comparison: hybrid flow/follow vs legacy one-row Follow."""
+        self.bookmark_wan_enabled = bool(enabled)
+        self.settings.setValue('bookmark_wan_enabled', self.bookmark_wan_enabled)
+        self.settings.sync()
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            view.set_bookmark_wan(self.bookmark_wan_enabled)
 
     def set_color_theme(self, theme):
         resolved = normalize_theme(theme)
@@ -3469,6 +3487,9 @@ class Launcher(QWidget):
         self.list.header().setSortIndicatorShown(bool(query) and self.result_sort_column >= 0)
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded if query else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.list.clear_row_hover()
+        self.list.set_wheel_current_visual(False)
+        self._classic_wheel_edge_active = False
+        self._classic_wheel_remainder = 0
         self.list.blockSignals(True);self.list.clear()
         self.list.order_enabled=not query and not self.selection and not (self.stack and (self.stack[-1]['item_kind']=='directory' or self.stack[-1].get('launch_source') in {'installed_apps','browser_bookmarks'} or self.stack[-1].get('_browser_bookmark'))) 
         self.list.order_rows=[]
@@ -3778,6 +3799,8 @@ class Launcher(QWidget):
         return dx >= 10 and dx * 2 >= abs(dy)
 
     def hover(self,q,col):
+        if getattr(self, '_classic_wheel_processing', False):
+            return  # Scrolling beneath a fixed cursor is not a real hover.
         if self.selection or QApplication.mouseButtons() & Qt.MouseButton.LeftButton or getattr(self.list,'order_dragging',False):return
         current = self.menu if self.menu is not None and self.menu.isVisible() else None
         # Hovering from one root row to another should use the configured
@@ -4663,11 +4686,12 @@ class Launcher(QWidget):
         event.accept()
         return True
 
-    def wheel_classic_menu(self, event):
-        """Wheel over the old main list = select and preview one row at a time.
+    def wheel_classic_menu(self, event, scroll_before=None, scroll_after=None):
+        """Compact WAN: native Target Flow first, Cursor Follow at the edge.
 
-        Deliberately excludes the expanded file browser: there the wheel must
-        continue scrolling files.  A leaf command is NEVER triggered by wheel.
+        ReorderTree.wheelEvent supplies the actual before/after scrollbar
+        values. The optional no-scroll arguments preserve the legacy menu
+        selection entry point for existing callers/tests.
         """
         if (self.view_mode != 'classic' or not self.list.isVisible()
                 or event.modifiers() != Qt.KeyboardModifier.NoModifier):
@@ -4676,29 +4700,118 @@ class Launcher(QWidget):
         pixels = event.pixelDelta().y()
         if not angle and not pixels:
             return False
+        tree = self.list
+        items = [tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
+                 if not tree.topLevelItem(i).isHidden()
+                 and not tree.topLevelItem(i).isDisabled()]
+        if not items:
+            return True
+        native_scroll = scroll_before is not None and scroll_after is not None
+        if (native_scroll and QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return False  # Never change the selection mid-drag.
+        viewport = tree.viewport() if native_scroll else None
+        pointer = QCursor.pos() if native_scroll else None
+        local = viewport.mapFromGlobal(pointer) if native_scroll else None
+        under_pointer = (tree.itemAt(local) if native_scroll
+                         and viewport.rect().contains(local) else None)
+
+        if native_scroll and scroll_before != scroll_after:
+            # Existing native scroll keeps the pointer stationary while rows
+            # move beneath it. Select the actual item now beneath the pointer.
+            self._classic_wheel_edge_active = False
+            self._classic_wheel_remainder = 0
+            if under_pointer in items and under_pointer is not tree.currentItem():
+                self.hover_timer.stop()
+                self.pending_menu_item = None
+                tree.setCurrentItem(under_pointer)
+            if under_pointer in items:
+                if hasattr(tree, 'set_wheel_current_visual'):
+                    tree.set_wheel_current_visual(True)
+                row = under_pointer.data(0, Qt.ItemDataRole.UserRole)
+                if isinstance(row, dict) and row.get('item_kind') in ('category', 'directory'):
+                    # Debounce previews while rows stream under the pointer.
+                    self.pending_menu_item = under_pointer
+                    self.hover_timer.start(max(230, int(self.data.get('launch_hover_delay_ms', 250))))
+                elif self.menu is not None and self.menu.isVisible():
+                    self.hover_timer.stop()
+                    self.pending_menu_item = None
+                    self.menu.close()
+            return True
+
         steps, self._classic_wheel_remainder = wheel_motion(
             angle, pixels, getattr(self, '_classic_wheel_remainder', 0))
         if not steps:
             return True
-        items = [self.list.topLevelItem(i) for i in range(self.list.topLevelItemCount())
-                 if not self.list.topLevelItem(i).isHidden()
-                 and not self.list.topLevelItem(i).isDisabled()]
-        previous = self.list.currentItem()
-        selected = wheel_neighbor(items, previous, -steps)
+        direction = -steps  # wheel down -> following row
+        if native_scroll:
+            bar = tree.verticalScrollBar()
+            if not can_follow_at_edge(scroll_before, scroll_after,
+                                      bar.minimum(), bar.maximum(), direction):
+                self._classic_wheel_remainder = 0
+                return False
+            # Never teleport a cursor that has left the Compact list.
+            if not viewport.rect().contains(local):
+                return False
+        previous = tree.currentItem()
+        anchor = (previous if getattr(self, '_classic_wheel_edge_active', False)
+                  or not native_scroll else under_pointer or previous)
+        selected = wheel_neighbor(items, anchor, direction)
         if selected is None:
             return True
         self.hover_timer.stop()
         self.pending_menu_item = None
-        if selected is previous:
+        if selected is anchor:
             return True
-        self.list.setCurrentItem(selected)
-        self.list.scrollToItem(selected)
+        tree.setCurrentItem(selected)
+        tree.scrollToItem(selected)
+        if hasattr(tree, 'set_wheel_current_visual'):
+            tree.set_wheel_current_visual(True)
+        self._classic_wheel_edge_active = native_scroll
         row = selected.data(0, Qt.ItemDataRole.UserRole)
         if isinstance(row, dict) and row.get('item_kind') in ('category', 'directory'):
             self.cascade(row, selected, 'keyboard')
         elif self.menu is not None and self.menu.isVisible():
             self.menu.close()
+        if native_scroll:
+            self.schedule_classic_wheel_pointer_follow(selected, pointer)
         return True
+
+    def schedule_classic_wheel_pointer_follow(self, item, original_pos):
+        """Defer cursor motion until Qt has settled the selected row geometry."""
+        self._classic_wheel_follow_pending = (item, original_pos)
+        if not getattr(self, '_classic_wheel_follow_scheduled', False):
+            self._classic_wheel_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_classic_wheel_pointer)
+
+    def follow_classic_wheel_pointer(self):
+        """Move only vertically when the pointer is still over the old list."""
+        self._classic_wheel_follow_scheduled = False
+        pending = getattr(self, '_classic_wheel_follow_pending', None)
+        self._classic_wheel_follow_pending = None
+        if pending is None:
+            return
+        item, original_pos = pending
+        tree = self.list
+        if (self.view_mode != 'classic' or not tree.isVisible()
+                or tree.currentItem() is not item
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        pointer = QCursor.pos()
+        if pointer != original_pos:  # Human moved the mouse in the meantime.
+            return
+        viewport = tree.viewport()
+        local = viewport.mapFromGlobal(pointer)
+        if not viewport.rect().contains(local):
+            return
+        bounds = tree.visualItemRect(item)
+        target = cursor_target((viewport.width(), viewport.height()),
+                               (bounds.left(), bounds.top(), bounds.width(), bounds.height()),
+                               local.x())
+        if target is None:
+            return
+        destination = viewport.mapToGlobal(QPoint(*target))
+        if destination != pointer:
+            QCursor.setPos(destination)
 
     def focus_first_page_from_header_space(self, obj, event):
         """Focus the leftmost Page button when the Page row background is clicked.
@@ -4719,8 +4832,12 @@ class Launcher(QWidget):
     def eventFilter(self,obj,event):
         if self.focus_first_page_from_header_space(obj, event):
             return True
+        # Compact WAN needs the native scroll result first. ReorderTree.wheelEvent
+        # calls wheel_classic_menu *after* Qt has moved the scrollbar. Older
+        # tree implementations still use the legacy event-filter route.
         if (obj in (self.list, self.list.viewport())
                 and event.type() == getattr(QEvent.Type, 'Wheel', None)
+                and not getattr(self.list, 'adaptive_compact_wheel', False)
                 and self.wheel_classic_menu(event)):
             event.accept()
             return True

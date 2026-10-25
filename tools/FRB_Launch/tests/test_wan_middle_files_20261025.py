@@ -225,8 +225,10 @@ def test_real_widget_runs_native_wheel_before_edge_callback_and_only_middle_is_b
     tree = text[text.index('class _SeparatedFileTree'):text.index('class _BreadcrumbSurface')]
     assert tree.index('super().wheelEvent(event)') < tree.index('callback(event, before, scrollbar.value())')
     assert 'self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge' in text
-    assert 'self.left.tree.adaptive_wheel_callback = ' not in text
-    assert 'self.right.tree.adaptive_wheel_callback = ' not in text
+    # Files first column now intentionally uses the same native-scroll WAN hook.
+    assert 'self.left.tree.adaptive_wheel_callback = self.wheel_files_at_edge' in text
+    # Bookmarks got its own independently switchable WAN hybrid later.
+    assert 'self.right.tree.adaptive_wheel_callback = (' in text
     assert 'self.middle.tree.viewport().installEventFilter(self)' not in text
     assert 'self.choose_middle(item, 0)' not in text[text.index('def wheel_middle_at_edge'):text.index('def follow_middle_pointer')]
     assert 'is_warp_generated_mouse_move((position.x(), position.y()), warp)' in text

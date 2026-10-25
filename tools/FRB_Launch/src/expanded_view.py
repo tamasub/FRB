@@ -546,7 +546,18 @@ class ExpandedLauncherView(QWidget):
         self._wheel_root_id = None
         self._wheel_root_delta = 0
         self._wheel_files_delta = 0
+        self._files_first_wan_enabled = True
+        self._files_edge_follow_active = False
+        self._files_scroll_hover_scheduled = False
+        self._files_follow_pending = None
+        self._files_follow_scheduled = False
+        self._files_warp_global = None
+        self._wheel_root_follow_pending = None
+        self._wheel_root_follow_scheduled = False
         self._wheel_bookmark_delta = 0
+        self._bookmark_edge_follow_active = False
+        self._bookmark_scroll_hover_scheduled = False
+        self._bookmark_hover_item = None
         self._wheel_middle_delta = 0
         self._middle_follow_pending = None
         self._middle_follow_scheduled = False
@@ -664,8 +675,10 @@ class ExpandedLauncherView(QWidget):
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
-        # Files' first column is a short navigation list: wheel = select and
-        # preview in the middle. Other columns keep native wheel scrolling.
+        # WAN for Files first column: native scrolling first, then select and
+        # follow at the relevant edge (also when all rows fit on screen).
+        # The older wheel_files_first_column remains as a safe rollback path.
+        self.left.tree.adaptive_wheel_callback = self.wheel_files_at_edge
         self.left.tree.installEventFilter(self)
         self.left.tree.viewport().installEventFilter(self)
         self.left.header.hide()
@@ -688,6 +701,15 @@ class ExpandedLauncherView(QWidget):
         # columns continue to use their original native behavior.
         self.right.tree.installEventFilter(self)
         self.right.tree.viewport().installEventFilter(self)
+        # WAN is opt-in per Bookmarks: use native scrolling first, then cursor
+        # follow only when the wheel cannot move the scrollbar any farther.
+        self.right.tree.adaptive_wheel_callback = (
+            self.wheel_bookmarks_at_edge
+            if getattr(self.launcher, 'bookmark_wan_enabled', True) else None)
+        self._bookmark_hover_timer = QTimer(self)
+        self._bookmark_hover_timer.setSingleShot(True)
+        self._bookmark_hover_timer.timeout.connect(self.open_bookmark_hover)
+        self.right.tree.itemEntered.connect(self.hover_bookmark_first_level)
         self.splitter.addWidget(self.files_group)
         self.splitter.addWidget(self.right)
         self.splitter.setChildrenCollapsible(False)
@@ -851,6 +873,8 @@ class ExpandedLauncherView(QWidget):
         try:
             self.options = options
             self.root_buttons = []
+            # Cancel a pending warp targeting a button about to be replaced.
+            self._wheel_root_follow_pending = None
             # Do not alter Launch DataJSON: the two permanent panel roots are
             # simply not duplicated as buttons in this expanded-view toolbar.
             visible_roots = toolbar_roots(roots, left, right)
@@ -860,6 +884,7 @@ class ExpandedLauncherView(QWidget):
             self._wheel_root_delta = 0
             self._wheel_bookmark_delta = 0
             self.cancel_bookmark_pointer_follow()
+            self.cancel_bookmark_hover()
             while self.root_layout.count():
                 item = self.root_layout.takeAt(0)
                 if item.widget():
@@ -1145,6 +1170,20 @@ class ExpandedLauncherView(QWidget):
         return True
 
     def eventFilter(self, obj, event):
+        if (getattr(self, 'left', None) is not None and
+                obj is self.left.tree.viewport() and
+                event.type() == QEvent.Type.MouseMove and
+                self._files_warp_global is not None):
+            position = event.globalPosition().toPoint()
+            warp = self._files_warp_global
+            self._files_warp_global = None
+            if is_warp_generated_mouse_move((position.x(), position.y()), warp):
+                event.accept()
+                return True
+        if (getattr(self, 'left', None) is not None and
+                obj is self.left.tree.viewport() and
+                event.type() == QEvent.Type.MouseMove):
+            self._files_edge_follow_active = False
         if (getattr(self, 'middle', None) is not None and
                 obj is self.middle.tree.viewport() and
                 event.type() == QEvent.Type.MouseMove and
@@ -1167,6 +1206,10 @@ class ExpandedLauncherView(QWidget):
             if is_warp_generated_mouse_move((position.x(), position.y()), warp):
                 event.accept()
                 return True
+        if (getattr(self, 'right', None) is not None
+                and obj is self.right.tree.viewport()
+                and event.type() == QEvent.Type.MouseMove):
+            self._bookmark_edge_follow_active = False
         # Combo-like behavior: dismiss favorites on an unrelated click, but
         # don't consume the click or interfere with file/keyboard actions.
         if (hasattr(self, 'favorite_popup') and self.favorite_popup.isVisible()
@@ -1195,12 +1238,14 @@ class ExpandedLauncherView(QWidget):
                     self.directory_favorite_clicked(row, 1)
                 return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
-                and obj in (self.left.tree, self.left.tree.viewport())):
+                and obj in (self.left.tree, self.left.tree.viewport())
+                and not self._files_first_wan_enabled):
             if self.wheel_files_first_column(event):
                 event.accept()
                 return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
-                and obj in (self.right.tree, self.right.tree.viewport())):
+                and obj in (self.right.tree, self.right.tree.viewport())
+                and not getattr(self.launcher, 'bookmark_wan_enabled', True)):
             if self.wheel_bookmarks_first_level(event):
                 event.accept()
                 return True
@@ -1323,6 +1368,105 @@ class ExpandedLauncherView(QWidget):
         self._middle_warp_global = (destination.x(), destination.y())
         QCursor.setPos(destination)
 
+    def sync_first_files_hover_from_cursor(self):
+        """In Target Flow, preview the folder that came beneath the cursor."""
+        self._files_scroll_hover_scheduled = False
+        if not self.isVisible():
+            return
+        tree = self.left.tree
+        viewport = tree.viewport()
+        position = viewport.mapFromGlobal(QCursor.pos())
+        if not viewport.rect().contains(position):
+            return
+        item = tree.itemAt(position)
+        if item is not None and item is not tree.currentItem():
+            tree.setCurrentItem(item)
+            self.choose_files(item, 0)  # Preview, never launch or activate.
+
+    def wheel_files_at_edge(self, event, scroll_before, scroll_after):
+        """Files first column: Target Flow if scrollbar moves, else Follow.
+
+        Folder preview is kept, but an actual command is never executed by
+        the wheel. The middle pane, clicks and drag operations are unchanged.
+        """
+        if (not self.isVisible()
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            self._wheel_files_delta = 0
+            return False
+        tree = self.left.tree
+        if not tree.topLevelItemCount():
+            self._wheel_files_delta = 0
+            return False
+        if scroll_before != scroll_after:
+            self._files_edge_follow_active = False
+            self._wheel_files_delta = 0
+            self._files_follow_pending = None
+            if not self._files_scroll_hover_scheduled:
+                self._files_scroll_hover_scheduled = True
+                QTimer.singleShot(0, self.sync_first_files_hover_from_cursor)
+            return False
+        pending, movement = wheel_steps(
+            self._wheel_files_delta, event.angleDelta().y(), event.pixelDelta().y())
+        self._wheel_files_delta = pending
+        if not movement:
+            return bool(event.angleDelta().y() or event.pixelDelta().y())
+        scrollbar = tree.verticalScrollBar()
+        if not can_follow_at_edge(scroll_before, scroll_after,
+                                  scrollbar.minimum(), scrollbar.maximum(), movement):
+            self._wheel_files_delta = 0
+            return False
+        viewport = tree.viewport()
+        position = viewport.mapFromGlobal(QCursor.pos())
+        if not viewport.rect().contains(position):
+            return False
+        hovered = tree.itemAt(position)
+        current = (tree.currentItem() if self._files_edge_follow_active
+                   else hovered or tree.currentItem())
+        index = tree.indexOfTopLevelItem(current) if current is not None else -1
+        if index < 0:
+            return True
+        target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        if target is None or target == index:
+            return True
+        item = tree.topLevelItem(target)
+        tree.setCurrentItem(item)
+        tree.scrollToItem(item)
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        self._files_edge_follow_active = True
+        self.choose_files(item, 0)  # Existing preview only.
+        self._files_follow_pending = item
+        if not self._files_follow_scheduled:
+            self._files_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_first_files_pointer)
+        return True
+
+    def follow_first_files_pointer(self):
+        """Keep the pointer on the previewed Files root at the scroll edge."""
+        self._files_follow_scheduled = False
+        item = self._files_follow_pending
+        self._files_follow_pending = None
+        tree = self.left.tree
+        if (item is None or not self.isVisible() or not tree.isVisible()
+                or tree.currentItem() is not item
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        viewport = tree.viewport()
+        position = QCursor.pos()
+        local = viewport.mapFromGlobal(position)
+        if not viewport.rect().contains(local):
+            return
+        bounds = tree.visualItemRect(item)
+        target = cursor_target((viewport.width(), viewport.height()),
+                               (bounds.left(), bounds.top(), bounds.width(), bounds.height()),
+                               local.x())
+        if target is None:
+            return
+        destination = viewport.mapToGlobal(QPoint(*target))
+        if destination != position:
+            self._files_warp_global = (destination.x(), destination.y())
+            QCursor.setPos(destination)
+
     def wheel_files_first_column(self, event):
         """Browse first-column folders by wheel without scrolling other panes.
 
@@ -1357,6 +1501,142 @@ class ExpandedLauncherView(QWidget):
         row = self.row_data(item)
         if row and row.get('item_kind') in ('category', 'directory'):
             self.choose_files(item, 0)
+        return True
+
+    def set_bookmark_wan(self, enabled):
+        """Swap Bookmarks between native-scroll WAN and the legacy Follow mode."""
+        self._wheel_bookmark_delta = 0
+        self._bookmark_edge_follow_active = False
+        self.cancel_bookmark_pointer_follow()
+        self.cancel_bookmark_hover()
+        self.right.tree.adaptive_wheel_callback = (
+            self.wheel_bookmarks_at_edge if enabled else None)
+
+    def cancel_bookmark_hover(self):
+        self._bookmark_hover_item = None
+        self._bookmark_hover_timer.stop()
+
+    def hover_bookmark_first_level(self, item, _column):
+        """True mouse hover also previews folders, without executing links."""
+        if (not getattr(self.launcher, 'bookmark_wan_enabled', True)
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        # A genuinely new hover target takes priority over an edge-follow
+        # sequence (synthesized pointer moves are filtered upstream).
+        self._bookmark_edge_follow_active = False
+        self.request_bookmark_hover(item)
+
+    def request_bookmark_hover(self, item):
+        """Keep the current row at the cursor; debounce cascade expansion.
+
+        Normal scroll moves the *content* beneath the pointer, so itemEntered
+        is not always emitted. Both wheel and mouse hover call this function.
+        """
+        tree = self.right.tree
+        if item is None or tree.indexOfTopLevelItem(item) < 0:
+            self.cancel_bookmark_hover()
+            return
+        if tree.currentItem() is not item:
+            tree.setCurrentItem(item)
+        if self._bookmark_hover_item is item and self._bookmark_hover_timer.isActive():
+            return
+        self._bookmark_hover_item = item
+        # Rapid wheel movement should not open a cascade for every row that
+        # briefly passes under the stationary cursor.
+        self._bookmark_hover_timer.start(230)
+
+    def open_bookmark_hover(self):
+        """Preview the settled hovered folder to the right; links stay inert."""
+        item = self._bookmark_hover_item
+        self._bookmark_hover_item = None
+        if (item is None or not self.isVisible()
+                or not getattr(self.launcher, 'bookmark_wan_enabled', True)):
+            return
+        tree = self.right.tree
+        viewport = tree.viewport()
+        pos = viewport.mapFromGlobal(QCursor.pos())
+        if (not viewport.rect().contains(pos) or tree.itemAt(pos) is not item
+                or tree.indexOfTopLevelItem(item) < 0):
+            return
+        row = self.row_data(item)
+        if row and row.get('item_kind') in ('category', 'directory'):
+            menu = getattr(self.launcher, 'menu', None)
+            if (menu is None or not menu.isVisible()
+                    or getattr(menu, 'return_focus_item', None) is not item):
+                self.choose_bookmark(item, 0)  # Preview only, never execute.
+        else:
+            self.launcher.close_cascade_for_main_interaction()
+
+    def sync_bookmark_hover_from_cursor(self):
+        """Update hover after Qt has applied native scrollbar movement."""
+        self._bookmark_scroll_hover_scheduled = False
+        if (not self.isVisible()
+                or not getattr(self.launcher, 'bookmark_wan_enabled', True)):
+            return
+        tree = self.right.tree
+        viewport = tree.viewport()
+        pos = viewport.mapFromGlobal(QCursor.pos())
+        if viewport.rect().contains(pos):
+            self.request_bookmark_hover(tree.itemAt(pos))
+
+    def wheel_bookmarks_at_edge(self, event, scroll_before, scroll_after):
+        """WAN: native Bookmarks scroll first; follow only at a real edge.
+
+        Do not activate URLs or automatically expand directories per notch.
+        Folder previews are ordinary (debounced) hover behavior instead.
+        """
+        if (not self.isVisible()
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            self._wheel_bookmark_delta = 0
+            return False
+        tree = self.right.tree
+        if not tree.topLevelItemCount():
+            self._wheel_bookmark_delta = 0
+            return False
+        if scroll_before != scroll_after:
+            self._bookmark_edge_follow_active = False
+            # Target Flow: content flows beneath a stationary pointer. Hover
+            # after the native scroll, not at the pre-scroll item position.
+            self._wheel_bookmark_delta = 0
+            self.cancel_bookmark_pointer_follow()
+            if not self._bookmark_scroll_hover_scheduled:
+                self._bookmark_scroll_hover_scheduled = True
+                QTimer.singleShot(0, self.sync_bookmark_hover_from_cursor)
+            return False
+        pending, movement = wheel_steps(
+            self._wheel_bookmark_delta, event.angleDelta().y(), event.pixelDelta().y())
+        self._wheel_bookmark_delta = pending
+        if not movement:
+            return bool(event.angleDelta().y() or event.pixelDelta().y())
+        scrollbar = tree.verticalScrollBar()
+        if not can_follow_at_edge(scroll_before, scroll_after,
+                                  scrollbar.minimum(), scrollbar.maximum(), movement):
+            self._wheel_bookmark_delta = 0
+            return False
+        viewport = tree.viewport()
+        pos = viewport.mapFromGlobal(QCursor.pos())
+        if not viewport.rect().contains(pos):
+            return False
+        hovered = tree.itemAt(pos)
+        # After the first edge step, keep navigating the current row even
+        # when Follow was switched OFF or a deferred pointer warp is pending.
+        # Otherwise consecutive notches would repeatedly target one row.
+        current = (tree.currentItem() if self._bookmark_edge_follow_active
+                   else hovered or tree.currentItem())
+        index = tree.indexOfTopLevelItem(current) if current is not None else -1
+        if index < 0:
+            return True
+        target = root_wheel_target(index, movement, tree.topLevelItemCount())
+        if target is None or target == index:
+            return True
+        item = tree.topLevelItem(target)
+        tree.setCurrentItem(item)
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        self._bookmark_edge_follow_active = True
+        self.request_bookmark_hover(item)
+        if getattr(self.launcher, 'bookmark_pointer_follow', False):
+            self.schedule_bookmark_pointer_follow(item)
         return True
 
     def wheel_bookmarks_first_level(self, event):
@@ -1489,6 +1769,7 @@ class ExpandedLauncherView(QWidget):
         for i, entry in enumerate(self.root_buttons):
             entry.setChecked(i == target)
         self.focus_root(index=target)
+        self.schedule_root_pointer_follow(button)
         # Show a navigable folder's menu immediately, just as changing Page
         # switches its content. Pure commands stay SELECTED, never executed.
         if row.get('item_kind') in ('category', 'directory'):
@@ -1496,6 +1777,36 @@ class ExpandedLauncherView(QWidget):
         elif self.launcher.menu is not None and self.launcher.menu.isVisible():
             self.launcher.menu.close()
         return True
+
+    def schedule_root_pointer_follow(self, button):
+        """Follow a wheel-chosen root button; never synthesize a click."""
+        self._wheel_root_follow_pending = button
+        if not self._wheel_root_follow_scheduled:
+            self._wheel_root_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_root_pointer)
+
+    def follow_root_pointer(self):
+        """Warp only while the user is still over the second-layer strip."""
+        self._wheel_root_follow_scheduled = False
+        button = self._wheel_root_follow_pending
+        self._wheel_root_follow_pending = None
+        if (button not in self.root_buttons or not self.isVisible()
+                or not button.isVisible()
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        viewport = self.toolbar_scroller.viewport()
+        position = QCursor.pos()
+        local = viewport.mapFromGlobal(position)
+        if not viewport.rect().contains(local):
+            return
+        # focus_root() called ensureWidgetVisible(); wait for that layout to
+        # settle, and land in the visible button rather than a spacer/gap.
+        destination = button.mapToGlobal(QPoint(button.width() // 2,
+                                                button.height() // 2))
+        if not viewport.rect().contains(viewport.mapFromGlobal(destination)):
+            return
+        if destination != position:
+            QCursor.setPos(destination)
 
     def focus_panel(self, panel):
         """Move keyboard focus and visible selection together."""

@@ -104,9 +104,34 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
         self.main_grid_visuals = True
         self.row_palette = ROW_PALETTE['dark']
         self._hover_item = None
+        self._wheel_nav_current = False
+        # Compact WAN: native scroll first, then the cursor-follow fallback.
+        self.adaptive_compact_wheel = True
         self.setItemDelegate(MainGridRowDelegate(self))
         self.viewport().setMouseTracking(True)
         self.currentItemChanged.connect(lambda *_: self.viewport().update())
+
+    def wheelEvent(self, event):
+        if (not self.adaptive_compact_wheel or
+                getattr(self.launcher, 'view_mode', None) != 'classic'):
+            return super().wheelEvent(event)
+        bar = self.verticalScrollBar()
+        before = bar.value()
+        self.launcher._classic_wheel_processing = True
+        try:
+            super().wheelEvent(event)
+        finally:
+            self.launcher._classic_wheel_processing = False
+        # The callback compares *actual* scrollbar values; this also handles
+        # short lists whose scrollbar range is zero.
+        if self.launcher.wheel_classic_menu(event, before, bar.value()):
+            event.accept()
+
+    def set_wheel_current_visual(self, active=True):
+        """Paint wheel-chosen current rows filled even if a cascade owns focus."""
+        if self._wheel_nav_current != bool(active):
+            self._wheel_nav_current = bool(active)
+            self.viewport().update()
 
     def set_row_theme(self, theme):
         self.row_palette = ROW_PALETTE['light' if theme == 'light' else 'dark']
@@ -122,7 +147,7 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
             return 'normal'
         item = self.itemFromIndex(index)
         return row_visual_state(current=(item is not None and item == self.currentItem()),
-                                focused=self.grid_has_focus(),
+                                focused=self.grid_has_focus() or self._wheel_nav_current,
                                 hovered=(item is not None and item == self._hover_item))
 
     def clear_row_hover(self):
@@ -135,6 +160,11 @@ class ReorderTree(OrderDragMixin,QTreeWidget):
         kind = event.type()
         if kind in (QEvent.Type.MouseMove, QEvent.Type.HoverMove):
             item = self.itemAt(event.position().toPoint())
+            # Scrolling or QCursor.setPos can also generate HoverMove/MouseMove.
+            # Only abandon the wheel highlight if the human moves onto a
+            # *different* row; never erase its fill on a synthetic follow.
+            if kind == QEvent.Type.MouseMove and item is not self.currentItem():
+                self.set_wheel_current_visual(False)
             if item != self._hover_item:
                 self._hover_item = item
                 self.viewport().update()
