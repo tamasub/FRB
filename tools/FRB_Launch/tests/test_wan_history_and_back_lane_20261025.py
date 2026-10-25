@@ -66,7 +66,7 @@ def test_middle_back_strip_outside_view_and_not_a_tree_column():
     assert 'middle_tree_layout.addWidget(self.middle_back_lane)' in EXPANDED
     assert 'self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)' in EXPANDED
     assert 'self.middle.tree.setColumnWidth(1, 40 + MIDDLE_BACK_LANE_WIDTH)' not in EXPANDED
-    assert 'QFrame#expandedBackLane' in EXPANDED
+    assert 'QWidget#expandedBackLane' in EXPANDED  # lane is a painted QWidget
     assert 'return None' in EXPANDED.split('class _NavigationChevronDelegate',1)[1].split('    def paint(',1)[0]
 
 

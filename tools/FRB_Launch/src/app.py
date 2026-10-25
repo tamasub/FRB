@@ -5269,8 +5269,27 @@ class Launcher(QWidget):
         # The separate right-side Back lane uses the same submenu builder.
         menu.addSeparator()
         self.expanded_view.add_lane_new_submenu(menu)
+        # Both the separate right Back lane and the lower blank area use this
+        # SAME menu.  Read existing folder actions from the authoritative JSON
+        # so captions, icons and separators match regular folder menus.
+        folder_actions = {'open_explorer', 'open_terminal', 'copy_path', 'properties'}
+        target_directory = str(self.expanded_view.current_directory())
+        selected = visible_context_entries(definitions, folder_actions)
+        if selected:
+            menu.addSeparator()
+            for definition in selected:
+                if definition.get('type') == 'separator':
+                    menu.addSeparator()
+                    continue
+                action_id = definition['action_id']
+                folder_action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, a=action_id, p=target_directory:
+                    self.perform_filesystem_context_action(a, p, 'folder'))
+                folder_action.setIcon(context_action_icon(action_id))
+                folder_action.setIconVisibleInMenu(True)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
-                           + CONTEXT_MENU_SPACING_QSS)
+                           + context_menu_spacing_qss(self.color_theme))
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         menu.popup(global_pos)

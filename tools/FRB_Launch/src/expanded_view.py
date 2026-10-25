@@ -34,7 +34,52 @@ from history_wheel_navigation import history_target_index, warp_to_history_row
 from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
 
 
-MIDDLE_BACK_LANE_WIDTH = 24  # Invisible double-click-to-back strip after the chevron.
+MIDDLE_BACK_LANE_WIDTH = 24  # Operation lane after the chevron.
+
+
+class _BackLaneWidget(QWidget):
+    """Dedicated right-side operation lane beside the middle file list.
+
+    The lane stays clickable through the full pane height, but its visible guide
+    line only extends to the last *visible* row so the per-folder operation
+    area reads clearly without visually slicing the lower blank area.
+    """
+
+    def __init__(self, view, parent=None):
+        super().__init__(parent)
+        self.view = view
+        self.line_color = QColor('#cbdcd1')
+        self.line_width = 0.65
+
+    def visible_line_bottom(self):
+        middle = getattr(self.view, 'middle', None)
+        if middle is None:
+            return 0
+        tree = middle.tree
+        viewport = tree.viewport()
+        if tree.topLevelItemCount() <= 0:
+            return 0
+        rect = viewport.rect()
+        for index in range(tree.topLevelItemCount() - 1, -1, -1):
+            item = tree.topLevelItem(index)
+            if item is None:
+                continue
+            visual = tree.visualItemRect(item)
+            if visual.isValid() and visual.intersects(rect):
+                return max(0, min(self.height(), visual.bottom() + 1))
+        return min(self.height(), rect.height()) if tree.topLevelItemCount() else 0
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        bottom = self.visible_line_bottom()
+        if bottom <= 0:
+            return
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(self.line_color, self.line_width))
+        x = 0.5
+        painter.drawLine(QPointF(x, 0), QPointF(x, bottom - 1))
+        painter.end()
 
 
 def header_icon(kind, theme):
@@ -745,12 +790,16 @@ class ExpandedLauncherView(QWidget):
         self.middle.layout_box.removeWidget(self.middle.tree)
         self.middle.tree.setParent(self.middle_tree_container)
         middle_tree_layout.addWidget(self.middle.tree, 1)
-        self.middle_back_lane = QFrame(self.middle_tree_container)
+        self.middle_back_lane = _BackLaneWidget(self, self.middle_tree_container)
         self.middle_back_lane.setObjectName('expandedBackLane')
         self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)
-        self.middle_back_lane.setToolTip('ダブルクリック：上のフォルダーへ／右クリック：新規作成')
+        self.middle_back_lane.setToolTip('ダブルクリック：上のフォルダーへ／右クリック：フォルダー操作')
         self.middle_back_lane.installEventFilter(self)
         middle_tree_layout.addWidget(self.middle_back_lane)
+        self.middle.tree.verticalScrollBar().valueChanged.connect(
+            lambda *_: self.middle_back_lane.update())
+        self.middle.tree.model().rowsInserted.connect(lambda *args: self.middle_back_lane.update())
+        self.middle.tree.model().rowsRemoved.connect(lambda *args: self.middle_back_lane.update())
         self.middle.layout_box.addWidget(self.middle_tree_container, 1)
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
@@ -865,6 +914,9 @@ class ExpandedLauncherView(QWidget):
             for bar in (pane.tree.verticalScrollBar(), pane.tree.horizontalScrollBar()):
                 bar.setStyleSheet(scrollbar_for_theme(theme, bg))
             pane.tree.viewport().update()
+        if getattr(self, 'middle_back_lane', None) is not None:
+            self.middle_back_lane.line_color = QColor(colors['row_separator'])
+            self.middle_back_lane.update()
         for bar in (self.favorite_choices.verticalScrollBar(),
                     self.favorite_choices.horizontalScrollBar()):
             bar.setStyleSheet(scrollbar_for_theme(theme, colors['history_bg']))
@@ -891,7 +943,7 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedBack:hover {{background:{hover};border-radius:9px;}}
             QPushButton#expandedBack:pressed {{background:{active};border-radius:9px;}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
-            QFrame#expandedBackLane {{background:{bg};border:0;border-left:1px solid {border};}}
+            QWidget#expandedBackLane {{background:{bg};border:0;}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
             QTreeWidget#expandedTree::item {{min-height:{height}px;padding:{pad}px 7px;border:0;}}
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
@@ -1537,23 +1589,16 @@ class ExpandedLauncherView(QWidget):
         return submenu
 
     def show_lane_new_menu(self, global_pos):
-        """Right-click the independent Back lane: New > file types."""
-        target = self.current_directory()
-        if not target or not Path(target).is_dir():
-            self.launcher.error('新規作成できるフォルダーが選択されていません')
-            return
-        from launch_appearance import context_menu_spacing_qss, LIGHT_MENU_QSS
-        menu = QMenu(self.launcher)
-        menu.setObjectName('expandedNewContextMenu')
-        menu.setToolTipsVisible(True)
-        self.add_lane_new_submenu(menu)
-        menu.setStyleSheet((LIGHT_MENU_QSS if self.launcher.color_theme == 'light' else '')
-                           + context_menu_spacing_qss(self.launcher.color_theme))
-        self._lane_new_menu = menu
-        self.launcher._launch_context_menu = menu
-        menu.aboutToHide.connect(lambda m=menu: self.launcher._forget_launch_context_menu(m))
-        menu.aboutToHide.connect(lambda: QTimer.singleShot(0, self._clear_lane_new_menu))
-        menu.popup(global_pos)
+        """The right lane and lower blank area MUST offer the same menu.
+
+        Launcher owns the common Paste + New + folder-actions menu, so neither
+        location can accidentally omit Paste or diverge in icons/separators.
+        """
+        return self.launcher.show_expanded_background_paste_menu(global_pos)
+
+    def show_lane_context_menu(self, global_pos):
+        """Compatibility alias for the same shared context menu."""
+        return self.show_lane_new_menu(global_pos)
 
     def _clear_lane_new_menu(self):
         self._lane_new_menu = None
