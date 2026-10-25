@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+from html import escape as html_escape
 import sqlite3
 import logging
 import time
@@ -2859,7 +2860,11 @@ class Launcher(QWidget):
         logging.warning('%s', message)
         DIAG.warning('%s',message)
         self.tray.showMessage('FRB Launch', str(message), QSystemTrayIcon.MessageIcon.Warning,6000)
-        self.footer.setText(str(message))
+        # High-contrast error marker without changing the ordinary footer theme.
+        # QLabel interprets HTML markup while other status messages stay plain.
+        self.footer.setText(
+            '<span style="color:#e64040; font-weight:600;">❌ '
+            + html_escape(str(message)) + '</span>')
 
     def register_key(self):
         """Register the normal opener plus all enabled Page-root item keys."""
