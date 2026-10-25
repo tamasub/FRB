@@ -1638,6 +1638,8 @@ class Launcher(QWidget):
         self._last_root_id = self._saved_focus_state.get('item_id') if self._saved_focus_state.get('area') == 'roots' else None
         self._restoring_last_focus = False
         self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
+        self.bookmark_pointer_follow = str(self.settings.value(
+            'bookmark_pointer_follow', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
         sort_col = str(self.settings.value('result_sort_column', -1))
@@ -1784,6 +1786,14 @@ class Launcher(QWidget):
             self.theme_actions[theme_id] = action
         self.light_theme_action = self.theme_actions['light']
         self.dark_theme_action = self.theme_actions['dark']
+        self.theme_menu.addSeparator()
+        # Experimental pointer follow is user-switchable and remembered across
+        # launches.  It applies only to the first-level Bookmarks wheel list.
+        self.bookmark_pointer_follow_action = self.theme_menu.addAction(
+            'ブックマーク：ホイールでポインター追従')
+        self.bookmark_pointer_follow_action.setCheckable(True)
+        self.bookmark_pointer_follow_action.setChecked(self.bookmark_pointer_follow)
+        self.bookmark_pointer_follow_action.triggered.connect(self.set_bookmark_pointer_follow)
         self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
@@ -2083,6 +2093,15 @@ class Launcher(QWidget):
             area = screen.availableGeometry()
             position.setX(max(area.left(), min(position.x(), area.right() - width + 1)))
         self.theme_menu.popup(position)
+
+    def set_bookmark_pointer_follow(self, enabled):
+        # Persist optional wheel-assisted cursor movement; do not edit JSON.
+        self.bookmark_pointer_follow = bool(enabled)
+        self.settings.setValue('bookmark_pointer_follow', self.bookmark_pointer_follow)
+        self.settings.sync()
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            view.cancel_bookmark_pointer_follow()
 
     def set_color_theme(self, theme):
         resolved = normalize_theme(theme)

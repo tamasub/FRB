@@ -4,7 +4,7 @@ This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
 from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF
-from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
     QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QStyleOptionViewItem, QStyle)
@@ -25,6 +25,7 @@ from pathlib import Path
 from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
+from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
 
 
@@ -534,6 +535,9 @@ class ExpandedLauncherView(QWidget):
         self._wheel_root_delta = 0
         self._wheel_files_delta = 0
         self._wheel_bookmark_delta = 0
+        self._bookmark_follow_pending = None
+        self._bookmark_follow_scheduled = False
+        self._bookmark_warp_global = None
         self.files_root = None
         self.bookmarks_root = None
         self.path = []
@@ -836,6 +840,7 @@ class ExpandedLauncherView(QWidget):
                 self._wheel_root_id = None
             self._wheel_root_delta = 0
             self._wheel_bookmark_delta = 0
+            self.cancel_bookmark_pointer_follow()
             while self.root_layout.count():
                 item = self.root_layout.takeAt(0)
                 if item.widget():
@@ -1121,6 +1126,18 @@ class ExpandedLauncherView(QWidget):
         return True
 
     def eventFilter(self, obj, event):
+        if (getattr(self, 'right', None) is not None and
+                obj is self.right.tree.viewport() and
+                event.type() == QEvent.Type.MouseMove and
+                self._bookmark_warp_global is not None):
+            position = event.globalPosition().toPoint()
+            warp = self._bookmark_warp_global
+            # QCursor.setPos() can generate a synthetic Qt mouse-move event.
+            # Do not mistake that for an intentional user hover operation.
+            self._bookmark_warp_global = None
+            if is_warp_generated_mouse_move((position.x(), position.y()), warp):
+                event.accept()
+                return True
         # Combo-like behavior: dismiss favorites on an unrelated click, but
         # don't consume the click or interfere with file/keyboard actions.
         if (hasattr(self, 'favorite_popup') and self.favorite_popup.isVisible()
@@ -1266,7 +1283,51 @@ class ExpandedLauncherView(QWidget):
         else:
             # Leaving a folder for a URL should dismiss its stale preview.
             self.launcher.close_cascade_for_main_interaction()
+        if getattr(self.launcher, 'bookmark_pointer_follow', False):
+            self.schedule_bookmark_pointer_follow(item)
         return True
+
+    def cancel_bookmark_pointer_follow(self):
+        """Cancel a pending warp (e.g. when the user switches modes)."""
+        self._bookmark_follow_pending = None
+        self._bookmark_warp_global = None
+
+    def schedule_bookmark_pointer_follow(self, item):
+        """Coalesce rapid wheel events so only the newest selection moves."""
+        self._bookmark_follow_pending = item
+        if not self._bookmark_follow_scheduled:
+            self._bookmark_follow_scheduled = True
+            QTimer.singleShot(0, self.follow_bookmark_pointer)
+
+    def follow_bookmark_pointer(self):
+        """Move the OS cursor onto selected row, but never click or activate."""
+        self._bookmark_follow_scheduled = False
+        item = self._bookmark_follow_pending
+        self._bookmark_follow_pending = None
+        tree = self.right.tree
+        if (item is None or not getattr(self.launcher, 'bookmark_pointer_follow', False)
+                or not self.isVisible() or not tree.isVisible()
+                or tree.currentItem() is not item
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        viewport = tree.viewport()
+        current_global = QCursor.pos()
+        current_local = viewport.mapFromGlobal(current_global)
+        # If the user moved off Bookmarks since the wheel event, do not jump.
+        if not viewport.rect().contains(current_local):
+            return
+        bounds = tree.visualItemRect(item)
+        target = cursor_target(
+            (viewport.width(), viewport.height()),
+            (bounds.left(), bounds.top(), bounds.width(), bounds.height()),
+            current_local.x())
+        if target is None:
+            return
+        destination = viewport.mapToGlobal(QPoint(*target))
+        if destination == current_global:
+            return
+        self._bookmark_warp_global = (destination.x(), destination.y())
+        QCursor.setPos(destination)
 
     def wheel_first_level(self, event, source):
         """Wheel = select/preview; never execute a command or mutate JSON.
