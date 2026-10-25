@@ -81,20 +81,22 @@ def test_three_layer_fallback_pages_use_compact_wan_engine():
 def test_doubleclick_back_requires_middle_viewport_and_left_button():
     source = (HERE / 'src/expanded_view.py').read_text(encoding='utf-8')
     assert "getattr(self, 'middle', None) is None" in source
-    assert 'obj is not self.middle.tree.viewport()' in source
+    assert 'in_tree = obj is self.middle.tree.viewport()' in source
+    assert "lane = obj is getattr(self, 'middle_back_lane', None)" in source
     assert 'event.button() != Qt.MouseButton.LeftButton' in source
     assert 'event.type() == QEvent.Type.MouseButtonDblClick' in source
-    assert 'self.middle_blank_back_at(point)' in source
-    assert 'self.middle_back_lane_at(point)' in source
+    assert 'self.middle_blank_back_at(event.position().toPoint())' in source
+    assert 'if lane or (in_tree' in source
     assert 'self.go_up()' in source
 
 
 def test_right_lane_cannot_activate_a_row_with_single_click():
     source = (HERE / 'src/expanded_view.py').read_text(encoding='utf-8')
     assert 'MIDDLE_BACK_LANE_WIDTH = 24' in source
-    assert 'self.middle.tree.setColumnWidth(1, 40 + MIDDLE_BACK_LANE_WIDTH)' in source
+    assert 'self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)' in source
+    assert 'middle_tree_layout.addWidget(self.middle_back_lane)' in source
     assert 'if lane:' in source
-    assert 'Block the first click as well' in source
+    assert 'This is an independent QWidget, not an editable item cell' in source
 
 
 def test_middle_back_wheel_only_moves_pointer_and_never_clicks():
@@ -153,6 +155,7 @@ def _hit_test_demo():
     class Demo(ns['HitDemo']):
         def __init__(self):
             self.middle = SimpleNamespace(tree=Tree())
+            self.middle_back_lane = object()
             self.back_calls = 0
         def isVisible(self): return True
         def go_up(self): self.back_calls += 1
@@ -182,11 +185,13 @@ def test_middle_blank_double_click_uses_existing_back_only():
 
 def test_middle_right_lane_single_click_does_not_activate_file():
     demo, Event = _hit_test_demo()
-    assert demo.handle_middle_back_double_click(demo.middle.tree.viewport(), Event(190, 20, 1))
-    assert demo.handle_middle_back_double_click(demo.middle.tree.viewport(), Event(190, 20, 2))
+    assert demo.handle_middle_back_double_click(demo.middle_back_lane, Event(190, 20, 1))
+    assert demo.handle_middle_back_double_click(demo.middle_back_lane, Event(190, 20, 2))
     assert demo.back_calls == 0
-    assert demo.handle_middle_back_double_click(demo.middle.tree.viewport(), Event(190, 20, 3))
+    assert demo.handle_middle_back_double_click(demo.middle_back_lane, Event(190, 20, 3))
     assert demo.back_calls == 1
+    # Same x-coordinate over a *real row* is not a second Back target.
+    assert not demo.handle_middle_back_double_click(demo.middle.tree.viewport(), Event(190, 20, 3))
 
 
 def test_middle_not_initialized_does_not_crash_event_filter():

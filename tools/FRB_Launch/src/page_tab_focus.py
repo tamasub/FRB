@@ -41,9 +41,31 @@ class FocusPageTabBar(QTabBar):
         This is a cursor-only enhancement: no synthetic click/activation, and
         no changes to shortcuts or page selection semantics.
         """
+        controller = getattr(self, '_zone_navigation', None)
+        enabled = getattr(self, '_zone_enabled', None)
+        if callable(enabled) and not enabled():
+            controller = None
+        if (controller is not None and self.isVisible() and
+                controller.wheel_is_locked()):
+            event.accept()
+            return
         before = self.currentIndex()
         super().wheelEvent(event)
         after = self.currentIndex()
+        if (controller is not None and self.isVisible() and self.count() > 0
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                and QApplication.mouseButtons() == Qt.MouseButton.NoButton):
+            delta = event.angleDelta().y()
+            if not delta:
+                delta = event.pixelDelta().y() * 3
+            if controller.feed('pages-right',
+                               bool(delta < 0 and before == after == self.count() - 1),
+                               abs(delta) / 120.0):
+                jump = getattr(self, '_zone_right_jump', None)
+                if callable(jump):
+                    jump()
+                event.accept()
+                return
         if (before == after or after < 0
                 or event.modifiers() != Qt.KeyboardModifier.NoModifier
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton):

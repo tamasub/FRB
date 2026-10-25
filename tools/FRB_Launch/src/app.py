@@ -12,7 +12,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
@@ -29,6 +29,8 @@ from bookmark_cursor_follow import cursor_target
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
+from history_wheel_navigation import history_target_index, warp_to_history_row
+from wheel_adaptive import wheel_steps
 from reorderable_tree import ReorderablePopupTree
 from menu_hotkeys import menu_shortcuts, MENU_HOTKEY_ID_START
 import jump_list
@@ -1870,6 +1872,10 @@ class Launcher(QWidget):
         self.mode_button.clicked.connect(self.toggle_expanded_view)
         mode_row.addWidget(self.mode_button)
         self.expanded_view = ExpandedLauncherView(self)
+        # Wheel Tab: share one cooldown across Page, toolbar and Files panels.
+        self.tabs._zone_navigation = self.expanded_view.wheel_zone_navigation
+        self.tabs._zone_right_jump = self.expanded_view.jump_from_last_page
+        self.tabs._zone_enabled = lambda: self.view_mode == 'expanded'
         self.expanded_view.hide()
         layout.addWidget(self.search_bar)
         for w in (self.mode_bar, self.selection_tools, self.list,
@@ -1888,6 +1894,8 @@ class Launcher(QWidget):
         self._dark_history_qss = history_popup_qss('dark')
         history_layout = QVBoxLayout(self.history_popup)
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
+        self._search_history_wheel_delta = 0
+        self._search_history_warp_generation = 0
         self.history_choices = ReorderablePopupTree(self.history_popup)
         self.history_choices.setObjectName('historyChoices')
         self.history_choices.setColumnCount(2)
@@ -3460,6 +3468,13 @@ class Launcher(QWidget):
         menu_type = AppCascadeMenu if row.get('launch_source') == 'installed_apps' else CascadeMenu
         self.menu = menu_type(parent=self, launcher=self)
         self.menu.open_mode = 'keyboard'
+        # Only Three-layer bookmark cascades use the slimmer popup. Nested
+        # children inherit the limit; all other popup widths remain untouched.
+        view = getattr(self, 'expanded_view', None)
+        is_bookmark = (view is not None and widget is view.right.tree)
+        if is_bookmark:
+            self.menu.bookmark_compact_width = True
+            self.menu.setMaximumWidth(min(self.menu.maximumWidth(), round(CASCADE_MAX_WIDTH * 0.7)))
         # Remember the exact expanded root button / panel row for Left-to-back.
         self.menu.return_focus_widget = widget
         self.menu.return_focus_item = item
@@ -3932,6 +3947,10 @@ class Launcher(QWidget):
                         if m.child:m.child.close();m.child.deleteLater()
                         m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
+                        if getattr(m, 'bookmark_compact_width', False):
+                            m.child.bookmark_compact_width = True
+                            m.child.setMaximumWidth(min(m.child.maximumWidth(),
+                                                       round(CASCADE_MAX_WIDTH * 0.7)))
                         self.fill_cascade(m.child,r)
                         # Anchor to the *visible parent menu's* right edge,
                         # not actionGeometry's width (which can be stale after
@@ -4306,6 +4325,8 @@ class Launcher(QWidget):
             return
         was_visible = self.history_popup.isVisible()
         self.history_popup.hide()
+        self._search_history_wheel_delta = 0
+        self._search_history_warp_generation += 1
         if was_visible and focus_search and self.isVisible():
             self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
 
@@ -4362,6 +4383,42 @@ class Launcher(QWidget):
             self.select_history_keyword()
         elif column == 1:
             self.change_history_row(value, 'delete')
+
+    def wheel_search_history(self, obj, event):
+        """Wheel on search input opens history, then moves rows and pointer.
+
+        Moving over a history entry never runs the search; only a click/Enter
+        commits it. The delete column remains outside the pointer target.
+        """
+        if (obj not in (self.search, self.history_choices,
+                        self.history_choices.viewport()) or
+                event.modifiers() != Qt.KeyboardModifier.NoModifier or
+                QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return False
+        if not self.history_popup.isVisible():
+            if obj is not self.search or not self.search_history.keywords:
+                return False
+            self.show_history_popup()
+        pending, steps = wheel_steps(self._search_history_wheel_delta,
+                                     event.angleDelta().y(), event.pixelDelta().y())
+        self._search_history_wheel_delta = pending
+        if not steps:
+            return True
+        tree = self.history_choices
+        count = len(self.search_history.keywords)
+        if count == 0:
+            return True
+        current = tree.indexOfTopLevelItem(tree.currentItem())
+        target = tree.topLevelItem(history_target_index(current, count, steps))
+        tree.setCurrentItem(target)
+        tree.scrollToItem(target, QAbstractItemView.ScrollHint.EnsureVisible)
+        origin = QCursor.pos()
+        self._search_history_warp_generation += 1
+        generation = self._search_history_warp_generation
+        QTimer.singleShot(0, lambda: (
+            warp_to_history_row(tree, target, origin, QCursor)
+            if generation == self._search_history_warp_generation else None))
+        return True
 
     def handle_history_event(self, obj, event):
         # Keep popup key handling ahead of the launcher's Enter/Right handlers:
@@ -4833,6 +4890,10 @@ class Launcher(QWidget):
         return True
 
     def eventFilter(self,obj,event):
+        if (event.type() == QEvent.Type.Wheel and
+                self.wheel_search_history(obj, event)):
+            event.accept()
+            return True
         # The middle viewport is already filtered here for keyboard/navigation.
         # Handle its invisible Back hit areas before Qt sends itemClicked,
         # without installing competing wheel filters on the same viewport.
@@ -5568,9 +5629,15 @@ class Launcher(QWidget):
                 raise ValueError('Downloads直下のZIPだけが対象です')
             options = read_git_commit_options(GIT_COMMIT_OPTIONS)
             preview = git_commit_preview(options)
-            message, accepted = QInputDialog.getText(
-                self, 'Gitコミットメッセージ', '選択ZIPのファイル名（編集できます）:',
-                text=Path(zip_path).name)
+            dialog = QInputDialog(self)
+            dialog.setWindowTitle('Gitコミットメッセージ')
+            dialog.setLabelText('選択ZIPのファイル名（編集できます）:')
+            dialog.setInputMode(QInputDialog.InputMode.TextInput)
+            dialog.setTextValue(Path(zip_path).name)
+            # Keep long Git ZIP filenames legible without horizontal panning.
+            dialog.setMinimumWidth(680)  # Approximately twice the old default.
+            accepted = dialog.exec() == QDialog.DialogCode.Accepted
+            message = dialog.textValue()
             if not accepted:
                 return
             if not message.strip():
