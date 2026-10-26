@@ -7,13 +7,14 @@ SOURCE = (Path(__file__).resolve().parents[1] / 'src' / 'app.py').read_text(enco
 def test_browser_buttons_wired_without_stealing_keyboard_focus():
     for button, handler in (
         ('nav_back_button', 'navigate_back'),
+        ('nav_forward_button', 'navigate_forward'),
         ('nav_home_button', 'navigate_home')):
         assert f'self.{button}.clicked.connect(self.{handler})' in SOURCE
     assert "button.setFocusPolicy(Qt.FocusPolicy.NoFocus)" in SOURCE
-    assert 'nav_forward_button' not in SOURCE
-    assert 'navForwardButton' not in SOURCE
-    assert 'def navigate_forward(self):' not in SOURCE
-    assert "search_row.addWidget(self.nav_toolbar)" in SOURCE
+    assert 'nav_forward_button' in SOURCE
+    assert 'navForwardButton' in SOURCE
+    assert 'def navigate_forward(self):' in SOURCE
+    assert "mode_row.addWidget(self.nav_toolbar, 0)" in SOURCE
     assert "search_row.addWidget(self.search, 1)" in SOURCE
 
 

@@ -18,6 +18,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
+from file_icon_policy import icon_lookup
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text, matches_choice_search
 from ime_input import initialize_halfwidth_english
@@ -1772,9 +1773,11 @@ class Launcher(QWidget):
         nav_layout.setSpacing(6)
         # Use real vector icons, never tiny platform-dependent Unicode glyphs.
         self.nav_back_button = QPushButton(self.nav_toolbar)
+        self.nav_forward_button = QPushButton(self.nav_toolbar)
         self.nav_home_button = QPushButton(self.nav_toolbar)
         for button, name, tip in (
             (self.nav_back_button, 'navBackButton', '前の画面に戻る'),
+            (self.nav_forward_button, 'navForwardButton', 'Filesのフォルダー履歴を進む'),
             (self.nav_home_button, 'navHomeButton', 'ホーム（仕事Pageの先頭）')):
             button.setObjectName(name)
             button.setToolTip(tip)
@@ -1783,6 +1786,8 @@ class Launcher(QWidget):
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             nav_layout.addWidget(button)
         self.nav_back_button.clicked.connect(self.navigate_back)
+        self.nav_forward_button.clicked.connect(self.navigate_forward)
+        self.nav_forward_button.hide()  # Visible only while Files Explorer is active.
         self.nav_home_button.clicked.connect(self.navigate_home)
         # Inline overlay: left of QLineEdit's native clear (x) and history
         # chevron actions.  Never add it to search_row, which puts it OUTSIDE.
@@ -2291,7 +2296,8 @@ class Launcher(QWidget):
         # Draw bold-enough, consistently sized Chrome-style outline icons.
         # Native font glyphs (← → ⌂) were too tiny and theme-dependent.
         for button, name in (
-                (self.nav_back_button, 'back'),
+                (self.nav_back_button, 'back_arrow'),
+                (self.nav_forward_button, 'forward'),
                 (self.nav_home_button, 'home')):
             button.setIcon(browser_navigation_icon(name, theme_family(self.color_theme)))
         nav_hover = '#dbe6e0' if light else '#354b50'
@@ -2525,12 +2531,19 @@ class Launcher(QWidget):
             self.update_header_icons()
 
     def row_icon(self, row):
-        path=row.get('_icon_file') or row.get('_file')
-        key=path or row.get('icon_key','command')
+        source, target = icon_lookup(row)
+        # SharePoint/Box/OneDrive placeholders may not pass is_file().  Ask the
+        # OS for the association of the extension rather than opening the
+        # cloud path.  Cache it once per file type, not once per cloud path.
+        key = ('file_type', target) if source == 'type' else (source, target)
         if key not in self.icon_cache:
-            # Drive roots have real Windows Shell icons but are not files.
-            if path and (row.get('_system_drive') or Path(path).is_file()):
-                self.icon_cache[key] = self.file_icons.icon(QFileInfo(path))
+            if source == 'type':
+                type_icon = self.file_icons.icon(QFileInfo('FRBLaunchTypeSample' + target))
+                self.icon_cache[key] = (type_icon if not type_icon.isNull()
+                                        else icon('file'))
+            elif source == 'path' and (row.get('_icon_file') or row.get('_system_drive')
+                                       or Path(target).is_file()):
+                self.icon_cache[key] = self.file_icons.icon(QFileInfo(target))
             else:
                 self.icon_cache[key] = icon(row.get('icon_key', 'command'))
         return self.icon_cache[key]
@@ -3522,6 +3535,7 @@ class Launcher(QWidget):
         if not active:
             self.expanded_view.hide_favorite_popup()
         self.expanded_view.setVisible(active)
+        self._nav_update_buttons()
         showing_classic = self.view_mode == 'expanded'
         self.mode_button.setText('Compact' if showing_classic else 'Three-layer')
         self.mode_button.setIcon(view_mode_icon('classic' if showing_classic else 'expanded',
@@ -3679,7 +3693,17 @@ class Launcher(QWidget):
                            'search' if self.search.hasFocus() else 'list'))
 
     def _nav_update_buttons(self):
-        self.nav_back_button.setEnabled(self.view_history.can_back)
+        explorer = (hasattr(self, 'expanded_view') and
+                    self.expanded_view.isVisibleTo(self))
+        if hasattr(self, 'nav_forward_button'):
+            self.nav_forward_button.setVisible(explorer)
+            self.nav_forward_button.setEnabled(
+                explorer and self.expanded_view.directory_history.can_forward)
+        self.nav_back_button.setEnabled(
+            self.expanded_view.directory_history.can_back
+            if explorer else self.view_history.can_back)
+        self.nav_back_button.setToolTip(
+            'Filesのフォルダー履歴を戻る' if explorer else '前の画面に戻る')
         # Home is always available even if currently at the root.
         self.nav_home_button.setEnabled(bool(getattr(self, 'pages', None)))
 
@@ -3750,12 +3774,20 @@ class Launcher(QWidget):
             self._nav_update_buttons()
 
     def navigate_back(self):
+        if self.expanded_view.isVisible():
+            self.expanded_view.history_back()
+            return
         self._nav_flush_search()
         state = self.view_history.back()
         if state is not None:
             self._nav_restore(state)
         else:
             self._nav_update_buttons()
+
+    def navigate_forward(self):
+        """Only the Explorer directory stack has a Forward action."""
+        if self.expanded_view.isVisible():
+            self.expanded_view.history_forward()
 
     def navigate_home(self):
         if not self.data or not self.pages:
@@ -4799,6 +4831,13 @@ class Launcher(QWidget):
                 self.paste_into_expanded_directory()
                 event.accept()
                 return True
+        # Conventional forward shortcut; Right alone still enters a folder.
+        if (pane in (self.expanded_view.left, self.expanded_view.middle) and
+                event.modifiers() == Qt.KeyboardModifier.AltModifier and
+                key == Qt.Key.Key_Right):
+            self.expanded_view.history_forward()
+            event.accept()
+            return True
         if event.modifiers() != Qt.KeyboardModifier.NoModifier:
             return False
         view = self.expanded_view
@@ -4817,19 +4856,10 @@ class Launcher(QWidget):
             else:
                 self.dismiss()
         elif key == Qt.Key.Key_Left:
-            if pane is view.middle:
-                if middle_back_target(len(view.path)) == 'parent':
-                    view.go_up(keep_middle_focus=True)
-                else:
-                    view.focus_panel(view.left)
-            elif pane is view.left:
-                # Stay in Files: Left resets current to its first row, never
-                # jumps to the top-level Files root button.
-                first = pane.tree.topLevelItem(0)
-                if first is not None:
-                    pane.tree.setCurrentItem(first)
-                    view.choose_files(first, 0)
-                    pane.tree.setFocus(Qt.FocusReason.TabFocusReason)
+            if pane in (view.middle, view.left):
+                # Left follows the Explorer visit history, NOT the directory
+                # hierarchy. Use the up-arrow in the breadcrumb for parent.
+                view.history_back()
             else:
                 # Bookmarks is already a permanent panel, not a hidden
                 # toolbar button. Left should move to the adjacent column.

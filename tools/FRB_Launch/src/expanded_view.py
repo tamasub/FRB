@@ -14,6 +14,7 @@ from file_drag import ExternalFileDragTree
 from directory_address import (breadcrumb_segments, compact_segments,
                                directory_row, row_directory, normalized_directory)
 from browser_nav_icons import browser_navigation_icon
+from directory_navigation_history import DirectoryNavigationHistory
 from system_drives import drive_rows, pc_preview_row
 from expanded_view_model import toolbar_roots, root_wheel_target
 from expanded_selection import context_paths, physical_paths
@@ -699,6 +700,8 @@ class ExpandedLauncherView(QWidget):
         self.files_root = None
         self.bookmarks_root = None
         self.path = []
+        self.directory_history = DirectoryNavigationHistory(limit=100)
+        self._restoring_directory_history = False
         self._refreshing = False
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -1146,6 +1149,42 @@ class ExpandedLauncherView(QWidget):
         else:
             self.middle.tree.clear()
         self.update_directory_favorite_button()
+        # Record only completed folder transitions, regardless of origin:
+        # Files first column, folder contents, breadcrumbs, favorites, Up.
+        # The history model deduplicates F5/re-render of the same destination.
+        if not self._restoring_directory_history:
+            root = self.left.tree.currentItem()
+            row = self.row_data(root) if root is not None else None
+            self.directory_history.record(
+                self.current_directory(), self.path,
+                row.get('item_id') if row else None)
+        self.launcher._nav_update_buttons()
+
+    def _restore_directory_history(self, entry):
+        if entry is None:
+            return False
+        self._restoring_directory_history = True
+        try:
+            self.path = list(entry['rows'])
+            if entry['root_id'] is not None:
+                for index in range(self.left.tree.topLevelItemCount()):
+                    candidate = self.left.tree.topLevelItem(index)
+                    row = self.row_data(candidate)
+                    if row and row.get('item_id') == entry['root_id']:
+                        self.left.tree.setCurrentItem(candidate)
+                        break
+            self.refresh_middle()
+            self.focus_panel(self.middle)
+        finally:
+            self._restoring_directory_history = False
+            self.launcher._nav_update_buttons()
+        return True
+
+    def history_back(self):
+        return self._restore_directory_history(self.directory_history.back())
+
+    def history_forward(self):
+        return self._restore_directory_history(self.directory_history.forward())
 
     def update_directory_favorite_button(self):
         target = self.current_directory()

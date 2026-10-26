@@ -12,15 +12,15 @@ ICON = (BASE / 'src' / 'browser_nav_icons.py').read_text(encoding='utf-8')
 
 
 def test_buttons_use_painted_icons_not_unicode_text():
-    for name in ('back', 'home'):
+    for name in ('back_arrow', 'forward', 'home'):
         assert f"'{name}'" in APP
     assert "self.nav_back_button = QPushButton(self.nav_toolbar)" in APP
-    assert 'nav_forward_button' not in APP
+    assert 'nav_forward_button' in APP
     assert "self.nav_home_button = QPushButton(self.nav_toolbar)" in APP
-    assert 'button.setIconSize(QSize(24, 24))' in APP
+    assert 'button.setIconSize(QSize(22, 22))' in APP
     assert 'button.setFocusPolicy(Qt.FocusPolicy.NoFocus)' in APP
-    assert 'button.setIcon(browser_navigation_icon(name, self.color_theme))' in APP
-    assert 'button.setFixedSize(34, 34)' in APP
+    assert 'button.setIcon(browser_navigation_icon(name, theme_family(self.color_theme)))' in APP
+    assert 'button.setFixedSize(40, 40)' in APP
 
 
 def test_browser_icons_have_real_paths_and_disabled_color():
@@ -30,7 +30,7 @@ def test_browser_icons_have_real_paths_and_disabled_color():
     assert 'QIcon.Mode.Disabled' in ICON
     assert 'pixmap.setDevicePixelRatio(_ICON_SCALE)' in ICON
     assert 'nav_back_button.clicked.connect(self.navigate_back)' in APP
-    assert 'def navigate_forward(self):' not in APP
+    assert 'def navigate_forward(self):' in APP
     assert 'nav_home_button.clicked.connect(self.navigate_home)' in APP
 
 

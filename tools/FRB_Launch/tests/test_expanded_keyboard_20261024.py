@@ -51,7 +51,7 @@ def test_qt_event_filter_and_view_handoff_wired():
     ast.parse(view)
     for snippet in ('expanded_tree_key(', 'expanded_root_key(', 'expanded_tab_key(',
                     'expanded_focus_key(', 'move_tree_selection(',
-                    'middle_back_target(', 'row_right_action(',
+                    'view.history_back()', 'row_right_action(',
                     'view.focus_panel('):
         assert snippet in app
     for snippet in ('root_buttons', 'navigate_middle(', 'focus_panel(',

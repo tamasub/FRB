@@ -27,15 +27,26 @@ def _draw_icon(name: str, color: str) -> QPixmap:
     painter.setBrush(Qt.BrushStyle.NoBrush)
 
     shape = QPainterPath()
-    if name in ('back', 'forward'):
-        # Chrome-like simple arrow: shaft + open, gently rounded chevron.
+    if name in ('back', 'back_arrow', 'forward'):
         if name == 'back':
+            # Breadcrumb toolbar: the requested upward corner arrow.
+            # One upright shaft turning RIGHT at the bottom (not a house).
+            # The prior left-pointing arrow remains available as back_arrow.
+            shape.moveTo(4.5, 10.0)
+            shape.lineTo(11.5, 4.5)
+            shape.lineTo(18.5, 10.0)
+            shape.moveTo(11.5, 4.5)
+            shape.lineTo(11.5, 19.0)
+            shape.lineTo(20.0, 19.0)
+        elif name == 'back_arrow':
+            # Original left arrow preserved for future use, unchanged.
             shape.moveTo(20, 12)
             shape.lineTo(4.5, 12)
             shape.moveTo(11, 5.5)
             shape.lineTo(4.5, 12)
             shape.lineTo(11, 18.5)
         else:
+            # Forward remains a simple open arrow.
             shape.moveTo(4, 12)
             shape.lineTo(19.5, 12)
             shape.moveTo(13, 5.5)

@@ -17,7 +17,7 @@ KEYS = {'Tab': 1, 'Backtab': 2, 'Left': 3, 'Right': 4, 'Up': 5, 'Down': 6,
         'Return': 7, 'Enter': 8, 'Space': 9, 'Escape': 10, 'F': 11}
 Qt = SimpleNamespace(
     Key=SimpleNamespace(**{'Key_' + k: v for k, v in KEYS.items()}),
-    KeyboardModifier=SimpleNamespace(NoModifier=0, ShiftModifier=1, ControlModifier=2),
+    KeyboardModifier=SimpleNamespace(NoModifier=0, ShiftModifier=1, ControlModifier=2, AltModifier=4),
     FocusReason=SimpleNamespace(TabFocusReason=1),
     ItemDataRole=SimpleNamespace(UserRole=32),
 )
@@ -94,6 +94,8 @@ class View:
     def choose_files(self, item, _): self.actions.append(('preview', item.value['item_id']))
     def navigate_middle(self, row): self.actions.append(('descend', row['item_id']))
     def go_up(self, **kwargs): self.actions.append(('up', kwargs))
+    def history_back(self): self.actions.append(('history_back',))
+    def history_forward(self): self.actions.append(('history_forward',))
     def row_data(self, item): return item.value
     def enter_row(self, panel, item): self.actions.append(('enter', item.value['item_id']))
     def open_cascade(self, row, *_): self.actions.append(('cascade', row['item_id']))
@@ -129,14 +131,19 @@ def test_right_from_middle_descends_but_does_not_execute():
     assert d.expanded_view.actions[-1] == ('execute', 'run')
 
 
-def test_left_from_middle_descends_back_then_returns_to_files():
+def test_left_from_middle_and_files_returns_to_explorer_history():
     d = instance()
-    d.expanded_view.path.append({'item_id':'child'})
     assert d.expanded_tree_key(d.expanded_view.middle.tree, event('Left'))
-    assert d.expanded_view.actions == [('up', {'keep_middle_focus': True})]
-    d.expanded_view.path.pop()
-    assert d.expanded_tree_key(d.expanded_view.middle.tree, event('Left'))
-    assert d.expanded_view.actions[-1] == ('focus', d.expanded_view.left)
+    assert d.expanded_tree_key(d.expanded_view.left.tree, event('Left'))
+    assert d.expanded_view.actions == [('history_back',), ('history_back',)]
+
+
+def test_alt_right_forward_but_plain_right_enters_directory():
+    d = instance()
+    assert d.expanded_tree_key(d.expanded_view.middle.tree, event('Right', 4))
+    assert d.expanded_view.actions == [('history_forward',)]
+    assert d.expanded_tree_key(d.expanded_view.middle.tree, event('Right'))
+    assert d.expanded_view.actions[-1] == ('descend', 'child')
 
 
 def test_arrows_wrap_rows_without_leaving_panel():

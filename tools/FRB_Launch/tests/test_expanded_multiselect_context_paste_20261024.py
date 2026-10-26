@@ -136,13 +136,12 @@ def test_expanded_paste_copies_all_selected_files_to_destination(tmp_path):
     assert not [x for x in test_state if isinstance(x, tuple) and x[0] == 'error']
 
 
-def test_left_arrow_first_column_resets_to_first_row_not_files_root():
+def test_left_arrow_first_column_follows_explorer_history():
     fn = isolate(APP, 'Launcher', 'expanded_tree_key', {})
     code = ast.unparse(ast.parse(APP))
     # Assert structural intent, independent of real Qt tests on Windows.
-    assert "elif pane is view.left:" in code
-    assert "first = pane.tree.topLevelItem(0)" in code
-    assert "view.choose_files(first, 0)" in code
+    assert 'if pane in (view.middle, view.left):' in code
+    assert 'view.history_back()' in code
 
 
 def test_expanded_paste_button_and_reduced_density_icon():
