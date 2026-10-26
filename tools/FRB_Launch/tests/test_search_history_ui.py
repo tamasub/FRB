@@ -9,6 +9,7 @@ import unittest
 
 try:
     from PySide6.QtCore import Qt, QPoint
+    from PySide6.QtGui import QInputMethodEvent
     from PySide6.QtTest import QTest
     import test_navigation
 except ImportError:
@@ -62,6 +63,27 @@ class SearchHistoryUITests(test_navigation.NavigationTests if test_navigation el
             self.assertEqual(self.w.search.text(), '*.ps1')
             self.assertFalse(self.w.history_popup.isVisible())
             self.assertTrue(self.w.list.hasFocus())
+
+    def test_japanese_preedit_from_history_closes_and_moves_to_search(self):
+        QTest.keyClicks(self.w.search, '/')
+        self.assertTrue(self.w.history_popup.isVisible())
+        self.assertTrue(self.w.history_choices.hasFocus())
+        # Windows Japanese IME sends preedit before textChanged or commit.
+        preedit = QInputMethodEvent('にほん', [])
+        self.app.sendEvent(self.w.history_choices, preedit)
+        self.app.processEvents()
+        self.assertFalse(self.w.history_popup.isVisible())
+        self.assertTrue(self.w.search.hasFocus())
+        commit = QInputMethodEvent()
+        commit.setCommitString('日本語')
+        self.app.sendEvent(self.w.search, commit)
+        self.assertIn('日本語', self.w.search.text())
+
+    def test_typing_or_pasting_into_search_closes_history(self):
+        QTest.keyClicks(self.w.search, '/')
+        self.assertTrue(self.w.history_popup.isVisible())
+        self.w.search.setText('日本語')
+        self.assertFalse(self.w.history_popup.isVisible())
 
     def test_escape_preserves_existing_query(self):
         self.w.search.setText('MyCurrentQuery')

@@ -92,9 +92,11 @@ def compact_segments(segments, available, measure):
     root, last = segments[0], segments[-1]
     collapsed = ('…', None)
     result = [root, collapsed, last]
-    # Fit the newest ancestors first; if too narrow, still show root + last.
+    # Fit the newest ancestors first, but INSERT each older ancestor before
+    # the previously retained ones. Appending before `last` reversed the path
+    # whenever two or more parents fit in a narrowed window.
     for candidate in reversed(segments[1:-1]):
-        trial = result[:-1] + [candidate, result[-1]]
+        trial = result[:2] + [candidate] + result[2:]
         if needed(trial) > width:
             break
         result = trial

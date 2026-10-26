@@ -1924,6 +1924,9 @@ class Launcher(QWidget):
         self._search_history_wheel_delta = 0
         self._search_history_warp_generation = 0
         self.history_choices = ReorderablePopupTree(self.history_popup)
+        # IME preedit belongs to the search box, not the history list. Qt
+        # must deliver InputMethod events here so they can be redirected.
+        self.history_choices.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.history_choices.setObjectName('historyChoices')
         self.history_choices.setColumnCount(2)
         self.history_choices.setHeaderHidden(True)
@@ -3979,7 +3982,12 @@ class Launcher(QWidget):
             self.error('表示順を保存できません: '+str(e));return False
 
     def initialize_search_ime(self):
-        """Set an initial halfwidth-English IME state after focus settles."""
+        """Initialize default IME without interrupting a history-to-search handoff."""
+        if getattr(self, '_history_ime_handoff', False):
+            # A Japanese preedit is already underway; forcing halfwidth English
+            # on the deferred FocusIn callback would break its composition.
+            self._history_ime_handoff = False
+            return
         if self.search.hasFocus():
             initialize_halfwidth_english(int(self.search.winId()))
 
@@ -4333,6 +4341,10 @@ class Launcher(QWidget):
             DIAG.exception('SEARCH_HISTORY save failed')
 
     def search_text_changed(self, value):
+        # Any actual edit (including an IME commit or paste) wins over history.
+        # Preedit is handled separately before QLineEdit emits textChanged.
+        if self.history_popup.isVisible():
+            self.hide_history_popup()
         # Slash is reserved for the history popup, even for clipboard pastes.
         if '/' in value:
             cursor = self.search.cursorPosition()
@@ -4488,6 +4500,32 @@ class Launcher(QWidget):
             if (self.pointer_warp_enabled and
                 generation == self._search_history_warp_generation) else None))
         return True
+
+    def handle_history_input_method(self, obj, event):
+        """Close history on the FIRST Japanese IME preedit, before commit.
+
+        The history tree owns focus for Up/Down/Enter, but it must not swallow
+        composition events intended as a new main-search query. Preserve the
+        actual Qt input-method event instead of converting it to key presses.
+        """
+        if (event.type() != QEvent.Type.InputMethod or
+                not self.history_popup.isVisible() or
+                obj not in (self.search, self.history_choices,
+                            self.history_choices.viewport()) or
+                not (event.preeditString() or event.commitString())):
+            return False
+        from_history_list = obj is not self.search
+        self.hide_history_popup()
+        if from_history_list:
+            # FocusIn normally schedules halfwidth-English initialization.
+            # During a Japanese composition that delayed reset must be skipped.
+            self._history_ime_handoff = True
+            self.search.setFocus(Qt.FocusReason.OtherFocusReason)
+            QApplication.sendEvent(self.search, event)
+            event.accept()
+            return True
+        # Let QLineEdit process its native InputMethod event normally.
+        return False
 
     def handle_history_event(self, obj, event):
         # Keep popup key handling ahead of the launcher's Enter/Right handlers:
@@ -4972,6 +5010,10 @@ class Launcher(QWidget):
         return True
 
     def eventFilter(self,obj,event):
+        # Legacy event-filter test doubles do not implement newer handlers.
+        if (getattr(self, 'handle_history_input_method', None) and
+                self.handle_history_input_method(obj, event)):
+            return True
         if (event.type() == QEvent.Type.Wheel and
                 self.wheel_search_history(obj, event)):
             event.accept()
