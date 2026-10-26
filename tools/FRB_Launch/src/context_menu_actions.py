@@ -34,6 +34,39 @@ def show_windows_properties(path):
         raise OSError(error, 'Windowsのプロパティを表示できませんでした')
 
 
+def open_with_windows_dialog(path):
+    """Choose an application for ONE file using Windows' own Open With UI.
+
+    SHOpenWithDialog delegates registered app discovery and program execution
+    to Windows; FRB Launch neither enumerates app handlers nor changes the
+    file's default association. OAIF_EXEC opens the chosen app once, and
+    OAIF_HIDE_REGISTRATION prevents default-app changes on older Windows.
+    """
+    _windows_only()
+    file_path = Path(path)
+    if not file_path.is_file():
+        raise FileNotFoundError('対象ファイルが見つかりません: ' + str(file_path))
+
+    class OPENASINFO(ctypes.Structure):
+        _fields_ = [
+            ('pcszFile', wintypes.LPCWSTR),
+            ('pcszClass', wintypes.LPCWSTR),
+            ('oaifInFlags', wintypes.DWORD),
+        ]
+
+    shell = ctypes.WinDLL('shell32', use_last_error=True)
+    choose = shell.SHOpenWithDialog
+    choose.argtypes = [wintypes.HWND, ctypes.POINTER(OPENASINFO)]
+    choose.restype = ctypes.c_long  # HRESULT (32-bit signed on Windows)
+    options = OPENASINFO(str(file_path.resolve()), None, 0x00000004 | 0x00000020)
+    status = choose(None, ctypes.byref(options)) & 0xffffffff
+    if status in (0x800704c7, 0x80004004):
+        return False  # The user canceled the Windows chooser.
+    if status & 0x80000000:
+        raise OSError(f'Windowsの「プログラムから開く」を表示できませんでした (0x{status:08X})')
+    return True
+
+
 def open_file_explorer(path):
     _windows_only()
     subprocess.Popen(['explorer.exe', str(path)])

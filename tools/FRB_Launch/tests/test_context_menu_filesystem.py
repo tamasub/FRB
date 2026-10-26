@@ -65,7 +65,7 @@ class ConfigTests(unittest.TestCase):
     def test_all_supported_v1_actions(self):
         menus = load_context_menus(CONFIG)
         self.assertEqual([x['action_id'] for x in menus['file'] if 'action_id' in x],
-                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
+                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder'] if 'action_id' in x],
                          ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'delete', 'rename', 'properties'])
 
@@ -84,7 +84,7 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 11)
+            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 12)
 
 
 class ParentFolderTests(unittest.TestCase):
@@ -260,7 +260,8 @@ class ActualLauncherRoutingTests(unittest.TestCase):
             authored_items=[{'item_id':'my_setting','item_kind':'command'}],
             hover_timer=types.SimpleNamespace(stop=lambda: None), pending_menu_item=None,
             launch_configuration_studio=Mock(), perform_filesystem_context_action=Mock(),
-            _context_paste_enabled=Mock(return_value=False), _paste_from_context_menu=Mock())
+            _context_paste_enabled=Mock(return_value=False), _paste_from_context_menu=Mock(),
+            add_open_with_submenu=lambda menu, title, path: menu.addAction(title.replace('…', ' ▶'), lambda: None))
         return scope['show_launch_context_menu'], holder
 
     def test_physical_folder_menu_calls_correct_action_including_checked(self):
@@ -291,5 +292,5 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         holder.search.text = lambda: 'report'
         row = {'item_id':'__file_index_foo', '_indexed_file': 'C:/x/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
-        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 10)
+        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 11)
 

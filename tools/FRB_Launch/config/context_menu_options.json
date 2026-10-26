@@ -29,6 +29,10 @@
         "type": "separator"
       },
       {
+        "action_id": "open_with",
+        "title": "プログラムから開く…"
+      },
+      {
         "action_id": "open_parent_folder",
         "title": "フォルダーを開く"
       },

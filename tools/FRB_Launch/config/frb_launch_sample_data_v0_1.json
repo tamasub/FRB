@@ -218,8 +218,8 @@
       "item_id": "prompt",
       "page_id": "work",
       "parent_item_id": "dates",
-      "title": "文章レビュー",
-      "description": "クリップボードの文章をレビュー",
+      "title": "新しいチャットに移行プロンプト",
+      "description": "",
       "item_kind": "command",
       "icon_key": "message",
       "sort_order": 50,
@@ -235,7 +235,7 @@
       "launch_actions": [
         {
           "launch_action_type": "SendKey",
-          "launch_text": "以下の文章の誤字脱字と不自然な表現を修正してください。",
+          "launch_text": "新しいチャットに移行したいので、高密度圧縮した引継ぎmdを作ってください。",
           "launch_target": "",
           "launch_program": "",
           "launch_arguments": [],

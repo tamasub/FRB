@@ -52,11 +52,13 @@ from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
 from context_menu_icons import context_action_icon
+from windows_open_with import discover_open_with_apps, open_file_with_app
 from file_transfer_visual import transfer_state, pasted_paths_for, path_key
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus, visible_context_entries
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
-                                  open_folder_terminal, open_parent_powershell, run_script_with_pause, rename_file_or_folder, move_to_recycle_bin, sort_browser_entries,
+                                  open_with_windows_dialog, open_folder_terminal, open_parent_powershell,
+                                  run_script_with_pause, rename_file_or_folder, move_to_recycle_bin, sort_browser_entries,
                                   is_downloads_zip, read_git_commit_options, git_commit_preview,
                                   commit_tracked_changes)
 from menu_viewport import place_popup, main_cascade_anchor_x, MENU_SCREEN_MARGIN
@@ -1300,6 +1302,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if getattr(self, 'handle_file_shortcut', lambda *args: False)(key, mods):
             event.accept()
             return
+        if (key == getattr(Qt.Key, 'Key_Delete', None) and mods == Qt.KeyboardModifier.NoModifier
+                and (self.filter_edit is None or not self.filter_edit.hasFocus())):
+            action = self.activeAction()
+            row = action.data() if action is not None else None
+            path = self._filesystem_row_path(row)
+            if path and Path(path).exists():
+                kind = 'folder' if Path(path).is_dir() else 'file'
+                self.launcher.perform_filesystem_context_action('delete', path, kind)
+                event.accept()
+                return
         # The editor is always present. Space is ordinary input, not a
         # special Japanese-IME trigger, and never switches the IME mode.
         if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
@@ -4752,6 +4764,10 @@ class Launcher(QWidget):
         if event.modifiers() != Qt.KeyboardModifier.NoModifier:
             return False
         view = self.expanded_view
+        if key == getattr(Qt.Key, 'Key_Delete', None) and pane is view.middle:
+            self.delete_expanded_selected_paths()
+            event.accept()
+            return True
         if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             selected = move_tree_selection(pane.tree, -1 if key == Qt.Key.Key_Up else 1)
             if selected is not None and pane is view.left:
@@ -5024,6 +5040,18 @@ class Launcher(QWidget):
         # Windows setups the key event still lands in the main list/search/tabs
         # after the user selects a cascade row.  Give visible columns keyboard
         # ownership without changing their non-grabbing mouse behavior.
+        if (event.type() == getattr(QEvent.Type, 'KeyPress', None)
+                and obj is self.list and not self.expanded_view.isVisible()
+                and event.key() == getattr(Qt.Key, 'Key_Delete', None)
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                and not self.selection):
+            item = self.list.currentItem()
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+            kind, path = resolve_context_target(row, self.authored_items)
+            if kind in ('file', 'folder') and path:
+                self.perform_filesystem_context_action('delete', path, kind)
+                event.accept()
+                return True
         if (event.type() == getattr(QEvent.Type, 'KeyPress', None)
                 and obj in (self.list, self.tabs)):
             # Never steal keystrokes from the MAIN search QLineEdit.  When a
@@ -5357,6 +5385,48 @@ class Launcher(QWidget):
         menu.popup(global_pos)
         return True
 
+    def add_open_with_submenu(self, parent_menu, title, path):
+        """Right-opening app list; native chooser remains the final fallback."""
+        submenu = parent_menu.addMenu(str(title).rstrip('…').rstrip('.').strip())
+        submenu.setObjectName('expandedOpenWithSubmenu')
+        submenu.setIcon(context_action_icon('open_with'))
+        try:
+            applications = discover_open_with_apps(path)
+        except (OSError, ValueError) as exc:
+            DIAG.warning('OPEN_WITH app discovery failed file=%s error=%s', path, exc)
+            applications = []
+        for application in applications:
+            action = submenu.addAction(application.title)
+            action.setIcon(self.file_icons.icon(QFileInfo(application.executable)))
+            action.triggered.connect(
+                lambda checked=False, filename=str(path), exe=application.executable:
+                self.open_file_with_selected_app(filename, exe))
+        if applications:
+            submenu.addSeparator()
+        else:
+            unavailable = submenu.addAction('（起動可能な候補が見つかりません）')
+            unavailable.setEnabled(False)
+        other = submenu.addAction('別のプログラムを選択…')
+        other.setIcon(context_action_icon('open_with'))
+        other.triggered.connect(
+            lambda checked=False, filename=str(path):
+            self.perform_filesystem_context_action('open_with', filename, 'file'))
+        return submenu
+
+    def open_file_with_selected_app(self, path, executable):
+        """A direct Open With choice never changes the default application."""
+        try:
+            # Registry entries can become stale while a menu is open.
+            if not Path(path).is_file():
+                raise FileNotFoundError('対象ファイルが見つかりません: ' + str(path))
+            if not Path(executable).is_file():
+                raise FileNotFoundError('アプリが見つかりません: ' + str(executable))
+            # OS app may open a new window; stop Qt.Tool covering it.
+            self.dismiss()
+            open_file_with_app(path, executable)
+        except (OSError, ValueError, RuntimeError) as exc:
+            self.error('プログラムから開けませんでした: ' + str(exc))
+
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None,
                                  selected_paths=None):
         """Choose context actions by authoritative source, not displayed item ID."""
@@ -5441,6 +5511,12 @@ class Launcher(QWidget):
                         lambda checked=False, parent=context_parent:
                         self._paste_from_context_menu(parent))
                     action.setEnabled(self._context_paste_enabled(context_parent))
+                elif action_id == 'open_with' and origin == 'file':
+                    # Native Explorer uses a right-hand menu here, not an
+                    # immediate modal chooser. Keep the OS chooser as the
+                    # last entry for handlers the registry cannot launch.
+                    self.add_open_with_submenu(menu, definition['title'], path)
+                    continue
                 else:
                     action = menu.addAction(definition['title'],
                         lambda checked=False, a=action_id, p=path, k=origin:
@@ -5471,6 +5547,28 @@ class Launcher(QWidget):
     def _forget_launch_context_menu(self, menu):
         if getattr(self, '_launch_context_menu', None) is menu:
             self._launch_context_menu = None
+
+    def delete_expanded_selected_paths(self):
+        """Delete key uses exactly the same guarded recycle-bin action as right-click.
+
+        Multiple selected files use the shared batch confirmation. Never
+        interpret an unselected current/hovered row as permission to delete.
+        """
+        view = self.expanded_view
+        tree = view.middle.tree
+        if (not view.isVisible() or
+                tree.state() == QAbstractItemView.State.EditingState):
+            return False
+        paths = view.middle_selected_paths()
+        if not paths:
+            return False
+        if len(paths) > 1:
+            self.perform_filesystem_batch_action('delete', paths)
+        else:
+            path = Path(paths[0])
+            self.perform_filesystem_context_action(
+                'delete', str(path), 'folder' if path.is_dir() else 'file')
+        return True
 
     def copy_expanded_selected_paths(self, *, cut=False):
         paths = self.expanded_view.middle_selected_paths()
@@ -5667,6 +5765,11 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(str(path))
             elif action_id == 'copy_file_name':
                 QApplication.clipboard().setText(path.name)
+            elif action_id == 'open_with' and kind == 'file':
+                # Qt.Tool stays topmost in FRB Launch. Hide it so the native
+                # Windows chooser cannot appear behind the launcher.
+                self.dismiss()
+                open_with_windows_dialog(path)
             elif action_id == 'open_parent_folder' and kind == 'file':
                 open_parent_folder(path)
             elif action_id == 'open_parent_terminal' and kind == 'file':

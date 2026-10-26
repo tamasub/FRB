@@ -53,6 +53,13 @@ def context_action_icon(action_id):
         line(3, 8, 3, 18)
         if action_id == 'new_category':
             line(15, 12, 15, 17); line(12.5, 14.5, 17.5, 14.5)
+    elif action_id == 'open_with':
+        # App-window silhouette with small chooser dots: one-off file action.
+        painter.drawRoundedRect(QRectF(3, 4, 18, 16), 2, 2)
+        line(3, 9, 21, 9)
+        painter.setBrush(QColor(color))
+        for x in (8, 12, 16):
+            painter.drawEllipse(QRectF(x - 0.8, 13 - 0.8, 1.6, 1.6))
     elif action_id in ('open_terminal', 'open_parent_terminal'):
         painter.drawRoundedRect(QRectF(3, 4, 18, 16), 2, 2)
         line(7, 9, 10, 12); line(10, 12, 7, 15); line(12, 16, 17, 16)
