@@ -1647,6 +1647,11 @@ class Launcher(QWidget):
             'bookmark_pointer_follow', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
         self.bookmark_wan_enabled = str(self.settings.value(
             'bookmark_wan_enabled', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
+        # Citrix/VDI can show a server-side cursor distinct from the real
+        # client pointer. Leave normal desktops unchanged unless opted in.
+        self.vdi_no_cursor_warp = str(self.settings.value(
+            'vdi_no_cursor_warp', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
+        self.pointer_warp_enabled = not self.vdi_no_cursor_warp
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
         sort_col = str(self.settings.value('result_sort_column', -1))
@@ -1807,6 +1812,15 @@ class Launcher(QWidget):
         self.bookmark_wan_action.setChecked(self.bookmark_wan_enabled)
         self.bookmark_wan_action.triggered.connect(self.set_bookmark_wan_enabled)
         self.theme_menu.addSeparator()
+        self.vdi_no_cursor_warp_action = self.theme_menu.addAction(
+            'Citrix / VDI互換：マウスポインター自動移動OFF')
+        self.vdi_no_cursor_warp_action.setCheckable(True)
+        self.vdi_no_cursor_warp_action.setChecked(self.vdi_no_cursor_warp)
+        self.vdi_no_cursor_warp_action.setToolTip(
+            '仮想デスクトップで二重カーソルが出る場合に使用。'
+            'ホイール選択は維持、クリック位置は移動しません。')
+        self.vdi_no_cursor_warp_action.triggered.connect(self.set_vdi_no_cursor_warp)
+        self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
             lambda checked=False: self.launch_configuration_studio(page_properties=True))
@@ -1876,6 +1890,7 @@ class Launcher(QWidget):
         # Wheel Tab: share one cooldown across Page, toolbar and Files panels.
         self.tabs._zone_navigation = self.expanded_view.wheel_zone_navigation
         self.tabs._zone_enabled = lambda: self.view_mode == 'expanded'
+        self.tabs._pointer_warp_enabled = lambda: self.pointer_warp_enabled
         self.expanded_view.hide()
         layout.addWidget(self.search_bar)
         for w in (self.mode_bar, self.selection_tools, self.list,
@@ -2115,6 +2130,28 @@ class Launcher(QWidget):
             area = screen.availableGeometry()
             position.setX(max(area.left(), min(position.x(), area.right() - width + 1)))
         self.theme_menu.popup(position)
+
+    def set_vdi_no_cursor_warp(self, enabled):
+        """Opt-in no-warp navigation for Citrix and other remote desktops.
+
+        A remote process cannot guarantee moving the actual client cursor:
+        keep wheel selection/focus, but never create a second fake pointer.
+        """
+        self.vdi_no_cursor_warp = bool(enabled)
+        self.pointer_warp_enabled = not self.vdi_no_cursor_warp
+        self.settings.setValue('vdi_no_cursor_warp', self.vdi_no_cursor_warp)
+        self.settings.sync()
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            view.cancel_bookmark_pointer_follow()
+            view._middle_follow_pending = None
+            view._files_follow_pending = None
+            view._wheel_root_follow_pending = None
+            view._middle_vdi_anchor_pos = None
+        self._classic_wheel_follow_pending = None
+        self.footer.setText(
+            'Citrix / VDI互換：カーソル移動OFF。ホイールで選択しEnterで実行できます。'
+            if enabled else '通常モード：マウスポインター追従を有効にしました。')
 
     def set_bookmark_pointer_follow(self, enabled):
         # Persist optional wheel-assisted cursor movement; do not edit JSON.
@@ -4436,7 +4473,8 @@ class Launcher(QWidget):
         generation = self._search_history_warp_generation
         QTimer.singleShot(0, lambda: (
             warp_to_history_row(tree, target, origin, QCursor)
-            if generation == self._search_history_warp_generation else None))
+            if (self.pointer_warp_enabled and
+                generation == self._search_history_warp_generation) else None))
         return True
 
     def handle_history_event(self, obj, event):
@@ -4874,6 +4912,8 @@ class Launcher(QWidget):
         self._classic_wheel_follow_scheduled = False
         pending = getattr(self, '_classic_wheel_follow_pending', None)
         self._classic_wheel_follow_pending = None
+        if not getattr(self, 'pointer_warp_enabled', True):
+            return
         if pending is None:
             return
         item, original_pos = pending

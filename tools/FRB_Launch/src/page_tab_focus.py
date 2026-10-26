@@ -84,7 +84,8 @@ class FocusPageTabBar(QTabBar):
         x = (bounds.left() + visible_right) // 2
         y = max(bounds.top() + 3, min(local.y(), bounds.bottom() - 3))
         destination = self.mapToGlobal(QPoint(x, y))
-        if destination != position:
+        allowed = getattr(self, '_pointer_warp_enabled', None)
+        if destination != position and (not callable(allowed) or allowed()):
             QCursor.setPos(destination)
 
     def focusInEvent(self, event):

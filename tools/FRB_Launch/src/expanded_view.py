@@ -692,6 +692,7 @@ class ExpandedLauncherView(QWidget):
         self._favorite_popup_warp_generation = 0
         self._favorite_path_wheel_delta = 0
         self._middle_back_warp_pending = None
+        self._middle_vdi_anchor_pos = None
         self._bookmark_follow_pending = None
         self._bookmark_follow_scheduled = False
         self._bookmark_warp_global = None
@@ -1238,7 +1239,8 @@ class ExpandedLauncherView(QWidget):
             generation = self._favorite_popup_warp_generation
             QTimer.singleShot(0, lambda: (
                 warp_to_history_row(choices, target, origin, QCursor)
-                if generation == self._favorite_popup_warp_generation else None))
+                if (getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True) and
+                    generation == self._favorite_popup_warp_generation) else None))
             return True
         if self.favorite_popup.isVisible():
             # An open list owns its own wheel; clicking its choices navigates.
@@ -1561,6 +1563,8 @@ class ExpandedLauncherView(QWidget):
                           self._finish_zone_jump(dest, src, end))
 
     def _finish_zone_jump(self, target, source, position='first'):
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            return  # Citrix: focus moved, but the client's cursor must stay put.
         if (QApplication.mouseButtons() != Qt.MouseButton.NoButton or
                 QCursor.pos() != source or not self.launcher.isVisible()):
             return
@@ -1905,6 +1909,7 @@ class ExpandedLauncherView(QWidget):
             return False
         # Any real scroll is Target Flow: keep the OS cursor where it is.
         if scroll_before != scroll_after:
+            self._middle_vdi_anchor_pos = None
             getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('directory-last')
             getattr(self, 'wheel_zone_navigation', None) and self.wheel_zone_navigation.reset('directory-first')
             self._wheel_middle_delta = 0
@@ -1934,7 +1939,14 @@ class ExpandedLauncherView(QWidget):
         # Anchor to the *item under the mouse*, not a stale keyboard current
         # item. It can differ after many normal wheel scroll events.
         hovered = tree.itemAt(cursor_local)
-        current = hovered if hovered is not None else tree.currentItem()
+        # In Citrix the actual client pointer stays fixed. Once we start
+        # advancing at a scroll edge, use the *selected row* as anchor, not
+        # the same row permanently sitting under the stationary cursor.
+        cursor_global = QCursor.pos()
+        following = (not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True) and
+                     self._middle_vdi_anchor_pos == cursor_global)
+        current = (tree.currentItem() if following else
+                   hovered if hovered is not None else tree.currentItem())
         if current is None:
             return True
         index = tree.indexOfTopLevelItem(current)
@@ -1978,6 +1990,9 @@ class ExpandedLauncherView(QWidget):
         if not preserve_multi:
             item.setSelected(True)
         tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            self._middle_vdi_anchor_pos = cursor_global
+            return True
         self._middle_follow_pending = item
         if not self._middle_follow_scheduled:
             self._middle_follow_scheduled = True
@@ -1987,6 +2002,9 @@ class ExpandedLauncherView(QWidget):
     def follow_middle_pointer(self):
         """Move vertically onto the newly current visible file row."""
         self._middle_follow_scheduled = False
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            self._middle_follow_pending = None
+            return
         item = self._middle_follow_pending
         self._middle_follow_pending = None
         tree = self.middle.tree
@@ -2019,6 +2037,8 @@ class ExpandedLauncherView(QWidget):
     def follow_middle_back_pointer(self):
         original = self._middle_back_warp_pending
         self._middle_back_warp_pending = None
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            return
         if (original is None or not self.isVisible()
                 or not self.middle.back.isVisible() or not self.middle.back.isEnabled()
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton
@@ -2122,6 +2142,9 @@ class ExpandedLauncherView(QWidget):
     def follow_first_files_pointer(self):
         """Keep the pointer on the previewed Files root at the scroll edge."""
         self._files_follow_scheduled = False
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            self._files_follow_pending = None
+            return
         item = self._files_follow_pending
         self._files_follow_pending = None
         tree = self.left.tree
@@ -2408,6 +2431,9 @@ class ExpandedLauncherView(QWidget):
     def follow_bookmark_pointer(self):
         """Move the OS cursor onto selected row, but never click or activate."""
         self._bookmark_follow_scheduled = False
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            self._bookmark_follow_pending = None
+            return
         item = self._bookmark_follow_pending
         self._bookmark_follow_pending = None
         tree = self.right.tree
@@ -2506,6 +2532,9 @@ class ExpandedLauncherView(QWidget):
     def follow_root_pointer(self):
         """Warp only while the user is still over the second-layer strip."""
         self._wheel_root_follow_scheduled = False
+        if not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True):
+            self._wheel_root_follow_pending = None
+            return
         button = self._wheel_root_follow_pending
         self._wheel_root_follow_pending = None
         if (button not in self.root_buttons or not self.isVisible()
