@@ -2415,7 +2415,7 @@
     {
       "group_id": "sales",
       "enabled": true,
-      "title": "田中（サンプル）",
+      "title": "田中 一郎",
       "value": "tanaka@example.invalid",
       "description": "tanaka@example.invalid",
       "choice_id": "import_mail_000001",
@@ -2424,7 +2424,7 @@
     {
       "group_id": "sales",
       "enabled": true,
-      "title": "佐藤（サンプル）",
+      "title": "佐藤 次郎",
       "value": "sato@example.invalid",
       "description": "sato@example.invalid",
       "choice_id": "import_mail_000002",
@@ -2433,7 +2433,7 @@
     {
       "group_id": "sales",
       "enabled": true,
-      "title": "鈴木（サンプル）xx",
+      "title": "鈴木 三郎",
       "value": "suzuki@example.invalid",
       "description": "suzuki@example.invalid",
       "choice_id": "import_mail_000003",
@@ -2474,6 +2474,24 @@
       "description": "se004@example.invalid",
       "choice_id": "import_mail_000007",
       "sort_order": 70
+    },
+    {
+      "group_id": "sales",
+      "enabled": true,
+      "title": "田中 四郎",
+      "value": "tanaka@example.invalid",
+      "description": "tanaka@example.invalid",
+      "choice_id": "import_mail_000008",
+      "sort_order": 10
+    },
+    {
+      "group_id": "sales",
+      "enabled": true,
+      "title": "佐藤 五郎",
+      "value": "sato@example.invalid",
+      "description": "sato@example.invalid",
+      "choice_id": "import_mail_000009",
+      "sort_order": 20
     }
   ],
   "bookmark_category_initialized": true,

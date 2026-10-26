@@ -27,6 +27,11 @@ def context_action_icon(action_id):
         line(5, 16, 4, 16)
         painter.drawRoundedRect(QRectF(4, 4, 12, 13), 2, 2)
         line(7, 8, 12, 8)
+    elif action_id == 'copy_cloud_link':
+        # Cloud link: two chain loops (not a local-path/document copy icon).
+        painter.drawRoundedRect(QRectF(3.5, 9.5, 11, 6), 3, 3)
+        painter.drawRoundedRect(QRectF(9.5, 9.5, 11, 6), 3, 3)
+        line(9, 12.5, 15, 12.5)
     elif action_id == 'paste':
         painter.drawRoundedRect(QRectF(6, 6, 13, 15), 2, 2)
         painter.drawRoundedRect(QRectF(9, 3, 7, 5), 1.2, 1.2)

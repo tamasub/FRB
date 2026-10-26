@@ -18,6 +18,8 @@ if IS_WINDOWS:
     user.AttachThreadInput.restype = w.BOOL
     user.BringWindowToTop.argtypes = [w.HWND]
     user.BringWindowToTop.restype = w.BOOL
+    user.SetWindowPos.argtypes = [w.HWND, w.HWND, c.c_int, c.c_int, c.c_int, c.c_int, w.UINT]
+    user.SetWindowPos.restype = w.BOOL
     kernel = c.WinDLL('kernel32', use_last_error=True)
     kernel.GetCurrentThreadId.restype = w.DWORD
     user.IsWindow.argtypes = [w.HWND]
@@ -75,6 +77,26 @@ def activate_keyboard_window(hwnd, expected_foreground=None):
         return foreground() == hwnd
     finally:
         user.AttachThreadInput(own_thread, foreground_thread, False)
+
+
+def set_window_topmost(hwnd, enabled):
+    """Temporarily drop/restore a launcher's topmost z-order without hiding it.
+
+    This is for provider-owned Copy Link dialogs, not a global change to the
+    launcher style or a forced activation of an external application.
+    No size/position/foreground changes; native Win32 is deliberate because
+    Qt.setWindowFlags() would hide and recreate the visible tool window.
+    """
+    if not IS_WINDOWS or not hwnd or not user.IsWindow(hwnd):
+        return False
+    hwnd_topmost = -1
+    hwnd_notopmost = -2
+    swp_no_size = 0x0001
+    swp_no_move = 0x0002
+    swp_no_activate = 0x0010
+    return bool(user.SetWindowPos(hwnd, hwnd_topmost if enabled else hwnd_notopmost,
+                                  0, 0, 0, 0,
+                                  swp_no_size | swp_no_move | swp_no_activate))
 
 
 def allow_child_foreground(pid):

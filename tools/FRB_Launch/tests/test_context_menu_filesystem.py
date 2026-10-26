@@ -65,9 +65,9 @@ class ConfigTests(unittest.TestCase):
     def test_all_supported_v1_actions(self):
         menus = load_context_menus(CONFIG)
         self.assertEqual([x['action_id'] for x in menus['file'] if 'action_id' in x],
-                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
+                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_cloud_link', 'copy_file_name', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder'] if 'action_id' in x],
-                         ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'delete', 'rename', 'properties'])
+                         ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'delete', 'rename', 'properties'])
 
     def test_actions_are_validated_against_allowlist(self):
         with TemporaryDirectory() as folder:
@@ -84,7 +84,7 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 12)
+            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 13)
 
 
 class ParentFolderTests(unittest.TestCase):
@@ -268,7 +268,7 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         fn, holder = self.setup()
         self.assertTrue(fn(holder, (3, 4), {'item_kind': 'directory', '_file': 'C:/x'}))
         menu = holder._launch_context_menu
-        self.assertEqual(len([a for a in menu.actions if a[0] != 'separator']), 9)
+        self.assertEqual(len([a for a in menu.actions if a[0] != 'separator']), 10)
         next(cb for label, cb in menu.actions if label == '名前の変更')(True)  # Qt QAction.triggered(bool) must not override action ID
         holder.perform_filesystem_context_action.assert_called_once_with('rename', 'C:/x', 'folder')
         holder.launch_configuration_studio.assert_not_called()
@@ -292,5 +292,5 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         holder.search.text = lambda: 'report'
         row = {'item_id':'__file_index_foo', '_indexed_file': 'C:/x/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
-        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 11)
+        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 12)
 

@@ -3,9 +3,14 @@ import json
 from pathlib import Path
 
 ALLOWED_ACTIONS = {
-    'file': frozenset(('copy', 'cut', 'paste', 'delete', 'copy_full_path', 'copy_file_name', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'run_with_pause', 'rename', 'properties', 'git_commit_from_zip')),
-    'folder': frozenset(('copy', 'cut', 'paste', 'delete', 'open_explorer', 'open_terminal', 'copy_path', 'rename', 'properties')),
+    'file': frozenset(('copy', 'cut', 'paste', 'delete', 'copy_full_path', 'copy_file_name', 'copy_cloud_link', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'run_with_pause', 'rename', 'properties', 'git_commit_from_zip')),
+    'folder': frozenset(('copy', 'cut', 'paste', 'delete', 'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'rename', 'properties')),
 }
+
+
+# Temporarily retired; ignore stale user-edited menu JSON entries without
+# reviving the action or breaking all other context-menu commands.
+RETIRED_ACTIONS = frozenset(('scan_defender',))
 
 
 def load_context_menus(path):
@@ -35,6 +40,8 @@ def load_context_menus(path):
             if entry.get('type', 'action') != 'action':
                 raise ValueError(f'menus.{kind} の type は action / separator のみです')
             action = entry.get('action_id')
+            if action in RETIRED_ACTIONS:
+                continue
             title = entry.get('title')
             enabled = entry.get('enabled', True)
             if action not in allowed or action in seen:

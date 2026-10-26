@@ -4,7 +4,7 @@ This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
 from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo
-from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
+from PySide6.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
     QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QAbstractItemDelegate, QStyleOptionViewItem, QStyle)
@@ -32,7 +32,9 @@ from wheel_adaptive import wheel_steps, can_follow_at_edge
 from wheel_edge_hold import EdgeWheelHold
 from wheel_zone_navigation import WheelZoneNavigation
 from history_wheel_navigation import history_target_index, warp_to_history_row
-from launch_appearance import theme_palette, theme_family, scrollbar_for_theme, history_popup_qss
+from bookmark_menu import expanded_bookmark_rows
+from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
+                               history_popup_qss, bookmark_section_colors)
 
 
 MIDDLE_BACK_LANE_WIDTH = 24  # Operation lane after the chevron.
@@ -305,6 +307,42 @@ class _SeparatedFileTree(ExternalFileDragTree):
                     (focused is not None and self.isAncestorOf(focused)))
 
     def drawRow(self, painter, option, index):
+        # Bookmarks section labels must remain visually distinct even under
+        # QTreeWidget::item QSS (which can override QTreeWidgetItem backgrounds).
+        # Paint *only* these non-action rows after Qt's standard delegate draw,
+        # keeping all normal row hover/selection/WAN behavior unchanged.
+        if (getattr(self.parentWidget(), 'kind', None) == 'bookmark'
+                and index.isValid() and not index.parent().isValid()):
+            item = self.topLevelItem(index.row())
+            if (item is not None and
+                    item.data(0, Qt.ItemDataRole.UserRole + 1)):
+                super().drawRow(painter, option, index)
+                if option.rect.isValid():
+                    palette = bookmark_section_colors(self.parentWidget()._theme)
+                    painter.save()
+                    full_width = self.viewport().width()
+                    rect = option.rect
+                    # Fill edge-to-edge: a crisp band reads as a group heading,
+                    # not another bookmark or an accidentally selected row.
+                    painter.fillRect(0, rect.top(), full_width, rect.height(),
+                                     QColor(palette['background']))
+                    painter.fillRect(0, rect.top(), 4, rect.height(),
+                                     QColor(palette['accent']))
+                    painter.fillRect(4, rect.bottom(), max(0, full_width - 4), 1,
+                                     QColor(palette['divider']))
+                    label_font = QFont(self.font())
+                    label_font.setBold(True)
+                    painter.setFont(label_font)
+                    painter.setPen(QColor(palette['text']))
+                    label_rect = rect.adjusted(13, 0, -6, 0)
+                    painter.drawText(label_rect,
+                                     Qt.AlignmentFlag.AlignVCenter |
+                                     Qt.AlignmentFlag.AlignLeft,
+                                     painter.fontMetrics().elidedText(
+                                         item.text(0), Qt.TextElideMode.ElideRight,
+                                         max(0, label_rect.width())))
+                    painter.restore()
+                return
         # Keep a single pale-green active column. A different pane's current
         # item remains visible as an outline, with no filled selection behind it.
         focused = self._column_is_focused()
@@ -623,11 +661,37 @@ class ExpandedPanel(QFrame):
         self.tree.setIconSize(QSize(19, 19))
         self.layout_box.addWidget(self.tree, 1)
 
+    def style_bookmark_heading(self, item):
+        """Draw a true section label, not a selectable fake bookmark."""
+        theme = self._theme
+        item.setFirstColumnSpanned(True)
+        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+        font = QFont(self.tree.font())
+        font.setBold(True)
+        item.setFont(0, font)
+        item.setForeground(0, QBrush(QColor(
+            '#466e5d' if theme == 'light' else '#beded0')))
+        backdrop = QBrush(QColor('#eaf4ee' if theme == 'light' else '#31483e'))
+        item.setBackground(0, backdrop)
+        item.setBackground(1, backdrop)
+        item.setSizeHint(0, QSize(0, max(25, self.row_height - 5)))
+        item.setSizeHint(1, QSize(0, max(25, self.row_height - 5)))
+
     def fill(self, rows, icon_resolver):
         prior = self.tree.currentItem()
-        current_id = prior.data(0, Qt.ItemDataRole.UserRole).get('item_id') if prior else None
+        prior_row = prior.data(0, Qt.ItemDataRole.UserRole) if prior else None
+        current_id = (prior_row or {}).get('item_id')
         self.tree.clear()
         for row in rows:
+            if self.kind == 'bookmark' and row.get('_bookmark_group_header'):
+                heading = QTreeWidgetItem([row.get('title', ''), ''])
+                # No UserRole action data: click, Enter, hover, drag and
+                # context menu must never execute a section label.
+                heading.setData(0, Qt.ItemDataRole.UserRole + 1, True)
+                heading.setToolTip(0, row.get('title', ''))
+                self.style_bookmark_heading(heading)
+                self.tree.addTopLevelItem(heading)
+                continue
             is_folder = row.get('item_kind') in ('category', 'directory')
             item = QTreeWidgetItem([row.get('title', ''), ''])
             item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -651,7 +715,11 @@ class ExpandedPanel(QFrame):
             if current_id == row.get('item_id'):
                 self.tree.setCurrentItem(item)
         if self.tree.topLevelItemCount() and self.tree.currentItem() is None:
-            self.tree.setCurrentItem(self.tree.topLevelItem(0))
+            first = next((self.tree.topLevelItem(i)
+                          for i in range(self.tree.topLevelItemCount())
+                          if self.tree.topLevelItem(i).data(0, Qt.ItemDataRole.UserRole)), None)
+            if first is not None:
+                self.tree.setCurrentItem(first)
 
 
 class ExpandedLauncherView(QWidget):
@@ -705,18 +773,25 @@ class ExpandedLauncherView(QWidget):
         self._refreshing = False
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(8)
+        # This is the gap *below* the second-layer strip, not the spacing
+        # between its individual buttons. Match the compact first-layer row.
+        outer.setSpacing(5)
         self.toolbar_scroller = QScrollArea(self)
         self.toolbar_scroller.setObjectName('expandedRootScroller')
         self.toolbar_scroller.setWidgetResizable(True)
-        self.toolbar_scroller.setFixedHeight(47)
+        # A fixed 41px toolbar was still leaving large visible blank bands
+        # after the button padding changed. Use a genuinely compact row, but
+        # allow extra height if Qt has to show a horizontal scrollbar.
+        self.toolbar_scroller.setFixedHeight(34)
         self.toolbar_scroller.setFrameShape(QFrame.Shape.NoFrame)
         self.toolbar_scroller.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.toolbar_scroller.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.toolbar_scroller.horizontalScrollBar().rangeChanged.connect(
+            self.update_root_toolbar_height)
         self.root_widget = QWidget()
         self.root_widget.setObjectName('expandedRootBar')
         self.root_layout = QHBoxLayout(self.root_widget)
-        self.root_layout.setContentsMargins(4, 2, 4, 2)
+        self.root_layout.setContentsMargins(4, 1, 4, 1)
         self.root_layout.setSpacing(5)
         self.toolbar_scroller.setWidget(self.root_widget)
         # Catch wheel gestures on buttons AND on the whitespace in the strip.
@@ -917,6 +992,17 @@ class ExpandedLauncherView(QWidget):
                 self.context_menu(pane, point))
         self.apply_theme('light')
 
+    def update_root_toolbar_height(self, minimum=0, maximum=0):
+        """Keep buttons visible when narrow widths require a scrollbar.
+
+        The common case is a 34px strip; when there are more root buttons than
+        fit horizontally, reserve another 14px for the native scrollbar.
+        No navigation, focus or wheel rules are changed by the density tweak.
+        """
+        required = 48 if maximum > minimum else 34
+        if self.toolbar_scroller.height() != required:
+            self.toolbar_scroller.setFixedHeight(required)
+
     def save_splitter_sizes(self, *_):
         widths = self.files_splitter.sizes() + self.splitter.sizes()[1:]
         self.launcher.settings.setValue('expanded_splitter_sizes',
@@ -957,7 +1043,7 @@ class ExpandedLauncherView(QWidget):
             QWidget#expandedRootBar {{ background:transparent; }}
             QScrollArea#expandedRootScroller {{ background:transparent;border:0; }}
             QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
-                border-radius:9px;padding:6px 10px;text-align:left;font-size:12px; }}
+                border-radius:9px;padding:4px 10px;text-align:left;font-size:12px; }}
             QPushButton#expandedRootButton:hover {{background:{hover};}}
             QPushButton#expandedRootButton:checked {{background:{active};border:1px solid #81bca4;font-weight:600;}}
             QPushButton#expandedRootButton:focus {{border:2px solid #56a88c;background:{active};}}
@@ -1022,11 +1108,14 @@ class ExpandedLauncherView(QWidget):
             pane.back.setIcon(browser_navigation_icon('back', theme_family(theme)))
             pane.tree.verticalScrollBar().setSingleStep(26 if tight else 35)
             pane.row_height = 27 if tight else 37
+            pane._theme = theme
             for row_index in range(pane.tree.topLevelItemCount()):
                 item = pane.tree.topLevelItem(row_index)
-                for column in (0, 1):
-                    item.setSizeHint(column, QSize(0, pane.row_height))
-            pane._theme = theme
+                if pane.kind == 'bookmark' and item.data(0, Qt.ItemDataRole.UserRole + 1):
+                    pane.style_bookmark_heading(item)
+                else:
+                    for column in (0, 1):
+                        item.setSizeHint(column, QSize(0, pane.row_height))
             if pane.kind == 'bookmark':
                 for i in range(pane.tree.topLevelItemCount()):
                     item = pane.tree.topLevelItem(i)
@@ -1097,7 +1186,7 @@ class ExpandedLauncherView(QWidget):
             self.right.label.setText(right['title'])
             files_rows = self.browser_rows(left)
             self.left.fill(files_rows, self.launcher.row_icon)
-            self.right.fill(self.launcher.displayed_children(right), self.launcher.row_icon)
+            self.right.fill(expanded_bookmark_rows(right, self.launcher.children), self.launcher.row_icon)
             # Start with one real folder in the middle, never invented PC data.
             if not self.path:
                 initial = next((row for row in files_rows
@@ -1595,7 +1684,12 @@ class ExpandedLauncherView(QWidget):
             if pane is None or not self.isVisible():
                 return
             tree = pane.tree
-            if last and tree.topLevelItemCount():
+            if target == 'bookmarks':
+                candidates = [tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
+                              if self.row_data(tree.topLevelItem(i)) is not None]
+                if candidates:
+                    tree.setCurrentItem(candidates[-1] if last else candidates[0])
+            elif last and tree.topLevelItemCount():
                 tree.setCurrentItem(tree.topLevelItem(tree.topLevelItemCount() - 1))
             self.focus_panel(pane)
         QTimer.singleShot(0, lambda dest=target, src=source, end=position:
@@ -2273,8 +2367,10 @@ class ExpandedLauncherView(QWidget):
         is not always emitted. Both wheel and mouse hover call this function.
         """
         tree = self.right.tree
-        if item is None or tree.indexOfTopLevelItem(item) < 0:
+        if (item is None or tree.indexOfTopLevelItem(item) < 0
+                or self.row_data(item) is None):
             self.cancel_bookmark_hover()
+            self.launcher.close_cascade_for_main_interaction()
             return
         if tree.currentItem() is not item:
             tree.setCurrentItem(item)
@@ -2361,6 +2457,8 @@ class ExpandedLauncherView(QWidget):
         if not viewport.rect().contains(pos):
             return False
         hovered = tree.itemAt(pos)
+        if hovered is not None and self.row_data(hovered) is None:
+            hovered = None  # Section headings must never drive navigation.
         # After the first edge step, keep navigating the current row even
         # when Follow was switched OFF or a deferred pointer warp is pending.
         # Otherwise consecutive notches would repeatedly target one row.
@@ -2369,14 +2467,19 @@ class ExpandedLauncherView(QWidget):
         index = tree.indexOfTopLevelItem(current) if current is not None else -1
         if index < 0:
             return True
-        target = root_wheel_target(index, movement, tree.topLevelItemCount())
-        at_first = (index == 0 and movement < 0 and
-                    tree.currentItem() is tree.topLevelItem(0))
+        indices = [i for i in range(tree.topLevelItemCount())
+                   if self.row_data(tree.topLevelItem(i)) is not None]
+        if not indices:
+            return True
+        position = indices.index(index) if index in indices else 0
+        target = indices[root_wheel_target(position, movement, len(indices))]
+        at_first = (index == indices[0] and movement < 0 and
+                    tree.currentItem() is tree.topLevelItem(indices[0]))
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('bookmarks-first', at_first, abs(movement))):
             self.zone_jump('directory', position='last')
             return True
-        at_last = (index == tree.topLevelItemCount() - 1 and movement > 0
+        at_last = (index == indices[-1] and movement > 0
                    and tree.currentItem() is tree.topLevelItem(index))
         if (getattr(self, 'wheel_zone_navigation', None) is not None and
                 self.wheel_zone_navigation.feed('bookmarks-last', at_last, abs(movement))):
@@ -2421,14 +2524,18 @@ class ExpandedLauncherView(QWidget):
         self._wheel_bookmark_delta -= (1 if self._wheel_bookmark_delta > 0 else -1) * steps * 120
         current = tree.currentItem()
         index = tree.indexOfTopLevelItem(current) if current is not None else -1
-        if index < 0:
-            index = 0
-        target = root_wheel_target(index, direction * steps, count)
+        indices = [i for i in range(count)
+                   if self.row_data(tree.topLevelItem(i)) is not None]
+        if not indices:
+            return True
+        if index not in indices:
+            index = indices[0]
+        target = indices[root_wheel_target(indices.index(index), direction * steps, len(indices))]
         # The older Bookmark Follow mode retains the same lower-edge Wheel Tab
         # destination, even if the user disables the Hybrid A/B experiment.
-        at_last = index == count - 1 and direction > 0 and target == index
+        at_last = index == indices[-1] and direction > 0 and target == index
         navigation = getattr(self, 'wheel_zone_navigation', None)
-        at_first = index == 0 and direction < 0 and target == index
+        at_first = index == indices[0] and direction < 0 and target == index
         if navigation is not None and navigation.feed('bookmarks-first', at_first, steps):
             self.zone_jump('directory', position='last')
             return True
@@ -2598,7 +2705,10 @@ class ExpandedLauncherView(QWidget):
         """Move keyboard focus and visible selection together."""
         tree = panel.tree
         if tree.currentItem() is None and tree.topLevelItemCount():
-            tree.setCurrentItem(tree.topLevelItem(0))
+            first = next((tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
+                          if self.row_data(tree.topLevelItem(i)) is not None), None)
+            if first is not None:
+                tree.setCurrentItem(first)
         tree.setFocus(Qt.FocusReason.TabFocusReason)
         if tree.currentItem() is not None:
             tree.scrollToItem(tree.currentItem())
@@ -2756,6 +2866,8 @@ class ExpandedLauncherView(QWidget):
                     pane.tree.viewport().mapToGlobal(point))
             return
         row = self.row_data(item)
+        if row is None:  # Non-actionable bookmark section heading.
+            return
         if pane is self.middle:
             tree = pane.tree
             # A right-click on a selected row keeps the full extended selection.

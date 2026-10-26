@@ -43,7 +43,12 @@ def test_all_three_column_lower_boundaries():
     ):
         code = method_source(VIEW, 'ExpandedLauncherView', name)
         assert f"self.wheel_zone_navigation.feed('{mark}'" in code
-        assert 'index == tree.topLevelItemCount() - 1 and movement > 0' in code
+        if name == 'wheel_bookmarks_at_edge':
+            # The group headings are display-only: the last selectable bookmark
+            # is the WAN boundary, not the last QTreeWidgetItem.
+            assert 'index == indices[-1] and movement > 0' in code
+        else:
+            assert 'index == tree.topLevelItemCount() - 1 and movement > 0' in code
         assert f"self.zone_jump('{destination}')" in code
         assert 'scroll_before != scroll_after' in code
     warp = method_source(VIEW, 'ExpandedLauncherView', '_finish_zone_jump')

@@ -61,6 +61,26 @@ def available_themes():
     return tuple(THEME_REGISTRY)
 
 
+
+
+def bookmark_section_colors(theme):
+    """Subtle bookmark section heading colors."""
+    if theme_family(theme) == 'light':
+        return {
+            'background': '#f7faf8',
+            'accent': '#c7ded0',
+            'divider': '#edf2ee',
+            'text': '#527062'
+        }
+    return {
+        'background': '#30443a',
+        'accent': '#729e87',
+        'divider': '#405a4b',
+        'text': '#d7e8dd'
+    }
+
+
+
 def history_popup_qss(theme, *, frame_name='historyPopup',
                       tree_name='historyChoices', height=31, padding=6):
     """Shared search-history / folder-favorites popup colors.

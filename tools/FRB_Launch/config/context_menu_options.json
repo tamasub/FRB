@@ -22,6 +22,10 @@
         "title": "フルパスのコピー"
       },
       {
+        "action_id": "copy_cloud_link",
+        "title": "クラウドリンクのコピー"
+      },
+      {
         "action_id": "copy_file_name",
         "title": "ファイル名のコピー"
       },
@@ -103,6 +107,10 @@
       {
         "action_id": "copy_path",
         "title": "パスのコピー"
+      },
+      {
+        "action_id": "copy_cloud_link",
+        "title": "クラウドリンクのコピー"
       },
       {
         "type": "separator"

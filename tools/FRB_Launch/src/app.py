@@ -53,6 +53,7 @@ from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
 from context_menu_icons import context_action_icon
+from cloud_link_shell import request_native_copy_link, select_in_explorer
 from windows_open_with import discover_open_with_apps, open_file_with_app
 from file_transfer_visual import transfer_state, pasted_paths_for, path_key
 from context_menu_resolver import resolve_context_target
@@ -1634,6 +1635,7 @@ class Launcher(QWidget):
         # the new GUI child's foreground permission on that last mouse input.
         self._pending_mouse_activation = None
         self._pending_mouse_foreground = None
+        self._cloud_link_handoff = False
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
         self.view_history = ViewNavigationHistory()
         self._nav_restoring = False
@@ -1768,6 +1770,7 @@ class Launcher(QWidget):
         # Browser-style view navigation is separate from ←/→ keyboard
         # shortcuts used by Page tabs, cascades and recipient selection.
         self.nav_toolbar = QWidget(self)
+        self.nav_toolbar.setObjectName('navigationToolbar')
         nav_layout = QHBoxLayout(self.nav_toolbar)
         nav_layout.setContentsMargins(0, 0, 0, 0)
         nav_layout.setSpacing(6)
@@ -2300,16 +2303,28 @@ class Launcher(QWidget):
                 (self.nav_forward_button, 'forward'),
                 (self.nav_home_button, 'home')):
             button.setIcon(browser_navigation_icon(name, theme_family(self.color_theme)))
-        nav_hover = '#dbe6e0' if light else '#354b50'
-        nav_pressed = '#cbdad4' if light else '#496168'
-        nav_border = '#c8ddd1' if light else '#405650'
-        nav_fill = '#eef5f1' if light else '#243431'
+        nav_hover = '#e3f1e9' if light else '#354b50'
+        nav_pressed = '#d4e7db' if light else '#496168'
+        nav_border = '#cbded2' if light else '#405650'
+        # Match Page bar's base color. In particular the *toolbar widget*
+        # must not inherit LIGHT_MAIN_QSS's global QWidget background, which
+        # showed up as a tinted rectangle around the navigation buttons.
+        nav_fill = subheader_fill
         self.nav_toolbar.setStyleSheet(f'''
-            QPushButton {{ background:{nav_fill}; border:1px solid {nav_border}; border-radius:10px;
+            QWidget#navigationToolbar {{ background:transparent; border:0; }}
+            QPushButton#navBackButton, QPushButton#navForwardButton,
+            QPushButton#navHomeButton {{ background:{nav_fill};
+                border:1px solid {nav_border}; border-radius:10px;
                 padding:0; margin:0; }}
-            QPushButton:hover:!disabled {{ background:{nav_hover}; }}
-            QPushButton:pressed:!disabled {{ background:{nav_pressed}; }}
-            QPushButton:disabled {{ background:{nav_fill}; color:#9eaea7; }}
+            QPushButton#navBackButton:hover:!disabled,
+            QPushButton#navForwardButton:hover:!disabled,
+            QPushButton#navHomeButton:hover:!disabled {{ background:{nav_hover}; }}
+            QPushButton#navBackButton:pressed:!disabled,
+            QPushButton#navForwardButton:pressed:!disabled,
+            QPushButton#navHomeButton:pressed:!disabled {{ background:{nav_pressed}; }}
+            QPushButton#navBackButton:disabled,
+            QPushButton#navForwardButton:disabled,
+            QPushButton#navHomeButton:disabled {{ background:{nav_fill}; color:#9eaea7; }}
         ''')
         self.mode_bar.setStyleSheet(
             f'QWidget#pageBar {{ background:{subheader_fill}; border:0; border-bottom:1px solid {header_line}; }}')
@@ -3167,7 +3182,14 @@ class Launcher(QWidget):
 
     def summon(self):
         if self.busy:self.error('処理の完了を待っています');return
-        if self.isVisible():self.dismiss();return
+        if self.isVisible():
+            if getattr(self, '_cloud_link_handoff', False):
+                self.finish_cloud_link_handoff()
+                self.raise_()
+                self.activateWindow()
+            else:
+                self.dismiss()
+            return
         self.target=windows.foreground();self.reload();self.refresh_bookmarks()
         self.hide_history_popup()
         self.stack=[];self.selection=None;self.checked.clear();self.search.clear();self.render()
@@ -3240,6 +3262,7 @@ class Launcher(QWidget):
                   reason, active, before, windows.foreground(), self._last_focus_area)
 
     def dismiss(self):
+        self.finish_cloud_link_handoff()
         if self.isVisible():
             self.save_last_current()
         # Never carry a half-finished double-click into the next summon.
@@ -3274,7 +3297,30 @@ class Launcher(QWidget):
             finally:
                 self._maximizing_window = False
 
+    def begin_cloud_link_handoff(self):
+        """Keep Launch open but let native OneDrive/Box share UI appear above it."""
+        self._cloud_link_handoff = True
+        # Win32 z-order only; removing the Qt Tool flag would hide/recreate
+        # the launcher and lose the user's Files/navigation position.
+        windows.set_window_topmost(int(self.winId()), False)
+
+    def finish_cloud_link_handoff(self):
+        """Reinstate normal Launch z-order after the user comes back to it."""
+        if not getattr(self, '_cloud_link_handoff', False):
+            return
+        self._cloud_link_handoff = False
+        if self.isVisible():
+            windows.set_window_topmost(int(self.winId()), True)
+
     def app_state(self, state):
+        if getattr(self, '_cloud_link_handoff', False):
+            # Provider dialog is a separate process. It should own the front
+            # while this visible Launcher stays alive behind it. Resume the
+            # usual always-on-top behavior only when Launch regains focus.
+            if (state == Qt.ApplicationState.ApplicationActive
+                    and self.isActiveWindow()):
+                self.finish_cloud_link_handoff()
+            return
         # A native recycle-bin operation or QMessageBox can briefly deactivate
         # the main Tool window. Do not dismiss its folder menu mid-operation.
         context = getattr(self, '_launch_context_menu', None)
@@ -5434,7 +5480,7 @@ class Launcher(QWidget):
         # Both the separate right Back lane and the lower blank area use this
         # SAME menu.  Read existing folder actions from the authoritative JSON
         # so captions, icons and separators match regular folder menus.
-        folder_actions = {'open_explorer', 'open_terminal', 'copy_path', 'properties'}
+        folder_actions = {'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'properties'}
         target_directory = str(self.expanded_view.current_directory())
         selected = visible_context_entries(definitions, folder_actions)
         if selected:
@@ -5837,6 +5883,23 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(str(path))
             elif action_id == 'copy_file_name':
                 QApplication.clipboard().setText(path.name)
+            elif action_id == 'copy_cloud_link':
+                # The provider's native copy-link dialog is NOT a child of
+                # this Qt.Tool window. Allow it above Launch temporarily;
+                # keep Launch visible and preserve its Files/navigation state.
+                self.begin_cloud_link_handoff()
+                try:
+                    invoked = request_native_copy_link(path)
+                    if invoked:
+                        self.footer.setText('Windowsへリンクのコピーを依頼しました。コピー結果・共有範囲をご確認ください')
+                    else:
+                        # Older shell APIs cannot enumerate all Windows 11
+                        # cloud-provider verbs; Explorer remains the fallback.
+                        select_in_explorer(path)
+                        self.footer.setText('エクスプローラーから「リンクのコピー」を選択してください')
+                except Exception:
+                    self.finish_cloud_link_handoff()
+                    raise
             elif action_id == 'open_with' and kind == 'file':
                 # Qt.Tool stays topmost in FRB Launch. Hide it so the native
                 # Windows chooser cannot appear behind the launcher.
@@ -6157,6 +6220,7 @@ def main():
         # folder cascade. Never do this while the OS confirmation is active.
         if (launcher_surface_visible()
                 and not getattr(window, '_filesystem_dialog_depth', 0)
+                and not getattr(window, '_cloud_link_handoff', False)
                 and QApplication.activeModalWidget() is None):
             DIAG.info('OUTSIDE_CLICK_DISMISS')
             window.dismiss()

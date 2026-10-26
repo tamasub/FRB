@@ -32,3 +32,39 @@ def visible_bookmark_children(parent, children_of):
         visited.add(identity)
         children = next_children
     return children
+
+
+def expanded_bookmark_rows(parent, children_of):
+    """Group only *top-level* browser folders in Three-layer's third pane.
+
+    Decide whether headings are necessary BEFORE applying the existing
+    singleton-folder shortcut.  Previously the shortcut descended past a
+    lone top-level folder and then grouped its nested folders as headings,
+    unintentionally turning real Chrome/Edge folders into non-actionable text.
+
+    One top-level folder: retain the existing direct-child display shortcut.
+    Two or more top-level folders: their contents receive separate headings.
+    All descendants, browser profiles and original data remain untouched.
+    """
+    rows = visible_bookmark_children(parent, children_of)
+    if not (parent.get('launch_source') == 'browser_bookmarks'
+            or parent.get('_browser_bookmark')):
+        return rows
+
+    top_level = children_of(parent)
+    top_folders = [row for row in top_level
+                   if (row.get('_browser_bookmark')
+                       and row.get('item_kind') == 'category')]
+    if len(top_folders) < 2:
+        return rows
+
+    expanded = []
+    for row in top_level:
+        if row not in top_folders or not children_of(row):
+            # Preserve URLs and empty/manually-defined folders.
+            expanded.append(row)
+            continue
+        expanded.append({'title': row.get('title', ''),
+                         '_bookmark_group_header': True})
+        expanded.extend(visible_bookmark_children(row, children_of))
+    return expanded
