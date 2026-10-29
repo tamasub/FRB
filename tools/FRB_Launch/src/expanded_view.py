@@ -2388,6 +2388,7 @@ class ExpandedLauncherView(QWidget):
     def hover_bookmark_first_level(self, item, _column):
         """True mouse hover also previews folders, without executing links."""
         if (not getattr(self.launcher, 'bookmark_wan_enabled', True)
+                or getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
             return
         # A genuinely new hover target takes priority over an edge-follow
@@ -2421,6 +2422,7 @@ class ExpandedLauncherView(QWidget):
         item = self._bookmark_hover_item
         self._bookmark_hover_item = None
         if (item is None or not self.isVisible()
+                or getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
                 or not getattr(self.launcher, 'bookmark_wan_enabled', True)):
             return
         tree = self.right.tree
@@ -2845,7 +2847,7 @@ class ExpandedLauncherView(QWidget):
             self.address_bar.set_directory(None, row.get('title', ''))
             self.middle.tree.clear()
 
-    def choose_middle(self, item, _col):
+    def choose_middle(self, item, _col, *, force=False):
         # Extended-selection clicks must not descend into a folder: doing so
         # clears the selection while Ctrl/Shift is adding files and folders.
         modifiers = QApplication.keyboardModifiers()
@@ -2853,6 +2855,8 @@ class ExpandedLauncherView(QWidget):
             return
         row = self.row_data(item)
         if row and row.get('item_kind') in ('category', 'directory'):
+            if not force and getattr(self.launcher, 'folder_open_mode', 'single') == 'double':
+                return  # A single click selects; double-click or Enter opens.
             # Keep QTreeWidgetItem alive until Qt finishes clicked/activated
             # delivery (especially a double-click on a directory).
             if self.path and self.path[-1].get('item_id') == row.get('item_id'):
@@ -2860,9 +2864,11 @@ class ExpandedLauncherView(QWidget):
             self.path.append(row)
             QTimer.singleShot(0, self.refresh_middle)
 
-    def choose_bookmark(self, item, _col):
+    def choose_bookmark(self, item, _col, *, force=False):
         row = self.row_data(item)
         if row and row.get('item_kind') in ('category', 'directory'):
+            # Bookmark folders always open on a click. In double mode, only
+            # hover preview is disabled; Files' middle column remains double.
             self.open_cascade(row, self.right.tree, item)
 
     def activate_row(self, pane, item):
@@ -2879,9 +2885,9 @@ class ExpandedLauncherView(QWidget):
             if pane is self.left:
                 self.choose_files(item, 0)
             elif pane is self.middle:
-                self.choose_middle(item, 0)
+                self.choose_middle(item, 0, force=True)
             else:
-                self.open_cascade(row, pane.tree, item)
+                self.choose_bookmark(item, 0, force=True)
         else:
             self.launcher.activate(row)
 

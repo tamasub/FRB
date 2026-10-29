@@ -321,7 +321,7 @@
       "page_id": "work",
       "parent_item_id": "zip",
       "title": "FRB Studio をZIP保存",
-      "description": "DOS窓を表示してZIPを作成（Launchは操作可能）",
+      "description": "DOS窓を表示してZIPを作成",
       "item_kind": "command",
       "icon_key": "archive",
       "sort_order": 20,

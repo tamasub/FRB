@@ -56,6 +56,8 @@ class Probe(WindowProbe):
 
     def isMaximized(self):
         return bool(self._state & 2)
+    def isMinimized(self):
+        return False  # This fixture exercises maximize/restore, not native minimize.
     def minimumWidth(self):
         return 300
     def minimumHeight(self):
@@ -99,14 +101,17 @@ class Probe(WindowProbe):
             self._w, self._h = self._normal_size
     def save_last_current(self):
         pass
+    def finish_cloud_link_handoff(self):
+        pass  # Existing dismiss() dependency, independent of window geometry.
     def hide_history_popup(self):
         pass
 
 
 class WindowMaximizePersistenceTests(unittest.TestCase):
-    def test_titlebar_no_minimize_button_created_or_used(self):
+    def test_titlebar_minimize_button_is_available_only_in_normal_mode(self):
         source = SOURCE
-        self.assertNotIn('self.minimize_button', source)
+        self.assertIn('self.minimize_button.clicked.connect(self.minimize_launcher)', source)
+        self.assertIn('self.minimize_button.setVisible(not self.dismiss_on_outside_click)', source)
         self.assertIn('self.maximize_button.clicked.connect(self.toggle_maximize_restore)', source)
         self.assertIn('self.close_button.clicked.connect(self.dismiss)', source)
 

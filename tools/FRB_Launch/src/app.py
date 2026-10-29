@@ -23,7 +23,8 @@ from core import load, Expander, searchable_rows, column_filter_match, join_sele
 from search_matching import matches_search_text, matches_choice_search
 from ime_input import initialize_halfwidth_english
 from search_result_order import display_columns, sort_search_pairs
-from selection_scope import update_visible_checks
+from selection_scope import (update_visible_checks, leave_global_choice_selection,
+                             global_choice_ids_in_results, filtered_selection_choices)
 from navigation_wrap import next_wrapped, move_tree_selection, next_page_ring_target
 from menu_wheel import wheel_motion, wheel_neighbor
 from wheel_adaptive import can_follow_at_edge
@@ -35,6 +36,7 @@ from session_search_history import SessionSearchHistory, SESSION_HISTORY
 from search_history_categories import SearchHistoryCategories, UNCATEGORIZED
 from popup_sizing import popup_available_height, popup_tree_height
 from history_category_tree import HistoryCategoryTree, ROLE_KIND, ROLE_ID
+from history_popup_filter import matches_history_filter
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from wheel_adaptive import wheel_steps
 from reorderable_tree import ReorderablePopupTree
@@ -80,6 +82,7 @@ from launch_diagnostics import make_logger, wifi_transcript_arguments
 from log_retention import cleanup as cleanup_diagnostics
 from logging.handlers import RotatingFileHandler
 from runtime_paths import launch_home
+from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
 from desktop_double_click import DesktopDoubleClick
 
 # Limit cascade-column width; never let a long description/URL stretch across the screen.
@@ -234,6 +237,8 @@ def toolbar_outline_icon(name, theme='light'):
         outline.closeSubpath()
         painter.drawPath(outline)
         painter.drawEllipse(QRectF(cx-3.1, cy-3.1, 6.2, 6.2))
+    elif name == 'minimize':
+        painter.drawLine(5.9, 17.3, 18.1, 17.3)
     elif name == 'maximize':
         painter.drawRoundedRect(5.8, 5.8, 12.4, 12.4, 1.9, 1.9)
     elif name == 'restore':
@@ -343,6 +348,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.folder_click_timer.timeout.connect(self._finish_folder_single_click)
         self._folder_click_action = None
         self._folder_double_click_row = None
+        self._folder_double_click_action = None
+        self._bookmark_ignore_double_release = False
         self._right_context_row = None
         # A separate context QMenu must not erase the selected row in the
         # launcher-owned tool column while the popup temporarily owns focus.
@@ -623,6 +630,19 @@ class CascadeMenu(OrderDragMixin,QMenu):
         row = action.data() if action is not None else None
         return row if isinstance(row, dict) and row.get('item_kind') == 'directory' else None
 
+    def _double_folder_mode(self):
+        return (getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
+                and not getattr(self, 'bookmark_navigation', False))
+
+    def _manual_bookmark_mode(self):
+        return (getattr(self, 'bookmark_navigation', False)
+                and getattr(self.launcher, 'folder_open_mode', 'single') == 'double')
+
+    def _navigable_folder_action(self, action):
+        row = action.data() if action is not None else None
+        return (action in self.openers and isinstance(row, dict)
+                and row.get('item_kind') in ('directory', 'category'))
+
     def _folder_container_row(self):
         row = getattr(self, 'order_context', None)
         return row if isinstance(row, dict) and row.get('item_kind') == 'directory' else None
@@ -661,7 +681,11 @@ class CascadeMenu(OrderDragMixin,QMenu):
         action = self._scroll_item_action(item)
         if action is None or not action.isEnabled():
             return
-        if self._folder_row(action) is not None:
+        if self._double_folder_mode() and self._navigable_folder_action(action):
+            self.setActiveAction(action)  # Single click only selects.
+        elif self._manual_bookmark_mode() and action in self.openers:
+            self.openers[action]('keyboard')  # Bookmark: first click, no hover.
+        elif self._folder_row(action) is not None:
             self._queue_folder_single_click(action)
         elif action in self.openers:
             self.openers[action]('keyboard')
@@ -669,7 +693,14 @@ class CascadeMenu(OrderDragMixin,QMenu):
             action.trigger()
 
     def _scroll_double_clicked(self, item, column):
+        if self._manual_bookmark_mode():
+            return  # A second click must not run a bookmark folder as a file.
         action = self._scroll_item_action(item)
+        if self._double_folder_mode() and self._navigable_folder_action(action):
+            self.folder_click_timer.stop()
+            self._folder_click_action = None
+            self.openers[action]('keyboard')
+            return
         row = self._folder_row(action)
         if row is None:
             return
@@ -690,7 +721,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # *settles* on another row, open_current replaces the child after the
         # ordinary hover delay; otherwise the existing child stays reachable.
         self.hover_timer.stop()
-        if action in self.openers:
+        if (action in self.openers and not self._manual_bookmark_mode()
+                and not (self._double_folder_mode() and self._navigable_folder_action(action))):
             self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms', 250)))
 
     def _enable_scroll_tree(self, height):
@@ -1058,6 +1090,15 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return True
         if right_click_child and self._consume_unused_right_click(event):
             return True
+        # Inline menu filters live inside a Qt popup and may bypass the main
+        # window's QShortcut. F3 must still jump to the global search field.
+        if (obj is getattr(self, 'filter_edit', None)
+                and event.type() == QEvent.Type.KeyPress
+                and event.key() == getattr(Qt.Key, 'Key_F3', None)
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier):
+            self.launcher.focus_search()
+            event.accept()
+            return True
         if self.scroll_tree is not None and obj is self.scroll_tree:
             if event.type() == QEvent.Type.KeyPress:
                 if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
@@ -1144,6 +1185,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.folder_click_timer.stop()
         self._folder_click_action = None
         self._folder_double_click_row = None
+        self._folder_double_click_action = None
+        self._bookmark_ignore_double_release = False
         self._right_context_row = None
         self._context_highlight_action = None
         if self.child:self.child.close()
@@ -1202,6 +1245,19 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
+            if self._manual_bookmark_mode() and action in self.openers:
+                # Bookmark folders opened on the FIRST click in double mode.
+                # The second click/release must not execute in Explorer or
+                # close the parent QMenu before its submenu is shown.
+                self._bookmark_ignore_double_release = True
+                event.accept()
+                return
+            if self._double_folder_mode() and self._navigable_folder_action(action):
+                self.folder_click_timer.stop()
+                self._folder_click_action = None
+                self._folder_double_click_action = action
+                event.accept()
+                return
             row = self._folder_row(action)
             if action is None:
                 # Double-clicking unused space within a real folder popup
@@ -1219,8 +1275,35 @@ class CascadeMenu(OrderDragMixin,QMenu):
         action = self.actionAt(event.position().toPoint()) if event.button()==Qt.MouseButton.LeftButton else None
         press_action = self.order_press[1] if self.order_press is not None else None
         self.order_press = None
+        if (event.button() == Qt.MouseButton.LeftButton
+                and getattr(self, '_bookmark_ignore_double_release', False)):
+            self._bookmark_ignore_double_release = False
+            event.accept()
+            return
+        if (event.button() == Qt.MouseButton.LeftButton
+                and self._folder_double_click_action is not None):
+            chosen = self._folder_double_click_action
+            self._folder_double_click_action = None
+            if chosen in self.openers:
+                self.openers[chosen]('keyboard')
+            event.accept()
+            return
         if event.button()==Qt.MouseButton.LeftButton and self._folder_double_click_row is not None:
             self._open_folder_after_release()
+            event.accept()
+            return
+        if (action is press_action and self._double_folder_mode()
+                and self._navigable_folder_action(action)):
+            self.setActiveAction(action)
+            event.accept()  # Wait for second click; do not open a child.
+            return
+        if (action is press_action and action in self.openers
+                and self._manual_bookmark_mode()):
+            # Bookmark in double-click mode: first click opens immediately.
+            # Do NOT let QMenu's QAction mouse release close the parent.
+            self.hover_timer.stop()
+            self.setActiveAction(action)
+            self.openers[action]('keyboard')
             event.accept()
             return
         if (action is press_action and action in self.openers
@@ -1259,12 +1342,17 @@ class CascadeMenu(OrderDragMixin,QMenu):
             # Switching rows is delayed; otherwise a diagonal move into an
             # already-open child closes that child before the pointer arrives.
             self.hover_timer.stop()
-            if self.activeAction() in self.openers:
+            action = self.activeAction()
+            if (action in self.openers and not self._manual_bookmark_mode()
+                    and not (self._double_folder_mode() and self._navigable_folder_action(action))):
                 self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms',250)))
 
     def open_current(self, mode="keyboard"):
         action = self.activeAction()
         if mode=="hover" and self.actionAt(self.mapFromGlobal(QCursor.pos()))!=action:return
+        if (mode == 'hover' and (self._manual_bookmark_mode() or
+                (self._double_folder_mode() and self._navigable_folder_action(action)))):
+            return  # In double mode, bookmark folders use click, not hover.
         if mode=="keyboard":
             m=self
             while isinstance(m,CascadeMenu):
@@ -1307,6 +1395,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         self.hover_timer.stop()
         key = event.key(); mods = event.modifiers()
+        if key == getattr(Qt.Key, 'Key_F3', None) and mods == Qt.KeyboardModifier.NoModifier:
+            self.launcher.focus_search()
+            event.accept()
+            return
         if getattr(self, 'handle_file_shortcut', lambda *args: False)(key, mods):
             event.accept()
             return
@@ -1643,6 +1735,10 @@ class Launcher(QWidget):
         self._pending_mouse_foreground = None
         self._cloud_link_handoff = False
         self.stack = []; self.selection = None; self.checked = set(); self.return_page = None
+        # None: deliberate picker from a Page. Query: a global-search hit
+        # entered recipient selection and can return to global search.
+        self._global_selection_query = None
+        self._global_selection_choice_ids = None
         self.view_history = ViewNavigationHistory()
         self._nav_restoring = False
         self._nav_transition = False
@@ -1664,6 +1760,14 @@ class Launcher(QWidget):
         self._last_root_id = self._saved_focus_state.get('item_id') if self._saved_focus_state.get('area') == 'roots' else None
         self._restoring_last_focus = False
         self.color_theme = normalize_theme(self.settings.value('appearance_theme', 'dark'))
+        # Preserve established behavior for existing installations.
+        self.dismiss_on_outside_click = read_dismiss_on_outside(
+            self.settings.value('dismiss_on_outside_click', 'true'))
+        self.folder_open_mode = read_folder_open_mode(
+            self.settings.value('folder_open_mode', 'single'))
+        # A retained launcher is a normal taskbar window, NOT an always-on-top Tool.
+        # During construction nothing is visible, so changing flags is safe.
+        self._apply_window_mode(initial=True)
         self.bookmark_pointer_follow = str(self.settings.value(
             'bookmark_pointer_follow', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
         self.bookmark_wan_enabled = str(self.settings.value(
@@ -1782,11 +1886,12 @@ class Launcher(QWidget):
         self.header_divider.setFixedHeight(28)
         search_row.addWidget(self.header_divider)
 
-        # This launcher dismisses to the tray; a separate Minimize control is
-        # redundant. Keep only Maximize/Restore and Close in the title bar.
+        # The minimize control only belongs to the normal-window (keep-visible) mode.
+        self.minimize_button = QPushButton('', self.search_bar)
         self.maximize_button = QPushButton('', self.search_bar)
         self.close_button = QPushButton('', self.search_bar)
         for button, object_name, tip in (
+            (self.minimize_button, 'windowFrameButton', '最小化'),
             (self.maximize_button, 'windowFrameButton', '最大化 / 元に戻す'),
             (self.close_button, 'windowCloseButton', '閉じる')):
             button.setObjectName(object_name)
@@ -1795,6 +1900,8 @@ class Launcher(QWidget):
             button.setToolTip(tip)
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             search_row.addWidget(button)
+        self.minimize_button.clicked.connect(self.minimize_launcher)
+        self.minimize_button.setVisible(not self.dismiss_on_outside_click)
         self.maximize_button.clicked.connect(self.toggle_maximize_restore)
         self.close_button.clicked.connect(self.dismiss)
 
@@ -1871,6 +1978,34 @@ class Launcher(QWidget):
             '仮想デスクトップで二重カーソルが出る場合に使用。'
             'ホイール選択は維持、クリック位置は移動しません。')
         self.vdi_no_cursor_warp_action.triggered.connect(self.set_vdi_no_cursor_warp)
+        self.theme_menu.addSeparator()
+        outside_menu = self.theme_menu.addMenu('Launch外をクリックしたとき')
+        self.outside_mode_group = QActionGroup(self)
+        self.outside_mode_group.setExclusive(True)
+        self.outside_mode_actions = {}
+        for value, title in ((True, 'Launchを隠す（従来）'),
+                             (False, 'Launchを表示したまま')):
+            action = outside_menu.addAction(title)
+            action.setCheckable(True)
+            self.outside_mode_group.addAction(action)
+            action.setChecked(self.dismiss_on_outside_click == value)
+            action.triggered.connect(
+                lambda checked=False, enabled=value: self.set_dismiss_on_outside_click(enabled))
+            self.outside_mode_actions[value] = action
+        folder_menu = self.theme_menu.addMenu('フォルダーを開くクリック操作')
+        self.folder_mode_group = QActionGroup(self)
+        self.folder_mode_group.setExclusive(True)
+        self.folder_mode_actions = {}
+        for value, title in (('single', 'シングルクリック（従来）'),
+                             ('double', 'ダブルクリック')):
+            action = folder_menu.addAction(title)
+            action.setCheckable(True)
+            action.setToolTip('Files第1列とブックマークはシングルクリックです。Files第2列のみ切替対象です。')
+            self.folder_mode_group.addAction(action)
+            action.setChecked(self.folder_open_mode == value)
+            action.triggered.connect(
+                lambda checked=False, mode=value: self.set_folder_open_mode(mode))
+            self.folder_mode_actions[value] = action
         self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
@@ -1962,6 +2097,15 @@ class Launcher(QWidget):
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
         self._search_history_wheel_delta = 0
         self._search_history_warp_generation = 0
+        # Local in-memory filter: never edits global search or persists keywords.
+        self.history_filter = QLineEdit(self.history_popup)
+        self.history_filter.setObjectName('historyFilter')
+        self.history_filter.setPlaceholderText('履歴内を検索...')
+        self.history_filter.setToolTip('検索履歴の中だけを絞り込みます（メイン検索には影響しません）')
+        self.history_filter.setClearButtonEnabled(True)
+        self.history_filter.setFixedHeight(30)
+        history_layout.addWidget(self.history_filter)
+        history_layout.addSpacing(3)
         history_toolbar = QHBoxLayout()
         history_toolbar.setContentsMargins(5, 2, 5, 5)
         history_toolbar.setSpacing(4)
@@ -2010,6 +2154,9 @@ class Launcher(QWidget):
         self.history_choices.itemCollapsed.connect(self.history_category_collapsed)
         self.history_choices.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.history_choices.customContextMenuRequested.connect(self.history_category_context_menu)
+        self.history_filter.textChanged.connect(self.filter_history_popup)
+        self.history_filter.returnPressed.connect(self.select_history_keyword)
+        self.history_filter.installEventFilter(self)
         history_layout.addWidget(self.history_choices)
         self.history_popup.hide()
         self.history_choices.installEventFilter(self)
@@ -2089,6 +2236,10 @@ class Launcher(QWidget):
             self.page_shortcuts.append(shortcut)
         self.file_rename_shortcut = QShortcut(QKeySequence('F2'), self)
         self.file_rename_shortcut.activated.connect(self.rename_current_middle_item)
+        # F3 is the keyboard-first entrance to global search in any main view.
+        # Window scope avoids installing a system-wide shortcut or changing Ctrl+F3 Page navigation.
+        self.search_focus_shortcut = QShortcut(QKeySequence('F3'), self)
+        self.search_focus_shortcut.activated.connect(self.focus_search)
         self.folder_refresh_shortcut = QShortcut(QKeySequence('F5'), self)
         self.folder_refresh_shortcut.activated.connect(self.refresh_current_middle_folder)
         self.hover_watch = QTimer(self);self.hover_watch.setInterval(60)
@@ -2142,7 +2293,12 @@ class Launcher(QWidget):
 
     def show_launcher_normal_or_saved(self):
         """Always re-open maximized/hidden launcher using normal dimensions."""
-        if (getattr(self, '_restore_normal_on_show', False)
+        if self.isMinimized():
+            if getattr(self, '_minimize_restore_maximized', False):
+                self.showMaximized()
+            else:
+                self.showNormal()
+        elif (getattr(self, '_restore_normal_on_show', False)
                 or self.isMaximized()
                 or bool(self.windowState() & Qt.WindowState.WindowMaximized)):
             self.restore_normal_window_geometry()
@@ -2193,6 +2349,7 @@ class Launcher(QWidget):
         self.theme_button.setText('')
         self.theme_button.setIcon(toolbar_outline_icon('settings', theme_family(self.color_theme)))
         icon_name = 'restore' if self.windowState() & Qt.WindowState.WindowMaximized else 'maximize'
+        self.minimize_button.setIcon(toolbar_outline_icon('minimize', theme_family(self.color_theme)))
         self.maximize_button.setIcon(toolbar_outline_icon(icon_name, theme_family(self.color_theme)))
         self.close_button.setIcon(toolbar_outline_icon('close', theme_family(self.color_theme)))
 
@@ -2212,6 +2369,74 @@ class Launcher(QWidget):
             area = screen.availableGeometry()
             position.setX(max(area.left(), min(position.x(), area.right() - width + 1)))
         self.theme_menu.popup(position)
+
+    def _apply_window_mode(self, initial=False):
+        """Normal window for keep-visible; legacy Tool for auto-dismiss.
+
+        Switching Qt window *types* while shown requires re-showing the widget.
+        Preserve the actual screen position, size and maximized state without
+        touching the saved normal geometry or the current Launch navigation.
+        """
+        flags = (Qt.WindowType.FramelessWindowHint |
+                 (Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
+                  if self.dismiss_on_outside_click else Qt.WindowType.Window))
+        if initial:
+            self.setWindowFlags(flags)
+            return
+        was_visible = self.isVisible()
+        was_maximized = self.isMaximized()
+        old_position = self.pos()
+        old_size = self.size()
+        self._maximizing_window = True
+        try:
+            self.setWindowFlags(flags)
+            if was_visible:
+                if was_maximized:
+                    self.showMaximized()
+                else:
+                    self.resize(old_size)
+                    self.move(old_position)
+                    self.showNormal()
+        finally:
+            self._maximizing_window = False
+        if getattr(self, '_cloud_link_handoff', False):
+            # An outstanding native dialog must not restore topmost later.
+            self._cloud_link_handoff = False
+        if hasattr(self, 'minimize_button'):
+            self.minimize_button.setVisible(not self.dismiss_on_outside_click)
+        if hasattr(self, 'maximize_button'):
+            self.update_header_icons()
+
+    def set_dismiss_on_outside_click(self, enabled):
+        previous = self.dismiss_on_outside_click
+        self.dismiss_on_outside_click = bool(enabled)
+        if previous != self.dismiss_on_outside_click:
+            self._apply_window_mode()
+        self.settings.setValue('dismiss_on_outside_click', self.dismiss_on_outside_click)
+        self.settings.sync()
+        self.footer.setText(
+            'Launch外をクリックすると隠します。' if enabled
+            else '通常ウィンドウとして表示します。他のアプリの背面へ移動でき、最小化も使えます。')
+
+    def minimize_launcher(self):
+        """Native minimization; tray/global hotkey can restore this window."""
+        if self.dismiss_on_outside_click:
+            return  # Legacy mode has no minimize command.
+        self.hide_history_popup()
+        self.expanded_view.hide_favorite_popup()
+        if self.menu:
+            self.menu.close()
+        self._minimize_restore_maximized = self.isMaximized()
+        self.showMinimized()
+
+    def set_folder_open_mode(self, mode):
+        self.folder_open_mode = read_folder_open_mode(mode)
+        self.settings.setValue('folder_open_mode', self.folder_open_mode)
+        self.settings.sync()
+        self.footer.setText(
+            'Files第2列のフォルダーはダブルクリックで開きます。第1列・ブックマークはシングルクリックです。'
+            if is_double_click_folder(self.folder_open_mode)
+            else 'フォルダーのシングルクリック移動を有効にしました。')
 
     def set_vdi_no_cursor_warp(self, enabled):
         """Opt-in no-warp navigation for Citrix and other remote desktops.
@@ -2308,6 +2533,11 @@ class Launcher(QWidget):
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
         self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
+        self.history_filter.setStyleSheet(
+            'QLineEdit#historyFilter { border:1px solid %s; border-radius:6px; '
+            'padding:2px 8px; background:%s; color:%s; font-size:13px; }'
+            % (('#acc9ba', '#ffffff', '#284338') if light else
+               ('#587261', '#1a2927', '#e5ebf3')))
         self.update_history_chevron()
         self.update_header_icons()
         # The global QWidget theme used to paint a pale rectangle behind the
@@ -2348,6 +2578,7 @@ class Launcher(QWidget):
             f'QPushButton#windowFrameButton:pressed {{ background:{header_pressed}; }} '
             f'QPushButton#windowCloseButton:hover {{ background:#e37d7d; }} '
             f'QPushButton#windowCloseButton:pressed {{ background:#d46565; }}')
+        self.minimize_button.setStyleSheet(common_window_style)
         self.maximize_button.setStyleSheet(common_window_style)
         self.close_button.setStyleSheet(common_window_style)
         self.save_history_button.setStyleSheet(
@@ -3241,6 +3472,11 @@ class Launcher(QWidget):
 
     def summon(self):
         if self.busy:self.error('処理の完了を待っています');return
+        if self.isMinimized():
+            self.show_launcher_normal_or_saved()
+            self.raise_()
+            self.activateWindow()
+            return
         if self.isVisible():
             if getattr(self, '_cloud_link_handoff', False):
                 self.finish_cloud_link_handoff()
@@ -3304,7 +3540,7 @@ class Launcher(QWidget):
         self.activateWindow()
         self.list.setFocus()
 
-    def restore_keyboard_focus(self, expected_foreground=None, reason='open'):
+    def restore_keyboard_focus(self, expected_foreground=None, reason='open', restore_current=True):
         """Make a mouse-hook-opened Tool window actually accept keyboard input."""
         if not self.isVisible() or (self.menu and self.menu.isVisible()):
             return
@@ -3316,7 +3552,8 @@ class Launcher(QWidget):
             hwnd, expected_foreground=expected_foreground))
         if active:
             self.activateWindow()
-            self.restore_last_current()
+            if restore_current:
+                self.restore_last_current()
         DIAG.info('KEYBOARD_FOCUS reason=%s success=%s before=%s after=%s restored_area=%s',
                   reason, active, before, windows.foreground(), self._last_focus_area)
 
@@ -3368,7 +3605,7 @@ class Launcher(QWidget):
         if not getattr(self, '_cloud_link_handoff', False):
             return
         self._cloud_link_handoff = False
-        if self.isVisible():
+        if self.isVisible() and self.dismiss_on_outside_click:
             windows.set_window_topmost(int(self.winId()), True)
 
     def app_state(self, state):
@@ -3388,7 +3625,15 @@ class Launcher(QWidget):
                 or (context is not None and context.isVisible())):
             return
         if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
-            self.dismiss()
+            if getattr(self, 'dismiss_on_outside_click', True):
+                self.dismiss()
+            else:
+                # Keep the main window, but do not strand independent tool
+                # columns or history popups above another application.
+                self.hide_history_popup()
+                if self.menu:
+                    self.menu.close()
+                self.expanded_view.hide_favorite_popup()
 
     def page_key(self, event):
         # Only Ctrl+Fn changes Page; plain F2/F5 belong to file operations.
@@ -3662,6 +3907,8 @@ class Launcher(QWidget):
         # children inherit the limit; all other popup widths remain untouched.
         view = getattr(self, 'expanded_view', None)
         is_bookmark = (view is not None and widget is view.right.tree)
+        self.menu.bookmark_navigation = (is_bookmark or bool(
+            row.get('_browser_bookmark') or row.get('launch_source') == 'browser_bookmarks'))
         if is_bookmark:
             self.menu.bookmark_compact_width = True
             self.menu.setMaximumWidth(min(self.menu.maximumWidth(), round(CASCADE_MAX_WIDTH * 0.7)))
@@ -3682,6 +3929,22 @@ class Launcher(QWidget):
 
     def render(self,*args):
         if not self.data:return
+        # A person chosen in global search opens a recipient picker. Keep it
+        # while the new query still finds someone in the same choice group,
+        # allowing multi-recipient selection. If the user searches for an
+        # unrelated file/app/folder, return to normal *global* search instead
+        # of leaving an empty recipient-only result list and selection toolbar.
+        # This runs after the existing IME search debounce, never on preedit.
+        query = self.search.text().strip()
+        if self.selection is not None and self._global_selection_query is not None:
+            choices = (choice for choice in self.data.get('launch_choices', ())
+                       if choice.get('enabled', True) and
+                       choice.get('group_id') == self.selection.get('launch_selection_group_id'))
+            if leave_global_choice_selection(query, self._global_selection_query, choices):
+                self.selection = None
+                self.checked.clear()
+                self._global_selection_query = None
+                self._global_selection_choice_ids = None
         # Stop this brief reaction when switching pages, views or search terms.
         self.hide_root_left_feedback()
         self.hover_timer.stop();self.pending_menu_item=None
@@ -3705,7 +3968,14 @@ class Launcher(QWidget):
                 candidates=sorted([c for c in self.data.get('launch_choices',[]) if c.get('enabled',True) and c['group_id']==self.selection['launch_selection_group_id']],key=lambda c:c.get('sort_order',0))
                 # Search display fields, not serialized JSON: a choice_id like
                 # import_mail_000004 must not make se001 match '(003 or 004)'.
-                pairs=[(c,'') for c in candidates if matches_choice_search(c, query)]
+                # A global query may have matched only the owner's folder
+                # path (e.g. "SE部"), not a contact's own name/address. After
+                # clicking a checkbox, keep the exact original hit rows;
+                # subsequent queries still filter the contact fields normally.
+                visible_choices = filtered_selection_choices(
+                    candidates, query, self._global_selection_query,
+                    self._global_selection_choice_ids)
+                pairs=[(c,'') for c in visible_choices]
             elif query:
                 pairs=searchable_rows(self.data, query, bookmark_browser=self.bookmark_browser)
                 try:
@@ -3793,6 +4063,8 @@ class Launcher(QWidget):
         row = current.data(0, Qt.ItemDataRole.UserRole) if current else None
         return dict(page_id=self.page_id, stack=tuple(self.stack),
                     selection=self.selection, checked=frozenset(self.checked),
+                    global_selection_query=(self._global_selection_query if self.selection else None),
+                    global_selection_choice_ids=(self._global_selection_choice_ids if self.selection else None),
                     query=self.search.text(), current_item_id=row.get('item_id') if row else None,
                     focus=('tabs' if self.tabs.hasFocus() else
                            'search' if self.search.hasFocus() else 'list'))
@@ -3858,6 +4130,8 @@ class Launcher(QWidget):
             self.stack = list(state['stack'])
             self.selection = state['selection']
             self.checked = set(state['checked'])
+            self._global_selection_query = state.get('global_selection_query')
+            self._global_selection_choice_ids = state.get('global_selection_choice_ids')
             self.search.setText(state['query'])
             self.render()
             target_id = state.get('current_item_id')
@@ -4160,6 +4434,7 @@ class Launcher(QWidget):
                         if m.child:m.child.close();m.child.deleteLater()
                         m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
+                        m.child.bookmark_navigation = getattr(m, 'bookmark_navigation', False)
                         if getattr(m, 'bookmark_compact_width', False):
                             m.child.bookmark_compact_width = True
                             m.child.setMaximumWidth(min(m.child.maximumWidth(),
@@ -4422,8 +4697,14 @@ class Launcher(QWidget):
             owner = next((item for item in self.data['items']
                           if item['item_id'] == owner_id and item.get('enabled', True)), None)
             if owner is None:return
+            # Snapshot global hits *before* rendering the recipient picker;
+            # parent-folder terms can match every member of a contact group.
+            self._global_selection_choice_ids = global_choice_ids_in_results(
+                (self.list.topLevelItem(i).data(0, Qt.ItemDataRole.UserRole)
+                 for i in range(self.list.topLevelItemCount())), owner_id)
             self.selection = owner
             self.checked = {row['choice_id']}
+            self._global_selection_query = self.search.text().strip()
             self.render()
             self.list.setFocus()
             self._nav_after_change()
@@ -4438,7 +4719,7 @@ class Launcher(QWidget):
             return
         if kind=='selection':
             self._nav_before_change()
-            self.selection=row;self.checked.clear();self.search.clear();self.render();self.list.setFocus()
+            self.selection=row;self.checked.clear();self._global_selection_query=None;self._global_selection_choice_ids=None;self.search.clear();self.render();self.list.setFocus()
             self._nav_after_change()
             return
         self.execute(row)
@@ -4569,7 +4850,7 @@ class Launcher(QWidget):
         # 31px CSS row + vertical padding; header buttons and frame margins.
         # Open/closed categories have different visible row counts.
         height = popup_tree_height(self.history_choices, self.history_visible_rows(),
-                                   minimum_row_height=35, chrome_height=48,
+                                   minimum_row_height=35, chrome_height=48 + 33,
                                    available_height=available)
         self.history_popup.setGeometry(x, y, self.search.width(), height)
 
@@ -4630,6 +4911,60 @@ class Launcher(QWidget):
         elif tree.topLevelItemCount():
             tree.setCurrentItem(tree.topLevelItem(0))
         tree.blockSignals(False)
+        # A category move/delete recreates items; reapply only visual filters.
+        self.filter_history_popup()
+        if self.history_popup.isVisible():
+            self.position_history_popup()
+
+    def filter_history_popup(self, _value=None):
+        """Filter currently displayed history without touching saved positions.
+
+        Closed folders temporarily expand on matches. The original expanded
+        flags are restored when the local query is cleared; signals stay
+        blocked so searching never writes category JSON.
+        """
+        tree = self.history_choices
+        query = self.history_filter.text().strip()
+        filtering = bool(query)
+        tree.blockSignals(True)
+        try:
+            first_match = None
+            for index in range(tree.topLevelItemCount()):
+                folder = tree.topLevelItem(index)
+                category_id = folder.data(0, ROLE_ID)
+                if category_id == SESSION_HISTORY:
+                    label = '一時履歴（終了時に消去）'
+                    was_expanded = self.session_history_expanded
+                else:
+                    group = self.search_categories.get(category_id)
+                    label = group['name'] if group is not None else '未分類'
+                    was_expanded = self.search_categories.expanded(category_id)
+                category_match = filtering and matches_history_filter(label, query)
+                count = 0
+                for j in range(folder.childCount()):
+                    row = folder.child(j)
+                    match = not filtering or category_match or matches_history_filter(row.text(0), query)
+                    row.setHidden(not match)
+                    if match:
+                        count += 1
+                        if first_match is None and filtering:
+                            first_match = row
+                folder.setHidden(filtering and not category_match and count == 0)
+                folder.setExpanded((category_match or count > 0) if filtering else was_expanded)
+                # Retain real counts and original category ordering while filtering.
+                folder.setText(0, f'{"▾" if folder.isExpanded() else "▸"}  {label}  ({folder.childCount()})')
+            if filtering and first_match is not None:
+                tree.setCurrentItem(first_match)
+                tree.scrollToItem(first_match, QAbstractItemView.ScrollHint.EnsureVisible)
+            elif filtering:
+                tree.setCurrentItem(None)
+            # When filtered, visible row indices differ from the stored order.
+            # Do not allow drag/drop to silently reorder unseen entries.
+            tree.setDragEnabled(not filtering)
+            tree.setAcceptDrops(not filtering)
+            tree.viewport().setAcceptDrops(not filtering)
+        finally:
+            tree.blockSignals(False)
         if self.history_popup.isVisible():
             self.position_history_popup()
 
@@ -4639,10 +4974,12 @@ class Launcher(QWidget):
         visible = []
         for index in range(tree.topLevelItemCount()):
             folder = tree.topLevelItem(index)
+            if folder.isHidden():
+                continue
             visible.append(folder)
             if folder.isExpanded():
                 visible.extend(folder.child(j) for j in range(folder.childCount()))
-        return visible
+        return [row for row in visible if not row.isHidden()]
 
     def add_history_category(self, checked=False):
         name, accepted = QInputDialog.getText(self, '検索履歴カテゴリー', 'カテゴリー名を入力:')
@@ -4688,6 +5025,9 @@ class Launcher(QWidget):
     def history_category_expanded(self, item):
         if item.data(0, ROLE_KIND) == 'category':
             self.update_history_folder_marker(item)
+            if self.history_filter.text().strip():
+                self.position_history_popup()
+                return
             try:
                 if item.data(0, ROLE_ID) == SESSION_HISTORY:
                     self.session_history_expanded = True
@@ -4701,6 +5041,9 @@ class Launcher(QWidget):
     def history_category_collapsed(self, item):
         if item.data(0, ROLE_KIND) == 'category':
             self.update_history_folder_marker(item)
+            if self.history_filter.text().strip():
+                self.position_history_popup()
+                return
             try:
                 if item.data(0, ROLE_ID) == SESSION_HISTORY:
                     self.session_history_expanded = False
@@ -4786,13 +5129,19 @@ class Launcher(QWidget):
         self.position_history_popup()
         self.history_popup.show()
         self.history_popup.raise_()
-        self.history_choices.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        # Showing a non-modal history overlay must NOT steal focus/IME input.
+        # The user explicitly clicks the small local filter to edit it.
+        self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
 
     def hide_history_popup(self, focus_search=False):
         if not hasattr(self, 'history_popup'):
             return
         was_visible = self.history_popup.isVisible()
         self.history_popup.hide()
+        # Start each invocation with the full history; local filter is not a
+        # global search and must not silently hide entries on next open.
+        if self.history_filter.text():
+            self.history_filter.clear()
         self._search_history_wheel_delta = 0
         self._search_history_warp_generation += 1
         if was_visible and focus_search and self.isVisible():
@@ -4936,6 +5285,7 @@ class Launcher(QWidget):
         # Keep popup key handling ahead of the launcher's Enter/Right handlers:
         # the first Enter must search, the NEXT Enter may activate a result.
         popup_input = obj in (self.history_choices, self.history_choices.viewport())
+        local_filter_input = obj is getattr(self, 'history_filter', None)
         if event.type() == QEvent.Type.MouseButtonPress and obj in (
                 self.list.viewport(), self.tabs) and self.history_popup.isVisible():
             self.hide_history_popup()
@@ -4944,14 +5294,58 @@ class Launcher(QWidget):
             return False
         key = event.key()
         modifiers = event.modifiers()
+        # The launcher owns F3 even when focus is in its history filter or
+        # a Files/Bookmarks panel. Do not change the query or search history.
+        if key == getattr(Qt.Key, 'Key_F3', None) and modifiers == Qt.KeyboardModifier.NoModifier:
+            self.focus_search()
+            event.accept()
+            return True
         if getattr(self, 'composing', False):
             return False
+        if local_filter_input and self.history_popup.isVisible():
+            if key == Qt.Key.Key_Escape:
+                if self.history_filter.text():
+                    self.history_filter.clear()
+                else:
+                    self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
+                event.accept()
+                return True
+            if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                visible = [row for row in self.history_visible_rows()
+                           if row.data(0, ROLE_KIND) == 'keyword']
+                if visible:
+                    current = self.history_choices.currentItem()
+                    target = next_wrapped(visible, current,
+                                          -1 if key == Qt.Key.Key_Up else 1)
+                    self.history_choices.setCurrentItem(target)
+                    self.history_choices.scrollToItem(target)
+                event.accept()
+                return True
+            return False  # Native QLineEdit editing and IME preedit.
         if (obj in (self.search, self.list, self.tabs) or popup_input) and (
                 event.text() == '/' or (key == Qt.Key.Key_Slash and not event.text())) and modifiers in (
                     Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier):
             self.toggle_history_popup()
             event.accept()
             return True
+        if obj is self.search and self.history_popup.isVisible() and modifiers == Qt.KeyboardModifier.NoModifier:
+            if key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+                visible = self.history_visible_rows()
+                if visible:
+                    row = next_wrapped(visible, self.history_choices.currentItem(),
+                                       -1 if key == Qt.Key.Key_Up else 1)
+                    self.history_choices.setCurrentItem(row)
+                    self.history_choices.scrollToItem(row)
+                event.accept()
+                return True
+            if key == Qt.Key.Key_Escape:
+                self.hide_history_popup(focus_search=True)
+                event.accept()
+                return True
+            if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                self.select_history_keyword()
+                event.accept()
+                return True
         if not popup_input or not self.history_popup.isVisible():
             return False
         if key == Qt.Key.Key_Escape:
@@ -5884,8 +6278,10 @@ class Launcher(QWidget):
                 raise FileNotFoundError('対象ファイルが見つかりません: ' + str(path))
             if not Path(executable).is_file():
                 raise FileNotFoundError('アプリが見つかりません: ' + str(executable))
-            # OS app may open a new window; stop Qt.Tool covering it.
-            self.dismiss()
+            # Legacy Tool mode must give the new app the foreground. Normal
+            # window mode keeps Launch visible and allows the app above it.
+            if getattr(self, 'dismiss_on_outside_click', True):
+                self.dismiss()
             open_file_with_app(path, executable)
         except (OSError, ValueError, RuntimeError) as exc:
             self.error('プログラムから開けませんでした: ' + str(exc))
@@ -6408,9 +6804,10 @@ class Launcher(QWidget):
                     raise ValueError('すべて展開はZIPファイルのみ対象です')
                 self.extract_all_zip(path)
             elif action_id == 'open_with' and kind == 'file':
-                # Qt.Tool stays topmost in FRB Launch. Hide it so the native
-                # Windows chooser cannot appear behind the launcher.
-                self.dismiss()
+                # The legacy topmost Tool window must yield to Windows' native
+                # chooser. A normal keep-visible window can stay behind it.
+                if getattr(self, 'dismiss_on_outside_click', True):
+                    self.dismiss()
                 open_with_windows_dialog(path)
             elif action_id == 'open_parent_folder' and kind == 'file':
                 open_parent_folder(path)
@@ -6424,11 +6821,19 @@ class Launcher(QWidget):
                 open_folder_terminal(path)
             elif action_id == 'properties':
                 # FRB Launch is a permanently topmost Qt.Tool window. Native
-                # Shell property sheets do not share that topmost z-order and
-                # can be obscured. Dismiss our launcher before opening them;
-                # the desktop hotkey/double click will summon it again.
-                self.dismiss()
-                show_windows_properties(path)
+                # Native property sheets are not topmost. In keep-visible mode,
+                # drop Launch's topmost z-order until the user returns; in the
+                # legacy hide mode retain the original dismiss behavior.
+                if getattr(self, 'dismiss_on_outside_click', True):
+                    self.dismiss()
+                    show_windows_properties(path)
+                else:
+                    self.begin_cloud_link_handoff()
+                    try:
+                        show_windows_properties(path)
+                    except Exception:
+                        self.finish_cloud_link_handoff()
+                        raise
             elif action_id == 'git_commit_from_zip':
                 self.git_commit_using_filename(path)
             elif action_id == 'rename':
@@ -6564,19 +6969,25 @@ class Launcher(QWidget):
                 # file association. Authored Run/browser actions remain intact.
                 self.queue.extend(file_index.route_registered_open_step(step, studio_root))
             self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue))
+            hide_after_launch = getattr(self, 'dismiss_on_outside_click', True)
             if should_start_before_dismiss(self.queue):
-                # A GUI child can claim foreground only if its launcher was
-                # foreground at process creation. Previously we hid first and
-                # waited 180 ms, handing foreground to another application.
+                # GUI children inherit foreground permission when started
+                # while Launch is active, regardless of its display mode.
                 self._foreground_handoff_pending = True
-                DIAG.info('FOREGROUND_HANDOFF launching before launcher hide')
+                DIAG.info('FOREGROUND_HANDOFF starting GUI child before UI transition')
                 self.next_step()
-                if self.busy:
+                if self.busy and hide_after_launch:
                     self.dismiss()
             else:
                 self._foreground_handoff_pending = False
-                self.dismiss()
-                QTimer.singleShot(180,self.next_step)
+                if hide_after_launch:
+                    # Preserve the original Tool-mode hide-then-launch delay.
+                    self.dismiss()
+                    QTimer.singleShot(180, self.next_step)
+                else:
+                    # Normal-window mode stays visible. Let Qt close any
+                    # context menu first, then run without an extra delay.
+                    QTimer.singleShot(0, self.next_step)
         except Exception as e:
             DIAG.exception('PREPARE failed');self.error(e)
 
@@ -6693,17 +7104,29 @@ def main():
     # never prevent the launcher itself from starting (tray/hotkey still work).
     desktop_click = None
     def open_from_desktop():
-        DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s', window.isVisible())
-        if not window.isVisible():
-            window.summon()
-            source_foreground = window.target
-            # Explorer got the double-click, not our Qt Tool window. Qt may
-            # raise it without gaining Windows keyboard focus; correct that on
-            # the event loop, with one short retry for mouse-up/Qt timing.
-            QTimer.singleShot(0, lambda: window.restore_keyboard_focus(
-                source_foreground, 'desktop_first'))
-            QTimer.singleShot(120, lambda: window.restore_keyboard_focus(
-                source_foreground, 'desktop_retry'))
+        DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s minimized=%s',
+                  window.isVisible(), window.isMinimized())
+        source_foreground = windows.foreground()
+        was_hidden = not window.isVisible() or window.isMinimized()
+        if was_hidden:
+            window.summon()  # Tray-hidden and native-minimized states.
+        elif not window.dismiss_on_outside_click:
+            # Ordinary-window mode: desktop double-click is an explicit summon,
+            # even when the launcher is already visible behind another app.
+            # Never call summon() here; that toggles a visible window off.
+            window.raise_()
+            window.activateWindow()
+        else:
+            # Legacy always-on-top mode already has a visible launcher.
+            return
+        # Explorer received the final mouse event. Give Windows time to
+        # finish it before requesting keyboard focus for the launcher.
+        # A visible normal window must retain its current Files navigation;
+        # restore_last_current() is only needed after a hidden-window summon.
+        for delay, reason in ((0, 'desktop_first'), (120, 'desktop_retry')):
+            QTimer.singleShot(delay, lambda fg=source_foreground, r=reason,
+                              restore=was_hidden: window.restore_keyboard_focus(
+                                  fg, r, restore_current=restore))
         DIAG.info('DESKTOP_OPEN_RESULT visible=%s active=%s',
                   window.isVisible(), window.isActiveWindow())
         QTimer.singleShot(400, lambda: DIAG.info(
@@ -6726,6 +7149,7 @@ def main():
         # An outside mouse press closes the ENTIRE UI, including an orphaned
         # folder cascade. Never do this while the OS confirmation is active.
         if (launcher_surface_visible()
+                and window.dismiss_on_outside_click
                 and not getattr(window, '_filesystem_dialog_depth', 0)
                 and not getattr(window, '_cloud_link_handoff', False)
                 and QApplication.activeModalWidget() is None):
@@ -6736,7 +7160,8 @@ def main():
         desktop_click = DesktopDoubleClick(
             open_from_desktop, DIAG,
             on_outside_click=dismiss_from_outside_click,
-            is_launcher_visible=launcher_surface_visible,
+            is_launcher_visible=lambda: (launcher_surface_visible()
+                                         and window.dismiss_on_outside_click),
         )
         DIAG.info('DESKTOP_DOUBLE_CLICK_HOOK active=%s', desktop_click.start())
     except Exception:
@@ -6760,7 +7185,7 @@ def main():
             action, item_id = jump_list.parse_ipc_command(payload)
             if action == 'show-menu':
                 window.summon_menu(item_id)  # Validate id/page/enabled; never execute.
-            elif not window.isVisible():
+            elif not window.isVisible() or window.isMinimized():
                 window.summon()
             else:
                 window.raise_();window.activateWindow()
