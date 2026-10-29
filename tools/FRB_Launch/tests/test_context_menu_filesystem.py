@@ -65,7 +65,7 @@ class ConfigTests(unittest.TestCase):
     def test_all_supported_v1_actions(self):
         menus = load_context_menus(CONFIG)
         self.assertEqual([x['action_id'] for x in menus['file'] if 'action_id' in x],
-                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_cloud_link', 'copy_file_name', 'open_with', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
+                         ['copy', 'cut', 'paste', 'copy_full_path', 'copy_cloud_link', 'copy_file_name', 'open_with', 'extract_all', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder'] if 'action_id' in x],
                          ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'delete', 'rename', 'properties'])
 
@@ -84,7 +84,7 @@ class ConfigTests(unittest.TestCase):
             options['menus']['file'][0]['enabled'] = False
             path = Path(folder) / 'config.json'
             path.write_text(json.dumps(options), encoding='utf-8')
-            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 13)
+            self.assertEqual(sum('action_id' in item for item in load_context_menus(path)['file']), 14)
 
 
 class ParentFolderTests(unittest.TestCase):

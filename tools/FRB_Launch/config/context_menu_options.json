@@ -37,6 +37,10 @@
         "title": "プログラムから開く…"
       },
       {
+        "action_id": "extract_all",
+        "title": "すべて展開..."
+      },
+      {
         "action_id": "open_parent_folder",
         "title": "フォルダーを開く"
       },

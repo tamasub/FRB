@@ -13,7 +13,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
@@ -53,6 +53,8 @@ from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
 from context_menu_icons import context_action_icon
+from zip_extract_action import (is_extractable_zip, default_extract_destination,
+                                invoke_windows_extract_all, safe_extract_zip)
 from cloud_link_shell import request_native_copy_link, select_in_explorer
 from windows_open_with import discover_open_with_apps, open_file_with_app
 from file_transfer_visual import transfer_state, pasted_paths_for, path_key
@@ -5618,7 +5620,8 @@ class Launcher(QWidget):
             menu = QMenu(context_parent if context_parent is not None else self)
             allowed = {d['action_id'] for d in actions if d.get('action_id')
                        and not (d['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path))
-                       and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))}
+                       and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))
+                       and not (d['action_id'] == 'extract_all' and Path(path).suffix.casefold() != '.zip')}
             for definition in visible_context_entries(actions, allowed):
                 if definition.get('type') == 'separator':
                     menu.addSeparator()
@@ -5635,6 +5638,13 @@ class Launcher(QWidget):
                     # last entry for handlers the registry cannot launch.
                     self.add_open_with_submenu(menu, definition['title'], path)
                     continue
+                elif (action_id == 'open_parent_folder' and origin == 'file'
+                      and self.search.text().strip()):
+                    # Main-search file results jump into *Launch's* Files pane.
+                    # The normal Files-column action keeps its old OS behavior.
+                    action = menu.addAction(definition['title'],
+                        lambda checked=False, p=path:
+                        self.open_search_file_parent_in_launch(p))
                 else:
                     action = menu.addAction(definition['title'],
                         lambda checked=False, a=action_id, p=path, k=origin:
@@ -5806,6 +5816,123 @@ class Launcher(QWidget):
             DIAG.exception('EXPANDED_DIRECTORY_PASTE target=%s', destination_text)
             self.error('貼り付けできませんでした: ' + str(exc))
 
+    def extract_all_zip(self, path):
+        """Prefer Windows Explorer's wizard; supply a Qt fallback if absent."""
+        self.begin_cloud_link_handoff()  # Avoid putting Windows dialog behind Qt.Tool.
+        try:
+            if invoke_windows_extract_all(path):
+                self.footer.setText('Windowsの「すべて展開」を起動しました。展開先を確認してください')
+                return
+        except Exception:
+            self.finish_cloud_link_handoff()
+            raise
+        self.finish_cloud_link_handoff()
+        # The Extract All shell verb is not registered on every Windows build.
+        # Use a constrained local dialog, never silently unzip on a single click.
+        dialog = QDialog(self)
+        dialog.setWindowTitle('すべて展開...')
+        form = QVBoxLayout(dialog)
+        form.addWidget(QLabel('展開先のフォルダーを指定してください。', dialog))
+        folder_row = QHBoxLayout()
+        destination = QLineEdit(str(default_extract_destination(path)), dialog)
+        folder_row.addWidget(destination)
+        browse = QPushButton('参照...', dialog)
+        folder_row.addWidget(browse)
+        form.addLayout(folder_row)
+        show_files = QCheckBox('完了時に展開先を表示する', dialog)
+        show_files.setChecked(True)
+        form.addWidget(show_files)
+        actions = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog)
+        actions.button(QDialogButtonBox.StandardButton.Ok).setText('展開')
+        actions.accepted.connect(dialog.accept)
+        actions.rejected.connect(dialog.reject)
+        form.addWidget(actions)
+        def choose_folder():
+            chosen = QFileDialog.getExistingDirectory(
+                dialog, '展開先フォルダー', str(Path(path).parent))
+            if chosen:
+                destination.setText(str(Path(chosen) / Path(path).stem))
+        browse.clicked.connect(choose_folder)
+        dialog.setMinimumWidth(500)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        dest_text = destination.text().strip()
+        if not dest_text:
+            raise ValueError('展開先を指定してください')
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            extracted = safe_extract_zip(path, dest_text)
+        finally:
+            QApplication.restoreOverrideCursor()
+        self.footer.setText(f'ZIPを展開しました → {extracted}')
+        if show_files.isChecked():
+            open_file_explorer(extracted)
+        if (self.expanded_view.isVisible() and
+                self.expanded_view.current_directory() == str(extracted.parent)):
+            self.expanded_view.refresh_middle()
+
+    def open_search_file_parent_in_launch(self, filename):
+        """Open a main-search hit's containing directory in Launch Files.
+
+        This is distinct from the existing OS Explorer context action.  The
+        Files panel's refresh_middle() owns breadcrumb updates and the shared
+        100-stop back/forward history, so there is no second history writer.
+        """
+        from directory_address import directory_row
+
+        parent = Path(filename).parent
+        if not parent.is_dir():
+            self.error('保存先フォルダーが見つかりません: ' + str(parent))
+            return False
+
+        options = self._read_expanded_options()
+        targets = expanded_targets(self.data.get('items', []), options) if self.data else None
+        page_index = next((index for index, page in enumerate(self.pages)
+                           if page['page_id'] == options['page_id']), None)
+        if not options['enabled'] or targets is None or page_index is None:
+            self.error('Launch内のFilesビューが利用できません。表示設定を確認してください')
+            return False
+
+        # A QMenu action may still own the focus. Close only transient popups;
+        # the launcher stays open and its filesystem navigation history lives on.
+        context = getattr(self, '_launch_context_menu', None)
+        if context is not None:
+            context.close()
+        self.close_cascade_for_main_interaction()
+        self.hide_history_popup()
+        self.hover_timer.stop()
+        self.pending_menu_item = None
+        self.stack = []
+        self.selection = None
+        self.checked.clear()
+        self.page_id = options['page_id']
+        self.tabs.blockSignals(True)
+        try:
+            self.tabs.setCurrentIndex(page_index)
+        finally:
+            self.tabs.blockSignals(False)
+
+        # When coming from a search, no Files pane is shown yet. Prepare the
+        # target BEFORE render() activates it: do not record an unrelated
+        # default/previous first-column folder as an intermediate history stop.
+        self.expanded_view.path = [directory_row(str(parent))]
+        if self.view_mode != 'expanded':
+            self.set_view_mode('expanded')
+        self.search.clear()
+        self.render()
+        if not self.expanded_view.isVisible():
+            self.error('Launch内のFilesビューを開けませんでした')
+            return False
+        # Reuse the ordinary internal folder navigation (focus + breadcrumb).
+        # Its refresh is deduplicated by DirectoryNavigationHistory.record().
+        if not self.expanded_view.go_to_directory(str(parent)):
+            self.error('Launch内でフォルダーを開けませんでした: ' + str(parent))
+            return False
+        self.footer.setText('Launch内でフォルダーを開きました: ' + str(parent))
+        return True
+
     def perform_filesystem_context_action(self, action_id, target, kind):
         """Display belongs to JSON; filesystem work belongs to OS action helpers."""
         try:
@@ -5900,6 +6027,10 @@ class Launcher(QWidget):
                 except Exception:
                     self.finish_cloud_link_handoff()
                     raise
+            elif action_id == 'extract_all' and kind == 'file':
+                if not is_extractable_zip(path):
+                    raise ValueError('すべて展開はZIPファイルのみ対象です')
+                self.extract_all_zip(path)
             elif action_id == 'open_with' and kind == 'file':
                 # Qt.Tool stays topmost in FRB Launch. Hide it so the native
                 # Windows chooser cannot appear behind the launcher.

@@ -58,6 +58,13 @@ def context_action_icon(action_id):
         line(3, 8, 3, 18)
         if action_id == 'new_category':
             line(15, 12, 15, 17); line(12.5, 14.5, 17.5, 14.5)
+    elif action_id == 'extract_all':
+        # ZIP package with downward extraction arrow.
+        painter.drawRoundedRect(QRectF(4, 3, 16, 18), 2, 2)
+        line(8, 6, 16, 6)
+        line(12, 8, 12, 17)
+        line(9, 14, 12, 17)
+        line(15, 14, 12, 17)
     elif action_id == 'open_with':
         # App-window silhouette with small chooser dots: one-off file action.
         painter.drawRoundedRect(QRectF(3, 4, 18, 16), 2, 2)
