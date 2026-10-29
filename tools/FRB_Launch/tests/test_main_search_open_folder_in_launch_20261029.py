@@ -99,6 +99,7 @@ def test_search_folder_transition_is_one_history_entry_and_back_forward_work():
             self.history.record(r'C:\Work', self.path)
             self.visible = False
             self.render_count = 0
+            self.select_middle_file = Mock(return_value=True)
         def isVisible(self):
             return self.visible
         def refresh_middle(self):
@@ -148,6 +149,7 @@ def test_search_folder_transition_is_one_history_entry_and_back_forward_work():
     assert launcher.tabs.setCurrentIndex.call_args.args == (0,)
     assert len(view.history.entries) == 2  # no intermediate default folder
     assert view.history.current['path'] == directory
+    view.select_middle_file.assert_called_once_with(filename)
     assert view.history.back()['path'] == r'C:\Work'
     assert view.history.forward()['path'] == directory
     assert not view.history.can_forward

@@ -15,6 +15,7 @@ from directory_address import (breadcrumb_segments, compact_segments,
                                directory_row, row_directory, normalized_directory)
 from browser_nav_icons import browser_navigation_icon
 from directory_navigation_history import DirectoryNavigationHistory
+from popup_sizing import popup_available_height, popup_tree_height
 from system_drives import drive_rows, pc_preview_row
 from expanded_view_model import toolbar_roots, root_wheel_target
 from expanded_selection import context_paths, physical_paths
@@ -1315,6 +1316,8 @@ class ExpandedLauncherView(QWidget):
         if self.favorite_choices.topLevelItemCount() and self.favorite_choices.currentItem() is None:
             self.favorite_choices.setCurrentItem(self.favorite_choices.topLevelItem(0))
         self.favorite_choices.blockSignals(False)
+        if self.favorite_popup.isVisible():
+            self.position_directory_favorites()
 
     def position_directory_favorites(self):
         # Same left edge and width as the breadcrumb input, not the ▼ button.
@@ -1322,10 +1325,15 @@ class ExpandedLauncherView(QWidget):
         width = min(self.address_bar.width(), max(1, self.launcher.width() - 12))
         x = max(6, min(anchor.x(), self.launcher.width() - width - 6))
         y = anchor.y()
-        # Allow ~2x the old popup height, with a generous minimum when saved
-        # favorites exist; keep the popup completely inside the launcher.
-        desired_height = max(180, min(600, (len(self.folder_favorites.paths) * 31 + 12) * 2))
-        height = max(1, min(desired_height, self.launcher.height() - y - 12))
+        footer_top = self.launcher.footer.mapTo(self.launcher, QPoint(0, 0)).y()
+        available = popup_available_height(self.launcher.height(), y, footer_top)
+        rows = (self.favorite_choices.topLevelItem(i)
+                for i in range(self.favorite_choices.topLevelItemCount()))
+        # 30px CSS row + padding; frame margins and a little space below the
+        # final row. Only scroll when the popup reaches the launcher footer.
+        height = popup_tree_height(self.favorite_choices, rows,
+                                   minimum_row_height=34, chrome_height=16,
+                                   available_height=available)
         self.favorite_popup.setGeometry(x, y, width, height)
 
     def wheel_directory_favorite_history(self, obj, event):
@@ -1601,6 +1609,33 @@ class ExpandedLauncherView(QWidget):
         self.refresh_middle()
         self.focus_panel(self.middle)
         return True
+
+    def select_middle_file(self, filename):
+        """Select/scroll the exact file opened from a main-search result.
+
+        Match full Windows paths (case-insensitive), not just filenames:
+        similarly named results in other directories must never be selected.
+        Selection is UI-only and leaves the folder navigation history alone.
+        """
+        import ntpath
+        def normalized(value):
+            return ntpath.normcase(ntpath.normpath(str(value).replace('/', '\\')))
+
+        target = normalized(filename)
+        tree = self.middle.tree
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            row = self.row_data(item)
+            origin, path = resolve_context_target(row, self.launcher.authored_items)
+            if origin != 'file' or not path or normalized(path) != target:
+                continue
+            tree.clearSelection()
+            tree.setCurrentItem(item)
+            item.setSelected(True)
+            tree.scrollToItem(item, QAbstractItemView.ScrollHint.PositionAtCenter)
+            self.focus_panel(self.middle)
+            return True
+        return False
 
     def middle_back_lane_at(self, point):
         """Legacy viewport helper: the Back lane now lives OUTSIDE the tree."""

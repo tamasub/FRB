@@ -75,3 +75,25 @@ def visible_context_entries(entries, allowed_actions=None):
         result.append(entry)
         pending_separator = False
     return result
+
+
+# Search results should permit reading/opening, but not destructive actions.
+# Browsed Files panes keep their existing independent menus and shortcuts.
+SEARCH_READONLY_ACTIONS = {
+    'file': frozenset((
+        'copy', 'copy_full_path', 'copy_cloud_link', 'copy_file_name',
+        'open_with', 'open_parent_folder', 'open_parent_terminal', 'properties',
+    )),
+    'folder': frozenset((
+        'copy', 'open_explorer', 'open_terminal', 'copy_path',
+        'copy_cloud_link', 'properties',
+    )),
+}
+
+
+def visible_search_context_entries(entries, kind, allowed_actions=None):
+    """Same JSON-defined menu order, constrained to safe main-search verbs."""
+    safe = SEARCH_READONLY_ACTIONS[kind]
+    if allowed_actions is not None:
+        safe = safe.intersection(allowed_actions)
+    return visible_context_entries(entries, safe)

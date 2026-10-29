@@ -31,6 +31,10 @@ from bookmark_cursor_follow import cursor_target
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from search_history import SearchHistory, normalize_keyword
+from session_search_history import SessionSearchHistory, SESSION_HISTORY
+from search_history_categories import SearchHistoryCategories, UNCATEGORIZED
+from popup_sizing import popup_available_height, popup_tree_height
+from history_category_tree import HistoryCategoryTree, ROLE_KIND, ROLE_ID
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from wheel_adaptive import wheel_steps
 from reorderable_tree import ReorderablePopupTree
@@ -1686,6 +1690,20 @@ class Launcher(QWidget):
         self.bookmark_errors = []
 
         self.search_history = SearchHistory(STATE / 'search_history.json')
+        self.session_history = SessionSearchHistory()  # RAM only, never persisted
+        self.session_history_expanded = True
+        self._session_edit_draft = None
+        self._last_search_value = ''
+        self._search_user_edit_pending = False
+        self._live_search_timer = QTimer(self)
+        self._live_search_timer.setSingleShot(True)
+        self._live_search_timer.timeout.connect(self.render_settled_search)
+        self._session_history_timer = QTimer(self)
+        self._session_history_timer.setSingleShot(True)
+        self._session_history_timer.setInterval(1650)
+        self._session_history_timer.timeout.connect(self.record_session_search)
+        self.search_categories = SearchHistoryCategories(
+            STATE / 'search_history_categories.json', self.search_history.keywords)
         self.search = QLineEdit()
         self.search.setObjectName('mainSearchField')
         self.search.setPlaceholderText('アプリ・ファイル・ブックマークを検索…')
@@ -1711,6 +1729,17 @@ class Launcher(QWidget):
         self.history_action = self.search.addAction(QIcon(chevron), QLineEdit.ActionPosition.TrailingPosition)
         self.history_action.setToolTip('検索履歴を表示 (/)')
         self.history_action.triggered.connect(self.toggle_history_popup)
+        # Category creation is available directly at the right edge of search.
+        plus_icon = QPixmap(16, 16); plus_icon.fill(Qt.GlobalColor.transparent)
+        plus_painter = QPainter(plus_icon)
+        plus_painter.setPen(QPen(QColor('#608a76'), 2))
+        plus_painter.drawLine(8, 3, 8, 13)
+        plus_painter.drawLine(3, 8, 13, 8)
+        plus_painter.end()
+        self.history_category_action = self.search.addAction(
+            QIcon(plus_icon), QLineEdit.ActionPosition.TrailingPosition)
+        self.history_category_action.setToolTip('検索履歴カテゴリーを追加')
+        self.history_category_action.triggered.connect(self.add_history_category)
         # Modern two-row header: title/search/window actions on the first row,
         # back/home + Page tabs on the second row.
         self.search_bar = QWidget(self)
@@ -1933,7 +1962,26 @@ class Launcher(QWidget):
         history_layout.setContentsMargins(5, 5, 5, 5); history_layout.setSpacing(0)
         self._search_history_wheel_delta = 0
         self._search_history_warp_generation = 0
-        self.history_choices = ReorderablePopupTree(self.history_popup)
+        history_toolbar = QHBoxLayout()
+        history_toolbar.setContentsMargins(5, 2, 5, 5)
+        history_toolbar.setSpacing(4)
+        history_title = QLabel('検索履歴', self.history_popup)
+        history_toolbar.addWidget(history_title)
+        history_toolbar.addStretch(1)
+        self.history_expand_button = QPushButton('全展開', self.history_popup)
+        self.history_collapse_button = QPushButton('全折畳', self.history_popup)
+        self.history_add_button = QPushButton('＋', self.history_popup)
+        for button in (self.history_expand_button, self.history_collapse_button,
+                       self.history_add_button):
+            button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            button.setFixedHeight(24)
+            history_toolbar.addWidget(button)
+        self.history_add_button.setFixedWidth(28)
+        self.history_expand_button.clicked.connect(lambda: self.set_all_history_categories(True))
+        self.history_collapse_button.clicked.connect(lambda: self.set_all_history_categories(False))
+        self.history_add_button.clicked.connect(self.add_history_category)
+        history_layout.addLayout(history_toolbar)
+        self.history_choices = HistoryCategoryTree(self.history_popup)
         # IME preedit belongs to the search box, not the history list. Qt
         # must deliver InputMethod events here so they can be redirected.
         self.history_choices.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
@@ -1941,7 +1989,7 @@ class Launcher(QWidget):
         self.history_choices.setColumnCount(2)
         self.history_choices.setHeaderHidden(True)
         self.history_choices.setRootIsDecorated(False)
-        self.history_choices.setIndentation(0)
+        self.history_choices.setIndentation(18)
         self.history_choices.setSortingEnabled(False)
         self.history_choices.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.history_choices.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -1957,6 +2005,11 @@ class Launcher(QWidget):
         self.history_clock_icon = history_clock_icon()
         self.history_choices.itemClicked.connect(self.history_row_clicked)
         self.history_choices.orderChanged.connect(self.history_reordered)
+        self.history_choices.structureChanged.connect(self.history_structure_changed)
+        self.history_choices.itemExpanded.connect(self.history_category_expanded)
+        self.history_choices.itemCollapsed.connect(self.history_category_collapsed)
+        self.history_choices.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.history_choices.customContextMenuRequested.connect(self.history_category_context_menu)
         history_layout.addWidget(self.history_choices)
         self.history_popup.hide()
         self.history_choices.installEventFilter(self)
@@ -1994,6 +2047,7 @@ class Launcher(QWidget):
         self.apply_color_theme()
         self.tray.setContextMenu(traymenu); self.tray.activated.connect(lambda r:self.summon() if r==QSystemTrayIcon.ActivationReason.Trigger else None)
         self.tray.show()
+        self.search.textEdited.connect(self.search_user_edited)
         self.search.textChanged.connect(self.search_text_changed)
         self.tabs.currentChanged.connect(self.page_changed)
         self.list.itemActivated.connect(lambda item,col:self.activate(item.data(0,Qt.ItemDataRole.UserRole)))
@@ -2122,11 +2176,14 @@ class Launcher(QWidget):
         height, width = self.search.height(), self.search.width()
         self.search_glyph.move(11, max(0, (height - self.search_glyph.height()) // 2 + 2))
         is_visible = bool(self.search.text().strip())
-        right_space = 71  # native ×, history ▼, and their breathing room
+        right_space = 99  # native ×, history ▼, category +, breathing room
         self.save_history_button.move(
             max(48, width - right_space - self.save_history_button.width()),
             max(0, (height - self.save_history_button.height()) // 2))
-        self.search.setTextMargins(49, 0, 137 if is_visible else 0, 0)
+        # The text caret starts just to the right of the 32px magnifier.
+        # The visible search glyph has ~14px of space on its left;
+        # match that gap on the right (36px left text margin was ~4px wide).
+        self.search.setTextMargins(32, 0, 165 if is_visible else 0, 0)
         if is_visible:
             self.save_history_button.raise_()
         self.search_glyph.raise_()
@@ -4351,6 +4408,8 @@ class Launcher(QWidget):
 
     def activate(self,row):
         if not row:return
+        self.record_session_search()
+        self._session_edit_draft = None
         file_path = row.get('_indexed_file') or row.get('_browse_file')
         if file_path:
             self.run_file_path(row, file_path)
@@ -4412,29 +4471,90 @@ class Launcher(QWidget):
         self.activate(row)
 
     def remember_search(self, value=None):
-        """Store only completed queries, never intermediate live-search keystrokes."""
+        """Only an explicit human action promotes a query to persistent history."""
         text = self.search.text() if value is None else value
         try:
             if self.search_history.remember(text):
                 DIAG.info('SEARCH_HISTORY saved keyword=%s', normalize_keyword(text))
+            self.session_history.remove(text)
+            if self._session_edit_draft == normalize_keyword(text):
+                self._session_edit_draft = None
+            # Do not re-render/rebuild history while a Japanese IME is active.
         except OSError:
             DIAG.exception('SEARCH_HISTORY save failed')
 
+    def search_user_edited(self, value):
+        """textEdited precedes textChanged for real edits (including IME commits).
+
+        Programmatic setText/clear stays synchronous to protect navigation and
+        existing callers. Only actual typing is coalesced into one heavy search.
+        """
+        self._search_user_edit_pending = True
+        if self._session_edit_draft is not None:
+            # A pause during the *same edit* is not a new completed query.
+            # Replace its volatile draft instead of accumulating substrings.
+            self.session_history.remove(self._session_edit_draft)
+            self._session_edit_draft = None
+
+    def render_settled_search(self):
+        """Never run SQLite or rebuild the list during Japanese IME preedit."""
+        if getattr(self, 'composing', False):
+            self._live_search_timer.start(235)
+            return
+        self.render()
+
+    def flush_live_search(self):
+        """Finish deferred results before the user navigates or clicks a hit."""
+        if self._live_search_timer.isActive() and not getattr(self, 'composing', False):
+            self._live_search_timer.stop()
+            self.render()
+
+    def record_session_search(self):
+        """Collect settled queries with zero JSON I/O or history UI rebuilding."""
+        if getattr(self, 'composing', False):
+            return
+        text = normalize_keyword(self.search.text())
+        if not text or self.session_history.has(text):
+            return
+        if self.session_history.remember(text, self.search_history.keywords):
+            self._session_edit_draft = text
+
     def search_text_changed(self, value):
         # Any actual edit (including an IME commit or paste) wins over history.
-        # Preedit is handled separately before QLineEdit emits textChanged.
+        # Qt's preedit remains untouched; no file I/O is performed on typing.
         if self.history_popup.isVisible():
             self.hide_history_popup()
-        # Slash is reserved for the history popup, even for clipboard pastes.
         if '/' in value:
             cursor = self.search.cursorPosition()
             cleaned = value.replace('/', '')
             self.search.setText(cleaned)
             self.search.setCursorPosition(max(0, cursor - value[:max(0, cursor)].count('/')))
             return
-        self.save_history_button.setVisible(bool(value.strip()))
-        self.layout_search_inner_controls()
-        self.render()
+        self._session_history_timer.stop()
+        was_user_edit = self._search_user_edit_pending
+        self._search_user_edit_pending = False
+        # A clear or focus change completes the prior query without needing a
+        # manual registration. The RAM-only record cannot pollute saved JSON.
+        previous = self._last_search_value
+        self._last_search_value = value
+        if not value.strip() and previous.strip() and not getattr(self, 'composing', False):
+            self.session_history.remember(previous, self.search_history.keywords)
+            self._session_edit_draft = None
+        visible = bool(value.strip())
+        if self.save_history_button.isVisible() != visible:
+            self.save_history_button.setVisible(bool(value.strip()))
+            self.layout_search_inner_controls()
+        self._live_search_timer.stop()
+        if visible:
+            self._session_history_timer.start()
+        if was_user_edit and visible:
+            # One search for a burst of keystrokes instead of rebuilding the
+            # Qt list and synchronously querying SQLite on every IME commit.
+            japanese = any(ord(ch) > 127 for ch in value)
+            self._live_search_timer.start(235 if japanese else 135)
+        else:
+            # Programmatic selection, clear and navigation remain immediate.
+            self.render()
         if not self._nav_restoring and not self._nav_transition:
             self._nav_search_timer.start()
 
@@ -4444,28 +4564,216 @@ class Launcher(QWidget):
         # QLineEdit is nested in searchBar; map back to Launcher coordinates.
         anchor = self.search.mapTo(self, QPoint(0, self.search.height() + 4))
         x, y = anchor.x(), anchor.y()
-        height = min(300, max(88, self.height() - y - 12))
+        footer_top = self.footer.mapTo(self, QPoint(0, 0)).y()
+        available = popup_available_height(self.height(), y, footer_top)
+        # 31px CSS row + vertical padding; header buttons and frame margins.
+        # Open/closed categories have different visible row counts.
+        height = popup_tree_height(self.history_choices, self.history_visible_rows(),
+                                   minimum_row_height=35, chrome_height=48,
+                                   available_height=available)
         self.history_popup.setGeometry(x, y, self.search.width(), height)
 
     def populate_history_popup(self, selected=None):
-        self.history_choices.blockSignals(True)
-        self.history_choices.clear()
-        keywords = self.search_history.keywords
-        if not keywords:
-            row = QTreeWidgetItem(['（履歴はありません）', ''])
-            row.setFlags(Qt.ItemFlag.NoItemFlags)
-            self.history_choices.addTopLevelItem(row)
-        else:
-            for index, keyword in enumerate(keywords):
+        """Folders are visual containers; original keyword text stays intact."""
+        self.search_categories.sync(self.search_history.keywords)
+        tree = self.history_choices
+        tree.blockSignals(True)
+        tree.clear()
+        # Keep the temporary header visible even at 0 entries: inserting it
+        # later would shift every saved category and break spatial memory.
+        categories = [(SESSION_HISTORY, '一時履歴（終了時に消去）'), (UNCATEGORIZED, '未分類')] + [
+            (category['id'], category['name']) for category in self.search_categories.categories]
+        first_keyword = None
+        selected_row = None
+        for category_id, label in categories:
+            is_session = category_id == SESSION_HISTORY
+            words = (list(self.session_history.keywords) if is_session else
+                     self.search_categories.group_items(category_id))
+            expanded = self.session_history_expanded if is_session else self.search_categories.expanded(category_id)
+            marker = '▾' if expanded else '▸'
+            folder = QTreeWidgetItem([f'{marker}  {label}  ({len(words)})', '⋯' if category_id != UNCATEGORIZED else ''])
+            folder.setData(0, ROLE_KIND, 'category')
+            folder.setData(0, ROLE_ID, category_id)
+            folder.setIcon(0, self.history_clock_icon if is_session else icon('category'))
+            folder.setToolTip(0, '一時履歴：Launch終了で消去／ドラッグしてカテゴリーへ保存' if is_session else
+                              'クリックで開閉／ドラッグでカテゴリー並び替え' if category_id != UNCATEGORIZED
+                              else '未分類（削除・移動不可）／クリックで開閉')
+            folder.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+            font = folder.font(0); font.setBold(True); folder.setFont(0, font)
+            folder.setForeground(0, QBrush(QColor('#547b69' if theme_family(self.color_theme) == 'light' else '#bad5c6')))
+            if category_id in (UNCATEGORIZED, SESSION_HISTORY):
+                folder.setFlags(folder.flags() & ~Qt.ItemFlag.ItemIsDragEnabled)
+            tree.addTopLevelItem(folder)
+            for keyword in words:
                 row = QTreeWidgetItem([keyword, '×'])
+                row.setData(0, ROLE_KIND, 'keyword')
+                row.setData(0, ROLE_ID, category_id)
                 row.setIcon(0, self.history_clock_icon)
                 row.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
-                row.setToolTip(0, keyword + '  — クリックで検索／ドラッグで並び替え')
+                row.setToolTip(0, keyword + '  — クリックで検索／ドラッグで移動・並び替え')
                 row.setToolTip(1, '履歴を削除')
-                self.history_choices.addTopLevelItem(row)
-            target = next((i for i, k in enumerate(keywords) if k == selected), 0)
-            self.history_choices.setCurrentItem(self.history_choices.topLevelItem(target))
-        self.history_choices.blockSignals(False)
+                row.setFlags(row.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
+                folder.addChild(row)
+                if first_keyword is None and expanded:
+                    first_keyword = row
+                if keyword == selected:
+                    selected_row = row
+            folder.setExpanded(expanded)
+        if selected_row is not None:
+            # Selected rows in collapsed folders would otherwise be invisible.
+            if selected_row.parent() is not None and selected_row.parent().isExpanded():
+                tree.setCurrentItem(selected_row)
+            else:
+                tree.setCurrentItem(selected_row.parent())
+        elif first_keyword is not None:
+            tree.setCurrentItem(first_keyword)
+        elif tree.topLevelItemCount():
+            tree.setCurrentItem(tree.topLevelItem(0))
+        tree.blockSignals(False)
+        if self.history_popup.isVisible():
+            self.position_history_popup()
+
+    def history_visible_rows(self):
+        """Flatten only visible folders/entries for wheel and keyboard."""
+        tree = self.history_choices
+        visible = []
+        for index in range(tree.topLevelItemCount()):
+            folder = tree.topLevelItem(index)
+            visible.append(folder)
+            if folder.isExpanded():
+                visible.extend(folder.child(j) for j in range(folder.childCount()))
+        return visible
+
+    def add_history_category(self, checked=False):
+        name, accepted = QInputDialog.getText(self, '検索履歴カテゴリー', 'カテゴリー名を入力:')
+        if not accepted:
+            return
+        try:
+            identifier = self.search_categories.create(name)
+            if identifier is None:
+                QMessageBox.information(self, 'カテゴリー', '名前が空、重複、または長すぎます。')
+                return
+            self.show_history_popup()
+            folder = self.history_category_row(identifier)
+            if folder is not None:
+                self.history_choices.setCurrentItem(folder)
+                self.history_choices.scrollToItem(folder)
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY create category failed')
+            QMessageBox.warning(self, 'カテゴリー', 'カテゴリーを保存できませんでした。')
+
+    def history_category_row(self, category_id):
+        for i in range(self.history_choices.topLevelItemCount()):
+            row = self.history_choices.topLevelItem(i)
+            if row.data(0, ROLE_ID) == category_id:
+                return row
+        return None
+
+    def set_all_history_categories(self, expanded):
+        try:
+            self.session_history_expanded = bool(expanded)
+            self.search_categories.expand_all(expanded)
+            self.populate_history_popup()
+            self.history_choices.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY expand all failed')
+
+    def update_history_folder_marker(self, item):
+        category_id = item.data(0, ROLE_ID)
+        group = self.search_categories.get(category_id)
+        name = ('一時履歴（終了時に消去）' if category_id == SESSION_HISTORY else
+                group['name'] if group is not None else '未分類')
+        item.setText(0, f'{"▾" if item.isExpanded() else "▸"}  {name}  ({item.childCount()})')
+
+    def history_category_expanded(self, item):
+        if item.data(0, ROLE_KIND) == 'category':
+            self.update_history_folder_marker(item)
+            try:
+                if item.data(0, ROLE_ID) == SESSION_HISTORY:
+                    self.session_history_expanded = True
+                else:
+                    self.search_categories.set_expanded(item.data(0, ROLE_ID), True)
+            except OSError:
+                DIAG.exception('SEARCH_HISTORY expand failed')
+            if self.history_popup.isVisible():
+                self.position_history_popup()
+
+    def history_category_collapsed(self, item):
+        if item.data(0, ROLE_KIND) == 'category':
+            self.update_history_folder_marker(item)
+            try:
+                if item.data(0, ROLE_ID) == SESSION_HISTORY:
+                    self.session_history_expanded = False
+                else:
+                    self.search_categories.set_expanded(item.data(0, ROLE_ID), False)
+            except OSError:
+                DIAG.exception('SEARCH_HISTORY collapse failed')
+            if self.history_popup.isVisible():
+                self.position_history_popup()
+
+    def history_category_context_menu(self, point=None, item=None):
+        tree = self.history_choices
+        item = item or (tree.itemAt(point) if point is not None else tree.currentItem())
+        if item is None or item.data(0, ROLE_KIND) != 'category':
+            return
+        identifier = item.data(0, ROLE_ID)
+        if identifier in (UNCATEGORIZED, SESSION_HISTORY):
+            return
+        group = self.search_categories.get(identifier)
+        if group is None:
+            return
+        menu = QMenu(tree)
+        rename_action = menu.addAction('カテゴリー名を変更...')
+        delete_action = menu.addAction('カテゴリーを削除（履歴は未分類へ）...')
+        pos = tree.viewport().mapToGlobal(point) if point is not None else tree.viewport().mapToGlobal(tree.visualItemRect(item).center())
+        chosen = menu.exec(pos)
+        try:
+            if chosen == rename_action:
+                name, accepted = QInputDialog.getText(self, 'カテゴリー名変更', '新しい名前:', text=group['name'])
+                if accepted and name.strip() and not self.search_categories.rename(identifier, name):
+                    QMessageBox.information(self, 'カテゴリー', '同じ名前のカテゴリーがあるか、変更できない名前です。')
+                elif accepted:
+                    self.populate_history_popup()
+            elif chosen == delete_action:
+                answer = QMessageBox.question(self, 'カテゴリー削除',
+                    f'「{group["name"]}」を削除しますか？\n中の検索履歴は未分類へ移動します。',
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No)
+                if answer == QMessageBox.StandardButton.Yes:
+                    self.search_categories.delete(identifier)
+                    self.populate_history_popup()
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY category edit failed')
+        if chosen is not None and not self.history_popup.isVisible():
+            self.show_history_popup()
+
+    def history_structure_changed(self, kind, value, destination, index):
+        try:
+            if kind == 'category':
+                self.search_categories.move_category(value, index)
+            elif kind == 'keyword':
+                if self.session_history.has(value):
+                    # Dragging a volatile entry is an explicit save decision.
+                    if destination == SESSION_HISTORY:
+                        return  # Session entries keep their insertion positions.
+                    if self.search_history.remember(value):
+                        self.search_categories.sync(self.search_history.keywords)
+                    if value in self.search_history.keywords:
+                        # A no-op move (e.g. saved at 未分類 position 0) is
+                        # still a successful promotion, not a duplicate.
+                        self.search_categories.move_keyword(value, destination, index)
+                        self.session_history.remove(value)
+                        self._session_edit_draft = None
+                elif destination != SESSION_HISTORY:
+                    self.search_categories.move_keyword(value, destination, index)
+            self.populate_history_popup(value if kind == 'keyword' else None)
+            if kind == 'category':
+                row = self.history_category_row(value)
+                if row is not None:
+                    self.history_choices.setCurrentItem(row)
+        except OSError:
+            DIAG.exception('SEARCH_HISTORY category drag failed')
+            self.populate_history_popup()
 
     def show_history_popup(self):
         if not self.isVisible():
@@ -4498,10 +4806,13 @@ class Launcher(QWidget):
 
     def select_history_keyword(self):
         row = self.history_choices.currentItem()
-        if row is None or not self.search_history.keywords:
+        if row is None or not (self.search_history.keywords or self.session_history.keywords):
+            return
+        if row.data(0, ROLE_KIND) == 'category':
+            row.setExpanded(not row.isExpanded())
             return
         keyword = row.text(0)
-        if keyword not in self.search_history.keywords:
+        if keyword not in self.search_history.keywords and not self.session_history.has(keyword):
             return
         self.hide_history_popup()
         self.search.setText(keyword)  # Existing live textChanged search is the only search path.
@@ -4514,11 +4825,18 @@ class Launcher(QWidget):
     def change_history_row(self, value, action):
         try:
             if action == 'delete':
-                index = self.search_history.keywords.index(value)
-                if not self.search_history.remove(value):
-                    return
-                remaining = self.search_history.keywords
-                selected = remaining[min(index, len(remaining)-1)] if remaining else None
+                if self.session_history.has(value):
+                    self.session_history.remove(value)
+                    if self._session_edit_draft == value:
+                        self._session_edit_draft = None
+                    selected = None
+                else:
+                    index = self.search_history.keywords.index(value)
+                    if not self.search_history.remove(value):
+                        return
+                    self.search_categories.sync(self.search_history.keywords)
+                    remaining = self.search_history.keywords
+                    selected = remaining[min(index, len(remaining)-1)] if remaining else None
             else:
                 return
             self.populate_history_popup(selected)
@@ -4535,7 +4853,13 @@ class Launcher(QWidget):
             self.populate_history_popup()
 
     def history_row_clicked(self, item, column):
-        if not self.search_history.keywords:
+        if item.data(0, ROLE_KIND) == 'category':
+            if column == 0:
+                item.setExpanded(not item.isExpanded())
+            elif column == 1:
+                self.history_category_context_menu(item=item)
+            return
+        if not (self.search_history.keywords or self.session_history.keywords):
             return
         value = item.text(0)
         if column == 0:
@@ -4556,7 +4880,7 @@ class Launcher(QWidget):
                 QApplication.mouseButtons() != Qt.MouseButton.NoButton):
             return False
         if not self.history_popup.isVisible():
-            if obj is not self.search or not self.search_history.keywords:
+            if obj is not self.search or not (self.search_history.keywords or self.session_history.keywords):
                 return False
             self.show_history_popup()
         pending, steps = wheel_steps(self._search_history_wheel_delta,
@@ -4565,11 +4889,12 @@ class Launcher(QWidget):
         if not steps:
             return True
         tree = self.history_choices
-        count = len(self.search_history.keywords)
+        visible = self.history_visible_rows()
+        count = len(visible)
         if count == 0:
             return True
-        current = tree.indexOfTopLevelItem(tree.currentItem())
-        target = tree.topLevelItem(history_target_index(current, count, steps))
+        current = visible.index(tree.currentItem()) if tree.currentItem() in visible else -1
+        target = visible[history_target_index(current, count, steps)]
         tree.setCurrentItem(target)
         tree.scrollToItem(target, QAbstractItemView.ScrollHint.EnsureVisible)
         origin = QCursor.pos()
@@ -4634,14 +4959,23 @@ class Launcher(QWidget):
         elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Right, Qt.Key.Key_Tab):
             self.select_history_keyword()
         elif key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
-            row = self.history_choices.currentItem()
-            count = len(self.search_history.keywords)
-            if row is not None and count:
+            visible = self.history_visible_rows()
+            if visible:
                 offset = -1 if key == Qt.Key.Key_Up else 1
-                move_tree_selection(self.history_choices, offset)
+                row = self.history_choices.currentItem()
+                next_row = next_wrapped(visible, row, offset)
+                self.history_choices.setCurrentItem(next_row)
+                self.history_choices.scrollToItem(next_row)
+        elif key == Qt.Key.Key_Left:
+            row = self.history_choices.currentItem()
+            if row is not None:
+                if row.data(0, ROLE_KIND) == 'category':
+                    row.setExpanded(False)
+                elif row.parent() is not None:
+                    self.history_choices.setCurrentItem(row.parent())
         elif key == Qt.Key.Key_Delete:
             row = self.history_choices.currentItem()
-            if row is not None and self.search_history.keywords:
+            if row is not None and row.data(0, ROLE_KIND) == 'keyword':
                 self.change_history_row(row.text(0), 'delete')
         elif key == Qt.Key.Key_Backspace:
             self.hide_history_popup()
@@ -5147,6 +5481,10 @@ class Launcher(QWidget):
                 return True
         if obj is getattr(self, 'search', None) and event.type() == QEvent.Type.Resize:
             self.layout_search_inner_controls()
+        if obj is getattr(self, 'search', None) and event.type() == QEvent.Type.FocusOut:
+            self.flush_live_search()
+            self.record_session_search()
+            self._session_edit_draft = None
         if obj is getattr(self, "search", None) and event.type() == QEvent.Type.FocusIn:
             # Qt may move the native caret HWND after FocusIn dispatch; defer
             # once, and do not touch input state while the user keeps focus.
@@ -5326,6 +5664,8 @@ class Launcher(QWidget):
                     else:self.activate(row)
                 return True
             if k in (Qt.Key.Key_Down, Qt.Key.Key_Up):
+                if obj is self.search:
+                    self.flush_live_search()
                 direction = 1 if k == Qt.Key.Key_Down else -1
                 if self.in_root_page_navigation():
                     # Main Page navigation includes the current Page tab as
@@ -5360,6 +5700,9 @@ class Launcher(QWidget):
                 self.tabs.setCurrentIndex((self.tabs.currentIndex()+(1 if k==Qt.Key.Key_PageDown else -1))%self.tabs.count());return True
             if k==Qt.Key.Key_F12:self.confirm_selection();return True
             if k in (Qt.Key.Key_Return,Qt.Key.Key_Enter):
+                self.flush_live_search()
+                self.record_session_search()
+                self._session_edit_draft = None
                 q=self.list.currentItem()
                 if q:self.activate(q.data(0,Qt.ItemDataRole.UserRole))
                 return True
@@ -5555,6 +5898,14 @@ class Launcher(QWidget):
         if self.selection:
             return False
         origin, path = resolve_context_target(row, self.authored_items)
+        # Main-search results use a safe, shared filesystem context menu.
+        # The Files pane/cascade still use their own existing commands.
+        search_result = (bool(self.search.text().strip())
+                         and context_parent is None and selected_paths is None)
+        if search_result and origin == 'studio':
+            from context_menu_resolver import resolve_search_context_target
+            origin, path = resolve_search_context_target(
+                row, self.authored_items, lambda target: self.expander().expand(target))
         if row is None:
             if self.stack or self.search.text().strip():
                 return False
@@ -5622,7 +5973,22 @@ class Launcher(QWidget):
                        and not (d['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path))
                        and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))
                        and not (d['action_id'] == 'extract_all' and Path(path).suffix.casefold() != '.zip')}
-            for definition in visible_context_entries(actions, allowed):
+            if search_result:
+                # Search is a navigation/lookup surface, not a file editor.
+                # Keep menu labels/order configured in JSON while suppressing
+                # cut/paste/delete/rename (and script/write operations).
+                from context_menu_config import visible_search_context_entries
+                definitions = visible_search_context_entries(actions, origin, allowed)
+            else:
+                definitions = visible_context_entries(actions, allowed)
+            if search_result and origin == 'folder':
+                action = menu.addAction('Launch内で開く',
+                    lambda checked=False, p=path: self.open_search_folder_in_launch(p))
+                action.setIcon(context_action_icon('open_explorer'))
+                action.setIconVisibleInMenu(True)
+                if definitions:
+                    menu.addSeparator()
+            for definition in definitions:
                 if definition.get('type') == 'separator':
                     menu.addSeparator()
                     continue
@@ -5873,16 +6239,19 @@ class Launcher(QWidget):
                 self.expanded_view.current_directory() == str(extracted.parent)):
             self.expanded_view.refresh_middle()
 
-    def open_search_file_parent_in_launch(self, filename):
-        """Open a main-search hit's containing directory in Launch Files.
+    def open_search_folder_in_launch(self, folder):
+        """Open a search result folder itself, using existing Files navigation."""
+        return self.open_search_file_parent_in_launch(folder, directory=True)
 
-        This is distinct from the existing OS Explorer context action.  The
-        Files panel's refresh_middle() owns breadcrumb updates and the shared
-        100-stop back/forward history, so there is no second history writer.
+    def open_search_file_parent_in_launch(self, filename, *, directory=False):
+        """Open a search file's parent or the matched folder in Launch Files.
+
+        The Files panel owns breadcrumb updates and the shared 100-stop
+        back/forward history, so there is no second history writer.
         """
         from directory_address import directory_row
 
-        parent = Path(filename).parent
+        parent = Path(filename) if directory else Path(filename).parent
         if not parent.is_dir():
             self.error('保存先フォルダーが見つかりません: ' + str(parent))
             return False
@@ -5930,7 +6299,14 @@ class Launcher(QWidget):
         if not self.expanded_view.go_to_directory(str(parent)):
             self.error('Launch内でフォルダーを開けませんでした: ' + str(parent))
             return False
-        self.footer.setText('Launch内でフォルダーを開きました: ' + str(parent))
+        # The destination list has been freshly populated. Highlight the
+        # original search hit (not its parent or the first item), and scroll
+        # it into view without changing directory history again.
+        selected = (self.expanded_view.select_middle_file(filename)
+                    if not directory else False)
+        self.footer.setText(('Launch内でファイルを選択しました: ' + str(filename))
+                            if selected else
+                            ('Launch内でフォルダーを開きました: ' + str(parent)))
         return True
 
     def perform_filesystem_context_action(self, action_id, target, kind):

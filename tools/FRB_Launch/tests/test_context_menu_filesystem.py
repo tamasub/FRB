@@ -292,5 +292,6 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         holder.search.text = lambda: 'report'
         row = {'item_id':'__file_index_foo', '_indexed_file': 'C:/x/report.txt'}
         self.assertTrue(fn(holder, (3, 4), row))
-        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 12)
+        # Search results deliberately omit destructive and filesystem-writing verbs.
+        self.assertEqual(len([a for a in holder._launch_context_menu.actions if a[0] != 'separator']), 8)
 

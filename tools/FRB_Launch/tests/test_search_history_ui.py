@@ -92,24 +92,43 @@ class SearchHistoryUITests(test_navigation.NavigationTests if test_navigation el
         self.assertEqual(self.w.search.text(), 'MyCurrentQuery')
 
     def test_mouse_reorder_delete_and_json_reload(self):
+        # History now appears as children of the fixed 未分類 folder. Manual
+        # dragging persists *folder-local* order without scrambling the
+        # original flat search_history.json data.
         QTest.keyClicks(self.w.search, '/')
         self.assertTrue(self.w.history_popup.isVisible())
-        def click(row_index, column):
-            view = self.w.history_choices
-            row = view.topLevelItem(row_index)
-            x = sum(view.columnWidth(c) for c in range(column)) + view.columnWidth(column) // 2
-            y = view.visualItemRect(row).center().y()
-            QTest.mouseClick(view.viewport(), Qt.MouseButton.LeftButton, pos=QPoint(x,y))
-            self.app.processEvents()
-        # Drag-drop reports a new row order; verify callback and persistence.
-        self.w.history_choices.orderChanged.emit(['FRB*.md', '*.ps1', 'make'])
-        self.assertEqual(self.w.search_history.keywords[:2], ['FRB*.md', '*.ps1'])
-        self.w.history_choices.orderChanged.emit(['*.ps1', 'FRB*.md', 'make'])
-        self.assertEqual(self.w.search_history.keywords[:2], ['*.ps1', 'FRB*.md'])
-        click(0, 1)  # delete *.ps1; only two columns remain
+        self.w.history_choices.structureChanged.emit('keyword', 'FRB*.md', 'uncategorized', 0)
+        self.assertEqual(self.w.search_categories.group_items('uncategorized')[:2],
+                         ['FRB*.md', '*.ps1'])
+        self.w.history_choices.structureChanged.emit('keyword', '*.ps1', 'uncategorized', 0)
+        self.assertEqual(self.w.search_categories.group_items('uncategorized')[:2],
+                         ['*.ps1', 'FRB*.md'])
+        view = self.w.history_choices
+        first = self.w.history_category_row('uncategorized').child(0)
+        rect = view.visualItemRect(first)
+        x = view.columnWidth(0) + view.columnWidth(1) // 2
+        QTest.mouseClick(view.viewport(), Qt.MouseButton.LeftButton,
+                         pos=QPoint(x, rect.center().y()))
+        self.app.processEvents()
         self.assertEqual(self.w.search_history.keywords, ['FRB*.md', 'make'])
         self.assertEqual(type(self.w.search_history)(self.w.search_history.path).keywords,
                          self.w.search_history.keywords)
+        self.assertEqual(self.w.search_categories.group_items('uncategorized'),
+                         ['FRB*.md', 'make'])
+
+    def test_create_expand_collapse_and_reclassify(self):
+        QTest.keyClicks(self.w.search, '/')
+        self.assertTrue(self.w.history_popup.isVisible())
+        self.assertEqual(self.w.history_choices.topLevelItem(0).data(0, 257), 'session_history')
+        self.assertEqual(self.w.history_choices.topLevelItem(1).data(0, 257), 'uncategorized')
+        self.w.history_choices.structureChanged.emit('keyword', '*.ps1', 'windows', 0)
+        self.assertIn('*.ps1', self.w.search_categories.group_items('windows'))
+        self.w.history_expand_button.click()
+        self.assertTrue(self.w.search_categories.expanded('windows'))
+        self.w.history_collapse_button.click()
+        self.assertFalse(self.w.search_categories.expanded('windows'))
+        self.w.history_expand_button.click()
+        self.assertTrue(self.w.search_categories.expanded('windows'))
 
     def test_slash_paste_is_stripped_and_history_is_only_explicit(self):
         self.w.search.setText('ab/c')

@@ -19,14 +19,16 @@ def test_favorite_controls_inside_round_address_field():
     assert "self.favorite_save.setText('🩶' if registered else '💛')" in VIEW
 
 
-def test_popup_matches_input_width_and_is_taller():
+def test_popup_matches_input_width_and_content_not_twice_the_history_height():
     start = VIEW.index('    def position_directory_favorites(self):')
     end = VIEW.index('    def toggle_directory_favorites(self):', start)
     code = VIEW[start:end]
     assert 'self.address_bar.mapTo(self.launcher' in code
     assert 'width = min(self.address_bar.width()' in code
-    assert 'min(600,' in code
-    assert '* 2' in code
+    assert 'popup_available_height(' in code
+    assert 'popup_tree_height(' in code
+    assert 'footer_top = self.launcher.footer.mapTo(' in code
+    assert '* 2' not in code
     assert 'self.favorite_popup.setGeometry(x, y, width, height)' in code
 
 

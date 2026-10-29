@@ -33,3 +33,29 @@ def resolve_context_target(row, authored_items):
     if authored_cascade_row(row, authored_items):
         return 'studio', None
     return 'none', None
+
+
+def resolve_search_context_target(row, authored_items, expand=None):
+    """Allow an authored *physical directory* to use the search folder menu.
+
+    Outside main search, authored items remain Studio-owned.  Do not infer
+    filesystem authority from the display title or a generic Open action.
+    Require an actual configured browse directory and verify it still exists.
+    """
+    origin, path = resolve_context_target(row, authored_items)
+    if origin != 'studio':
+        return origin, path
+    authored = authored_cascade_row(row, authored_items)
+    if not authored or authored.get('item_kind') != 'directory':
+        return origin, path
+    target = authored.get('launch_browse_target')
+    if not isinstance(target, str) or not target.strip():
+        return origin, path
+    if expand is not None:
+        try:
+            target = expand(target)
+        except (ValueError, OSError, KeyError):
+            return origin, path
+    if isinstance(target, str) and Path(target).is_dir():
+        return 'folder', target
+    return origin, path
