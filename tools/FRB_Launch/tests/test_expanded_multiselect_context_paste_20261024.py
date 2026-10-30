@@ -136,12 +136,17 @@ def test_expanded_paste_copies_all_selected_files_to_destination(tmp_path):
     assert not [x for x in test_state if isinstance(x, tuple) and x[0] == 'error']
 
 
-def test_left_arrow_first_column_follows_explorer_history():
+def test_left_arrow_uses_folder_hierarchy_not_explorer_visit_history():
     fn = isolate(APP, 'Launcher', 'expanded_tree_key', {})
     code = ast.unparse(ast.parse(APP))
-    # Assert structural intent, independent of real Qt tests on Windows.
-    assert 'if pane in (view.middle, view.left):' in code
-    assert 'view.history_back()' in code
+    # The top toolbar buttons retain history; arrow keys never consume it.
+    key_node = ast.parse(APP)
+    owner = next(n for n in key_node.body if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
+    arrow_handler = next(n for n in owner.body if isinstance(n, ast.FunctionDef) and n.name == 'expanded_tree_key')
+    arrow_code = ast.unparse(arrow_handler)
+    assert 'view.navigate_left_from_middle()' in arrow_code
+    assert 'view.history_back()' not in arrow_code
+    assert 'self.expanded_view.history_back()' in code
 
 
 def test_expanded_paste_button_and_reduced_density_icon():

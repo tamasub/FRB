@@ -84,6 +84,9 @@ from logging.handlers import RotatingFileHandler
 from runtime_paths import launch_home
 from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
 from desktop_double_click import DesktopDoubleClick
+from launch_remote import LaunchRemote
+from passive_header_drag import PassiveHeaderDrag
+from remote_navigation import next_area, previous_area, starting_area
 
 # Limit cascade-column width; never let a long description/URL stretch across the screen.
 CASCADE_MAX_WIDTH = 560
@@ -1633,6 +1636,15 @@ class HistoryOutsideClickFilter(QObject):
                 or not getattr(launcher, 'history_popup', None)
                 or not launcher.history_popup.isVisible()):
             return False
+        # The remote is a separate Qt.Tool child window. Its mouse press
+        # precedes WheelPad's release/ENTER command; closing the history here
+        # would discard the selected row before the command can use it.
+        # Treat the visible remote and its buttons/pad as part of the history
+        # interaction, without disabling outside-click dismissal elsewhere.
+        remote = getattr(launcher, 'remote_window', None)
+        if (remote is not None and remote.isVisible()
+                and (obj is remote or remote.isAncestorOf(obj))):
+            return False
         current = obj
         while isinstance(current, QObject):
             if current is launcher.history_popup or current is launcher.search:
@@ -1685,6 +1697,13 @@ class CascadeOutsideClickFilter(QObject):
                     current = current.parent()
             return False
         if event.type() != QEvent.Type.MouseButtonPress:
+            return False
+        # The remote is also a Launcher-owned Qt.Tool. A click on its wheel
+        # must not dismiss the cascade before the semantic ENTER command runs.
+        remote = getattr(launcher, 'remote_window', None)
+        if (remote is not None and remote.isVisible()
+                and isinstance(obj, QWidget)
+                and (obj is remote or remote.isAncestorOf(obj))):
             return False
         current = obj
         while isinstance(current, QObject):
@@ -1800,6 +1819,12 @@ class Launcher(QWidget):
             self.settings.value('dismiss_on_outside_click', 'true'))
         self.folder_open_mode = read_folder_open_mode(
             self.settings.value('folder_open_mode', 'single'))
+        # Opt-in experiment: desktop double-click opens a pointer-side remote.
+        self.remote_on_desktop_double_click = str(self.settings.value(
+            'desktop_remote_enabled', 'false')).lower() in ('true', '1', 'yes', 'on')
+        self.remote_window = None
+        self._remote_area = None
+        self._remote_popup_area = None
         # A retained launcher is a normal taskbar window, NOT an always-on-top Tool.
         # During construction nothing is visible, so changing flags is safe.
         self._apply_window_mode(initial=True)
@@ -1940,6 +1965,16 @@ class Launcher(QWidget):
         self.maximize_button.clicked.connect(self.toggle_maximize_restore)
         self.close_button.clicked.connect(self.dismiss)
 
+        # Reuse the EXISTING header surface as a move handle; do not enlarge
+        # the window or intercept the search edit, settings, or frame buttons.
+        # The search_bar itself receives presses on its top/bottom whitespace,
+        # and the decorative brand widgets receive presses on the title.
+        self._passive_header_drag = PassiveHeaderDrag(self)
+        for surface in (self.search_bar, self.brand_widget,
+                        self.brand_icon_label, self.brand_title_label,
+                        self.header_divider):
+            surface.installEventFilter(self._passive_header_drag)
+
         # Browser-style view navigation is separate from ←/→ keyboard
         # shortcuts used by Page tabs, cascades and recipient selection.
         self.nav_toolbar = QWidget(self)
@@ -2041,6 +2076,12 @@ class Launcher(QWidget):
             action.triggered.connect(
                 lambda checked=False, mode=value: self.set_folder_open_mode(mode))
             self.folder_mode_actions[value] = action
+        self.theme_menu.addSeparator()
+        self.remote_mode_action = self.theme_menu.addAction(
+            '実験：デスクトップダブルクリックでリモコンを表示')
+        self.remote_mode_action.setCheckable(True)
+        self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
+        self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
         self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
@@ -2237,6 +2278,7 @@ class Launcher(QWidget):
         self.list.itemEntered.connect(self.hover)
         self.hover_timer = QTimer(self); self.hover_timer.setSingleShot(True); self.hover_timer.timeout.connect(self.open_hover)
         self.search.installEventFilter(self); self.list.installEventFilter(self); self.tabs.installEventFilter(self)
+        self.expanded_view.address_bar.editor.installEventFilter(self)
         # The thin margins around the Page QTabBar belong to its containing
         # header, not the tab widget; make those blank clicks focus Page 1 too.
         self.mode_bar.installEventFilter(self)
@@ -2391,20 +2433,26 @@ class Launcher(QWidget):
         self.close_button.setIcon(toolbar_outline_icon('close', theme_family(self.color_theme)))
 
     def open_theme_menu(self):
-        """Only visual appearance changes; never write to Launch DataJSON."""
+        """Launch's original settings button uses its existing anchor."""
+        self.open_theme_menu_at(self.theme_button)
+
+    def open_theme_menu_at(self, anchor):
+        """Reuse the settings menu with a different display anchor for Remote."""
         self.close_cascade_for_main_interaction()
         self.hide_history_popup()
         for theme_id, action in self.theme_actions.items():
             action.setChecked(self.color_theme == theme_id)
-        # The menu opens below the cog, aligned to its right edge.  Clamp it
-        # inside the current monitor, even if the launcher is near the edge.
         width = self.theme_menu.sizeHint().width()
-        position = self.theme_button.mapToGlobal(
-            QPoint(self.theme_button.width() - width, self.theme_button.height() + 3))
-        screen = self.theme_button.screen() or QApplication.primaryScreen()
+        height = self.theme_menu.sizeHint().height()
+        position = anchor.mapToGlobal(
+            QPoint(anchor.width() - width, anchor.height() + 3))
+        screen = QApplication.screenAt(anchor.mapToGlobal(QPoint(0, 0))) or QApplication.primaryScreen()
         if screen is not None:
             area = screen.availableGeometry()
             position.setX(max(area.left(), min(position.x(), area.right() - width + 1)))
+            if position.y() + height > area.bottom() + 1:
+                position.setY(anchor.mapToGlobal(QPoint(0, -height - 3)).y())
+            position.setY(max(area.top(), min(position.y(), area.bottom() - height + 1)))
         self.theme_menu.popup(position)
 
     def _apply_window_mode(self, initial=False):
@@ -2445,6 +2493,7 @@ class Launcher(QWidget):
             self.update_header_icons()
 
     def set_dismiss_on_outside_click(self, enabled):
+        self.hide_remote()
         previous = self.dismiss_on_outside_click
         self.dismiss_on_outside_click = bool(enabled)
         if previous != self.dismiss_on_outside_click:
@@ -2455,10 +2504,689 @@ class Launcher(QWidget):
             'Launch外をクリックすると隠します。' if enabled
             else '通常ウィンドウとして表示します。他のアプリの背面へ移動でき、最小化も使えます。')
 
+    def set_desktop_remote_enabled(self, checked):
+        """Opt-in, persisted independently from the existing window modes."""
+        self.remote_on_desktop_double_click = bool(checked)
+        self.settings.setValue('desktop_remote_enabled', self.remote_on_desktop_double_click)
+        self.settings.sync()
+        if not self.remote_on_desktop_double_click:
+            self.hide_remote()
+        self.footer.setText('デスクトップリモコン：' +
+                            ('有効（ダブルクリックで表示）' if checked else '無効'))
+
+    def hide_remote(self):
+        popup = getattr(self, '_remote_popup_area', None)
+        self._remote_popup_area = None
+        if popup == 'search_history':
+            self.hide_history_popup()
+        elif popup == 'folder_history':
+            self.expanded_view.hide_favorite_popup()
+        if self.remote_window is not None and self.remote_window.isVisible():
+            self.remote_window.hide()
+        for pane in (self.expanded_view.left, self.expanded_view.middle,
+                     self.expanded_view.right):
+            pane.tree.remote_logical_active = False
+            pane.tree.remote_highlight_mode = False
+            pane.tree.setProperty('remoteInactive', False)
+            pane.tree.style().unpolish(pane.tree)
+            pane.tree.style().polish(pane.tree)
+            pane.tree.viewport().update()
+
+    def bring_launcher_forward_from_remote_header(self):
+        """Explicit Remote title click: reveal Launcher without changing its current item.
+
+        Keep this strictly on the title surface, not the wheel or command buttons.
+        The remote remains non-activating so a click does not steal keyboard focus.
+        """
+        if not self.isVisible() or self.isMinimized():
+            return
+        # Do not invoke restore_keyboard_focus(): that would change the logical
+        # current selection and could steal input from the user unexpectedly.
+        hwnd = int(self.winId())
+        current = windows.foreground()
+        if current and current != hwnd:
+            windows.activate_keyboard_window(hwnd, expected_foreground=current)
+        self.raise_()
+        # A non-activating Tool may receive clicks while Chrome keeps native
+        # foreground. Temporarily lift the normal Launcher into topmost Z-order,
+        # then immediately restore its normal window classification.
+        windows.set_window_topmost(hwnd, True)
+        windows.set_window_topmost(hwnd, False)
+        windows.raise_normal_window(hwnd)
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None and remote.isVisible():
+            remote.raise_()
+
+    def show_remote_at(self, pointer):
+        """Open at a verified desktop mouse point; do not steal IME focus."""
+        if not self.remote_on_desktop_double_click or not self.isVisible() or self.isMinimized():
+            return
+        if self.remote_window is None:
+            self.remote_window = LaunchRemote(self)
+            self.remote_window.command.connect(self.remote_command)
+            self.remote_window.header_pressed.connect(self.bring_launcher_forward_from_remote_header)
+            self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
+        self.remote_window.apply_theme(self.color_theme)
+        self._remote_popup_area = None
+        self._remote_mouse_last_click = None
+        self._remote_mouse_menu_click = None
+        self._remote_area = starting_area(
+            self._last_focus_area, expanded=self.expanded_view.isVisible())
+        self.remote_focus_area(self._remote_area)
+        self.remote_window.show_at(pointer)
+
+    def remote_focus_area(self, area):
+        """Keep the highlighted current row in the main UI, not in the remote."""
+        if not self.expanded_view.isVisible():
+            if area == 'pages':
+                self.tabs.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif area == 'search':
+                self.search.setFocus(Qt.FocusReason.OtherFocusReason)
+            else:
+                area = 'list'
+                self.list.setFocus(Qt.FocusReason.OtherFocusReason)
+        else:
+            view = self.expanded_view
+            if area == 'search':
+                self.search.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif area == 'pages':
+                self.tabs.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif area == 'breadcrumb':
+                view.address_bar.begin_edit()
+            elif area == 'roots':
+                view.focus_root(item_id=self._last_root_id)
+                # Remote is non-activating: don't rely on Qt.hasFocus() to
+                # identify its logical selection after BackTab/reopen.
+                selected = next((i for i, button in enumerate(view.root_buttons)
+                                 if button.hasFocus()), None)
+                if selected is None and view.root_rows:
+                    selected = next((i for i, row in enumerate(view.root_rows)
+                                     if row.get('item_id') == self._last_root_id), 0)
+                if selected is not None:
+                    self._last_root_id = view.root_rows[selected].get('item_id')
+            else:
+                pane = {'files': view.left, 'directory': view.middle,
+                        'bookmarks': view.right}.get(area)
+                if pane is not None:
+                    view.focus_panel(pane)
+        # A non-activating remote can leave QApplication.focusWidget() outside
+        # Launch. Keep the remote's logical current pane highlighted regardless.
+        if self.expanded_view.isVisible():
+            for name, pane in (('files', self.expanded_view.left),
+                               ('directory', self.expanded_view.middle),
+                               ('bookmarks', self.expanded_view.right)):
+                pane.tree.remote_highlight_mode = True
+                pane.tree.remote_logical_active = (area == name)
+                inactive = area != name
+                if pane.tree.property('remoteInactive') != inactive:
+                    pane.tree.setProperty('remoteInactive', inactive)
+                    pane.tree.style().unpolish(pane.tree)
+                    pane.tree.style().polish(pane.tree)
+                pane.tree.viewport().update()
+        self._remote_area = area
+        if self.remote_window is not None:
+            self.remote_window.set_area(area)
+
+    def remote_history_command(self, command):
+        """Navigate existing history trees directly; no synthetic key events.
+
+        Never call the delete (second) column through a remote command.
+        """
+        area = self._remote_popup_area
+        if area == 'search_history':
+            if not self.history_popup.isVisible():
+                self._remote_popup_area = None
+                self.remote_window.set_area(self._remote_area or 'search')
+                return True
+            tree = self.history_choices
+            visible = self.history_visible_rows()
+            if command in ('UP', 'DOWN') and visible:
+                row = next_wrapped(visible, tree.currentItem(), -1 if command == 'UP' else 1)
+                tree.setCurrentItem(row)
+                tree.scrollToItem(row, QAbstractItemView.ScrollHint.EnsureVisible)
+            elif command in ('ENTER', 'RIGHT'):
+                row = tree.currentItem()
+                if row is not None:
+                    # A keyword selection replaces the visible content with
+                    # classic search results. The main list gains focus in
+                    # select_history_keyword(), but the remote's independent
+                    # routing area must follow it as well. Otherwise the
+                    # highlighted first hit still receives Files-pane clicks.
+                    self.history_row_clicked(row, 0)
+                    # Category clicks leave the popup open. A closed popup
+                    # means a keyword was chosen and results are now active.
+                    if not self.history_popup.isVisible():
+                        self._remote_area = 'list'
+                        self._remote_mouse_last_click = None
+            elif command == 'LEFT':
+                row = tree.currentItem()
+                if row is not None and row.data(0, ROLE_KIND) == 'category':
+                    row.setExpanded(False)
+                else:
+                    self.hide_history_popup()
+            if not self.history_popup.isVisible():
+                self._remote_popup_area = None
+                self.remote_window.set_area(self._remote_area or 'search')
+            return True
+        if area == 'folder_history':
+            view = self.expanded_view
+            if not view.favorite_popup.isVisible():
+                self._remote_popup_area = None
+                self.remote_window.set_area(self._remote_area or 'directory')
+                return True
+            tree = view.favorite_choices
+            if command in ('UP', 'DOWN'):
+                row = move_tree_selection(tree, -1 if command == 'UP' else 1)
+                if row is not None:
+                    tree.scrollToItem(row, QAbstractItemView.ScrollHint.EnsureVisible)
+            elif command in ('RIGHT', 'ENTER'):
+                row = tree.currentItem()
+                if row is not None:
+                    view.directory_favorite_clicked(row, 0)
+            elif command == 'LEFT':
+                view.hide_favorite_popup()
+            if not view.favorite_popup.isVisible():
+                self._remote_popup_area = None
+                self.remote_window.set_area(self._remote_area or 'directory')
+            return True
+        return False
+
+    def remote_cascade_command(self, command):
+        """Drive the *visible* cascade selection, not the background list.
+
+        The remote does not send virtual keys. It works with QAction and the
+        existing scroll-tree model, matching the menu's native Return/Right
+        semantics without giving the popup or IME editor keyboard focus.
+        """
+        menu = getattr(self, 'menu', None)
+        if menu is None or not menu.isVisible():
+            return False
+        # Always target the last open child column of a cascading menu.
+        while (isinstance(getattr(menu, 'child', None), CascadeMenu)
+               and menu.child.isVisible()):
+            menu.open_mode = 'keyboard'
+            menu.outside_since = None
+            menu = menu.child
+        menu.open_mode = 'keyboard'
+        menu.outside_since = None
+        menu.hover_timer.stop()
+
+        if command in ('CLICK', 'DOUBLE_CLICK'):
+            action = menu.activeAction()
+            if action is not None and action.isEnabled():
+                row = action.data()
+                folder = isinstance(row, dict) and row.get('item_kind') in ('category', 'directory')
+                opener = action in menu.openers
+                double_folder = (folder and opener and
+                                 menu._double_folder_mode())
+                token = (id(menu), id(action))
+                if command == 'CLICK':
+                    self._remote_mouse_menu_click = token
+                    if double_folder:
+                        menu.setActiveAction(action)  # Select; second click opens.
+                    elif opener and folder and row.get('item_kind') == 'directory':
+                        # Match the menu's native wait for a possible second
+                        # click, which may instead launch this folder.
+                        menu._queue_folder_single_click(action)
+                    elif opener:
+                        menu.open_current('keyboard')
+                    elif isinstance(row, dict):
+                        self.run_menu_item(row)
+                    elif action.property('launch_right_arrow_executes'):
+                        action.trigger()
+                elif token == getattr(self, '_remote_mouse_menu_click', None):
+                    self._remote_mouse_menu_click = None
+                    if double_folder:
+                        menu.open_current('keyboard')
+                    elif folder and row.get('item_kind') == 'directory':
+                        menu.folder_click_timer.stop()
+                        menu._folder_click_action = None
+                        self.run_menu_item(row)
+                    # A leaf already executed on the first click. Never run twice.
+            else:
+                self._remote_mouse_menu_click = None
+            if self.remote_window is not None:
+                self.remote_window.set_area(
+                    'cascade' if self.menu is not None and self.menu.isVisible()
+                    else (self._remote_area or 'list'))
+            return True
+
+        if command in ('UP', 'DOWN'):
+            direction = -1 if command == 'UP' else 1
+            if isinstance(menu, AppCascadeMenu):
+                item = move_tree_selection(menu.tree, direction)
+                if item is not None:
+                    menu.tree.scrollToItem(item, QAbstractItemView.ScrollHint.EnsureVisible)
+            elif menu.filter_action is not None:
+                menu._move_filtered_selection(direction)
+            else:
+                actions = [a for a in menu.actions()
+                           if a.isVisible() and a.isEnabled() and not a.isSeparator()
+                           and (isinstance(a.data(), dict)
+                                or bool(a.property('launch_right_arrow_executes')))]
+                if actions:
+                    menu.setActiveAction(next_wrapped(actions, menu.activeAction(), direction))
+        elif command == 'LEFT':
+            menu.close_one_level()
+        elif command in ('RIGHT', 'ENTER'):
+            action = menu.activeAction()
+            if action is not None and action.isEnabled():
+                row = action.data()
+                if isinstance(menu, AppCascadeMenu):
+                    if isinstance(row, dict):
+                        self.run_menu_item(row)
+                elif command == 'RIGHT':
+                    if action in menu.openers:
+                        menu.open_current('keyboard')
+                    elif action.property('launch_right_arrow_executes'):
+                        action.trigger()
+                    elif isinstance(row, dict):
+                        self.run_menu_item(row)
+                elif isinstance(row, dict) and row.get('item_kind') == 'directory':
+                    self.run_menu_item(row)
+                elif action in menu.openers:
+                    menu.open_current('keyboard')
+                elif isinstance(row, dict):
+                    self.run_menu_item(row)
+                elif action.property('launch_right_arrow_executes'):
+                    action.trigger()
+        else:
+            return False
+        if self.remote_window is not None:
+            self.remote_window.set_area(
+                'cascade' if self.menu is not None and self.menu.isVisible()
+                else (self._remote_area or 'list'))
+        return True
+
+    def remote_mouse_click(self, *, double=False):
+        """Dispatch the wheel pad like the real mouse, not the Enter key.
+
+        Native clicks select/preview; native double-clicks activate. Folder
+        clicks respect the configured mode, except first-column folders and
+        bookmark folders which always use their native single-click policy.
+        """
+        expanded = self.expanded_view.isVisible()
+        area = self._remote_area or starting_area(
+            self._last_focus_area, expanded=expanded)
+        if double:
+            # A popup may have been closed by the first click. It must never
+            # reactivate the background list on the second mouse press.
+            if getattr(self, '_remote_popup_area', None):
+                return
+            dispatch_cascade = getattr(self, 'remote_cascade_command', None)
+            if dispatch_cascade is not None and dispatch_cascade('DOUBLE_CLICK'):
+                return
+        else:
+            if getattr(self, '_remote_popup_area', None):
+                self._remote_mouse_last_click = None
+                if self.remote_history_command('ENTER'):
+                    return
+            if area == 'search':
+                self._remote_mouse_last_click = None
+                if not self.history_popup.isVisible():
+                    self.show_history_popup()
+                if self.history_popup.isVisible():
+                    self._remote_popup_area = 'search_history'
+                    self.remote_window.set_area('search_history')
+                return
+            dispatch_cascade = getattr(self, 'remote_cascade_command', None)
+            if dispatch_cascade is not None and dispatch_cascade('CLICK'):
+                self._remote_mouse_last_click = None
+                return
+
+        if expanded and area == 'breadcrumb':
+            self._remote_mouse_last_click = None
+            if not double:
+                self.expanded_view.address_bar._submit()
+            return
+        if area in ('pages',):
+            self._remote_mouse_last_click = None
+            # The selected Page tab is already current; no Enter-style jump.
+            return
+        view = self.expanded_view
+        expanded = view.isVisible()
+        if expanded and area == 'roots':
+            self._remote_mouse_last_click = None
+            if double or not view.root_buttons:
+                return
+            current = next((i for i, button in enumerate(view.root_buttons)
+                            if button.hasFocus()), None)
+            if current is None:
+                current = next((i for i, row in enumerate(view.root_rows)
+                                if row.get('item_id') == self._last_root_id), 0)
+            view.root_action(view.root_rows[current], view.root_buttons[current])
+            return
+        if not expanded:
+            if area != 'list':
+                self._remote_mouse_last_click = None
+                return
+            item = self.list.currentItem()
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item is not None else None
+            target = ('list', row.get('item_id') or id(row)) if isinstance(row, dict) else None
+            if double:
+                if (target is not None and target == getattr(self, '_remote_mouse_last_click', None)
+                        and not (getattr(self, 'selection', None) or
+                                 (isinstance(row, dict) and row.get('_search_selection_owner')))):
+                    self.activate(row)
+                self._remote_mouse_last_click = None
+            else:
+                self._remote_mouse_last_click = target
+                # A mouse click on a recipient's checkbox toggles it. Qt's
+                # itemChanged handler owns the existing selection logic.
+                if (isinstance(row, dict) and row.get('choice_id') and
+                        (getattr(self, 'selection', None) or row.get('_search_selection_owner'))):
+                    checked = item.checkState(0) == Qt.CheckState.Checked
+                    item.setCheckState(0, Qt.CheckState.Unchecked if checked
+                                       else Qt.CheckState.Checked)
+            return
+
+        pane = {'files': view.left, 'directory': view.middle,
+                'bookmarks': view.right}.get(area)
+        if pane is None:
+            return
+        item = pane.tree.currentItem()
+        row = view.row_data(item)
+        if row is None:
+            self._remote_mouse_last_click = None
+            return
+        target = (area, row.get('item_id') or row.get('path') or id(row))
+        if double:
+            if target != getattr(self, '_remote_mouse_last_click', None):
+                self._remote_mouse_last_click = None
+                return
+            self._remote_mouse_last_click = None
+        else:
+            self._remote_mouse_last_click = target
+        folder = row.get('item_kind') in ('category', 'directory')
+        if pane is view.left:
+            if not double:
+                view.choose_files(item, 0)
+            elif not folder:
+                view.activate_row(pane, item)
+        elif pane is view.middle:
+            if folder:
+                if double:
+                    if getattr(self, 'folder_open_mode', 'single') == 'double':
+                        view.activate_row(pane, item)
+                else:
+                    view.choose_middle(item, 0)
+            elif double:
+                view.activate_row(pane, item)
+        elif pane is view.right:
+            if folder:
+                if not double:
+                    view.choose_bookmark(item, 0)
+            elif double:
+                view.activate_row(pane, item)
+
+    def remote_context_menu(self):
+        """Open the selected object's existing menu beside the wheel pad."""
+        remote = getattr(self, 'remote_window', None)
+        if remote is None or not remote.isVisible():
+            return
+        pad = remote.pad
+        pos = pad.mapToGlobal(QPoint(pad.width() + 4, 0))
+        cascade = getattr(self, 'menu', None)
+        if cascade is not None and cascade.isVisible():
+            while (isinstance(getattr(cascade, 'child', None), CascadeMenu)
+                   and cascade.child.isVisible()):
+                cascade = cascade.child
+            action = cascade.activeAction()
+            row = action.data() if action is not None else None
+            if isinstance(row, dict):
+                self.show_launch_context_menu(pos, row, context_parent=cascade)
+            return
+        if getattr(self, '_remote_popup_area', None):
+            return
+        expanded = self.expanded_view.isVisible()
+        area = self._remote_area or starting_area(self._last_focus_area, expanded=expanded)
+        if not expanded and area == 'list':
+            item = self.list.currentItem()
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+            if isinstance(row, dict):
+                self.show_launch_context_menu(pos, row)
+            return
+        if not expanded:
+            return
+        view = self.expanded_view
+        pane = {'files': view.left, 'directory': view.middle,
+                'bookmarks': view.right}.get(area)
+        if pane is None:
+            return
+        item = pane.tree.currentItem()
+        if item is None:
+            if pane is view.middle and view.current_directory():
+                self.show_expanded_background_paste_menu(pos)
+            return
+        rect = pane.tree.visualItemRect(item)
+        if rect.isValid():
+            view.context_menu(pane, rect.center(), global_pos=pos)
+
+    def update_remote_more_menu(self):
+        """Reflect the same enabled state as the breadcrumb heart control."""
+        remote = getattr(self, 'remote_window', None)
+        if remote is None:
+            return
+        view = self.expanded_view
+        available = bool(view.isVisible() and view.favorite_save.isEnabled()
+                         and view.current_directory())
+        # Match the three icons on their actual Launch controls, including
+        # theme changes and the heart's registered/unregistered state.
+        remote.update_more_menu_icons(self.theme_button.icon(),
+                                      self.history_category_action.icon(),
+                                      view.favorite_save.text())
+        remote.set_favorite_action_available(available)
+
+    def remote_command(self, command):
+        """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        if command == 'CLOSE':
+            self.hide_remote()
+            return
+        if not self.isVisible() or self.isMinimized():
+            self.hide_remote()
+            return
+        if command == 'MORE_MENU':
+            self.update_remote_more_menu()
+            self.remote_window.show_more_menu()
+            return
+        if command == 'REMOTE_SETTINGS':
+            # Wait until the Remote QMenu has closed before opening the
+            # Launcher settings menu, avoiding Qt popup-to-popup races.
+            QTimer.singleShot(0, lambda: self.open_theme_menu_at(self.remote_window.more_button))
+            return
+        if command == 'REMOTE_CATEGORY_ADD':
+            # Reuse the search + QAction after the popup is dismissed, so
+            # the native text-input dialog can take focus normally.
+            QTimer.singleShot(0, self.history_category_action.trigger)
+            return
+        if command == 'REMOTE_FAVORITE_SAVE':
+            # Exactly the same QToolButton as the breadcrumb heart.
+            view = self.expanded_view
+            if view.isVisible() and view.current_directory() and view.favorite_save.isEnabled():
+                view.favorite_save.click()
+            return
+        if command == 'CONTEXT_MENU':
+            self.remote_context_menu()
+            return
+        if command == 'FOLDER_UP':
+            if self.expanded_view.isVisible():
+                self.expanded_view.go_up()
+                self.remote_focus_area('directory')
+            return
+        if command not in ('CLICK', 'DOUBLE_CLICK'):
+            self._remote_mouse_last_click = None
+            self._remote_mouse_menu_click = None
+        expanded = self.expanded_view.isVisible()
+        area = self._remote_area or starting_area(self._last_focus_area, expanded=expanded)
+        if command == 'SEARCH_HISTORY':
+            if getattr(self, '_remote_popup_area', None) == 'search_history' and self.history_popup.isVisible():
+                self.hide_history_popup()
+                self._remote_popup_area = None
+            else:
+                self.show_history_popup()
+                if self.history_popup.isVisible():
+                    self._remote_popup_area = 'search_history'
+            self.remote_window.set_area(self._remote_popup_area or area)
+            return
+        if command == 'FOLDER_HISTORY':
+            view = self.expanded_view
+            if getattr(self, '_remote_popup_area', None) == 'folder_history' and view.favorite_popup.isVisible():
+                view.hide_favorite_popup()
+                self._remote_popup_area = None
+            else:
+                # Breadcrumbs only exist in the three-layer Files view. Avoid
+                # changing the user's stored view preference in classic mode.
+                if not view.isVisible():
+                    self.remote_window.set_area('directory')
+                    return
+                view.toggle_directory_favorites()
+                if view.favorite_popup.isVisible():
+                    self._remote_popup_area = 'folder_history'
+            self.remote_window.set_area(self._remote_popup_area or area)
+            return
+        if command == 'HOME':
+            if getattr(self, '_remote_popup_area', None) == 'search_history':
+                self.hide_history_popup()
+            elif getattr(self, '_remote_popup_area', None) == 'folder_history':
+                self.expanded_view.hide_favorite_popup()
+            self._remote_popup_area = None
+            self.navigate_home()
+            expanded = self.expanded_view.isVisible()
+            self.remote_focus_area('files' if expanded else 'list')
+            return
+        if command == 'SEARCH':
+            self.hide_remote()
+            # A non-activating Tool can disappear without giving the launcher
+            # native foreground status. This is a direct user click: repair the
+            # normal-window Z-order before handing control to the IME editor.
+            self.raise_()
+            if not self.dismiss_on_outside_click:
+                windows.raise_normal_window(int(self.winId()))
+            self.activateWindow()
+            self.focus_search()
+            QTimer.singleShot(0, self.focus_search)
+            return
+        if command in ('TAB', 'BACKTAB'):
+            if getattr(self, '_remote_popup_area', None) == 'search_history':
+                self.hide_history_popup()
+            elif getattr(self, '_remote_popup_area', None) == 'folder_history':
+                self.expanded_view.hide_favorite_popup()
+            self._remote_popup_area = None
+            target = (previous_area(area, expanded=expanded) if command == 'BACKTAB'
+                      else next_area(area, expanded=expanded))
+            self.remote_focus_area(target)
+            return
+        if command in ('CLICK', 'DOUBLE_CLICK'):
+            self.remote_mouse_click(double=command == 'DOUBLE_CLICK')
+            return
+        if command not in ('UP', 'DOWN', 'LEFT', 'RIGHT', 'ENTER'):
+            return
+        if getattr(self, '_remote_popup_area', None) and self.remote_history_command(command):
+            return
+        # A nested cascade is visually in front of the main results. Route
+        # the wheel/click to that column before considering the background.
+        dispatch_cascade = getattr(self, 'remote_cascade_command', None)
+        if dispatch_cascade is not None and dispatch_cascade(command):
+            return
+        step = (-1 if command in ('UP', 'LEFT') else 1)
+        if area == 'search':
+            if command == 'ENTER':
+                self.hide_remote()
+                self.focus_search()
+            elif command in ('UP', 'DOWN'):
+                self.remote_focus_area('directory' if expanded else 'list')
+                self.remote_command(command)
+            return
+        if area == 'breadcrumb':
+            view = self.expanded_view
+            if command in ('UP', 'DOWN'):
+                view.preview_directory_favorite_steps(step)
+            elif command in ('ENTER', 'RIGHT'):
+                view.address_bar._submit()
+            return
+        if area == 'pages':
+            if command in ('LEFT', 'RIGHT', 'UP', 'DOWN') and self.tabs.count():
+                index = max(0, min(self.tabs.count() - 1,
+                                   self.tabs.currentIndex() + step))
+                self.tabs.setCurrentIndex(index)
+            elif command == 'ENTER':
+                self.remote_focus_area('roots' if expanded else 'list')
+            return
+        if not expanded:
+            tree = self.list
+            if command in ('UP', 'DOWN'):
+                move_tree_selection(tree, step)
+                tree.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif command == 'LEFT':
+                self.go_back()
+            elif command in ('RIGHT', 'ENTER'):
+                item = tree.currentItem()
+                if item is not None:
+                    row = item.data(0, Qt.ItemDataRole.UserRole)
+                    if row is not None:
+                        self.activate(row)
+            return
+        view = self.expanded_view
+        if area == 'roots':
+            if not view.root_buttons:
+                return
+            # The Remote has a logical selection even when Windows focus is
+            # elsewhere. It must be authoritative for wheel/arrow/activation.
+            current = next((i for i, row in enumerate(view.root_rows)
+                            if row.get('item_id') == self._last_root_id), 0)
+            if command in ('UP', 'DOWN', 'LEFT', 'RIGHT'):
+                current = root_step(current, step, len(view.root_buttons))
+                view.focus_root(index=current)
+                self._last_root_id = view.root_rows[current].get('item_id')
+            else:
+                view.root_action(view.root_rows[current], view.root_buttons[current])
+            return
+        pane = {'files': view.left, 'directory': view.middle,
+                'bookmarks': view.right}.get(area)
+        if pane is None:
+            return
+        tree = pane.tree
+        if command in ('UP', 'DOWN'):
+            item = move_tree_selection(tree, step)
+            if item is not None and pane is view.left:
+                view.choose_files(item, 0)
+            return
+        if command == 'LEFT':
+            if pane is view.middle:
+                target = view.navigate_left_from_middle()
+                if target == 'files':
+                    self.remote_focus_area('files')
+            elif pane is view.right:
+                self.remote_focus_area('directory')
+            # Files first column is already the leftmost folder column.
+            return
+        item = tree.currentItem()
+        if item is None:
+            return
+        row = view.row_data(item)
+        if row is None:
+            return
+        if command == 'ENTER':
+            view.enter_row(pane, item)
+            return
+        if command == 'RIGHT':
+            folder = row.get('item_kind') in ('category', 'directory')
+            action = row_right_action(area, folder)
+            if action == 'enter_directory_panel':
+                view.choose_files(item, 0)
+                self.remote_focus_area('directory')
+            elif action == 'descend':
+                view.navigate_middle(row)
+            elif action == 'cascade':
+                view.open_cascade(row, tree, item)
+            else:
+                self.activate(row)
+
     def minimize_launcher(self):
         """Native minimization; tray/global hotkey can restore this window."""
         if self.dismiss_on_outside_click:
             return  # Legacy mode has no minimize command.
+        getattr(self, 'hide_remote', lambda: None)()
         self.hide_history_popup()
         self.expanded_view.hide_favorite_popup()
         if self.menu:
@@ -2570,6 +3298,8 @@ class Launcher(QWidget):
         self.tabs.setStyleSheet(LIGHT_TABS_QSS if light else PAGE_TABS_QSS)
         self.tabs.set_light_theme(light)
         self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
+        if getattr(self, 'remote_window', None) is not None:
+            self.remote_window.apply_theme(self.color_theme)
         self.history_filter.setStyleSheet(
             'QLineEdit#historyFilter { border:1px solid %s; border-radius:6px; '
             'padding:2px 8px; background:%s; color:%s; font-size:13px; }'
@@ -3460,6 +4190,11 @@ class Launcher(QWidget):
         view = self.expanded_view
         expanded = view.isVisible()
         area = focus_area_for_reopen(state['area'], expanded=expanded)
+        # Explorer-first reopen: non-panel anchors (Page, root button, search)
+        # start in the first row of Files column 1, without losing paths.
+        first_files_on_reopen = expanded and area not in ('files', 'directory', 'bookmarks')
+        if first_files_on_reopen:
+            area = 'files'
         self._restoring_last_focus = True
         try:
             if expanded:
@@ -3480,7 +4215,13 @@ class Launcher(QWidget):
                     if os.path.isdir(stored_path):
                         view.path = [directory_row(stored_path)]
                         view.refresh_middle()
-                self._focus_tree_row(view.left.tree, state.get('left_id'))
+                if first_files_on_reopen:
+                    tree = view.left.tree
+                    if tree.topLevelItemCount():
+                        tree.setCurrentItem(tree.topLevelItem(0))
+                        tree.scrollToItem(tree.topLevelItem(0))
+                else:
+                    self._focus_tree_row(view.left.tree, state.get('left_id'))
                 self._focus_tree_row(view.middle.tree, state.get('middle_id'))
                 self._focus_tree_row(view.right.tree, state.get('bookmarks_id'))
                 if area == 'roots':
@@ -3502,6 +4243,8 @@ class Launcher(QWidget):
                 else:
                     self.search.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
             self._last_focus_area = area
+            if expanded and self.remote_window is not None and self.remote_window.isVisible():
+                self.remote_focus_area(area)
             if area == 'roots':
                 self._last_root_id = state.get('item_id')
         finally:
@@ -3609,6 +4352,7 @@ class Launcher(QWidget):
                   reason, active, before, windows.foreground(), self._last_focus_area)
 
     def dismiss(self):
+        self.hide_remote()
         self.finish_cloud_link_handoff()
         if self.isVisible():
             self.save_last_current()
@@ -3676,6 +4420,7 @@ class Launcher(QWidget):
                 or (context is not None and context.isVisible())):
             return
         if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
+            self.hide_remote()
             if getattr(self, 'dismiss_on_outside_click', True):
                 self.dismiss()
             else:
@@ -4222,6 +4967,16 @@ class Launcher(QWidget):
     def navigate_home(self):
         if not self.data or not self.pages:
             return
+        if self.expanded_view.isVisible():
+            view = self.expanded_view
+            first = view.left.tree.topLevelItem(0)
+            if first is not None:
+                view.left.tree.setCurrentItem(first)
+                view.choose_files(first, 0)
+            view.focus_panel(view.left)
+            if self.remote_window is not None and self.remote_window.isVisible():
+                self.remote_focus_area('files')
+            return
         self._nav_before_change()
         self._nav_restoring = True
         try:
@@ -4380,6 +5135,16 @@ class Launcher(QWidget):
             return
         pos=QCursor.pos() if pos is None else pos
         now=time.monotonic() if now is None else now
+        remote = getattr(self, 'remote_window', None)
+        if (remote is not None and remote.isVisible()
+                and remote.rect().contains(remote.mapFromGlobal(pos))):
+            # A hover-opened cascade must survive travel back to the remote;
+            # a menu is dismissed by explicit commands, not the wheel hotspot.
+            column = self.menu
+            while column is not None and column.isVisible():
+                column.outside_since = None
+                column = column.child
+            return
         # Stop delayed opens as soon as their originating row is left.
         if self.pending_menu_item and self.list.itemAt(self.list.viewport().mapFromGlobal(pos))!=self.pending_menu_item:
             self.hover_timer.stop();self.pending_menu_item=None
@@ -5512,6 +6277,8 @@ class Launcher(QWidget):
             return 'search'
         if obj is self.tabs:
             return 'pages'
+        if obj in (self.expanded_view.address_bar.editor, self.expanded_view.address_bar):
+            return 'breadcrumb'
         if obj in self.expanded_view.root_buttons:
             return 'roots'
         for name, pane in (('files', self.expanded_view.left),
@@ -5546,6 +6313,8 @@ class Launcher(QWidget):
             self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             view.focus_root()
+        elif target == 'breadcrumb':
+            view.address_bar.begin_edit()
         elif target == 'files':
             view.focus_panel(view.left)
         elif target == 'directory':
@@ -5683,14 +6452,19 @@ class Launcher(QWidget):
             else:
                 self.dismiss()
         elif key == Qt.Key.Key_Left:
-            if pane in (view.middle, view.left):
-                # Left follows the Explorer visit history, NOT the directory
-                # hierarchy. Use the up-arrow in the breadcrumb for parent.
-                view.history_back()
-            else:
-                # Bookmarks is already a permanent panel, not a hidden
-                # toolbar button. Left should move to the adjacent column.
+            if pane is view.middle:
+                target = view.navigate_left_from_middle()
+                # The Remote can remain open while the user uses the real
+                # keyboard. Keep its independent routing target in sync.
+                remote = getattr(self, 'remote_window', None)
+                if remote is not None and remote.isVisible():
+                    self._remote_area = target
+                    remote.set_area(target)
+            elif pane is view.right:
+                # Bookmarks' adjacent column is Files' active directory.
                 view.focus_panel(view.middle)
+            # Files first column is already the leftmost folder column.
+            # The top-left Back button alone navigates visit history.
         elif key == Qt.Key.Key_Right:
             item = pane.tree.currentItem()
             if item is not None:
@@ -6012,7 +6786,7 @@ class Launcher(QWidget):
                 return True
         if event.type() == QEvent.Type.KeyPress and hasattr(self, 'expanded_view'):
             view = self.expanded_view
-            expanded_sources = (view.root_buttons + [pane.tree for pane in
+            expanded_sources = (view.root_buttons + [view.address_bar.editor] + [pane.tree for pane in
                 (view.left, view.middle, view.right)] + [pane.tree.viewport() for pane in
                 (view.left, view.middle, view.right)])
             if view.isVisible() and obj in expanded_sources:
@@ -7161,7 +7935,7 @@ def main():
         was_hidden = not window.isVisible() or window.isMinimized()
         if was_hidden:
             window.summon()  # Tray-hidden and native-minimized states.
-        elif not window.dismiss_on_outside_click:
+        elif not window.dismiss_on_outside_click or getattr(window, 'remote_on_desktop_double_click', False):
             # Ordinary-window mode: desktop double-click is an explicit summon,
             # even when the launcher is already visible behind another app.
             # Never call summon() here; that toggles a visible window off.
@@ -7187,8 +7961,13 @@ def main():
             if click is not None and not windows.desktop_click_still_last_input(click.tick):
                 DIAG.info('DESKTOP_ACTIVATE_CANCELLED reason=%s last_input_changed', reason)
                 return
+            # The first pass restores saved focus. The retry must not
+            # overwrite navigation the user has already begun via the remote.
+            restore_on_pass = (restore and reason == 'desktop_first'
+                               if getattr(window, 'remote_on_desktop_double_click', False)
+                               else restore)
             window.restore_keyboard_focus(
-                expected_foreground, reason, restore_current=restore,
+                expected_foreground, reason, restore_current=restore_on_pass,
                 **({'desktop_input_hwnd': click.view} if click is not None else {}))
             if not window.dismiss_on_outside_click and window.isVisible():
                 # Explicit native Z-order repair.  Qt.raise_() and focus
@@ -7197,6 +7976,11 @@ def main():
                 raised = windows.raise_normal_window(int(window.winId()))
                 DIAG.info('DESKTOP_ZORDER reason=%s raised=%s active=%s foreground=%s',
                           reason, raised, window.isActiveWindow(), windows.foreground())
+            # One popup per desktop gesture, after the first native activation
+            # pass. Do not reopen after the user has begun another operation.
+            if reason == 'desktop_first' and getattr(window, 'remote_on_desktop_double_click', False):
+                point = (QPoint(click.x, click.y) if click is not None else QCursor.pos())
+                window.show_remote_at(point)
 
         for delay, reason in ((0, 'desktop_first'), (120, 'desktop_retry')):
             QTimer.singleShot(delay, lambda r=reason, restore=was_hidden:

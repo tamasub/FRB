@@ -95,6 +95,7 @@ class View:
     def navigate_middle(self, row): self.actions.append(('descend', row['item_id']))
     def go_up(self, **kwargs): self.actions.append(('up', kwargs))
     def history_back(self): self.actions.append(('history_back',))
+    def navigate_left_from_middle(self): self.actions.append(('left_hierarchy',)); return 'directory'
     def history_forward(self): self.actions.append(('history_forward',))
     def row_data(self, item): return item.value
     def enter_row(self, panel, item): self.actions.append(('enter', item.value['item_id']))
@@ -131,11 +132,11 @@ def test_right_from_middle_descends_but_does_not_execute():
     assert d.expanded_view.actions[-1] == ('execute', 'run')
 
 
-def test_left_from_middle_and_files_returns_to_explorer_history():
+def test_left_from_middle_uses_hierarchy_and_leftmost_files_is_stable():
     d = instance()
     assert d.expanded_tree_key(d.expanded_view.middle.tree, event('Left'))
     assert d.expanded_tree_key(d.expanded_view.left.tree, event('Left'))
-    assert d.expanded_view.actions == [('history_back',), ('history_back',)]
+    assert d.expanded_view.actions == [('left_hierarchy',)]
 
 
 def test_alt_right_forward_but_plain_right_enters_directory():

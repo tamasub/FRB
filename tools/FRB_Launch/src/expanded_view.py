@@ -15,6 +15,7 @@ from directory_address import (breadcrumb_segments, compact_segments,
                                directory_row, row_directory, normalized_directory)
 from browser_nav_icons import browser_navigation_icon
 from directory_navigation_history import DirectoryNavigationHistory
+from expanded_left_navigation import matching_first_row
 from popup_sizing import popup_available_height, popup_tree_height
 from system_drives import drive_rows, pc_preview_row
 from expanded_view_model import toolbar_roots, root_wheel_target
@@ -258,6 +259,8 @@ class _SeparatedFileTree(ExternalFileDragTree):
         self.separator_inset = 12
         self.separator_width = 0.65
         self.inactive_current_border = QColor('#8fc7ab')
+        self.remote_logical_active = False
+        self.remote_highlight_mode = False
         self.adaptive_wheel_callback = None  # Only enabled on Files middle pane.
 
     def wheelEvent(self, event):
@@ -346,7 +349,8 @@ class _SeparatedFileTree(ExternalFileDragTree):
                 return
         # Keep a single pale-green active column. A different pane's current
         # item remains visible as an outline, with no filled selection behind it.
-        focused = self._column_is_focused()
+        focused = (self.remote_logical_active if self.remote_highlight_mode
+                   else self._column_is_focused())
         row_option = option
         if not focused:
             row_option = QStyleOptionViewItem(option)
@@ -500,8 +504,6 @@ class DirectoryAddressBar(QStackedWidget):
         self.setToolTip(self.current_path or self._fallback_label)
 
     def begin_edit(self):
-        if not self.current_path:
-            return
         self.editor.setText(self.current_path)
         self.setCurrentWidget(self.editor)
         self._position_dropdown()
@@ -1068,7 +1070,12 @@ class ExpandedLauncherView(QWidget):
             QTreeWidget#expandedTree::item {{min-height:{height}px;padding:{pad}px 7px;border:0;}}
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
             QTreeWidget#expandedTree::item:selected {{background:{active};color:{text};}}
-            QTreeWidget#expandedTree::item:selected:!active {{background:transparent;color:{text};}}
+            QTreeWidget#expandedTree::item:selected:!active {{background:{active};color:{text};}}
+            /* Remote controls the logical current pane. Noncurrent panes keep
+               their current selection for navigation, but never paint its fill.
+               A QSS selected background is drawn separately from drawRow. */
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected {{background:transparent;color:{text};}}
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:transparent;color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
             QFrame#addressBreadcrumbSurface {{border:1px solid {border};border-radius:17px;background:{bg};}}
@@ -1390,6 +1397,14 @@ class ExpandedLauncherView(QWidget):
         if not steps:
             return True
         # Preview one favorite path per notch without activating it.
+        return self.preview_directory_favorite_steps(steps)
+
+    def preview_directory_favorite_steps(self, steps):
+        """Preview saved paths without navigation; used by native and Remote wheels."""
+        paths = self.folder_favorites.paths
+        if not paths or not steps:
+            return False
+        bar = self.address_bar
         current = bar.editor.text() if bar.currentWidget() is bar.editor else bar.current_path
         import ntpath
         found = next((i for i, path in enumerate(paths)
@@ -1608,6 +1623,13 @@ class ExpandedLauncherView(QWidget):
         self.path = [directory_row(target)]
         self.refresh_middle()
         self.focus_panel(self.middle)
+        # A direct breadcrumb/address navigation changes the real keyboard
+        # target to Files column 2.  Keep an already-open Remote on that same
+        # target; otherwise its Left button can still point to column 1 and
+        # silently do nothing while the physical Left key ascends normally.
+        remote = getattr(self.launcher, 'remote_window', None)
+        if remote is not None and remote.isVisible():
+            self.launcher.remote_focus_area('directory')
         return True
 
     def select_middle_file(self, filename):
@@ -2762,6 +2784,83 @@ class ExpandedLauncherView(QWidget):
         self.toolbar_scroller.ensureWidgetVisible(button)
         button.setFocus(Qt.FocusReason.TabFocusReason)
 
+    def navigate_left_from_middle(self):
+        """Move the current highlight left through *hierarchy*, not history.
+
+        First Left selects the top row of the displayed second column. Once
+        there, each Left ascends a directory and highlights the directory
+        just left in its parent's listing, until the displayed directory
+        matches a first-column shortcut. Then focus that shortcut. This is
+        independent of how the directory was opened: if there is no matching
+        first-column shortcut, continue to the filesystem root, then focus the
+        first row of the first column. Never get stuck in the second column.
+        """
+        middle_tree = self.middle.tree
+        first_middle = next((middle_tree.topLevelItem(i)
+                             for i in range(middle_tree.topLevelItemCount())
+                             if self.row_data(middle_tree.topLevelItem(i)) is not None), None)
+        if first_middle is not None and middle_tree.currentItem() is not first_middle:
+            middle_tree.setCurrentItem(first_middle)
+            self.focus_panel(self.middle)
+            return 'directory'
+
+        first_tree = self.left.tree
+        first_items = [first_tree.topLevelItem(i)
+                       for i in range(first_tree.topLevelItemCount())]
+        first_rows = [self.row_data(item) for item in first_items]
+        current = self.path[-1] if self.path else None
+        expand = self.launcher.expander().expand
+        found = matching_first_row(current, first_rows, expand)
+        if found is not None:
+            first_tree.setCurrentItem(first_items[found])
+            # Only change focus; changing the Files preview here would replace
+            # the displayed folder before the user selects a different row.
+            self.focus_panel(self.left)
+            return 'files'
+
+        # Preserve the *directory being left*, not an old navigation origin.
+        # After showing its parent, highlight that directory in the listing.
+        child_to_reselect = self.path[-1] if self.path else None
+        if len(self.path) > 1:
+            # Walk the existing hierarchy (not the visit-history stack).
+            self.path.pop()
+        else:
+            # The route is derived ONLY from the currently displayed path.
+            # Direct address, favorite, search, and first-column navigation
+            # must all climb in exactly the same way, regardless of whether
+            # a matching Files shortcut is somewhere above the current path.
+            import ntpath
+            current_path = self.current_directory()
+            parent = ntpath.dirname(ntpath.normpath(current_path)) if current_path else None
+            if parent and ntpath.normcase(parent) != ntpath.normcase(
+                    current_path):
+                self.path = [directory_row(parent)]
+            else:
+                # Drive/UNC root (or a virtual row without a parent): there is
+                # nowhere else to ascend. Always provide an escape to column 1.
+                first = next((item for item, row in zip(first_items, first_rows)
+                              if row is not None), None)
+                if first is not None:
+                    first_tree.setCurrentItem(first)
+                self.focus_panel(self.left)
+                return 'files'
+
+        # Delay refreshing while a QTreeWidget key event is in flight. Rebuilt
+        # QTreeWidgetItems must not be deleted synchronously by their own event.
+        def finish():
+            self.refresh_middle()
+            tree = self.middle.tree
+            items = [tree.topLevelItem(i) for i in range(tree.topLevelItemCount())]
+            rows = [self.row_data(item) for item in items]
+            index = matching_first_row(child_to_reselect, rows, expand)
+            selected = items[index] if index is not None else next(
+                (item for item, row in zip(items, rows) if row is not None), None)
+            if selected is not None:
+                tree.setCurrentItem(selected)
+            self.focus_panel(self.middle)
+        QTimer.singleShot(0, finish)
+        return 'directory'
+
     def navigate_middle(self, row):
         """Descend without destroying a Qt row during the current key event."""
         if row.get('item_kind') not in ('category', 'directory'):
@@ -2895,7 +2994,7 @@ class ExpandedLauncherView(QWidget):
         """Use Launcher's existing menu content/actions; no new command logic."""
         self.launcher.open_expanded_cascade(row, widget, item)
 
-    def context_menu(self, pane, point):
+    def context_menu(self, pane, point, *, global_pos=None):
         item = pane.tree.itemAt(point)
         if not item:
             # With no header Paste button, an empty folder must still be
@@ -2904,7 +3003,7 @@ class ExpandedLauncherView(QWidget):
                 # The lower blank area is both Back (double click) and
                 # Paste + New (right click). Keep the existing Paste contract.
                 self.launcher.show_expanded_background_paste_menu(
-                    pane.tree.viewport().mapToGlobal(point))
+                    (global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point)))
             return
         row = self.row_data(item)
         if row is None:  # Non-actionable bookmark section heading.
@@ -2920,7 +3019,7 @@ class ExpandedLauncherView(QWidget):
             selected_rows = [self.row_data(i) for i in tree.selectedItems()]
             targets = context_paths(row, selected_rows, self.launcher.authored_items)
             shown = self.launcher.show_launch_context_menu(
-                tree.viewport().mapToGlobal(point), row,
+                (global_pos if global_pos is not None else tree.viewport().mapToGlobal(point)), row,
                 context_parent=self.launcher, selected_paths=targets)
             if shown and len(targets) == 1:
                 menu = getattr(self.launcher, '_launch_context_menu', None)
@@ -2940,4 +3039,4 @@ class ExpandedLauncherView(QWidget):
         else:
             pane.tree.setCurrentItem(item)
             self.launcher.show_launch_context_menu(
-                pane.tree.viewport().mapToGlobal(point), row, context_parent=self.launcher)
+                (global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point)), row, context_parent=self.launcher)
