@@ -8,6 +8,10 @@ IS_WINDOWS = os.name == 'nt'
 if IS_WINDOWS:
     user = c.WinDLL('user32', use_last_error=True)
     user.GetForegroundWindow.restype = w.HWND
+    user.GetClassNameW.argtypes = [w.HWND, w.LPWSTR, c.c_int]
+    user.GetClassNameW.restype = c.c_int
+    user.GetParent.argtypes = [w.HWND]
+    user.GetParent.restype = w.HWND
     user.SetForegroundWindow.argtypes = [w.HWND]
     user.SetForegroundWindow.restype = w.BOOL
     user.AllowSetForegroundWindow.argtypes = [w.DWORD]
@@ -20,6 +24,8 @@ if IS_WINDOWS:
     user.BringWindowToTop.restype = w.BOOL
     user.SetWindowPos.argtypes = [w.HWND, w.HWND, c.c_int, c.c_int, c.c_int, c.c_int, w.UINT]
     user.SetWindowPos.restype = w.BOOL
+    user.GetLastInputInfo.argtypes = [c.c_void_p]
+    user.GetLastInputInfo.restype = w.BOOL
     kernel = c.WinDLL('kernel32', use_last_error=True)
     kernel.GetCurrentThreadId.restype = w.DWORD
     user.IsWindow.argtypes = [w.HWND]
@@ -36,7 +42,43 @@ def foreground():
     return user.GetForegroundWindow() if IS_WINDOWS else 0
 
 
-def activate_keyboard_window(hwnd, expected_foreground=None):
+def desktop_shell_foreground():
+    """Return the foreground HWND only if it is the Windows desktop shell.
+
+    During a verified desktop double-click, Explorer may become foreground
+    *after* the mouse hook's callback. Trust only the desktop host class,
+    never an arbitrary new foreground app (e.g. Chrome).
+    """
+    hwnd = foreground()
+    if not IS_WINDOWS or not hwnd:
+        return 0
+    name = c.create_unicode_buffer(128)
+    if not user.GetClassNameW(hwnd, name, len(name)):
+        return 0
+    return hwnd if name.value in ('Progman', 'WorkerW') else 0
+
+
+def verified_desktop_view_foreground(desktop_view):
+    """Accept only the clicked desktop view itself or one of its shell parents.
+
+    Explorer's desktop can surface its SysListView32 or SHELLDLL_DefView
+    HWND rather than Progman/WorkerW as foreground while a click settles.
+    The view comes from the verified desktop MSAA path, never arbitrary input.
+    """
+    current = foreground()
+    if not IS_WINDOWS or not current or not desktop_view or not user.IsWindow(desktop_view):
+        return 0
+    candidate = desktop_view
+    for _ in range(8):
+        if candidate == current:
+            return current
+        candidate = user.GetParent(candidate)
+        if not candidate:
+            break
+    return 0
+
+
+def activate_keyboard_window(hwnd, expected_foreground=None, input_window=None):
     """Activate a launcher summoned by a desktop mouse hook.
 
     Qt's activateWindow() can leave an always-on-top Tool visible but NOT
@@ -52,8 +94,11 @@ def activate_keyboard_window(hwnd, expected_foreground=None):
     current = foreground()
     if current == hwnd:
         return True
-    if expected_foreground is not None and current != expected_foreground:
-        return False  # User already switched to another window; don't steal focus.
+    if expected_foreground is not None:
+        allowed = (expected_foreground if isinstance(expected_foreground,
+                   (tuple, list, set, frozenset)) else (expected_foreground,))
+        if current not in allowed:
+            return False  # Another app got focus: never steal it back.
     if not current:
         return False
 
@@ -62,21 +107,72 @@ def activate_keyboard_window(hwnd, expected_foreground=None):
         return True
 
     # SetForegroundWindow from a background mouse-hook process may be denied.
-    # Attach only to the foreground input queue, and detach on *every* path.
-    foreground_thread = user.GetWindowThreadProcessId(current, None)
+    # Try foreground input queue first, then the actual desktop input queue
+    # when a VERIFIED desktop double-click supplied its view HWND.  Chrome can
+    # remain GetForegroundWindow() even after Explorer received that click.
     own_thread = kernel.GetCurrentThreadId()
-    if not foreground_thread or not own_thread or foreground_thread == own_thread:
+    if not own_thread:
         return False
-    if not user.AttachThreadInput(own_thread, foreground_thread, True):
+    sources = [current]
+    if input_window and input_window != current and user.IsWindow(input_window):
+        sources.append(input_window)
+    attempted_threads = set()
+    for source in sources:
+        source_thread = user.GetWindowThreadProcessId(source, None)
+        if not source_thread or source_thread == own_thread or source_thread in attempted_threads:
+            continue
+        attempted_threads.add(source_thread)
+        if not user.AttachThreadInput(own_thread, source_thread, True):
+            continue
+        try:
+            # Do not steal focus if the user changed to another app.
+            if foreground() != current:
+                return False
+            user.BringWindowToTop(hwnd)
+            user.SetForegroundWindow(hwnd)
+            if foreground() == hwnd:
+                return True
+        finally:
+            user.AttachThreadInput(own_thread, source_thread, False)
+    return False
+
+
+class LastInputInfo(c.Structure):
+    _fields_ = [('cbSize', w.UINT), ('dwTime', w.DWORD)]
+
+
+def desktop_click_still_last_input(mouse_tick, tolerance_ms=48):
+    """Only retry a verified wallpaper gesture if no newer user input occurred.
+
+    LL mouse-hook timestamps and LASTINPUTINFO.dwTime share the Win32 tick
+    domain.  A small tolerance permits a delayed release/message, but a later
+    click or keypress cancels the request instead of stealing focus.
+    """
+    if not IS_WINDOWS or mouse_tick is None:
         return False
-    try:
-        if foreground() != current:  # The user switched during attachment.
-            return False
-        user.BringWindowToTop(hwnd)
-        user.SetForegroundWindow(hwnd)
-        return foreground() == hwnd
-    finally:
-        user.AttachThreadInput(own_thread, foreground_thread, False)
+    info = LastInputInfo()
+    info.cbSize = c.sizeof(LastInputInfo)
+    if not user.GetLastInputInfo(c.byref(info)):
+        return False  # Fail closed when the OS state is unavailable.
+    return ((int(info.dwTime) - int(mouse_tick)) & 0xffffffff) <= tolerance_ms
+
+
+def raise_normal_window(hwnd):
+    """Explicit user-requested Z-order repair, NOT an always-on-top switch.
+
+    Qt.raise_()/activateWindow() may finish while Explorer is processing the
+    desktop double-click.  The delayed native HWND_TOP request puts the normal
+    Launcher above other non-topmost apps without changing its window style,
+    focus, geometry, or future behavior when Chrome is clicked again.
+    """
+    if not IS_WINDOWS or not hwnd or not user.IsWindow(hwnd):
+        return False
+    hwnd_top = 0
+    swp_no_size = 0x0001
+    swp_no_move = 0x0002
+    swp_no_activate = 0x0010
+    return bool(user.SetWindowPos(hwnd, hwnd_top, 0, 0, 0, 0,
+                                  swp_no_size | swp_no_move | swp_no_activate))
 
 
 def set_window_topmost(hwnd, enabled):

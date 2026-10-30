@@ -25,7 +25,7 @@ def desktop_callback(window):
     env = {
         'DIAG': SimpleNamespace(info=Mock()),
         'window': window,
-        'windows': SimpleNamespace(foreground=lambda: 9876),
+        'windows': SimpleNamespace(foreground=lambda: 9876, raise_normal_window=lambda hwnd: True),
         'QTimer': SimpleNamespace(singleShot=lambda delay, action: queued.append((delay, action))),
     }
     exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), 'app.py', 'exec'), env)
@@ -37,7 +37,7 @@ def test_desktop_double_click_brings_visible_normal_window_forward_without_dismi
         isVisible=lambda: True, isMinimized=lambda: False,
         dismiss_on_outside_click=False, summon=Mock(),
         raise_=Mock(), activateWindow=Mock(),
-        restore_keyboard_focus=Mock(), isActiveWindow=lambda: True,
+        restore_keyboard_focus=Mock(), isActiveWindow=lambda: True, winId=lambda: 300,
     )
     action, callbacks = desktop_callback(window)
     action()
@@ -57,7 +57,7 @@ def test_desktop_double_click_restores_minimized_normal_window_and_hidden_legacy
             isVisible=lambda: visible, isMinimized=lambda: minimized,
             dismiss_on_outside_click=dismiss, summon=Mock(),
             raise_=Mock(), activateWindow=Mock(),
-            restore_keyboard_focus=Mock(), isActiveWindow=lambda: True)
+            restore_keyboard_focus=Mock(), isActiveWindow=lambda: True, winId=lambda: 300)
         action, callbacks = desktop_callback(window)
         action()
         window.summon.assert_called_once()

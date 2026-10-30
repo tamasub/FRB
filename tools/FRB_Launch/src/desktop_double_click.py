@@ -288,7 +288,9 @@ class DesktopDoubleClick:
             if self._empty_wallpaper(click.x, click.y, click.view):
                 if self.logger:
                     self.logger.info("DESKTOP_OPEN_REQUEST view=%s", click.view)
-                self.on_double_click()
+                # Carry the verified click's desktop view and Win32 timestamp.
+                # The Launcher uses both to reject stale delayed activation.
+                self.on_double_click(click)
         except Exception:
             if self.logger:
                 self.logger.exception('Desktop double-click verification failed')

@@ -1705,6 +1705,41 @@ from expanded_keyboard_model import (tab_target, root_step, middle_back_target,
                                      row_right_action)
 
 
+class NormalWindowClickActivationFilter(QObject):
+    """An explicit click on a visible normal Launcher may regain foreground.
+
+    The frameless window is sometimes exposed behind Chrome but stays
+    keyboard-inactive. Do not swallow its click or touch the legacy Tool mode.
+    Recheck foreground on the next event-loop turn so native Qt activation
+    can win first; Win32 attachment is only a guarded fallback.
+    """
+    def __init__(self, launcher):
+        super().__init__(launcher)
+        self.launcher = launcher
+
+    def eventFilter(self, obj, event):
+        launcher = self.launcher
+        if (event.type() != QEvent.Type.MouseButtonPress
+                or not isinstance(obj, QWidget)
+                or launcher.dismiss_on_outside_click
+                or not launcher.isVisible() or launcher.isMinimized()
+                or obj.window() is not launcher):
+            return False
+        hwnd = int(launcher.winId())
+        before = windows.foreground()
+        if before and before != hwnd:
+            def on_explicit_click(fg=before):
+                # The mouse press was physically delivered to this Launcher.
+                # Repair Z-order even if Qt's frameless activation did not.
+                launcher.restore_keyboard_focus(fg, reason='normal_window_click',
+                                                restore_current=False)
+                raised = windows.raise_normal_window(hwnd)
+                DIAG.info('NORMAL_CLICK_ZORDER raised=%s foreground=%s',
+                          raised, windows.foreground())
+            QTimer.singleShot(0, on_explicit_click)
+        return False
+
+
 class Launcher(QWidget):
     CORNER_RADIUS = 10  # Main window corner radius in logical pixels.
     def __init__(self):
@@ -2220,6 +2255,8 @@ class Launcher(QWidget):
         QApplication.instance().installEventFilter(self._history_outside_click_filter)
         self._frame_cursor_reset_filter = FrameEdgeCursorResetFilter(self)
         QApplication.instance().installEventFilter(self._frame_cursor_reset_filter)
+        self._normal_click_activation_filter = NormalWindowClickActivationFilter(self)
+        QApplication.instance().installEventFilter(self._normal_click_activation_filter)
         QApplication.instance().applicationStateChanged.connect(self.app_state)
         # Page: Ctrl+F1..F12. Second layer (visible roots): Ctrl+Shift+F1..F12.
         # Free unmodified F2 for Explorer-style inline rename, and F5 for
@@ -3540,16 +3577,30 @@ class Launcher(QWidget):
         self.activateWindow()
         self.list.setFocus()
 
-    def restore_keyboard_focus(self, expected_foreground=None, reason='open', restore_current=True):
+    def restore_keyboard_focus(self, expected_foreground=None, reason='open', restore_current=True,
+                               desktop_input_hwnd=None):
         """Make a mouse-hook-opened Tool window actually accept keyboard input."""
         if not self.isVisible() or (self.menu and self.menu.isVisible()):
             return
         hwnd = int(self.winId())
         before = windows.foreground()
-        # Native activation is needed when Qt is visible but Explorer is still
-        # receiving keys. It must never steal focus from a different new app.
+        # The verified desktop gesture may briefly shift foreground from
+        # Chrome to Explorer itself while the final mouse event settles.
+        # Allow that desktop host ONLY for explicit desktop summons, not for
+        # ordinary mouse clicks or a later switch to an unrelated program.
+        allowed = expected_foreground
+        if reason.startswith('desktop_') and before != hwnd:
+            shell = getattr(windows, 'desktop_shell_foreground', lambda: 0)()
+            if not shell and desktop_input_hwnd:
+                shell = getattr(windows, 'verified_desktop_view_foreground',
+                                lambda view: 0)(desktop_input_hwnd)
+            if shell == before:
+                candidates = (expected_foreground if isinstance(expected_foreground,
+                              (tuple, list, set, frozenset)) else (expected_foreground,))
+                allowed = tuple(dict.fromkeys((*candidates, shell)))
         active = (before == hwnd or windows.activate_keyboard_window(
-            hwnd, expected_foreground=expected_foreground))
+            hwnd, expected_foreground=allowed,
+            **({'input_window': desktop_input_hwnd} if desktop_input_hwnd else {})))
         if active:
             self.activateWindow()
             if restore_current:
@@ -7103,7 +7154,7 @@ def main():
     # Desktop double-click support is optional: a Windows API/COM error must
     # never prevent the launcher itself from starting (tray/hotkey still work).
     desktop_click = None
-    def open_from_desktop():
+    def open_from_desktop(click=None):
         DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s minimized=%s',
                   window.isVisible(), window.isMinimized())
         source_foreground = windows.foreground()
@@ -7119,14 +7170,37 @@ def main():
         else:
             # Legacy always-on-top mode already has a visible launcher.
             return
+        # Qt can change foreground while showing/raising the window. Record
+        # both sides of that operation, but NEVER trust an arbitrary window
+        # which becomes foreground later in one of the delayed callbacks.
+        after_show = windows.foreground()
+        expected_foreground = (source_foreground if after_show == source_foreground
+                               else (source_foreground, after_show))
         # Explorer received the final mouse event. Give Windows time to
         # finish it before requesting keyboard focus for the launcher.
         # A visible normal window must retain its current Files navigation;
         # restore_last_current() is only needed after a hidden-window summon.
+        def complete_desktop_open(reason, restore):
+            # No newer mouse/keyboard input is allowed after the verified
+            # desktop gesture.  In particular, don't reactivate Launch over
+            # Chrome after the user has actively returned to Chrome.
+            if click is not None and not windows.desktop_click_still_last_input(click.tick):
+                DIAG.info('DESKTOP_ACTIVATE_CANCELLED reason=%s last_input_changed', reason)
+                return
+            window.restore_keyboard_focus(
+                expected_foreground, reason, restore_current=restore,
+                **({'desktop_input_hwnd': click.view} if click is not None else {}))
+            if not window.dismiss_on_outside_click and window.isVisible():
+                # Explicit native Z-order repair.  Qt.raise_() and focus
+                # activation are separate operations on Windows; background
+                # Chrome/Explorer can otherwise visually cover the Launcher.
+                raised = windows.raise_normal_window(int(window.winId()))
+                DIAG.info('DESKTOP_ZORDER reason=%s raised=%s active=%s foreground=%s',
+                          reason, raised, window.isActiveWindow(), windows.foreground())
+
         for delay, reason in ((0, 'desktop_first'), (120, 'desktop_retry')):
-            QTimer.singleShot(delay, lambda fg=source_foreground, r=reason,
-                              restore=was_hidden: window.restore_keyboard_focus(
-                                  fg, r, restore_current=restore))
+            QTimer.singleShot(delay, lambda r=reason, restore=was_hidden:
+                              complete_desktop_open(r, restore))
         DIAG.info('DESKTOP_OPEN_RESULT visible=%s active=%s',
                   window.isVisible(), window.isActiveWindow())
         QTimer.singleShot(400, lambda: DIAG.info(
