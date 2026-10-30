@@ -133,6 +133,22 @@ class WheelPad(QFrame):
             super().mouseReleaseEvent(event)
 
 
+class RemoteWheelButton(QPushButton):
+    """A normal command button that also shares the central pad's wheel.
+
+    No eventFilter, synthetic keys or button-click side effects: only wheel
+    rotation is forwarded to WheelPad, with its existing fractional-step
+    accumulator.  Native mouse clicks still activate the button's own action.
+    """
+
+    def wheelEvent(self, event):
+        pad = getattr(self.parentWidget(), 'pad', None)
+        if pad is not None:
+            pad.wheelEvent(event)
+        else:
+            super().wheelEvent(event)
+
+
 class UpDoubleClickBand(QFrame):
     """Blank Remote strip: left double-click = Back, right-click = folder menu."""
     command = Signal(str)
@@ -236,9 +252,9 @@ class LaunchRemote(QWidget):
         row_top.setSpacing(2)
         row_top.addStretch(1)
         row_top.addWidget(self._button('BackTab', '前の操作列へ',
-                                       'BACKTAB', width=76, height=37, role='tab'))
+                                       'BACKTAB', width=76, height=37, role='tab', wheel_enabled=True))
         row_top.addWidget(self._button('Tab', '次の操作列へ',
-                                       'TAB', width=76, height=37, role='tab'))
+                                       'TAB', width=76, height=37, role='tab', wheel_enabled=True))
         row_top.addStretch(1)
         root.addLayout(row_top)
 
@@ -261,9 +277,9 @@ class LaunchRemote(QWidget):
         row_bottom.setSpacing(2)
         row_bottom.addStretch(1)
         row_bottom.addWidget(self._button('検索履歴', 'メイン検索の履歴を開く / 選択',
-                                          'SEARCH_HISTORY', width=84, height=37, role='small'))
+                                          'SEARCH_HISTORY', width=84, height=37, role='small', wheel_enabled=True))
         row_bottom.addWidget(self._button('フォルダー履歴', 'パンくずのフォルダー履歴を開く / 選択',
-                                          'FOLDER_HISTORY', width=84, height=37, role='small'))
+                                          'FOLDER_HISTORY', width=84, height=37, role='small', wheel_enabled=True))
         row_bottom.addStretch(1)
         root.addLayout(row_bottom)
         self.up_band = UpDoubleClickBand(self)
@@ -365,8 +381,10 @@ class LaunchRemote(QWidget):
         """Do not offer the heart action outside a valid Files directory."""
         self.more_favorite_action.setEnabled(bool(available))
 
-    def _button(self, text, tip, command, *, width=50, height=24, role='normal'):
-        button = QPushButton(text, self)
+    def _button(self, text, tip, command, *, width=50, height=24,
+                role='normal', wheel_enabled=False):
+        button = (RemoteWheelButton(text, self) if wheel_enabled
+                  else QPushButton(text, self))
         button.setToolTip(tip)
         button.setProperty('role', role)
         button.setFixedSize(width, height)
