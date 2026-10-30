@@ -5,7 +5,7 @@ rendering.  Enabled/disabled and light/dark appearances are explicit, rather
 than platform-dependent Unicode arrow/house glyphs.
 """
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QIcon, QColor, QPainter, QPainterPath, QPen, QPixmap
 
 
@@ -20,7 +20,7 @@ def _draw_icon(name: str, color: str) -> QPixmap:
     painter = QPainter(pixmap)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
     pen = QPen(QColor(color))
-    pen.setWidthF(1.0 if name == 'home' else 2.0)
+    pen.setWidthF(1.0 if name == 'home' else 1.6 if name == 'close' else 2.0)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
     painter.setPen(pen)
@@ -52,6 +52,74 @@ def _draw_icon(name: str, color: str) -> QPixmap:
             shape.moveTo(13, 5.5)
             shape.lineTo(19.5, 12)
             shape.lineTo(13, 18.5)
+    elif name == 'reload':
+        # Same round-cap, 2px stroke as the Launch navigation arrows.
+        painter.drawArc(QRectF(5.1, 5.1, 13.8, 13.8), 35 * 16, 295 * 16)
+        shape.moveTo(19.4, 5.7)
+        shape.lineTo(19.0, 11.5)
+        shape.lineTo(13.7, 8.9)
+    elif name == 'plus':
+        shape.moveTo(12, 5)
+        shape.lineTo(12, 19)
+        shape.moveTo(5, 12)
+        shape.lineTo(19, 12)
+    elif name == 'external':
+        shape.moveTo(13, 5)
+        shape.lineTo(19, 5)
+        shape.lineTo(19, 11)
+        shape.moveTo(19, 5)
+        shape.lineTo(9, 15)
+        shape.moveTo(16.5, 15)
+        shape.lineTo(16.5, 19)
+        shape.lineTo(5, 19)
+        shape.lineTo(5, 7.5)
+        shape.lineTo(9, 7.5)
+    elif name == 'download':
+        shape.moveTo(12, 4)
+        shape.lineTo(12, 16)
+        shape.moveTo(7.5, 11.5)
+        shape.lineTo(12, 16)
+        shape.lineTo(16.5, 11.5)
+        shape.moveTo(5, 19.5)
+        shape.lineTo(19, 19.5)
+    elif name == 'folder_open':
+        # Open folder: simple rounded file-folder silhouette.
+        shape.moveTo(3.5, 18.5)
+        shape.lineTo(5.0, 8.2)
+        shape.lineTo(9, 8.2)
+        shape.lineTo(11, 10.3)
+        shape.lineTo(20.5, 10.3)
+        shape.lineTo(19, 18.5)
+        shape.closeSubpath()
+        shape.moveTo(4.7, 8.0)
+        shape.lineTo(4.7, 5.6)
+        shape.lineTo(10.5, 5.6)
+        shape.lineTo(12.2, 7.5)
+        shape.lineTo(19, 7.5)
+    elif name == 'unzip':
+        # Archive square and an up-arrow: extract without executing contents.
+        shape.moveTo(5, 6)
+        shape.lineTo(19, 6)
+        shape.lineTo(19, 19.5)
+        shape.lineTo(5, 19.5)
+        shape.closeSubpath()
+        shape.moveTo(10, 9)
+        shape.lineTo(12, 7)
+        shape.lineTo(14, 9)
+        shape.moveTo(12, 7)
+        shape.lineTo(12, 15.5)
+        shape.moveTo(9, 16.5)
+        shape.lineTo(15, 16.5)
+    elif name == 'close':
+        shape.moveTo(8, 8)
+        shape.lineTo(16, 16)
+        shape.moveTo(16, 8)
+        shape.lineTo(8, 16)
+    elif name == 'globe':
+        painter.drawEllipse(QRectF(4, 4, 16, 16))
+        painter.drawEllipse(QRectF(8, 4, 8, 16))
+        shape.moveTo(4, 12)
+        shape.lineTo(20, 12)
     elif name == 'home':
         # 屋根
         shape.moveTo(3.5, 10.7)

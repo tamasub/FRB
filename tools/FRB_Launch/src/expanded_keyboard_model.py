@@ -5,6 +5,7 @@ Keep these rules separate from Qt controls so they can be contract-tested.
 """
 
 FOCUS_ORDER = ('search', 'pages', 'roots', 'breadcrumb', 'files', 'directory', 'sort', 'bookmarks')
+WEB_FOCUS_ORDER = ('search', 'pages', 'roots', 'web_tabs', 'web_body', 'bookmarks')
 
 
 def tab_target(current, *, backward=False, order=FOCUS_ORDER):

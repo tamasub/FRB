@@ -1,0 +1,12 @@
+{
+  "_webview_mode_help": {
+    "embedded": "組み込み方式：Launch内部のWebViewで表示。専用プロファイルでログイン情報を保持し、ダウンロードもLaunch内で管理する。利用環境の規程を確認すること。",
+    "external": "外部ブラウザ方式：Launch内のWebViewを生成せず、URLを外部ブラウザで開く。ログイン情報やダウンロードは外部ブラウザ側で管理する。"
+  },
+  "mode": "embedded",
+  "remember_login": true,
+  "download_directory": "",
+  "new_tab_url": "https://www.google.com/",
+  "bookmark_preview_delay_ms": 650,
+  "keep_tabs_on_home": true
+}

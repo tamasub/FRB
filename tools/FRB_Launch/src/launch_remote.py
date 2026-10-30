@@ -397,7 +397,8 @@ class LaunchRemote(QWidget):
                   'files': 'Files第1列', 'directory': 'Files第2列',
                   'sort': '第2列 並び替え', 'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
                   'search_history': '検索履歴', 'folder_history': 'フォルダー履歴',
-                  'cascade': '展開メニュー', 'breadcrumb': 'パンくず'}
+                  'cascade': '展開メニュー', 'breadcrumb': 'パンくず',
+                  'web_tabs': 'Webタブ', 'web_body': 'Web本文'}
         self.area_label.setText('操作先：' + labels.get(name, name))
 
     def show_at(self, global_point):

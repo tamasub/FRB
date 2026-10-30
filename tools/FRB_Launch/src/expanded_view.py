@@ -943,7 +943,19 @@ class ExpandedLauncherView(QWidget):
         # content below is divided. The bookmark panel stays independent.
         self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
         self.splitter.setObjectName('expandedSplitter')
-        self.files_group = QFrame(self.splitter)
+        # Keep the original Files widgets alive when the left side becomes WebView.
+        # A stacked page preserves folder path, current item and splitter sizes.
+        self.files_content_stack = QStackedWidget(self.splitter)
+        self.files_group = QFrame(self.files_content_stack)
+        self.files_content_stack.addWidget(self.files_group)
+        self.web_view = None
+        self._web_selection_timer = QTimer(self)
+        self._web_selection_timer.setSingleShot(True)
+        self._web_selection_timer.setInterval(650)  # v40 default; config may override
+        configured_delay = getattr(launcher, 'webview_settings', {}).get('bookmark_preview_delay_ms')
+        if configured_delay is not None:
+            self._web_selection_timer.setInterval(configured_delay)
+        self._web_selection_timer.timeout.connect(self.preview_selected_bookmark)
         self.files_group.setObjectName('expandedFilesGroup')
         group_layout = QVBoxLayout(self.files_group)
         group_layout.setContentsMargins(0, 0, 0, 0)
@@ -1147,7 +1159,7 @@ class ExpandedLauncherView(QWidget):
         self._bookmark_hover_timer.setSingleShot(True)
         self._bookmark_hover_timer.timeout.connect(self.open_bookmark_hover)
         self.right.tree.itemEntered.connect(self.hover_bookmark_first_level)
-        self.splitter.addWidget(self.files_group)
+        self.splitter.addWidget(self.files_content_stack)
         self.splitter.addWidget(self.right)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setSizes([660, 350])
@@ -1176,6 +1188,7 @@ class ExpandedLauncherView(QWidget):
         self.left.tree.itemClicked.connect(self.choose_files)
         self.middle.tree.itemClicked.connect(self.choose_middle)
         self.right.tree.itemClicked.connect(self.choose_bookmark)
+        self.right.tree.currentItemChanged.connect(self.schedule_web_bookmark_preview)
         for panel in (self.left, self.middle, self.right):
             panel.tree.itemActivated.connect(lambda item, col, pane=panel: self.activate_row(pane, item))
             panel.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -1206,6 +1219,8 @@ class ExpandedLauncherView(QWidget):
         self.apply_theme(self.launcher.color_theme)
 
     def apply_theme(self, theme):
+        if self.web_view is not None:
+            self.web_view.apply_theme(theme)
         colors = theme_palette(theme)
         light = theme_family(theme) == 'light'
         bg, border, hdr, text, hover, active, stripe = (
@@ -3325,8 +3340,101 @@ class ExpandedLauncherView(QWidget):
             self.path.append(row)
             QTimer.singleShot(0, self.refresh_middle)
 
+    def is_bookmark_row(self, row):
+        """Only third-column bookmark descendants enter the embedded WebView.
+
+        Keep other URL actions (Quick, custom shell shortcuts, etc.) on their
+        original external browser route, even in Three-layer mode.
+        """
+        if not isinstance(row, dict) or not self.bookmarks_root:
+            return False
+        bookmark_id = self.bookmarks_root.get('item_id')
+        parent_id = row.get('parent_item_id')
+        if row.get('item_id') == bookmark_id:
+            return True
+        lookup = {entry.get('item_id'): entry for entry in
+                  (self.launcher.data or {}).get('items', [])}
+        seen = set()
+        while parent_id and parent_id not in seen:
+            if parent_id == bookmark_id:
+                return True
+            seen.add(parent_id)
+            parent = lookup.get(parent_id)
+            if not parent:
+                break
+            parent_id = parent.get('parent_item_id')
+        return False
+
+    def show_web_url(self, url):
+        """Switch only the Files two-column region; keep the third column."""
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            return False  # Do not instantiate QWebEngineView in external mode.
+        if self.web_view is None:
+            try:
+                from launch_web_view import LaunchWebView
+                self.web_view = LaunchWebView(
+                    self.files_content_stack, settings=self.launcher.webview_settings)
+                self.web_view.tabs.tabBar().area_tab_requested.connect(
+                    self.launcher.web_keyboard_tab)
+                self.web_view.surface_selected.connect(self.launcher.web_surface_selected)
+                self.files_content_stack.addWidget(self.web_view)
+                self.web_view.apply_theme(self.launcher.color_theme)
+            except (ImportError, RuntimeError) as exc:
+                self.launcher.error('WebViewを起動できません。PySide6 WebEngineを確認してください: ' + str(exc))
+                return False
+        self.files_content_stack.setCurrentWidget(self.web_view)
+        self.web_view.show_url(url)
+        self.launcher.web_view_activated()
+        return True
+
+    def show_files_view(self):
+        """HOME is the reliable escape from WebView, without recreating Files."""
+        self._web_selection_timer.stop()
+        if self.web_view is not None:
+            self.web_view.set_remote_area(None)
+            if not self.launcher.webview_settings['keep_tabs_on_home']:
+                while self.web_view.tabs.count():
+                    self.web_view.close_tab(self.web_view.tabs.count() - 1)
+        self.files_content_stack.setCurrentWidget(self.files_group)
+
+    def web_view_active(self):
+        return self.web_view is not None and self.files_content_stack.currentWidget() is self.web_view
+
+    def schedule_web_bookmark_preview(self, item, _previous):
+        """Wheel highlighting pauses before web navigation (no load per tick)."""
+        self._web_selection_timer.stop()
+        if self._refreshing or not self.isVisible() or item is None:
+            return
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            return
+        from webview_routes import bookmark_web_url
+        row = self.row_data(item)
+        if self.is_bookmark_row(row) and bookmark_web_url(row):
+            self._web_selection_timer.start()
+
+    def preview_selected_bookmark(self):
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            return  # Wheel selection must never launch an external browser.
+        from webview_routes import bookmark_web_url
+        row = self.row_data(self.right.tree.currentItem())
+        url = bookmark_web_url(row)
+        if url and self.isVisible() and self.is_bookmark_row(row):
+            self.show_web_url(url)
+
     def choose_bookmark(self, item, _col, *, force=False):
         row = self.row_data(item)
+        from webview_routes import bookmark_web_url
+        url = bookmark_web_url(row)
+        if url and self.is_bookmark_row(row):
+            self._web_selection_timer.stop()
+            if not self.show_web_url(url):
+                # Do not route through activate()/execute() again: that would
+                # retry the failed WebEngine import and show the same error twice.
+                step = row['launch_actions'][0]
+                self.launcher.open_target(
+                    url, step.get('launch_browser', ''),
+                    step.get('launch_browser_profile', ''))
+            return
         if row and row.get('item_kind') in ('category', 'directory'):
             # Bookmark folders always open on a click. In double mode, only
             # hover preview is disabled; Files' middle column remains double.
