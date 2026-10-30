@@ -134,14 +134,14 @@ class WheelPad(QFrame):
 
 
 class UpDoubleClickBand(QFrame):
-    """A one-row blank hit area; intentionally does nothing on single click."""
+    """Blank Remote strip: left double-click = Back, right-click = folder menu."""
     command = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('remoteUpDoubleClickBand')
         self.setFixedHeight(23)
-        self.setToolTip('ダブルクリック：第2列の上位フォルダーへ')
+        self.setToolTip('ダブルクリック：第2列の上位フォルダーへ / 右クリック：第2列の空白メニュー')
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def mouseDoubleClickEvent(self, event):
@@ -150,6 +150,12 @@ class UpDoubleClickBand(QFrame):
             event.accept()
         else:
             super().mouseDoubleClickEvent(event)
+
+    def contextMenuEvent(self, event):
+        # Use Qt's native context-menu event (on Windows it arrives on mouse
+        # release). Do not synthesize a click or select a row in Launch.
+        self.command.emit('BACKGROUND_CONTEXT_MENU')
+        event.accept()
 
 
 class LaunchRemote(QWidget):
@@ -371,7 +377,7 @@ class LaunchRemote(QWidget):
     def set_area(self, name):
         labels = {'search': '検索', 'pages': 'Page', 'roots': '第1列メニュー',
                   'files': 'Files第1列', 'directory': 'Files第2列',
-                  'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
+                  'sort': '第2列 並び替え', 'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
                   'search_history': '検索履歴', 'folder_history': 'フォルダー履歴',
                   'cascade': '展開メニュー', 'breadcrumb': 'パンくず'}
         self.area_label.setText('操作先：' + labels.get(name, name))

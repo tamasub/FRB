@@ -2593,6 +2593,8 @@ class Launcher(QWidget):
                 self.tabs.setFocus(Qt.FocusReason.OtherFocusReason)
             elif area == 'breadcrumb':
                 view.address_bar.begin_edit()
+            elif area == 'sort':
+                view.middle_sort_button.setFocus(Qt.FocusReason.TabFocusReason)
             elif area == 'roots':
                 view.focus_root(item_id=self._last_root_id)
                 # Remote is non-activating: don't rely on Qt.hasFocus() to
@@ -2612,6 +2614,13 @@ class Launcher(QWidget):
         # A non-activating remote can leave QApplication.focusWidget() outside
         # Launch. Keep the remote's logical current pane highlighted regardless.
         if self.expanded_view.isVisible():
+            sort_button = self.expanded_view.middle_sort_button
+            sort_active = (area == 'sort')
+            if sort_button.property('remoteSortActive') != sort_active:
+                sort_button.setProperty('remoteSortActive', sort_active)
+                sort_button.style().unpolish(sort_button)
+                sort_button.style().polish(sort_button)
+                sort_button.update()
             for name, pane in (('files', self.expanded_view.left),
                                ('directory', self.expanded_view.middle),
                                ('bookmarks', self.expanded_view.right)):
@@ -2624,6 +2633,8 @@ class Launcher(QWidget):
                     pane.tree.style().polish(pane.tree)
                 pane.tree.viewport().update()
         self._remote_area = area
+        if area == 'directory' and self.expanded_view.isVisible():
+            self.expanded_view.ensure_middle_current_selection()
         if self.remote_window is not None:
             self.remote_window.set_area(area)
 
@@ -2806,8 +2817,26 @@ class Launcher(QWidget):
         bookmark folders which always use their native single-click policy.
         """
         expanded = self.expanded_view.isVisible()
+        # The Remote pad does not take keyboard focus.  While an inline
+        # filename/folder rename is open, its click means COMMIT, not click
+        # (or double-click) on the still-selected filesystem row.
+        if expanded:
+            commit_rename = getattr(self.expanded_view, 'commit_remote_inline_rename', None)
+            if callable(commit_rename) and commit_rename():
+                self._remote_mouse_last_click = None
+                self._remote_mouse_menu_click = None
+                return
         area = self._remote_area or starting_area(
             self._last_focus_area, expanded=expanded)
+        if expanded and area == 'sort':
+            self._remote_mouse_last_click = None
+            if not double:
+                self.remote_middle_sort_menu()
+            return
+        if expanded and area == 'directory':
+            repair = getattr(self.expanded_view, 'ensure_middle_current_selection', None)
+            if callable(repair):
+                repair()
         if double:
             # A popup may have been closed by the first click. It must never
             # reactivate the background list on the second mouse press.
@@ -2919,6 +2948,39 @@ class Launcher(QWidget):
             elif double:
                 view.activate_row(pane, item)
 
+    def remote_middle_sort_menu(self):
+        """Show the actual Files-column sort menu beside the Remote wheel.
+
+        The actions/checkmarks/ordering remain owned by ExpandedLauncherView;
+        this is only a second popup anchor. No synthetic click is sent to the
+        main button and no selected filesystem item is changed.
+        """
+        remote = getattr(self, 'remote_window', None)
+        view = self.expanded_view
+        if (remote is None or not remote.isVisible() or not view.isVisible()):
+            return
+        menu = view.middle_sort_menu
+        if menu.isVisible():
+            menu.close()
+            return
+        pad = remote.pad
+        point = pad.mapToGlobal(QPoint(pad.width() + 4, 0))
+        menu.ensurePolished()
+        size = menu.sizeHint()
+        screen = QApplication.screenAt(pad.mapToGlobal(pad.rect().center()))
+        if screen is None:
+            screen = QApplication.primaryScreen()
+        if screen is not None:
+            rect = screen.availableGeometry()
+            # Prefer the pad's right; at the screen edge fall back to left.
+            if point.x() + size.width() > rect.right() + 1:
+                point.setX(pad.mapToGlobal(QPoint(-size.width() - 4, 0)).x())
+            if point.y() + size.height() > rect.bottom() + 1:
+                point.setY(rect.bottom() + 1 - size.height())
+            point.setX(max(rect.left(), min(point.x(), rect.right() + 1 - size.width())))
+            point.setY(max(rect.top(), min(point.y(), rect.bottom() + 1 - size.height())))
+        menu.popup(point)
+
     def remote_context_menu(self):
         """Open the selected object's existing menu beside the wheel pad."""
         remote = getattr(self, 'remote_window', None)
@@ -2949,6 +3011,11 @@ class Launcher(QWidget):
         if not expanded:
             return
         view = self.expanded_view
+        if area == 'sort':
+            self.remote_middle_sort_menu()
+            return
+        if area == 'directory':
+            view.ensure_middle_current_selection()
         pane = {'files': view.left, 'directory': view.middle,
                 'bookmarks': view.right}.get(area)
         if pane is None:
@@ -3007,6 +3074,14 @@ class Launcher(QWidget):
             return
         if command == 'CONTEXT_MENU':
             self.remote_context_menu()
+            return
+        if command == 'BACKGROUND_CONTEXT_MENU':
+            # Same action builder as a right-click on Files column 2 blank
+            # space.  Use the actual pointer position beside Remote; neither
+            # the selected file nor the logical current column is changed.
+            view = self.expanded_view
+            if view.isVisible() and view.current_directory():
+                self.show_expanded_background_paste_menu(QCursor.pos())
             return
         if command == 'FOLDER_UP':
             if self.expanded_view.isVisible():
@@ -3097,6 +3172,11 @@ class Launcher(QWidget):
                 self.remote_focus_area('directory' if expanded else 'list')
                 self.remote_command(command)
             return
+        if area == 'sort':
+            # Wheel CLICK is the primary action. Enter/Right share it.
+            if command in ('ENTER', 'RIGHT'):
+                self.remote_middle_sort_menu()
+            return
         if area == 'breadcrumb':
             view = self.expanded_view
             if command in ('UP', 'DOWN'):
@@ -3146,6 +3226,8 @@ class Launcher(QWidget):
         if pane is None:
             return
         tree = pane.tree
+        if area == 'directory':
+            view.ensure_middle_current_selection()
         if command in ('UP', 'DOWN'):
             item = move_tree_selection(tree, step)
             if item is not None and pane is view.left:
@@ -6279,6 +6361,8 @@ class Launcher(QWidget):
             return 'pages'
         if obj in (self.expanded_view.address_bar.editor, self.expanded_view.address_bar):
             return 'breadcrumb'
+        if obj is self.expanded_view.middle_sort_button:
+            return 'sort'
         if obj in self.expanded_view.root_buttons:
             return 'roots'
         for name, pane in (('files', self.expanded_view.left),
@@ -6319,6 +6403,8 @@ class Launcher(QWidget):
             view.focus_panel(view.left)
         elif target == 'directory':
             view.focus_panel(view.middle)
+        elif target == 'sort':
+            view.middle_sort_button.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'bookmarks':
             view.focus_panel(view.right)
         event.accept()
@@ -6786,7 +6872,7 @@ class Launcher(QWidget):
                 return True
         if event.type() == QEvent.Type.KeyPress and hasattr(self, 'expanded_view'):
             view = self.expanded_view
-            expanded_sources = (view.root_buttons + [view.address_bar.editor] + [pane.tree for pane in
+            expanded_sources = (view.root_buttons + [view.address_bar.editor, view.middle_sort_button] + [pane.tree for pane in
                 (view.left, view.middle, view.right)] + [pane.tree.viewport() for pane in
                 (view.left, view.middle, view.right)])
             if view.isVisible() and obj in expanded_sources:

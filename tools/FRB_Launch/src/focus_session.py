@@ -5,7 +5,7 @@ new summon starts with no open popup but with the same keyboard anchor.
 """
 
 AREAS = frozenset(('search', 'pages', 'roots', 'breadcrumb', 'files', 'directory',
-                   'bookmarks', 'list'))
+                   'sort', 'bookmarks', 'list'))
 PANEL_AREAS = frozenset(('files', 'directory', 'bookmarks'))
 
 

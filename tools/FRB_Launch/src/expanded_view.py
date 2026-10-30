@@ -20,11 +20,13 @@ from popup_sizing import popup_available_height, popup_tree_height
 from system_drives import drive_rows, pc_preview_row
 from expanded_view_model import toolbar_roots, root_wheel_target
 from expanded_selection import context_paths, physical_paths
+from middle_selection_guard import repair_middle_selection, row_key
 from clipboard_paste import clipboard_sources
 from virtual_clipboard_paste import is_virtual_file_clipboard
 from context_menu_resolver import resolve_context_target
 from context_menu_actions import rename_file_or_folder
 from pathlib import Path
+from middle_folder_filter import SORT_LABELS, filter_sort_folder_rows
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
 from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
@@ -249,6 +251,102 @@ class _InlineRenameDelegate(QStyledItemDelegate):
             event.accept()
             return True
         return super().eventFilter(obj, event)
+
+
+class _MiddleDetailsDelegate(_InlineRenameDelegate):
+    """File name and muted right-aligned date/size in the SAME name column.
+
+    This preserves the separate chevron column and existing inline rename.
+    """
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        detail = index.data(Qt.ItemDataRole.UserRole + 2) or ''
+        if detail and index.column() == 0:
+            mode = index.data(Qt.ItemDataRole.UserRole + 3) or ''
+            meta_width = 130 if mode == 'date' else 90
+            # The default delegate initializes its option afresh in paint(),
+            # so elision belongs HERE, not in a temporary paint() option.
+            space = max(12, option.rect.width() - meta_width - 40)
+            option.text = option.fontMetrics.elidedText(
+                option.text, Qt.TextElideMode.ElideRight, space)
+
+    def paint(self, painter, option, index):
+        super().paint(painter, option, index)
+        if index.column() != 0:
+            return
+        detail = index.data(Qt.ItemDataRole.UserRole + 2) or ''
+        if not detail:
+            return
+        mode = index.data(Qt.ItemDataRole.UserRole + 3) or ''
+        width = 130 if mode == 'date' else 90
+        painter.save()
+        font = QFont(option.font)
+        if font.pointSizeF() > 0:
+            font.setPointSizeF(max(7.5, font.pointSizeF() - 1.0))
+        painter.setFont(font)
+        theme = getattr(self.parent(), 'details_theme', 'light')
+        painter.setPen(QColor('#71877f' if theme == 'light' else '#9faea8'))
+        rect = option.rect.adjusted(0, 0, -9, 0)
+        rect.setLeft(max(rect.left(), rect.right() - width))
+        painter.drawText(rect, Qt.AlignmentFlag.AlignRight |
+                         Qt.AlignmentFlag.AlignVCenter, str(detail))
+        painter.restore()
+
+
+def middle_sort_icon(theme, mode='name'):
+    """Compact, HiDPI-safe sort icons: A/Z, calendar, or size bars + direction.
+
+    The 48px backing image has DPR=2, so QPainter coordinates MUST remain
+    within the 24x24 logical canvas (the old icon drew beyond a 20x20 canvas).
+    """
+    mode = mode if mode in SORT_LABELS else 'name'
+    pix = QPixmap(48, 48)
+    pix.setDevicePixelRatio(2)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    color = QColor('#426b58' if theme == 'light' else '#d5e8dc')
+    pen = QPen(color, 1.6)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+
+    if mode == 'name':
+        # Recognisable alphabetical sorting, rather than anonymous lines.
+        font = QFont('Segoe UI')
+        font.setPixelSize(10)
+        font.setBold(True)
+        painter.setFont(font)
+        painter.drawText(QRectF(1.5, 1.0, 12, 11),
+                         Qt.AlignmentFlag.AlignCenter, 'A')
+        painter.drawText(QRectF(1.5, 12, 12, 11),
+                         Qt.AlignmentFlag.AlignCenter, 'Z')
+    elif mode.startswith('date'):
+        # Calendar silhouette and two day markers.
+        painter.drawRoundedRect(QRectF(2.5, 5, 13.5, 15), 2, 2)
+        painter.drawLine(QPointF(2.8, 10), QPointF(15.5, 10))
+        painter.drawLine(QPointF(6, 3.6), QPointF(6, 7))
+        painter.drawLine(QPointF(12.2, 3.6), QPointF(12.2, 7))
+        painter.drawPoint(QPointF(7, 14))
+        painter.drawPoint(QPointF(11.5, 14))
+    else:
+        # Three horizontal file-size bars, different lengths on purpose.
+        painter.drawLine(QPointF(3, 6), QPointF(8, 6))
+        painter.drawLine(QPointF(3, 12), QPointF(11, 12))
+        painter.drawLine(QPointF(3, 18), QPointF(15, 18))
+
+    # Name order is A -> Z; descending goes down, ascending goes up.
+    ascending = mode in ('date_asc', 'size_asc')
+    painter.drawLine(QPointF(20, 5), QPointF(20, 19))
+    if ascending:
+        painter.drawLine(QPointF(16.8, 8.3), QPointF(20, 5))
+        painter.drawLine(QPointF(23.2, 8.3), QPointF(20, 5))
+    else:
+        painter.drawLine(QPointF(16.8, 15.7), QPointF(20, 19))
+        painter.drawLine(QPointF(23.2, 15.7), QPointF(20, 19))
+    painter.end()
+    return QIcon(pix)
 
 
 class _SeparatedFileTree(ExternalFileDragTree):
@@ -702,6 +800,8 @@ class ExpandedPanel(QFrame):
             for col in (0, 1):
                 item.setSizeHint(col, QSize(0, self.row_height))
             item.setData(0, Qt.ItemDataRole.UserRole, row)
+            item.setData(0, Qt.ItemDataRole.UserRole + 2, row.get('_middle_detail', ''))
+            item.setData(0, Qt.ItemDataRole.UserRole + 3, row.get('_middle_detail_mode', ''))
             if self.kind == 'folder':
                 # Middle panel filenames can be edited by clicking the already
                 # selected row. Directory single click still means navigation.
@@ -723,6 +823,37 @@ class ExpandedPanel(QFrame):
                           if self.tree.topLevelItem(i).data(0, Qt.ItemDataRole.UserRole)), None)
             if first is not None:
                 self.tree.setCurrentItem(first)
+
+
+class _MiddleSortButton(QToolButton):
+    """Small local keyboard handler for the Files-column sort control.
+
+    Deliberately do NOT install the main Launcher's eventFilter on this child.
+    That large filter covers many unrelated widgets/events and can cause a
+    nested PySide QWidget::eventFilter failure in the sort-button lifecycle.
+    QWidget processes Tab/BackTab in event() before keyPressEvent(), so we
+    intercept just those specific keys here and reuse the existing tab ring.
+    """
+
+    def __init__(self, launcher, parent=None):
+        super().__init__(parent)
+        self._sort_launcher = launcher
+
+    def event(self, event):
+        if event.type() == QEvent.Type.KeyPress:
+            key = event.key()
+            if key in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
+                if self._sort_launcher.expanded_focus_key(self, event):
+                    return True
+            if (key in (Qt.Key.Key_Return, Qt.Key.Key_Enter,
+                        Qt.Key.Key_Space, Qt.Key.Key_Right)
+                    and event.modifiers() == Qt.KeyboardModifier.NoModifier):
+                # Same native QToolButton/QMenu as a mouse press, not a copied
+                # popup. Remote uses its own popup anchor beside the wheel.
+                self.showMenu()
+                event.accept()
+                return True
+        return super().event(event)
 
 
 class ExpandedLauncherView(QWidget):
@@ -774,6 +905,11 @@ class ExpandedLauncherView(QWidget):
         self.directory_history = DirectoryNavigationHistory(limit=100)
         self._restoring_directory_history = False
         self._refreshing = False
+        # Column-2 fallback selection: remember per directory, not per tree
+        # item (QTreeWidgetItem instances are recreated on folder refresh).
+        self._middle_current_memory = None
+        self._middle_selection_repair_queued = False
+        self._middle_selection_repair_running = False
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         # This is the gap *below* the second-layer strip, not the spacing
@@ -890,6 +1026,46 @@ class ExpandedLauncherView(QWidget):
         QApplication.instance().installEventFilter(self)
         self.left = ExpandedPanel('Files', 'folder')
         self.middle = ExpandedPanel('フォルダー', 'folder')
+        # Local, immediate filter; separate from global search and its file index.
+        # Preserve the 3-column navigation and right-side chevrons unchanged.
+        self._middle_query_directory = None
+        self._middle_sort_mode = str(launcher.settings.value(
+            'expanded_middle_sort', 'name') or 'name')
+        if self._middle_sort_mode not in SORT_LABELS:
+            self._middle_sort_mode = 'name'
+        self.middle_search_bar = QWidget(self.middle)
+        self.middle_search_bar.setObjectName('expandedMiddleSearchBar')
+        middle_search_layout = QHBoxLayout(self.middle_search_bar)
+        middle_search_layout.setContentsMargins(6, 4, 5, 4)
+        middle_search_layout.setSpacing(4)
+        self.middle_search = QLineEdit(self.middle_search_bar)
+        self.middle_search.setObjectName('expandedMiddleSearch')
+        self.middle_search.setPlaceholderText('このフォルダーを検索 (AND / OR)')
+        self.middle_search.setClearButtonEnabled(True)
+        self.middle_search.setToolTip('このフォルダー内の名前を絞り込み。メイン検索と同じAND/OR構文。')
+        middle_search_layout.addWidget(self.middle_search, 1)
+        self.middle_sort_button = _MiddleSortButton(launcher, self.middle_search_bar)
+        self.middle_sort_button.setObjectName('expandedMiddleSort')
+        # A real keyboard/Remote Tab stop, not only a mouse popup button.
+        self.middle_sort_button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.middle_sort_button.setProperty('remoteSortActive', False)
+        # Tab/BackTab are local to _MiddleSortButton.event(), not Launcher.eventFilter.
+        self.middle_sort_button.setFixedSize(33, 28)
+        self.middle_sort_button.setIconSize(QSize(22, 22))
+        self.middle_sort_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.middle_sort_menu = QMenu(self.middle_sort_button)
+        self.middle_sort_actions = {}
+        for mode, title in SORT_LABELS.items():
+            action = self.middle_sort_menu.addAction(title)
+            action.setCheckable(True)
+            action.triggered.connect(lambda checked=False, m=mode: self.set_middle_sort(m))
+            self.middle_sort_actions[mode] = action
+        self.middle_sort_button.setMenu(self.middle_sort_menu)
+        middle_search_layout.addWidget(self.middle_sort_button)
+        self.middle.layout_box.insertWidget(0, self.middle_search_bar)
+        self.middle.tree.setItemDelegateForColumn(0, _MiddleDetailsDelegate(self.middle.tree))
+        self.middle_search.textChanged.connect(self.apply_middle_filter)
+        self._update_middle_sort_button()
         # Separate a real 24px Back lane OUTSIDE the QTreeWidget viewport.
         # Qt's current-row rectangle therefore cannot extend into the lane,
         # and neither click nor inline rename can land on a hidden row cell.
@@ -915,6 +1091,18 @@ class ExpandedLauncherView(QWidget):
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        # The current item can temporarily disappear during refresh/rename.
+        # Heal after Qt settles, plus a lightweight polling fallback for an
+        # occasional focus/selection-loss event that emits no usable signal.
+        self.middle.tree.currentItemChanged.connect(self._remember_middle_current)
+        self.middle.tree.currentItemChanged.connect(
+            lambda *_: self._queue_middle_selection_repair())
+        self.middle.tree.itemSelectionChanged.connect(self._queue_middle_selection_repair)
+        self.middle.tree.model().modelReset.connect(self._queue_middle_selection_repair)
+        self._middle_selection_watchdog = QTimer(self)
+        self._middle_selection_watchdog.setInterval(400)
+        self._middle_selection_watchdog.timeout.connect(self.ensure_middle_current_selection)
+        self._middle_selection_watchdog.start()
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
@@ -1031,6 +1219,7 @@ class ExpandedLauncherView(QWidget):
         self.density_button.setToolTip('行間隔：コンパクト（クリックで切替）' if not tight
                                        else '行間隔：標準（クリックで切替）')
         for pane in (self.left, self.middle, self.right):
+            pane.tree.details_theme = theme_family(theme)
             pane.tree.separator_color = QColor(colors['row_separator'])
             pane.tree.inactive_current_border = QColor(colors['focus_outline'])
             for bar in (pane.tree.verticalScrollBar(), pane.tree.horizontalScrollBar()):
@@ -1064,6 +1253,16 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedBack {{background:{hdr};border:1px solid {border};color:{text};border-radius:9px;padding:0;}}
             QPushButton#expandedBack:hover {{background:{hover};border-radius:9px;}}
             QPushButton#expandedBack:pressed {{background:{active};border-radius:9px;}}
+            QWidget#expandedMiddleSearchBar {{background:{bg};border:0;border-bottom:1px solid {border};}}
+            QLineEdit#expandedMiddleSearch {{background:{bg};color:{text};border:1px solid {border};
+                border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
+            QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
+            QToolButton#expandedMiddleSort {{background:{hdr};border:1px solid {border};border-radius:7px;}}
+            QToolButton#expandedMiddleSort:hover {{background:{hover};}}
+            QToolButton#expandedMiddleSort:focus,
+            QToolButton#expandedMiddleSort[remoteSortActive="true"] {{
+                background:{active};border:2px solid {colors['focus_outline']};}}
+            QToolButton#expandedMiddleSort::menu-indicator {{image:none;width:0px;}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
             QWidget#expandedBackLane {{background:{bg};border:0;}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
@@ -1105,6 +1304,9 @@ class ExpandedLauncherView(QWidget):
                 border-radius:6px;padding:0;font-size:15px;font-weight:600;}}
             QToolButton#expandedDirectoryApply:hover {{background:{hover};border-color:#55a38c;}}
         ''')
+        self.middle_sort_button.setIcon(middle_sort_icon(theme_family(theme), self._middle_sort_mode))
+        for mode, action in self.middle_sort_actions.items():
+            action.setIcon(middle_sort_icon(theme_family(theme), mode))
         self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
@@ -1227,6 +1429,62 @@ class ExpandedLauncherView(QWidget):
         finally:
             self._refreshing = False
 
+    def _update_middle_sort_button(self):
+        mode = self._middle_sort_mode
+        self.middle_sort_button.setToolTip(f'並び替え: {SORT_LABELS[mode]}（クリックで変更）')
+        self.middle_sort_button.setAccessibleName(f'第2列の並び替え：{SORT_LABELS[mode]}')
+        self.middle_sort_button.setIcon(middle_sort_icon(
+            theme_family(self.launcher.color_theme), mode))
+        for key, action in self.middle_sort_actions.items():
+            action.setChecked(key == mode)
+
+    def set_middle_sort(self, mode):
+        if mode not in SORT_LABELS:
+            return
+        self._middle_sort_mode = mode
+        self.launcher.settings.setValue('expanded_middle_sort', mode)
+        self._update_middle_sort_button()
+        self._fill_middle_from_current()
+
+    def apply_middle_filter(self, *_):
+        # Keep the local search separate from Launcher-global search.
+        self._fill_middle_from_current()
+
+    def _fill_middle_from_current(self):
+        current = self.path[-1] if self.path else None
+        if current is None:
+            self.middle.tree.clear()
+            return
+        # Re-rendering while editing can destroy the QLineEdit and discard an
+        # unfinished filesystem rename. Never do that.
+        if self.middle.tree.state() == QAbstractItemView.State.EditingState:
+            return
+        try:
+            rows = self.browser_rows(current)
+        except (OSError, ValueError, PermissionError) as exc:
+            rows = []
+            self.middle.label.setToolTip(str(exc))
+        rows = filter_sort_folder_rows(
+            rows, self.middle_search.text(), self._middle_sort_mode)
+        tree = self.middle.tree
+        # Sorting/filtering re-creates Qt items. Preserve all still-visible
+        # selected paths (not just the current item), including Ctrl+click.
+        selected_keys = {row_key(self.row_data(item))
+                         for item in tree.selectedItems()
+                         if row_key(self.row_data(item))}
+        self.middle.fill(rows, self.launcher.row_icon)
+        if selected_keys:
+            restored = []
+            for index in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(index)
+                if row_key(self.row_data(item)) in selected_keys:
+                    restored.append(item)
+            if restored:
+                tree.clearSelection()
+                for item in restored:
+                    item.setSelected(True)
+        self._queue_middle_selection_repair()
+
     def refresh_middle(self):
         self._middle_back_hold.reset()
         self._middle_back_warp_pending = None
@@ -1236,13 +1494,18 @@ class ExpandedLauncherView(QWidget):
             row_directory(current, self.launcher.expander().expand),
             current['title'] if current else '')
         self.middle.back.setEnabled(bool(self.path))
-        if current:
+        # Search is scoped to ONE displayed directory. A folder transition
+        # must not unexpectedly leave the new folder blank due to old filters.
+        folder = self.current_directory()
+        if folder != self._middle_query_directory:
+            self._middle_query_directory = folder
+            previous = self.middle_search.blockSignals(True)
             try:
-                rows = self.browser_rows(current)
-            except (OSError, ValueError, PermissionError) as exc:
-                rows = []
-                self.middle.label.setToolTip(str(exc))
-            self.middle.fill(rows, self.launcher.row_icon)
+                self.middle_search.clear()
+            finally:
+                self.middle_search.blockSignals(previous)
+        if current:
+            self._fill_middle_from_current()
         else:
             self.middle.tree.clear()
         self.update_directory_favorite_button()
@@ -1569,6 +1832,50 @@ class ExpandedLauncherView(QWidget):
                         pass  # The refreshed row was already released by Qt.
                 editor.editingFinished.connect(
                     lambda: QTimer.singleShot(0, reset_folder_edit_flag))
+        return True
+
+    def commit_remote_inline_rename(self):
+        """Commit an active file OR folder rename from the non-focusing Remote pad.
+
+        Qt normally commits the editor on Enter or focus loss.  The Remote
+        deliberately steals neither, so forward the same delegate commit and
+        close signals used by the inline editor's Enter handler.  Do not route
+        that same click to normal file activation.
+        """
+        tree = self.middle.tree
+        if tree.state() != QAbstractItemView.State.EditingState:
+            return False
+        editor = tree.findChild(QLineEdit, 'inlineRenameEditor')
+        delegate = tree.itemDelegateForColumn(0)
+        # EditingState is authoritative: even if the editor is disappearing,
+        # swallow the click rather than accidentally opening the file/folder.
+        if editor is None or not isinstance(delegate, _InlineRenameDelegate):
+            return True
+        current_item = tree.currentItem()
+        current_row = self.row_data(current_item) if current_item is not None else None
+        folder_edit = bool(current_row and current_row.get('item_kind') == 'directory')
+        tree._rename_enter_epoch = getattr(tree, '_rename_enter_epoch', 0) + 1
+        epoch = tree._rename_enter_epoch
+        tree._rename_enter_guard = True
+
+        def release_guard():
+            if getattr(tree, '_rename_enter_epoch', None) == epoch:
+                tree._rename_enter_guard = False
+
+        try:
+            delegate.commitData.emit(editor)
+            delegate.closeEditor.emit(editor, QAbstractItemDelegate.EndEditHint.NoHint)
+        finally:
+            # Folder rows are browse-on-click outside rename mode.  Programmatic
+            # closeEditor may bypass QLineEdit.editingFinished, which normally
+            # removes this temporary editable flag.
+            if folder_edit and current_item is not None:
+                try:
+                    if tree.indexOfTopLevelItem(current_item) >= 0:
+                        current_item.setFlags(current_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                except RuntimeError:
+                    pass  # A pending refresh already disposed of this item.
+            QTimer.singleShot(120, release_guard)
         return True
 
     def finish_inline_rename(self, item, column):
@@ -2760,9 +3067,64 @@ class ExpandedLauncherView(QWidget):
         if destination != position:
             QCursor.setPos(destination)
 
+    def _middle_selection_is_active(self):
+        """Logical Remote column wins over stale native Qt focus."""
+        if not self.isVisible() or not self.middle.tree.isVisible():
+            return False
+        remote = getattr(self.launcher, 'remote_window', None)
+        if remote is not None and remote.isVisible():
+            return getattr(self.launcher, '_remote_area', None) == 'directory'
+        return self.middle.tree._column_is_focused()
+
+    def _remember_middle_current(self, item, _previous):
+        row = self.row_data(item) if item is not None else None
+        key = row_key(row)
+        if key:
+            self._middle_current_memory = (self.current_directory(), key)
+
+    def _queue_middle_selection_repair(self, *_):
+        if self._middle_selection_repair_queued:
+            return
+        self._middle_selection_repair_queued = True
+        QTimer.singleShot(0, self._run_queued_middle_selection_repair)
+
+    def _run_queued_middle_selection_repair(self):
+        self._middle_selection_repair_queued = False
+        self.ensure_middle_current_selection()
+
+    def ensure_middle_current_selection(self):
+        """Guarantee a visible/operable column-2 row whenever one exists.
+
+        This guard does not touch other panes, navigate folders, open files,
+        or interrupt inline renaming. Empty directories remain empty.
+        """
+        tree = self.middle.tree
+        if (self._middle_selection_repair_running or
+                not self._middle_selection_is_active() or
+                tree.state() == QAbstractItemView.State.EditingState):
+            return None
+        self._middle_selection_repair_running = True
+        try:
+            directory = self.current_directory()
+            remembered = (self._middle_current_memory[1]
+                          if self._middle_current_memory is not None
+                          and self._middle_current_memory[0] == directory else None)
+            item, _changed = repair_middle_selection(tree, self.row_data, remembered)
+            if item is not None:
+                key = row_key(self.row_data(item))
+                if key:
+                    self._middle_current_memory = (directory, key)
+            return item
+        finally:
+            self._middle_selection_repair_running = False
+
     def focus_panel(self, panel):
         """Move keyboard focus and visible selection together."""
         tree = panel.tree
+        if panel is self.middle:
+            # Called on real keyboard/Remote transitions. Recover a missing
+            # current item before the old first-row fallback runs.
+            self._queue_middle_selection_repair()
         if tree.currentItem() is None and tree.topLevelItemCount():
             first = next((tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
                           if self.row_data(tree.topLevelItem(i)) is not None), None)
