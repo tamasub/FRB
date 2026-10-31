@@ -360,18 +360,21 @@ def link_icon(theme):
 
 
 def density_lines_icon(theme):
-    """Three crisp horizontal strokes, visually centered in the square button."""
-    pix = QPixmap(56, 56)
+    """Three crisp horizontal strokes centered like the Web nav icons."""
+    # The Web navigation glyphs share a 24x24 logical vector canvas.
+    # The HiDPI pixmap provides the 2x scale implicitly (as in
+    # browser_nav_icons.py). Paint in 24px logical coordinates: the old
+    # strokes occupied only the upper-left of the oversized physical canvas.
+    pix = QPixmap(48, 48)
     pix.setDevicePixelRatio(2)
     pix.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pix)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    pen = QPen(QColor('#3a6254' if theme == 'light' else '#e4f0e8'), 2.0)
+    pen = QPen(QColor('#425750' if theme == 'light' else '#d5e3ed'), 2.0)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     painter.setPen(pen)
-    # Slightly right/down vs. the previous icon so it reads optically centered.
-    for y in (10, 16, 22):
-        painter.drawLine(7, y, 23, y)
+    for y in (7, 12, 17):
+        painter.drawLine(QPointF(5.5, y), QPointF(18.5, y))
     painter.end()
     return QIcon(pix)
 
@@ -910,8 +913,8 @@ class ExpandedPanel(QFrame):
         header.addWidget(self.label, 1)
         self.back = QPushButton('')
         self.back.setObjectName('expandedBack')
-        self.back.setFixedSize(34, 34)
-        self.back.setIconSize(QSize(22, 22))
+        self.back.setFixedSize(30, 29)
+        self.back.setIconSize(QSize(19, 19))
         self.back.setToolTip('一つ上の階層へ戻る')
         self.back.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.back.setIcon(browser_navigation_icon('back', self._theme))
@@ -1191,8 +1194,8 @@ class ExpandedLauncherView(QWidget):
         self.density_button = QToolButton(self.shared_header)
         self.density_button.setObjectName('expandedDensityToggle')
         self.density_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.density_button.setFixedSize(31, 31)
-        self.density_button.setIconSize(QSize(22, 22))
+        self.density_button.setFixedSize(30, 29)
+        self.density_button.setIconSize(QSize(19, 19))
         self.density_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         self.density_button.clicked.connect(self.toggle_row_density)
         shared_layout.addWidget(self.density_button)
@@ -1288,6 +1291,9 @@ class ExpandedLauncherView(QWidget):
         tree.setItemDelegateForColumn(4, _NavigationChevronDelegate(tree, right_inset=15))
         header = tree.header()
         header.setObjectName('expandedMiddleColumnsHeader')
+        # The metadata heading is secondary to file names. At roughly 80%
+        # of the former ~35px height it stays readable without dominating.
+        header.setFixedHeight(28)
         header.setSectionsClickable(True)
         header.setSectionsMovable(True)
         header.setHighlightSections(False)
@@ -1395,14 +1401,12 @@ class ExpandedLauncherView(QWidget):
         self.splitter.addWidget(self.files_content_stack)
         self.splitter.addWidget(self.right)
         self.root_widget.set_corner_end_provider(
-            lambda: self.files_content_stack.mapTo(
-                self.root_widget, QPoint(self.files_content_stack.width(), 0)).x())
-        # The Browser underline ends at the bookmark-pane boundary; that pane
-        # does not need a second horizontal rule above its own header.
-        self.root_widget.set_underline_end_provider(
-            lambda: (self.right.mapTo(self.root_widget, QPoint(0, 0)).x()
-                     if self._workspace_mode == 'browser' and self.right.isVisible()
-                     else None))
+            lambda: (None if self._workspace_mode == 'browser' else
+                     self.files_content_stack.mapTo(
+                         self.root_widget, QPoint(self.files_content_stack.width(), 0)).x()))
+        # A SINGLE rule spans the whole Browser workspace, including
+        # Bookmarks. The bookmarks frame has no competing upper border.
+        self.root_widget.set_underline_end_provider(lambda: None)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setSizes([660, 350])
         self._browser_splitter_sizes = [660, 350]
@@ -1495,11 +1499,21 @@ class ExpandedLauncherView(QWidget):
         # Inactive tabs recede: a softer border and slightly muted caption.
         # Neutral gray makes the inactive label unobtrusive on either theme;
         # stripe is subtler than the active tab's panel border.
+        # The scroll area's viewport is a separate Qt widget; a transparent
+        # strip can otherwise expose a white default at its left/right edges.
+        root_viewport = self.toolbar_scroller.viewport()
+        root_viewport.setAutoFillBackground(True)
+        root_palette = root_viewport.palette()
+        root_palette.setColor(QPalette.ColorRole.Window, QColor(hdr))
+        root_viewport.setPalette(root_palette)
         self.root_widget.set_underline_color(border)
         self._files_top_right_outline.set_outline_color(border)
         self._files_top_right_outline.hide()
         if self.right._top_right_outline is not None:
             self.right._top_right_outline.set_outline_color(border)
+            # Bookmark edges are deliberately SQUARE. The old painter drew
+            # a curved stroke over the stylesheet, even with radius:0.
+            self.right._top_right_outline.hide()
         tight = self.row_density == 'compact'
         height, pad = (23, 1) if tight else (29, 3)
         self.density_button.setText('')
@@ -1520,8 +1534,10 @@ class ExpandedLauncherView(QWidget):
                     self.favorite_choices.horizontalScrollBar()):
             bar.setStyleSheet(scrollbar_for_theme(theme, colors['history_bg']))
         self.setStyleSheet(f'''
-            QWidget#expandedRootBar {{ background:transparent; }}
-            QScrollArea#expandedRootScroller {{ background:transparent;border:0; }}
+            /* Paint the strip AND the QScrollArea's surface mint so its
+               transparent/rounded ends cannot reveal a white Qt background. */
+            QWidget#expandedRootBar {{background:{hdr};border:0;}}
+            QScrollArea#expandedRootScroller {{background:{hdr};border:0;}}
             QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
                 border-radius:9px;padding:4px 10px;text-align:left;font-size:12px; }}
             QPushButton#expandedRootButton:hover {{background:{hover};}}
@@ -1549,32 +1565,42 @@ class ExpandedLauncherView(QWidget):
                 border-bottom-right-radius:0px;border-bottom:0;font-weight:400;}}
             QPushButton#expandedWorkspaceTab[workspace="browser"]:checked {{background:{hdr};
                 color:{text};border:0;border-bottom:0;font-weight:400;}}
-            QFrame#expandedFilesGroup {{background:{bg};border:0px solid {border};border-top:0;
-                border-top-left-radius:0;border-top-right-radius:0;
-                border-bottom-left-radius:12px;border-bottom-right-radius:12px;}}
+            /* The Files bottom corners are square, with one continuous
+               1px border belonging to each of the two folder panes. */
+            QFrame#expandedFilesGroup {{background:{hdr};border:0;
+                border-radius:0;}}
             QWidget#expandedCombinedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
                 border-top-left-radius:11px;border-top-right-radius:11px;}}
             QLabel#expandedCombinedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
-            QToolButton#expandedDensityToggle {{background:transparent;border:1px solid {border};
-                border-radius:7px;color:{text};font-size:17px;}}
+            /* Files header controls share the WebView navigation 30x29 style. */
+            QToolButton#expandedDensityToggle {{background:{bg};border:1px solid {border};
+                border-radius:7px;color:{text};padding:0;}}
             QToolButton#expandedDensityToggle:hover {{background:{hover};}}
             QFrame#expandedPanel {{ background:{bg}; border:1px solid {border};border-radius:12px; }}
-            /* Bookmarks are below the workspace bar: no doubled top rule. */
-            QFrame#expandedPanel[panelKind="bookmark"] {{border-top:0;
-                border-top-left-radius:0;border-top-right-radius:11px;}}
-            QWidget#expandedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
-                border-top-left-radius:11px;border-top-right-radius:11px;}}
+            /* Shared Files header already draws the separator below itself.
+               Suppress the folder panes' top border to avoid a double rule
+               above both the left list and the middle search row. */
+            QFrame#expandedPanel[panelKind="folder"] {{background:{bg};
+                border:1px solid {border};border-top:0;border-radius:0;}}
+            /* A square bookmark frame also fills its top-left corner:
+               no white wedge from either the panel or header radius. */
+            QFrame#expandedPanel[panelKind="bookmark"] {{background:{hdr};
+                border:1px solid {border};border-top:0;border-radius:0;}}
+            QWidget#expandedHeader {{background:{hdr};border:0;
+                border-bottom:1px solid {border};border-radius:0;}}
             QLabel#expandedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
-            QPushButton#expandedBack {{background:{hdr};border:1px solid {border};color:{text};border-radius:9px;padding:0;}}
-            QPushButton#expandedBack:hover {{background:{hover};border-radius:9px;}}
-            QPushButton#expandedBack:pressed {{background:{active};border-radius:9px;}}
+            QPushButton#expandedBack {{background:{bg};border:1px solid {border};
+                color:{text};border-radius:7px;padding:0;}}
+            QPushButton#expandedBack:hover {{background:{hover};border-radius:7px;}}
+            QPushButton#expandedBack:pressed {{background:{hover};border-radius:7px;}}
             QWidget#expandedMiddleSearchBar {{background:{bg};border:0;border-bottom:1px solid {border};}}
             QLineEdit#expandedMiddleSearch {{background:{bg};color:{text};border:1px solid {border};
                 border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
             QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
             QHeaderView#expandedMiddleColumnsHeader::section {{
-                color:{text};background:{hdr};border:0;border-right:1px solid {border};
-                border-bottom:1px solid {border};padding:4px 8px;font-size:12px;font-weight:400;}}
+                color:{colors['muted_text']};background:{colors['column_header']};border:0;
+                border-right:1px solid {border};border-bottom:1px solid {border};
+                padding:1px 8px;font-size:12px;font-weight:400;}}
             QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{hover};}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
             QWidget#expandedBackLane {{background:{bg};border:0;}}

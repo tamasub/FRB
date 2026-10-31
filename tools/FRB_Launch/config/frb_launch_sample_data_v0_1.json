@@ -10,7 +10,7 @@
   "pages": [
     {
       "page_id": "work",
-      "title": "💼 仕事",
+      "title": "💼 Files Browser",
       "sort_order": 10,
       "enabled": true
     },

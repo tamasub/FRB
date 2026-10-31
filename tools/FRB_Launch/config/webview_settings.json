@@ -3,10 +3,12 @@
     "embedded": "組み込み方式：Launch内部のWebViewで表示。専用プロファイルでログイン情報を保持し、ダウンロードもLaunch内で管理する。利用環境の規程を確認すること。",
     "external": "外部ブラウザ方式：Launch内のWebViewを生成せず、URLを外部ブラウザで開く。ログイン情報やダウンロードは外部ブラウザ側で管理する。"
   },
+  "_webview_zoom_help": "default_zoom_percent：WebViewの新規タブの初期表示倍率（％）。100＝標準、90＝90％。50～200で指定し、Launch再起動後に新しく開くWebタブから適用。既に表示中のタブの倍率は変更しない。",
   "mode": "embedded",
   "remember_login": true,
   "download_directory": "",
   "new_tab_url": "https://www.google.com/",
+  "default_zoom_percent": 90,
   "bookmark_preview_delay_ms": 650,
   "keep_tabs_on_home": true
 }

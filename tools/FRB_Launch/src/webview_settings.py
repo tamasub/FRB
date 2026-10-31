@@ -8,6 +8,7 @@ DEFAULTS = {
     'remember_login': True,
     'download_directory': '',  # blank = the OS Downloads folder
     'new_tab_url': 'https://www.google.com/',
+    'default_zoom_percent': 90,  # 100 = original size; applied to each new Web tab
     'bookmark_preview_delay_ms': 650,
     'keep_tabs_on_home': True,
 }
@@ -40,6 +41,12 @@ def read_webview_settings(path):
         settings['download_directory'] = directory
     if valid_http_url(raw.get('new_tab_url')):
         settings['new_tab_url'] = raw['new_tab_url']
+    zoom = raw.get('default_zoom_percent')
+    # Keep the configured zoom readable as a percentage; reject bool, NaN,
+    # excessively small or excessively large values.
+    if (isinstance(zoom, (int, float)) and not isinstance(zoom, bool)
+            and 50 <= zoom <= 200):
+        settings['default_zoom_percent'] = zoom
     delay = raw.get('bookmark_preview_delay_ms')
     if isinstance(delay, int) and not isinstance(delay, bool) and 100 <= delay <= 5000:
         settings['bookmark_preview_delay_ms'] = delay

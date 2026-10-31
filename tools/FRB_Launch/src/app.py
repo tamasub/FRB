@@ -1877,7 +1877,9 @@ class Launcher(QWidget):
         self.search.setClearButtonEnabled(True)
         self.search.setMinimumHeight(36)
         self.search.setMaximumHeight(36)
-        self.search.setMinimumWidth(240)
+        # Give narrow windows some flexibility. The Page strip has its own
+        # bounded width and scroll buttons; do not force a 240px search field.
+        self.search.setMinimumWidth(100)
         self.search.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         # A child QToolButton retains an actual 28dp icon.  A leading
         # QLineEdit action gets silently reduced to 16dp by Windows/Qt.
@@ -1907,14 +1909,14 @@ class Launcher(QWidget):
             QIcon(plus_icon), QLineEdit.ActionPosition.TrailingPosition)
         self.history_category_action.setToolTip('検索履歴カテゴリーを追加')
         self.history_category_action.triggered.connect(self.add_history_category)
-        # Modern two-row header: title/search/window actions on the first row,
-        # back/home + Page tabs on the second row.
+        # Unified, one-row header: brand / navigation / search / Page tabs /
+        # settings / window controls. The old second toolbar row is removed.
         self.search_bar = QWidget(self)
         self.search_bar.setObjectName('searchBar')
         self.search_bar.setMinimumHeight(50)
         search_row = QHBoxLayout(self.search_bar)
-        search_row.setContentsMargins(10, 3, 8, 3)
-        search_row.setSpacing(10)
+        search_row.setContentsMargins(8, 3, 6, 3)
+        search_row.setSpacing(6)
 
         self.brand_widget = QWidget(self.search_bar)
         self.brand_widget.setObjectName('brandWidget')
@@ -2003,6 +2005,9 @@ class Launcher(QWidget):
         self.nav_forward_button.clicked.connect(self.navigate_forward)
         self.nav_forward_button.hide()  # Visible only while Files Explorer is active.
         self.nav_home_button.clicked.connect(self.navigate_home)
+        # Reuse the original navigation widget directly in the header.
+        # Moving a widget between layouts preserves its signals and behavior.
+        search_row.insertWidget(search_row.indexOf(self.search), self.nav_toolbar, 0)
         # Inline overlay: left of QLineEdit's native clear (x) and history
         # chevron actions.  Never add it to search_row, which puts it OUTSIDE.
         self.save_history_button = QPushButton('履歴登録', self.search)
@@ -2086,6 +2091,10 @@ class Launcher(QWidget):
         self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
         self.theme_menu.addSeparator()
+        self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')
+        self.compact_mode_action.setToolTip('Compact表示とFiles／Browser表示を切り替え')
+        self.compact_mode_action.triggered.connect(self.toggle_expanded_view)
+        self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
             lambda checked=False: self.launch_configuration_studio(page_properties=True))
@@ -2096,6 +2105,21 @@ class Launcher(QWidget):
         # Apply full tab styles (including *unselected* tabs) so Windows does
         # not fall back to the legacy beveled/3D native QTabBar appearance.
         self.tabs.setStyleSheet(PAGE_TABS_QSS)
+        self.tabs.setUsesScrollButtons(True)
+        # To the RIGHT of search, BEFORE settings. Tabs remain the same
+        # FocusPageTabBar (keyboard, wheel, and Page events are preserved).
+        search_row.insertWidget(search_row.indexOf(self.theme_button), self.tabs, 0)
+        # A narrow Compact window cannot physically contain three Page tabs,
+        # the search field and all controls on ONE row. Show a small Page menu
+        # in that situation, retaining the three real tabs when space permits.
+        self.page_overflow_button = QPushButton('Page ▾', self.search_bar)
+        self.page_overflow_button.setObjectName('headerPageOverflow')
+        self.page_overflow_button.setFixedHeight(34)
+        self.page_overflow_button.setFixedWidth(72)
+        self.page_overflow_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.page_overflow_button.clicked.connect(self.open_header_page_menu)
+        self.page_overflow_button.hide()
+        search_row.insertWidget(search_row.indexOf(self.theme_button), self.page_overflow_button, 0)
         self.list = ReorderTree(self); self.list.setObjectName('mainLaunchList'); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
         self.list.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.list.setHeaderLabels(['タイトル', '説明・場所'])
@@ -2137,20 +2161,18 @@ class Launcher(QWidget):
             button = QPushButton(title); button.clicked.connect(callback); buttons.addWidget(button)
         buttons.addStretch()
         self.selection_tools.hide()
+        # Retain the old mode action widget internally for compatibility with
+        # established callers; the user-facing control is now in settings.
+        # Neither the old Page bar nor the mode button occupies screen height.
         self.mode_bar = QWidget(self)
         self.mode_bar.setObjectName('pageBar')
-        mode_row = QHBoxLayout(self.mode_bar)
-        mode_row.setContentsMargins(10, 8, 10, 8)
-        mode_row.setSpacing(10)
-        mode_row.addWidget(self.nav_toolbar, 0)
-        mode_row.addWidget(self.tabs, 1)
         self.mode_button = QPushButton('Three-layer', self.mode_bar)
         self.mode_button.setObjectName('expandedModeButton')
         self.mode_button.setIconSize(QSize(22, 22))
-        self.mode_button.setToolTip('従来表示と、Files／ブックマークを並べた展開ビューを切替')
+        self.mode_button.setToolTip('CompactとFiles／Browserを切り替え')
         self.mode_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.mode_button.clicked.connect(self.toggle_expanded_view)
-        mode_row.addWidget(self.mode_button)
+        self.mode_bar.hide()
         self.expanded_view = ExpandedLauncherView(self)
         # Wheel Tab: share one cooldown across Page, toolbar and Files panels.
         self.tabs._zone_navigation = self.expanded_view.wheel_zone_navigation
@@ -2158,7 +2180,7 @@ class Launcher(QWidget):
         self.tabs._pointer_warp_enabled = lambda: self.pointer_warp_enabled
         self.expanded_view.hide()
         layout.addWidget(self.search_bar)
-        for w in (self.mode_bar, self.selection_tools, self.list,
+        for w in (self.selection_tools, self.list,
                   self.expanded_view, self.footer):
             body_layout.addWidget(w)
         layout.addWidget(self.main_body, 1)
@@ -2276,6 +2298,7 @@ class Launcher(QWidget):
         self.search.textEdited.connect(self.search_user_edited)
         self.search.textChanged.connect(self.search_text_changed)
         self.tabs.currentChanged.connect(self.page_changed)
+        self.tabs.currentChanged.connect(lambda *_: self.update_header_tab_width())
         self.list.itemActivated.connect(lambda item,col:self.activate(item.data(0,Qt.ItemDataRole.UserRole)))
         self.list.itemChanged.connect(self.check_changed)
         self.list.itemEntered.connect(self.hover)
@@ -3454,6 +3477,7 @@ class Launcher(QWidget):
                ('#587261', '#1a2927', '#e5ebf3')))
         self.update_history_chevron()
         self.update_header_icons()
+        self.update_header_tab_width()
         # The global QWidget theme used to paint a pale rectangle behind the
         # brand, despite the titlebar having its own darker green background.
         self.brand_widget.setStyleSheet(
@@ -3485,6 +3509,11 @@ class Launcher(QWidget):
             f'QPushButton#headerSettingsButton {{ background:transparent; border:0; border-radius:17px; padding:0; }} '
             f'QPushButton#headerSettingsButton:hover {{ background:{header_hover}; }} '
             f'QPushButton#headerSettingsButton:pressed {{ background:{header_pressed}; }}')
+        self.page_overflow_button.setStyleSheet(
+            f'QPushButton#headerPageOverflow {{ background:{subheader_fill}; '
+            f'color:{colors["text"]};border:1px solid {frame_border};'
+            f'border-radius:9px;padding:3px 5px;font-size:12px; }} '
+            f'QPushButton#headerPageOverflow:hover {{background:{header_hover};}}')
         self.header_divider.setStyleSheet(f'QFrame#headerDivider {{ color:{divider}; background:{divider}; }}')
         common_window_style = (
             f'QPushButton#windowFrameButton, QPushButton#windowCloseButton {{ background:transparent; border:0; border-radius:16px; }} '
@@ -3513,7 +3542,7 @@ class Launcher(QWidget):
         # Match Page bar's base color. In particular the *toolbar widget*
         # must not inherit LIGHT_MAIN_QSS's global QWidget background, which
         # showed up as a tinted rectangle around the navigation buttons.
-        nav_fill = subheader_fill
+        nav_fill = header_fill
         self.nav_toolbar.setStyleSheet(f'''
             QWidget#navigationToolbar {{ background:transparent; border:0; }}
             QPushButton#navBackButton, QPushButton#navForwardButton,
@@ -3602,15 +3631,17 @@ class Launcher(QWidget):
         self.resize(width, height)
 
     def resize_edge(self, pos):
-        if not self.rect().contains(pos.toPoint()): return None
-        # The entire very thin top stripe is a MOVE handle, including both
-        # corners.  Never display a vertical/diagonal resize cursor there.
-        if pos.y() < self.FRAME_TOP:
+        if not self.rect().contains(pos.toPoint()):
+            return None
+        # Restore top-edge and both top-corner resize hit zones. Only the
+        # 6px perimeter resizes; the remaining title/header area still moves.
+        if getattr(self, 'isMaximized', lambda: False)():
             return None
         left = pos.x() < self.FRAME_WIDTH
         right = pos.x() >= self.width() - self.FRAME_WIDTH
+        top = pos.y() < self.FRAME_WIDTH
         bottom = pos.y() >= self.height() - self.FRAME_WIDTH
-        return '-'.join(edge for hit, edge in ((bottom, 'bottom'),
+        return '-'.join(edge for hit, edge in ((top, 'top'), (bottom, 'bottom'),
                                                 (left, 'left'), (right, 'right')) if hit) or None
 
     @staticmethod
@@ -3721,6 +3752,41 @@ class Launcher(QWidget):
         if not getattr(self, '_size_drag', None): self.unsetCursor()
         super().leaveEvent(event)
 
+    def open_header_page_menu(self):
+        """Space-saving Page selector for narrow Compact windows only."""
+        menu = QMenu(self.page_overflow_button)
+        for index in range(self.tabs.count()):
+            action = menu.addAction(self.tabs.tabText(index))
+            action.setCheckable(True)
+            action.setChecked(index == self.tabs.currentIndex())
+            action.triggered.connect(
+                lambda checked=False, i=index: self.tabs.setCurrentIndex(i))
+        menu.exec(self.page_overflow_button.mapToGlobal(
+            QPoint(0, self.page_overflow_button.height())))
+
+    def update_header_tab_width(self):
+        """Keep the main search, Page selection, and controls reachable."""
+        width = self.width()
+        narrow = width < 780
+        self.brand_widget.setVisible(width >= 650)
+        # The window still has its close and settings actions at minimum size.
+        self.minimize_button.setVisible(
+            not self.dismiss_on_outside_click and width >= 720)
+        self.maximize_button.setVisible(width >= 720)
+        if narrow:
+            self.tabs.hide()
+            self.page_overflow_button.show()
+            if self.tabs.currentIndex() >= 0:
+                self.page_overflow_button.setText(
+                    self.tabs.tabText(self.tabs.currentIndex()))
+        else:
+            self.page_overflow_button.hide()
+            self.tabs.show()
+            # Qt's native QTabBar scroll arrows handle the remaining width.
+            limit = max(130, min(380, width - 750))
+            if self.tabs.maximumWidth() != limit:
+                self.tabs.setMaximumWidth(limit)
+
     def update_window_shape(self):
         path=QPainterPath()
         path.addRoundedRect(QRectF(self.rect()),self.CORNER_RADIUS,self.CORNER_RADIUS)
@@ -3728,6 +3794,8 @@ class Launcher(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        if hasattr(self, 'page_overflow_button') and hasattr(self, 'search_bar'):
+            self.update_header_tab_width()
         self.update_window_shape()
         if getattr(self, 'history_popup', None) and self.history_popup.isVisible():
             self.position_history_popup()
@@ -4837,6 +4905,9 @@ class Launcher(QWidget):
             '仕事Pageで展開ビューを使えます' if self.view_mode == 'expanded'
             and self.page_id != self.expanded_options['page_id'] else
             '従来表示とFiles／ブックマーク同時表示を切替')
+        self.compact_mode_action.setText(
+            'Compact表示へ切り替え' if self.view_mode == 'expanded'
+            else 'Files／Browser表示へ切り替え')
 
     def open_expanded_cascade(self, row, widget, item=None):
         # Transient deep menu reuses Launcher's existing actions/keyboard logic.

@@ -673,6 +673,9 @@ class LaunchWebView(QFrame):
     def add_tab(self, url=None, *, activate=True):
         view = _LaunchWebPage(self)
         view.setPage(QWebEnginePage(self.profile, view))
+        # Apply the user-configured initial zoom to every new tab, including
+        # links opened via 'new tab' and window.open. Do this before loading.
+        view.setZoomFactor(self.web_settings.get('default_zoom_percent', 90) / 100.0)
         view.setObjectName('launchWebPage')
         index = self.tabs.addTab(view, '新規タブ')
         # Replace Qt's platform-dependent square close glyph with a small X.
@@ -883,8 +886,9 @@ class LaunchWebView(QFrame):
             QTabBar#launchWebTabBar::tab:hover:!selected {{background:{hover};}}
             QTabBar#launchWebTabBar[remoteWebActive="true"]::tab:selected
                 {{border:2px solid #58ad82;background:{bg};}}
-            QLineEdit#launchWebAddress {{background:{colors['search_bg']};color:{colors['search_fg']};
-                 border:1px solid {colors['search_border']};border-radius:12px;padding:4px 10px;}}
+            QLineEdit#launchWebAddress {{background:{colors['search_bg']};color:{muted};
+                 border:1px solid {colors['search_border']};border-radius:12px;
+                 padding:4px 10px;font-size:12px;}}
             QLineEdit#launchWebAddress:focus {{border:1px solid {colors['search_focus']};}}
             QLabel#launchWebHint {{color:{colors['text']};font-size:10px;}}
             QToolButton {{background:{bg};color:{text};border:1px solid {border};border-radius:7px;}}
