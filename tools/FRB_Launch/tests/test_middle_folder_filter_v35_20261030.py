@@ -65,6 +65,6 @@ def test_folder_rows_stay_navigable_and_first(tmp_path):
 
 def test_size_format():
     assert format_size(None) == ''
-    assert format_size(0) == '0 B'
-    assert format_size(1024) == '1.0 KB'
-    assert format_size(2 * 1024 ** 2) == '2.0 MB'
+    assert format_size(0) == '0 KB'
+    assert format_size(1024) == '1 KB'
+    assert format_size(2 * 1024 ** 2) == '2,048 KB'

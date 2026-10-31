@@ -369,6 +369,10 @@ class LaunchWebView(QFrame):
         self.profile = self._create_profile()
         self.profile.downloadRequested.connect(self._download_requested)
         self.setObjectName('launchWebView')
+        # Parent CSS has border-top:0; the upper-right curve needs its own
+        # foreground stroke rather than a radius with no visible border.
+        from expanded_view import _WorkspaceTopRightOutline
+        self._top_right_outline = _WorkspaceTopRightOutline(self)
         self._tabs = []
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -854,13 +858,18 @@ class LaunchWebView(QFrame):
         text = colors['text']
         border = colors['panel_border']
         hdr = colors['panel_header']
+        self._top_right_outline.set_outline_color(border)
         self._refresh_icons(theme)
         if self._download_popup is not None:
             self._download_popup.apply_colors(colors)
         hover = colors['hover']
         muted = colors['muted_text']
         self.setStyleSheet(f'''
-            QFrame#launchWebView {{background:{bg};border:1px solid {border};border-radius:10px;}}
+            /* Files-like Web chrome: the large surrounding area is mint-green.
+               The rendered website is still owned by QWebEngineView itself. */
+            QFrame#launchWebView {{background:{hdr};border:1px solid {border};border-top:0;
+                border-top-left-radius:0;border-top-right-radius:11px;
+                border-bottom-left-radius:10px;border-bottom-right-radius:10px;}}
             QFrame#launchWebView[remoteWebArea="web_body"] {{border:2px solid #58ad82;}}
             QTabWidget#launchWebTabs {{border:0;background:transparent;}}
             QTabWidget#launchWebTabs::pane {{border:0;margin:0;padding:0;}}
@@ -876,10 +885,11 @@ class LaunchWebView(QFrame):
             QTabBar#launchWebTabBar::tab:hover:!selected {{background:{hover};}}
             QTabBar#launchWebTabBar[remoteWebActive="true"]::tab:selected
                 {{border:2px solid #58ad82;background:{bg};}}
-            QLineEdit#launchWebAddress {{background:{hdr};color:{text};
-                 border:1px solid {border};border-radius:5px;padding:3px 6px;}}
+            QLineEdit#launchWebAddress {{background:{colors['search_bg']};color:{colors['search_fg']};
+                 border:1px solid {colors['search_border']};border-radius:12px;padding:4px 10px;}}
+            QLineEdit#launchWebAddress:focus {{border:1px solid {colors['search_focus']};}}
             QLabel#launchWebHint {{color:{colors['text']};font-size:10px;}}
-            QToolButton {{background:{hdr};color:{text};border:1px solid {border};border-radius:5px;}}
+            QToolButton {{background:{bg};color:{text};border:1px solid {border};border-radius:7px;}}
             QToolButton:hover {{background:{hover};}}
             QToolButton#launchWebDownloads[activeDownloads="true"]
                 {{border:1px solid #58ad82;background:{hover};}}

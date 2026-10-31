@@ -149,7 +149,8 @@ def test_profile_is_named_disk_based_and_shared_by_all_tabs():
 def test_external_mode_does_not_create_embedded_view_or_show_live_preview():
     expanded=source('src/expanded_view.py')
     assert "if self.launcher.webview_settings.get('mode') != 'embedded':" in expanded
-    assert "return  # Wheel selection must never launch an external browser." in expanded
+    # v49 forbids selection-driven navigation in BOTH Browser modes.
+    assert 'self.right.tree.currentItemChanged.connect(self.schedule_web_bookmark_preview)' not in expanded
     launcher=source('src/app.py')
     assert "if self.webview_settings.get('mode') != 'embedded':" in launcher
     assert 'if self.open_bookmark_web_view(row):' in launcher

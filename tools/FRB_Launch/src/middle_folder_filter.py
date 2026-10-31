@@ -10,6 +10,9 @@ from search_matching import matches_search_text
 
 SORT_LABELS = {
     'name': '名前順',
+    'name_desc': '名前降順',
+    'type_asc': '種類昇順',
+    'type_desc': '種類降順',
     'date_desc': '更新日降順',
     'date_asc': '更新日昇順',
     'size_desc': 'サイズ大きい順',
@@ -18,15 +21,15 @@ SORT_LABELS = {
 
 
 def format_size(count):
-    """Human-readable file size, exact byte count for small files."""
+    """Files detail column: integer KiB, displayed as KB like Explorer.
+
+    Round nonempty partial kilobytes upward so a tiny file does not look
+    empty; 0-byte files explicitly show 0 KB. Sort still uses raw bytes.
+    """
     if count is None:
         return ''
-    if count < 1024:
-        return f'{count} B'
-    for unit, divisor in (('KB', 1024), ('MB', 1024**2), ('GB', 1024**3), ('TB', 1024**4)):
-        if count < divisor * 1024 or unit == 'TB':
-            return f'{count / divisor:.1f} {unit}'
-    return f'{count} B'
+    count = max(0, int(count))
+    return f'{(count + 1023) // 1024:,} KB'
 
 
 def _physical_metadata(row):
@@ -41,49 +44,73 @@ def _physical_metadata(row):
         return None, None
 
 
-def filter_sort_folder_rows(rows, query='', mode='name'):
-    """Return new display rows; do not mutate Launch's backing row dictionaries.
+def file_type_fallback(row):
+    """Stable fallback when Windows' registered type label is unavailable.
 
-    Display folders before files; within each class use the selected ordering.
-    Missing dates/sizes sort last. The existing browser-provided row actions
-    and original paths are carried through without modification.
+    Real Windows labels are supplied by QFileIconProvider.type() in the view.
+    Qt-free output is useful to keep filtering/sorting testable headlessly.
+    """
+    if row.get('item_kind') in ('category', 'directory'):
+        return 'ファイル フォルダー'
+    suffix = Path(str(row.get('title', ''))).suffix
+    return (suffix[1:].upper() + ' ファイル') if suffix else 'ファイル'
+
+
+def sort_mode_for_header(column, previous='name'):
+    """Return toggle mode for a clicked LOGICAL column (reorder-safe)."""
+    modes = {
+        0: ('name', 'name_desc'),
+        1: ('date_desc', 'date_asc'),
+        2: ('size_desc', 'size_asc'),
+        3: ('type_asc', 'type_desc'),
+    }
+    pair = modes.get(column)
+    if pair is None:  # The flexible blank/spacer column never sorts.
+        return None
+    return pair[1] if previous == pair[0] else pair[0]
+
+
+def filter_sort_folder_rows(rows, query='', mode='name'):
+    """Search one directory, populate all visible metadata and sort safely.
+
+    Folders stay above files. Dates, sizes and types are present in *every*
+    sorting mode, so changing sort never changes column contents or widths.
+    The input rows are not mutated, and missing metadata sorts last.
     """
     mode = mode if mode in SORT_LABELS else 'name'
-    results = []
+    result = []
     for original in rows:
         name = str(original.get('title', ''))
         if query.strip() and not matches_search_text(name, query):
             continue
         row = dict(original)
         is_folder = row.get('item_kind') in ('category', 'directory')
-        mtime, size = _physical_metadata(row) if mode != 'name' else (None, None)
-        detail = ''
-        if mode.startswith('date') and mtime is not None:
-            try:
-                detail = datetime.fromtimestamp(mtime).strftime('%Y/%m/%d %H:%M')
-            except (ValueError, OverflowError, OSError):
-                pass
-        elif mode.startswith('size') and not is_folder:
-            detail = format_size(size)
-        row['_middle_detail'] = detail
+        mtime, size = _physical_metadata(row)
+        try:
+            date_text = datetime.fromtimestamp(mtime).strftime('%Y/%m/%d %H:%M') if mtime is not None else ''
+        except (ValueError, OverflowError, OSError):
+            date_text = ''
+        row['_middle_date'] = date_text
+        row['_middle_size'] = format_size(size) if not is_folder else ''
+        row['_middle_type'] = file_type_fallback(row)
+        row['_middle_mtime'] = mtime
+        row['_middle_size_bytes'] = size
+        # Legacy detail keys kept solely for older integrations/tests.
         row['_middle_detail_mode'] = ('date' if mode.startswith('date') else
                                       'size' if mode.startswith('size') else '')
-        # A missing metadata value goes to the end of the category, irrespective
-        # of ascending/descending sort direction.
-        if mode.startswith('date'):
-            measure = mtime
-        elif mode.startswith('size'):
-            measure = size
-        else:
-            measure = None
-        results.append((row, is_folder, measure))
-    # Stable filename tiebreaker, case-insensitive and independent of filesystem ordering.
-    results.sort(key=lambda item: str(item[0].get('title', '')).casefold())
-    if mode != 'name':
-        reverse = mode.endswith('desc')
-        # First sort numeric values; then put missing at end (stable sorts).
-        results.sort(key=lambda item: item[2] if item[2] is not None else 0,
-                     reverse=reverse)
-        results.sort(key=lambda item: item[2] is None)
-    results.sort(key=lambda item: not item[1])
-    return [row for row, _, _ in results]
+        row['_middle_detail'] = (row['_middle_date'] if mode.startswith('date') else
+                                 row['_middle_size'] if mode.startswith('size') else '')
+        result.append(row)
+
+    result.sort(key=lambda row: str(row.get('title', '')).casefold(),
+                reverse=mode == 'name_desc')
+    if mode.startswith('date') or mode.startswith('size'):
+        field = '_middle_mtime' if mode.startswith('date') else '_middle_size_bytes'
+        result.sort(key=lambda row: row[field] if row[field] is not None else 0,
+                    reverse=mode.endswith('desc'))
+        result.sort(key=lambda row: row[field] is None)
+    elif mode.startswith('type'):
+        result.sort(key=lambda row: row['_middle_type'].casefold(),
+                    reverse=mode.endswith('desc'))
+    result.sort(key=lambda row: row.get('item_kind') not in ('category', 'directory'))
+    return result

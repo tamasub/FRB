@@ -75,12 +75,13 @@ def test_native_browser_tab_requests_use_same_tab_widget():
     assert 'self.external' in src
 
 
-def test_fast_preview_is_debounced_and_does_not_trash_files():
+def test_v49_bookmark_selection_only_does_not_navigate():
+    # v49 intentionally replaces v40's auto-preview with explicit opening.
     src = _text('src/expanded_view.py')
-    assert 'self._web_selection_timer.setInterval(650)' in src
-    assert 'self.right.tree.currentItemChanged.connect(self.schedule_web_bookmark_preview)' in src
-    assert 'if self._refreshing or not self.isVisible()' in src
+    assert 'self.right.tree.currentItemChanged.connect(self.schedule_web_bookmark_preview)' not in src
+    assert 'self.right.tree.itemClicked.connect(self.choose_bookmark)' in src
     assert 'self._web_selection_timer.stop()' in src
+    assert 'self.web_view.show_url(url)' in src
 
 
 def test_existing_launch_path_only_intercepted_in_expanded_mode():
@@ -96,4 +97,5 @@ def test_existing_quick_web_shortcuts_stay_external():
     assert 'def is_bookmark_row(self, row)' in src
     assert "bookmark_id = self.bookmarks_root.get('item_id')" in src
     assert 'while parent_id and parent_id not in seen:' in src
-    assert 'if self.is_bookmark_row(row) and bookmark_web_url(row):' in src
+    assert 'if url and self.is_bookmark_row(row):' in src
+    assert 'self.launcher.open_target(' in src

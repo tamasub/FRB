@@ -4,7 +4,7 @@ No keyboard injection, OS APIs or Qt dependency.  The remote sends semantic
 commands; Launcher owns and executes the actual navigation state changes.
 """
 
-EXPANDED_AREAS = ('search', 'pages', 'roots', 'breadcrumb', 'files', 'directory', 'sort', 'bookmarks')
+EXPANDED_AREAS = ('search', 'pages', 'roots', 'breadcrumb', 'files', 'directory', 'bookmarks')
 WEB_AREAS = ('search', 'pages', 'roots', 'web_tabs', 'web_body', 'bookmarks')
 CLASSIC_AREAS = ('search', 'pages', 'list')
 

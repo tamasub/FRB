@@ -26,7 +26,8 @@ from virtual_clipboard_paste import is_virtual_file_clipboard
 from context_menu_resolver import resolve_context_target
 from context_menu_actions import rename_file_or_folder
 from pathlib import Path
-from middle_folder_filter import SORT_LABELS, filter_sort_folder_rows
+from middle_folder_filter import (SORT_LABELS, filter_sort_folder_rows,
+                                  sort_mode_for_header)
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
 from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
@@ -35,6 +36,7 @@ from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from wheel_adaptive import wheel_steps, can_follow_at_edge
 from wheel_edge_hold import EdgeWheelHold
 from wheel_zone_navigation import WheelZoneNavigation
+from workspace_tab_geometry import workspace_tab_line_segments
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from bookmark_menu import expanded_bookmark_rows
 from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
@@ -42,6 +44,176 @@ from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
 
 
 MIDDLE_BACK_LANE_WIDTH = 24  # Operation lane after the chevron.
+
+
+class _WorkspaceSeamOverlay(QWidget):
+    """Draw the selected tab and the content seam as ONE continuous contour.
+
+    Previously the selected QPushButton drew its own vertical border while a
+    separate 2px strip drew a horizontal line. Those strokes cannot produce a
+    joined rounded corner and leave visible 1px stubs / missing arcs.
+    This transparent overlay owns the ENTIRE contour, over the tab children.
+    """
+
+    def __init__(self, strip):
+        super().__init__(strip)
+        self.strip = strip
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        strip = self.strip
+        end = float(strip.width()) - 0.5
+        if strip._end_provider is not None:
+            bound = strip._end_provider()
+            if bound is not None:
+                end = min(end, float(bound) - 0.5)
+        # The horizontal stroke must STOP where the content pane's rounded
+        # upper-right arc begins, not extend straight through that arc.
+        if strip._corner_end_provider is not None:
+            corner_end = strip._corner_end_provider()
+            if corner_end is not None:
+                end = min(end, float(corner_end) - 11.5)
+        if end <= 0.5:
+            return
+        y = float(self.height()) - 0.5
+        active = strip._selected_tab
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(strip._underline_color, 1.0,
+                            Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap,
+                            Qt.PenJoinStyle.RoundJoin))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        outline = QPainterPath()
+        outline.moveTo(0.5, y)
+        if active is None or not active.isVisible():
+            outline.lineTo(end, y)
+        else:
+            rect = active.geometry()
+            left = float(rect.left()) + 0.5
+            right = float(rect.right()) + 0.5
+            top = float(rect.top()) + 0.5
+            # Top corner curves are inside the selected button; lower curves
+            # fan OUT into the content rule (like a browser-tab joint).
+            top_radius = min(11.0, max(1.0, (right - left) / 4))
+            left_radius = min(7.0, max(0.0, left - 1.0))
+            right_radius = min(7.0, max(0.0, end - right - 1.0))
+            k = 0.55228475   # cubic approximation of a quarter circle
+            outline.lineTo(max(0.5, left - left_radius), y)
+            if left_radius > 0:
+                outline.cubicTo(left - (1-k)*left_radius, y,
+                                left, y - (1-k)*left_radius,
+                                left, y - left_radius)
+            else:
+                outline.lineTo(left, y)
+            outline.lineTo(left, top + top_radius)
+            outline.cubicTo(left, top + (1-k)*top_radius,
+                            left + (1-k)*top_radius, top,
+                            left + top_radius, top)
+            outline.lineTo(right - top_radius, top)
+            outline.cubicTo(right - (1-k)*top_radius, top,
+                            right, top + (1-k)*top_radius,
+                            right, top + top_radius)
+            outline.lineTo(right, y - right_radius)
+            if right_radius > 0:
+                outline.cubicTo(right, y - (1-k)*right_radius,
+                                right + (1-k)*right_radius, y,
+                                right + right_radius, y)
+            else:
+                outline.lineTo(right, y)
+            outline.lineTo(end, y)
+        painter.drawPath(outline)
+        painter.end()
+
+
+class _WorkspaceTabStrip(QWidget):
+    """Mouse-transparent top contour spanning tab corners and underline."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._selected_tab = None
+        self._underline_color = QColor('#bbd8c7')
+        self._end_provider = None
+        self._corner_end_provider = None
+        self._seam_overlay = _WorkspaceSeamOverlay(self)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Full height is essential: selected-tab top corners and lower joined
+        # corners must be drawn by the same painter, above the QPushButtons.
+        self._seam_overlay.setGeometry(0, 0, self.width(), self.height())
+        self.refresh_underline()
+
+    def refresh_underline(self):
+        self._seam_overlay.raise_()
+        self._seam_overlay.update()
+
+    def set_selected_tab(self, button):
+        self._selected_tab = button
+        self.refresh_underline()
+
+    def set_underline_color(self, value):
+        self._underline_color = QColor(value)
+        self.refresh_underline()
+
+    def set_underline_end_provider(self, provider):
+        """Browser rule ends at the Web pane boundary, not at Bookmarks."""
+        self._end_provider = provider
+        self.refresh_underline()
+
+    def set_corner_end_provider(self, provider):
+        """Join the content pane's own top-right curve with no straight stub."""
+        self._corner_end_provider = provider
+        self.refresh_underline()
+
+
+class _WorkspaceTopRightOutline(QWidget):
+    """Visible antialiased outer corner where QSS border-top is intentionally 0.
+
+    This overlay lives ABOVE the header or Web frame's stylesheet; otherwise
+    the header's opaque background obscures a border drawn by its parent.
+    """
+
+    def __init__(self, host, radius=11):
+        super().__init__(host)
+        self._host = host
+        self._radius = radius
+        self._color = QColor('#bbd8c7')
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
+        self._host.installEventFilter(self)
+        self.update_geometry()
+
+    def update_geometry(self):
+        r = self._radius
+        self.setGeometry(max(0, self._host.width() - r - 1), 0, r+1, r+2)
+        self.raise_()
+        self.update()
+
+    def set_outline_color(self, color):
+        self._color = QColor(color)
+        self.update_geometry()
+
+    def eventFilter(self, obj, event):
+        if obj is self._host and event.type() in (QEvent.Type.Resize, QEvent.Type.Show):
+            self.update_geometry()
+        return False
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        r = float(self._radius)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(self._color, 1.0))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        curve = QPainterPath()
+        # Top horizontal becomes the rounded upper-right vertical outline.
+        curve.moveTo(0.5, 0.5)
+        curve.cubicTo(r*0.55228475, 0.5, r+0.5, r*(1-0.55228475),
+                      r+0.5, r+0.5)
+        painter.drawPath(curve)
+        painter.end()
 
 
 class _BackLaneWidget(QWidget):
@@ -712,7 +884,11 @@ class ExpandedPanel(QFrame):
         super().__init__()
         self.setObjectName('expandedPanel')
         self.kind = kind
+        self.setProperty('panelKind', kind)
         self._theme = 'light'
+        self.details_columns = False
+        self._file_type_cache = {}
+        self._file_icon_provider = QFileIconProvider()
         self.row_height = 37
         self.setMinimumWidth(190)
         self.layout_box = QVBoxLayout(self)
@@ -720,6 +896,8 @@ class ExpandedPanel(QFrame):
         self.layout_box.setSpacing(0)
         self.header = QWidget()
         self.header.setObjectName('expandedHeader')
+        self._top_right_outline = (_WorkspaceTopRightOutline(self.header)
+                                   if kind == 'bookmark' else None)
         header = QHBoxLayout(self.header)
         header.setContentsMargins(12, 6, 10, 6)
         header.setSpacing(8)
@@ -778,6 +956,22 @@ class ExpandedPanel(QFrame):
         item.setSizeHint(0, QSize(0, max(25, self.row_height - 5)))
         item.setSizeHint(1, QSize(0, max(25, self.row_height - 5)))
 
+    def file_type_label(self, row):
+        """Match the Windows Explorer-style type column and type sorting."""
+        if row.get('item_kind') in ('category', 'directory'):
+            return 'ファイル フォルダー'
+        fallback = row.get('_middle_type', 'ファイル')
+        path = (row.get('_browse_file') or row.get('_file')
+                or row.get('_indexed_file') or '')
+        extension = Path(str(path or row.get('title', ''))).suffix.lower()
+        if extension not in self._file_type_cache:
+            try:
+                self._file_type_cache[extension] = (self._file_icon_provider.type(
+                    QFileInfo(str(path))) if path else fallback) or fallback
+            except (OSError, ValueError, RuntimeError):
+                self._file_type_cache[extension] = fallback
+        return self._file_type_cache[extension]
+
     def fill(self, rows, icon_resolver):
         prior = self.tree.currentItem()
         prior_row = prior.data(0, Qt.ItemDataRole.UserRole) if prior else None
@@ -794,14 +988,29 @@ class ExpandedPanel(QFrame):
                 self.tree.addTopLevelItem(heading)
                 continue
             is_folder = row.get('item_kind') in ('category', 'directory')
-            item = QTreeWidgetItem([row.get('title', ''), ''])
-            item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            item.setData(1, Qt.ItemDataRole.UserRole, is_folder)
-            for col in (0, 1):
-                item.setSizeHint(col, QSize(0, self.row_height))
+            if self.details_columns:
+                # Windows registered descriptions for the file extension, with
+                # cheap caching. Actual file properties stay independently
+                # available in all sort modes.
+                type_text = self.file_type_label(row)
+                item = QTreeWidgetItem([row.get('title', ''),
+                                        row.get('_middle_date', ''),
+                                        row.get('_middle_size', ''), type_text, ''])
+                item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                item.setTextAlignment(2, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                for col in (1, 2, 3):
+                    item.setForeground(col, QBrush(QColor(
+                        '#81928a' if self._theme == 'light' else '#a1afa8')))
+                item.setData(4, Qt.ItemDataRole.UserRole, is_folder)
+                for col in range(5):
+                    item.setSizeHint(col, QSize(0, self.row_height))
+            else:
+                item = QTreeWidgetItem([row.get('title', ''), ''])
+                item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                item.setData(1, Qt.ItemDataRole.UserRole, is_folder)
+                for col in (0, 1):
+                    item.setSizeHint(col, QSize(0, self.row_height))
             item.setData(0, Qt.ItemDataRole.UserRole, row)
-            item.setData(0, Qt.ItemDataRole.UserRole + 2, row.get('_middle_detail', ''))
-            item.setData(0, Qt.ItemDataRole.UserRole + 3, row.get('_middle_detail_mode', ''))
             if self.kind == 'folder':
                 # Middle panel filenames can be edited by clicking the already
                 # selected row. Directory single click still means navigation.
@@ -901,6 +1110,12 @@ class ExpandedLauncherView(QWidget):
         self._bookmark_warp_global = None
         self.files_root = None
         self.bookmarks_root = None
+        # Files and Browser are long-lived workspaces, not URL-driven previews.
+        self._workspace_mode = 'files'
+        self._browser_splitter_sizes = None
+        self.files_mode_tab = None
+        self.browser_mode_tab = None
+        self._browser_empty_page = None
         self.path = []
         self.directory_history = DirectoryNavigationHistory(limit=100)
         self._restoring_directory_history = False
@@ -912,25 +1127,25 @@ class ExpandedLauncherView(QWidget):
         self._middle_selection_repair_running = False
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
-        # This is the gap *below* the second-layer strip, not the spacing
-        # between its individual buttons. Match the compact first-layer row.
-        outer.setSpacing(5)
+        # The Files / Browser tabs are attached to the workspace surface,
+        # like a browser tab: no gap between the selector and the content.
+        outer.setSpacing(0)
         self.toolbar_scroller = QScrollArea(self)
         self.toolbar_scroller.setObjectName('expandedRootScroller')
         self.toolbar_scroller.setWidgetResizable(True)
-        # A fixed 41px toolbar was still leaving large visible blank bands
-        # after the button padding changed. Use a genuinely compact row, but
-        # allow extra height if Qt has to show a horizontal scrollbar.
-        self.toolbar_scroller.setFixedHeight(34)
+        # Full-sized workspace tabs (~1.2x the inner Web URL tabs) share a
+        # seamless lower edge with the Files / Browser content below.
+        self.toolbar_scroller.setFixedHeight(44)
         self.toolbar_scroller.setFrameShape(QFrame.Shape.NoFrame)
         self.toolbar_scroller.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.toolbar_scroller.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.toolbar_scroller.horizontalScrollBar().rangeChanged.connect(
             self.update_root_toolbar_height)
-        self.root_widget = QWidget()
+        self.root_widget = _WorkspaceTabStrip()
         self.root_widget.setObjectName('expandedRootBar')
         self.root_layout = QHBoxLayout(self.root_widget)
-        self.root_layout.setContentsMargins(4, 1, 4, 1)
+        # Bottom=0 lets the active tab touch the page without a white band.
+        self.root_layout.setContentsMargins(6, 3, 4, 0)
         self.root_layout.setSpacing(5)
         self.toolbar_scroller.setWidget(self.root_widget)
         # Catch wheel gestures on buttons AND on the whitespace in the strip.
@@ -955,13 +1170,15 @@ class ExpandedLauncherView(QWidget):
         configured_delay = getattr(launcher, 'webview_settings', {}).get('bookmark_preview_delay_ms')
         if configured_delay is not None:
             self._web_selection_timer.setInterval(configured_delay)
-        self._web_selection_timer.timeout.connect(self.preview_selected_bookmark)
+        # Selection is never navigation: only click / Right / Enter opens a URL.
+        # Timer kept for compatibility with older call sites; not connected.
         self.files_group.setObjectName('expandedFilesGroup')
         group_layout = QVBoxLayout(self.files_group)
         group_layout.setContentsMargins(0, 0, 0, 0)
         group_layout.setSpacing(0)
         self.shared_header = QWidget(self.files_group)
         self.shared_header.setObjectName('expandedCombinedHeader')
+        self._files_top_right_outline = _WorkspaceTopRightOutline(self.shared_header)
         shared_layout = QHBoxLayout(self.shared_header)
         shared_layout.setContentsMargins(12, 6, 10, 6)
         shared_layout.setSpacing(8)
@@ -1056,28 +1273,44 @@ class ExpandedLauncherView(QWidget):
         self.middle_search.setClearButtonEnabled(True)
         self.middle_search.setToolTip('このフォルダー内の名前を絞り込み。メイン検索と同じAND/OR構文。')
         middle_search_layout.addWidget(self.middle_search, 1)
-        self.middle_sort_button = _MiddleSortButton(launcher, self.middle_search_bar)
-        self.middle_sort_button.setObjectName('expandedMiddleSort')
-        # A real keyboard/Remote Tab stop, not only a mouse popup button.
-        self.middle_sort_button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.middle_sort_button.setProperty('remoteSortActive', False)
-        # Tab/BackTab are local to _MiddleSortButton.event(), not Launcher.eventFilter.
-        self.middle_sort_button.setFixedSize(33, 28)
-        self.middle_sort_button.setIconSize(QSize(22, 22))
-        self.middle_sort_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.middle_sort_menu = QMenu(self.middle_sort_button)
-        self.middle_sort_actions = {}
-        for mode, title in SORT_LABELS.items():
-            action = self.middle_sort_menu.addAction(title)
-            action.setCheckable(True)
-            action.triggered.connect(lambda checked=False, m=mode: self.set_middle_sort(m))
-            self.middle_sort_actions[mode] = action
-        self.middle_sort_button.setMenu(self.middle_sort_menu)
-        middle_search_layout.addWidget(self.middle_sort_button)
         self.middle.layout_box.insertWidget(0, self.middle_search_bar)
-        self.middle.tree.setItemDelegateForColumn(0, _MiddleDetailsDelegate(self.middle.tree))
         self.middle_search.textChanged.connect(self.apply_middle_filter)
-        self._update_middle_sort_button()
+        # Explorer-style real columns, with a stretchable blank last column.
+        # Preserve a fixed separate Back operation lane to the far right.
+        tree = self.middle.tree
+        self.middle.details_columns = True
+        tree.setColumnCount(5)
+        tree.setHeaderLabels(['名前', '更新日', 'サイズ', '種類', ''])
+        tree.setHeaderHidden(False)
+        tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        tree.setItemDelegateForColumn(0, _InlineRenameDelegate(tree))
+        tree.setItemDelegateForColumn(1, QStyledItemDelegate(tree))
+        tree.setItemDelegateForColumn(4, _NavigationChevronDelegate(tree, right_inset=15))
+        header = tree.header()
+        header.setObjectName('expandedMiddleColumnsHeader')
+        header.setSectionsClickable(True)
+        header.setSectionsMovable(True)
+        header.setHighlightSections(False)
+        header.setMinimumSectionSize(34)
+        header.setStretchLastSection(False)
+        for col, width in enumerate((300, 156, 98, 150, 55)):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Interactive)
+            tree.setColumnWidth(col, width)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        self._middle_header_restoring = True
+        try:
+            saved = launcher.settings.value('expanded_middle_header_state_v50')
+            if saved is not None:
+                header.restoreState(saved)
+        finally:
+            self._middle_header_restoring = False
+        # The blank end column absorbs space, not the data columns.
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        header.sectionResized.connect(self._save_middle_header_state)
+        header.sectionMoved.connect(self._save_middle_header_state)
+        header.sectionClicked.connect(self._middle_header_clicked)
+        header.setSortIndicatorShown(True)
+        self._update_middle_header_sort()
         # Separate a real 24px Back lane OUTSIDE the QTreeWidget viewport.
         # Qt's current-row rectangle therefore cannot extend into the lane,
         # and neither click nor inline rename can land on a hidden row cell.
@@ -1161,19 +1394,39 @@ class ExpandedLauncherView(QWidget):
         self.right.tree.itemEntered.connect(self.hover_bookmark_first_level)
         self.splitter.addWidget(self.files_content_stack)
         self.splitter.addWidget(self.right)
+        self.root_widget.set_corner_end_provider(
+            lambda: self.files_content_stack.mapTo(
+                self.root_widget, QPoint(self.files_content_stack.width(), 0)).x())
+        # The Browser underline ends at the bookmark-pane boundary; that pane
+        # does not need a second horizontal rule above its own header.
+        self.root_widget.set_underline_end_provider(
+            lambda: (self.right.mapTo(self.root_widget, QPoint(0, 0)).x()
+                     if self._workspace_mode == 'browser' and self.right.isVisible()
+                     else None))
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setSizes([660, 350])
+        self._browser_splitter_sizes = [660, 350]
         self.files_splitter.setSizes([310, 350])
         # Compatible with the legacy saved 3-column sizes.
         saved = str(launcher.settings.value('expanded_splitter_sizes', '') or '')
         try:
             values = [int(value) for value in saved.split('|')]
             if len(values) == 3 and all(value >= 100 for value in values):
-                self.splitter.setSizes([values[0] + values[1], values[2]])
+                self._browser_splitter_sizes = [values[0] + values[1], values[2]]
+                self.splitter.setSizes(self._browser_splitter_sizes)
                 self.files_splitter.setSizes(values[:2])
         except ValueError:
             pass
+        # Files and Browser can now have independent splitter widths.
+        saved_files = str(launcher.settings.value('workspace_files_splitter_sizes', '') or '')
+        try:
+            file_widths = [int(value) for value in saved_files.split('|')]
+            if len(file_widths) == 2 and all(value >= 100 for value in file_widths):
+                self.files_splitter.setSizes(file_widths)
+        except ValueError:
+            pass
         self.splitter.splitterMoved.connect(self.save_splitter_sizes)
+        self.splitter.splitterMoved.connect(lambda *_: self.root_widget.refresh_underline())
         self.files_splitter.splitterMoved.connect(self.save_splitter_sizes)
         outer.addWidget(self.splitter, 1)
         self.row_density = str(launcher.settings.value('expanded_row_density', 'normal') or 'normal')
@@ -1188,27 +1441,38 @@ class ExpandedLauncherView(QWidget):
         self.left.tree.itemClicked.connect(self.choose_files)
         self.middle.tree.itemClicked.connect(self.choose_middle)
         self.right.tree.itemClicked.connect(self.choose_bookmark)
-        self.right.tree.currentItemChanged.connect(self.schedule_web_bookmark_preview)
+        # A wheel or keyboard selection must not navigate the current Web tab.
+        # Explicit click / Right / Enter is handled independently below.
         for panel in (self.left, self.middle, self.right):
             panel.tree.itemActivated.connect(lambda item, col, pane=panel: self.activate_row(pane, item))
             panel.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             panel.tree.customContextMenuRequested.connect(lambda point, pane=panel:
                 self.context_menu(pane, point))
         self.apply_theme('light')
+        self.show_files_view()  # No Bookmarks column in the Files workspace.
 
     def update_root_toolbar_height(self, minimum=0, maximum=0):
         """Keep buttons visible when narrow widths require a scrollbar.
 
-        The common case is a 34px strip; when there are more root buttons than
-        fit horizontally, reserve another 14px for the native scrollbar.
+        The common case is a 44px strip for the attached workspace tabs;
+        when crowded, reserve another 14px for the native scrollbar.
         No navigation, focus or wheel rules are changed by the density tweak.
         """
-        required = 48 if maximum > minimum else 34
+        required = 58 if maximum > minimum else 44
         if self.toolbar_scroller.height() != required:
             self.toolbar_scroller.setFixedHeight(required)
 
     def save_splitter_sizes(self, *_):
-        widths = self.files_splitter.sizes() + self.splitter.sizes()[1:]
+        if self._workspace_mode == 'browser' and self.right.isVisible():
+            self._browser_splitter_sizes = self.splitter.sizes()
+        # When hidden, the Bookmarks splitter segment has width zero. Never
+        # persist this temporary Files layout as Browser's preferred widths.
+        file_widths = self.files_splitter.sizes()
+        self.launcher.settings.setValue('workspace_files_splitter_sizes',
+                                        '|'.join(map(str, file_widths)))
+        if self._workspace_mode == 'files':
+            return
+        widths = file_widths + self.splitter.sizes()[1:]
         self.launcher.settings.setValue('expanded_splitter_sizes',
                                         '|'.join(map(str, widths)))
 
@@ -1227,6 +1491,14 @@ class ExpandedLauncherView(QWidget):
             colors[key] for key in ('panel', 'panel_border', 'panel_header',
                                    'text', 'hover', 'selection', 'stripe'))
         root_border = colors['root_button_border']
+        # Both active workspaces use exactly the same mint surface color.
+        # Inactive tabs recede: a softer border and slightly muted caption.
+        # Neutral gray makes the inactive label unobtrusive on either theme;
+        # stripe is subtler than the active tab's panel border.
+        self.root_widget.set_underline_color(border)
+        self._files_top_right_outline.set_outline_color(border)
+        if self.right._top_right_outline is not None:
+            self.right._top_right_outline.set_outline_color(border)
         tight = self.row_density == 'compact'
         height, pad = (23, 1) if tight else (29, 3)
         self.density_button.setText('')
@@ -1254,7 +1526,31 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedRootButton:hover {{background:{hover};}}
             QPushButton#expandedRootButton:checked {{background:{active};border:1px solid #81bca4;font-weight:600;}}
             QPushButton#expandedRootButton:focus {{border:2px solid #56a88c;background:{active};}}
-            QFrame#expandedFilesGroup {{background:{bg};border:1px solid {border};border-radius:12px;}}
+            /* Workspace tabs join the mint header beneath them.  The strip
+               paints the lower line only outside the active tab's footprint.
+               Keep both corners gently rounded; the two bottom corners are
+               square to avoid a visible notch at the joined surface. */
+            QPushButton#expandedWorkspaceTab {{background:{stripe};color:#84998d;
+                border:1px solid {stripe};border-top-left-radius:12px;
+                border-top-right-radius:12px;border-bottom-left-radius:0px;
+                border-bottom-right-radius:0px;padding:0 18px;font-size:13px;font-weight:400;}}
+            /* The inactive Files tab is a separate, rounded button; the
+               selected tab remains square at its joined lower corners. */
+            QPushButton#expandedWorkspaceTab[workspace="files"]:!checked {{
+                border-bottom-left-radius:10px;}}
+            QPushButton#expandedWorkspaceTab:hover:!checked {{background:{hover};color:{text};
+                border-color:{border};}}
+            /* The active tab's complete outline is drawn above the buttons
+               by _WorkspaceSeamOverlay, never by an independent QSS border. */
+            QPushButton#expandedWorkspaceTab:checked {{background:{hdr};color:{text};
+                border:0;border-top-left-radius:12px;
+                border-top-right-radius:12px;border-bottom-left-radius:0px;
+                border-bottom-right-radius:0px;border-bottom:0;font-weight:400;}}
+            QPushButton#expandedWorkspaceTab[workspace="browser"]:checked {{background:{hdr};
+                color:{text};border:0;border-bottom:0;font-weight:400;}}
+            QFrame#expandedFilesGroup {{background:{bg};border:1px solid {border};border-top:0;
+                border-top-left-radius:0;border-top-right-radius:0;
+                border-bottom-left-radius:12px;border-bottom-right-radius:12px;}}
             QWidget#expandedCombinedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
                 border-top-left-radius:11px;border-top-right-radius:11px;}}
             QLabel#expandedCombinedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
@@ -1262,6 +1558,9 @@ class ExpandedLauncherView(QWidget):
                 border-radius:7px;color:{text};font-size:17px;}}
             QToolButton#expandedDensityToggle:hover {{background:{hover};}}
             QFrame#expandedPanel {{ background:{bg}; border:1px solid {border};border-radius:12px; }}
+            /* Bookmarks are below the workspace bar: no doubled top rule. */
+            QFrame#expandedPanel[panelKind="bookmark"] {{border-top:0;
+                border-top-left-radius:0;border-top-right-radius:11px;}}
             QWidget#expandedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};
                 border-top-left-radius:11px;border-top-right-radius:11px;}}
             QLabel#expandedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
@@ -1272,12 +1571,10 @@ class ExpandedLauncherView(QWidget):
             QLineEdit#expandedMiddleSearch {{background:{bg};color:{text};border:1px solid {border};
                 border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
             QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
-            QToolButton#expandedMiddleSort {{background:{hdr};border:1px solid {border};border-radius:7px;}}
-            QToolButton#expandedMiddleSort:hover {{background:{hover};}}
-            QToolButton#expandedMiddleSort:focus,
-            QToolButton#expandedMiddleSort[remoteSortActive="true"] {{
-                background:{active};border:2px solid {colors['focus_outline']};}}
-            QToolButton#expandedMiddleSort::menu-indicator {{image:none;width:0px;}}
+            QHeaderView#expandedMiddleColumnsHeader::section {{
+                color:{text};background:{hdr};border:0;border-right:1px solid {border};
+                border-bottom:1px solid {border};padding:4px 8px;font-size:12px;font-weight:400;}}
+            QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{hover};}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
             QWidget#expandedBackLane {{background:{bg};border:0;}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
@@ -1319,9 +1616,13 @@ class ExpandedLauncherView(QWidget):
                 border-radius:6px;padding:0;font-size:15px;font-weight:600;}}
             QToolButton#expandedDirectoryApply:hover {{background:{hover};border-color:#55a38c;}}
         ''')
-        self.middle_sort_button.setIcon(middle_sort_icon(theme_family(theme), self._middle_sort_mode))
-        for mode, action in self.middle_sort_actions.items():
-            action.setIcon(middle_sort_icon(theme_family(theme), mode))
+        # Recolor non-primary column text when the theme changes.
+        self.middle._theme = theme_family(theme)
+        for idx in range(self.middle.tree.topLevelItemCount()):
+            row = self.middle.tree.topLevelItem(idx)
+            for col in (1, 2, 3):
+                row.setForeground(col, QBrush(QColor(
+                    '#81928a' if light else '#a1afa8')))
         self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
@@ -1339,7 +1640,7 @@ class ExpandedLauncherView(QWidget):
                 if pane.kind == 'bookmark' and item.data(0, Qt.ItemDataRole.UserRole + 1):
                     pane.style_bookmark_heading(item)
                 else:
-                    for column in (0, 1):
+                    for column in range(5 if pane is self.middle else 2):
                         item.setSizeHint(column, QSize(0, pane.row_height))
             if pane.kind == 'bookmark':
                 for i in range(pane.tree.topLevelItemCount()):
@@ -1384,9 +1685,30 @@ class ExpandedLauncherView(QWidget):
                 item = self.root_layout.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
+            # Workspaces on the LEFT; user-authored second-layer shortcuts on
+            # the RIGHT. These are not Page tabs and do not alter Launch JSON.
+            self.files_mode_tab = QPushButton('Files', self.root_widget)
+            self.browser_mode_tab = QPushButton('Browser', self.root_widget)
+            for button in (self.files_mode_tab, self.browser_mode_tab):
+                button.setObjectName('expandedWorkspaceTab')
+                button.setProperty('workspace', 'files' if button is self.files_mode_tab else 'browser')
+                button.setCheckable(True)
+                button.setFixedHeight(38)
+                button.setMinimumWidth(84)
+                button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # Mouse-first v49
+                self.root_layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignBottom)
+            self.files_mode_tab.setToolTip('ファイル・フォルダーを表示（状態は保持）')
+            self.browser_mode_tab.setToolTip('Webタブとブックマークを表示（状態は保持）')
+            self.files_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('files'))
+            self.browser_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('browser'))
+            self._update_workspace_tabs()
+            self.root_layout.addStretch(1)
             for index, row in enumerate(visible_roots):
                 button = QPushButton(row.get('title', ''), self.root_widget)
                 button.setObjectName('expandedRootButton')
+                # Right-side shortcuts retain their compact height while the
+                # Files / Browser workspace tabs grow to 38px.
+                button.setMaximumHeight(30)
                 button.setCheckable(True)
                 button.setChecked(row.get('item_id') == self._wheel_root_id)
                 button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -1405,7 +1727,6 @@ class ExpandedLauncherView(QWidget):
                 button.clicked.connect(lambda checked=False, r=row, b=button: self.root_action(r, b))
                 self.root_layout.addWidget(button)
                 self.root_buttons.append(button)
-            self.root_layout.addStretch()
             self.left.label.setText(left['title'])
             self.shared_title.setText(left['title'])
             self.right.label.setText(right['title'])
@@ -1444,21 +1765,31 @@ class ExpandedLauncherView(QWidget):
         finally:
             self._refreshing = False
 
-    def _update_middle_sort_button(self):
+    def _save_middle_header_state(self, *_):
+        if self._middle_header_restoring:
+            return
+        self.launcher.settings.setValue('expanded_middle_header_state_v50',
+                                        self.middle.tree.header().saveState())
+
+    def _update_middle_header_sort(self):
         mode = self._middle_sort_mode
-        self.middle_sort_button.setToolTip(f'並び替え: {SORT_LABELS[mode]}（クリックで変更）')
-        self.middle_sort_button.setAccessibleName(f'第2列の並び替え：{SORT_LABELS[mode]}')
-        self.middle_sort_button.setIcon(middle_sort_icon(
-            theme_family(self.launcher.color_theme), mode))
-        for key, action in self.middle_sort_actions.items():
-            action.setChecked(key == mode)
+        column = (1 if mode.startswith('date') else 2 if mode.startswith('size')
+                  else 3 if mode.startswith('type') else 0)
+        direction = (Qt.SortOrder.DescendingOrder
+                     if mode.endswith('desc') else Qt.SortOrder.AscendingOrder)
+        self.middle.tree.header().setSortIndicator(column, direction)
+
+    def _middle_header_clicked(self, logical_column):
+        mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
+        if mode is not None:
+            self.set_middle_sort(mode)
 
     def set_middle_sort(self, mode):
         if mode not in SORT_LABELS:
             return
         self._middle_sort_mode = mode
         self.launcher.settings.setValue('expanded_middle_sort', mode)
-        self._update_middle_sort_button()
+        self._update_middle_header_sort()
         self._fill_middle_from_current()
 
     def apply_middle_filter(self, *_):
@@ -1481,6 +1812,12 @@ class ExpandedLauncherView(QWidget):
             self.middle.label.setToolTip(str(exc))
         rows = filter_sort_folder_rows(
             rows, self.middle_search.text(), self._middle_sort_mode)
+        if self._middle_sort_mode.startswith('type'):
+            # Sort by the SAME Windows-registered type names that are displayed,
+            # not merely the suffix fallback used in the headless core module.
+            rows.sort(key=lambda row: self.middle.file_type_label(row).casefold(),
+                      reverse=self._middle_sort_mode == 'type_desc')
+            rows.sort(key=lambda row: row.get('item_kind') not in ('category', 'directory'))
         tree = self.middle.tree
         # Sorting/filtering re-creates Qt items. Preserve all still-visible
         # selected paths (not just the current item), including Ctrl+click.
@@ -3365,61 +3702,113 @@ class ExpandedLauncherView(QWidget):
             parent_id = parent.get('parent_item_id')
         return False
 
-    def show_web_url(self, url):
-        """Switch only the Files two-column region; keep the third column."""
-        if self.launcher.webview_settings.get('mode') != 'embedded':
-            return False  # Do not instantiate QWebEngineView in external mode.
-        if self.web_view is None:
-            try:
-                from launch_web_view import LaunchWebView
-                self.web_view = LaunchWebView(
-                    self.files_content_stack, settings=self.launcher.webview_settings)
-                self.web_view.tabs.tabBar().area_tab_requested.connect(
-                    self.launcher.web_keyboard_tab)
-                self.web_view.surface_selected.connect(self.launcher.web_surface_selected)
-                self.files_content_stack.addWidget(self.web_view)
-                self.web_view.apply_theme(self.launcher.color_theme)
-            except (ImportError, RuntimeError) as exc:
-                self.launcher.error('WebViewを起動できません。PySide6 WebEngineを確認してください: ' + str(exc))
-                return False
-        self.files_content_stack.setCurrentWidget(self.web_view)
-        self.web_view.show_url(url)
+    def _update_workspace_tabs(self):
+        for mode, button in (('files', self.files_mode_tab),
+                             ('browser', self.browser_mode_tab)):
+            if button is not None:
+                button.setChecked(mode == self._workspace_mode)
+        # The underline is a single seam with a gap under the selected tab.
+        active = self.files_mode_tab if self._workspace_mode == 'files' else self.browser_mode_tab
+        self.root_widget.set_selected_tab(active)
+
+    def _ensure_web_view(self):
+        """Build the embedded browser once; preserve every tab on mode switches."""
+        if self.web_view is not None:
+            return True
+        try:
+            from launch_web_view import LaunchWebView
+            self.web_view = LaunchWebView(
+                self.files_content_stack, settings=self.launcher.webview_settings)
+            self.web_view.tabs.tabBar().area_tab_requested.connect(
+                self.launcher.web_keyboard_tab)
+            self.web_view.surface_selected.connect(self.launcher.web_surface_selected)
+            self.files_content_stack.addWidget(self.web_view)
+            self.web_view.apply_theme(self.launcher.color_theme)
+        except (ImportError, RuntimeError) as exc:
+            self.launcher.error('WebViewを起動できません。PySide6 WebEngineを確認してください: ' + str(exc))
+            return False
+        return True
+
+    def _activate_browser_layout(self):
+        """Show Browser + Bookmarks without discarding the Files column state."""
+        self._workspace_mode = 'browser'
+        self.right.show()
+        if self._browser_splitter_sizes is not None and all(self._browser_splitter_sizes):
+            self.splitter.setSizes(self._browser_splitter_sizes)
+        else:
+            # The splitter may have expanded Files to 100% while Bookmarks
+            # was hidden. Restore a useful Browser / Bookmarks initial ratio.
+            self.splitter.setSizes([660, 350])
+        # Repaint after the Browser/Bookmarks splitter has been restored,
+        # so the underline ends at the actual bookmark-pane boundary.
+        self._update_workspace_tabs()
         self.launcher.web_view_activated()
+
+    def switch_workspace(self, mode):
+        """Explicit Files/Browser tabs, initially mouse-driven (Remote later)."""
+        if mode == 'files':
+            self.show_files_view()
+            return True
+        if mode != 'browser':
+            return False
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            # Company/external mode: never instantiate Qt WebEngine.
+            if self._browser_empty_page is None:
+                self._browser_empty_page = QLabel(
+                    'Browser は外部ブラウザモードです。\n'
+                    '右側のブックマークをクリックすると外部ブラウザで開きます。',
+                    self.files_content_stack)
+                self._browser_empty_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.files_content_stack.addWidget(self._browser_empty_page)
+            self.files_content_stack.setCurrentWidget(self._browser_empty_page)
+            self._activate_browser_layout()
+            return True
+        if not self._ensure_web_view():
+            self._update_workspace_tabs()
+            return False
+        if not self.web_view.tabs.count():
+            self.web_view.add_tab(self.launcher.webview_settings.get(
+                'new_tab_url', 'https://www.google.com/'))
+        self.files_content_stack.setCurrentWidget(self.web_view)
+        self._activate_browser_layout()
+        return True
+
+    def show_web_url(self, url):
+        """Open explicit bookmark activation in the retained Browser workspace."""
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            return False
+        if not self._ensure_web_view():
+            return False
+        self.files_content_stack.setCurrentWidget(self.web_view)
+        self._activate_browser_layout()
+        self.web_view.show_url(url)
         return True
 
     def show_files_view(self):
-        """HOME is the reliable escape from WebView, without recreating Files."""
+        """Return to Files without destroying or navigating Browser's tabs."""
         self._web_selection_timer.stop()
+        if self._workspace_mode == 'browser' and self.right.isVisible():
+            sizes = self.splitter.sizes()
+            if len(sizes) == 2 and all(sizes):
+                self._browser_splitter_sizes = sizes
         if self.web_view is not None:
             self.web_view.set_remote_area(None)
-            if not self.launcher.webview_settings['keep_tabs_on_home']:
-                while self.web_view.tabs.count():
-                    self.web_view.close_tab(self.web_view.tabs.count() - 1)
+        self._workspace_mode = 'files'
         self.files_content_stack.setCurrentWidget(self.files_group)
+        self.right.hide()  # Bookmarks belong to Browser, never Files.
+        self._update_workspace_tabs()
 
     def web_view_active(self):
-        return self.web_view is not None and self.files_content_stack.currentWidget() is self.web_view
+        return (self._workspace_mode == 'browser' and self.web_view is not None
+                and self.files_content_stack.currentWidget() is self.web_view)
 
     def schedule_web_bookmark_preview(self, item, _previous):
-        """Wheel highlighting pauses before web navigation (no load per tick)."""
+        """Selection means *only selection*, including wheel and Up/Down."""
         self._web_selection_timer.stop()
-        if self._refreshing or not self.isVisible() or item is None:
-            return
-        if self.launcher.webview_settings.get('mode') != 'embedded':
-            return
-        from webview_routes import bookmark_web_url
-        row = self.row_data(item)
-        if self.is_bookmark_row(row) and bookmark_web_url(row):
-            self._web_selection_timer.start()
 
     def preview_selected_bookmark(self):
-        if self.launcher.webview_settings.get('mode') != 'embedded':
-            return  # Wheel selection must never launch an external browser.
-        from webview_routes import bookmark_web_url
-        row = self.row_data(self.right.tree.currentItem())
-        url = bookmark_web_url(row)
-        if url and self.isVisible() and self.is_bookmark_row(row):
-            self.show_web_url(url)
+        """Deliberately disabled: opening a URL requires click, Right, Enter."""
+        return None
 
     def choose_bookmark(self, item, _col, *, force=False):
         row = self.row_data(item)
@@ -3458,7 +3847,10 @@ class ExpandedLauncherView(QWidget):
             else:
                 self.choose_bookmark(item, 0, force=True)
         else:
-            self.launcher.activate(row)
+            if pane is self.right:
+                self.choose_bookmark(item, 0, force=True)
+            else:
+                self.launcher.activate(row)
 
     def open_cascade(self, row, widget, item=None):
         """Use Launcher's existing menu content/actions; no new command logic."""

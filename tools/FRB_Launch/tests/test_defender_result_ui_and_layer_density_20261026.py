@@ -49,12 +49,12 @@ def test_defender_verifies_matching_event_id_before_reporting_completion():
 def test_second_layer_row_itself_shrinks_without_clipping_scrollbar():
     assert 'padding: 4px 15px;' in PAGE_TABS
     assert 'border-radius:9px;padding:4px 10px;text-align:left;font-size:12px;' in VIEW
-    assert 'self.toolbar_scroller.setFixedHeight(34)' in VIEW
-    assert 'self.root_layout.setContentsMargins(4, 1, 4, 1)' in VIEW
-    assert 'outer.setSpacing(5)' in VIEW
+    assert 'self.toolbar_scroller.setFixedHeight(44)' in VIEW
+    assert 'self.root_layout.setContentsMargins(6, 3, 4, 0)' in VIEW
+    assert 'outer.setSpacing(0)' in VIEW
     assert 'self.toolbar_scroller.horizontalScrollBar().rangeChanged.connect(' in VIEW
     assert 'self.update_root_toolbar_height)' in VIEW
-    assert 'required = 48 if maximum > minimum else 34' in VIEW
+    assert 'required = 58 if maximum > minimum else 44' in VIEW
     assert 'self.toolbar_scroller.setFixedHeight(41)' not in VIEW
 
 
