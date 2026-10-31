@@ -2591,6 +2591,13 @@ class Launcher(QWidget):
         self.mode_button.clicked.connect(self.toggle_expanded_view)
         self.mode_bar.hide()
         self.expanded_view = ExpandedLauncherView(self)
+        # Allow dragging from the workspace-strip whitespace as well.
+        # Only background surfaces receive the filter; the actual Files /
+        # Browser buttons and authored root buttons keep their clicks.
+        for surface in (self.expanded_view.root_widget,
+                        self.expanded_view.toolbar_scroller,
+                        self.expanded_view.toolbar_scroller.viewport()):
+            surface.installEventFilter(self._passive_header_drag)
         # Wheel Tab: share one cooldown across Page, toolbar and Files panels.
         self.tabs._zone_navigation = self.expanded_view.wheel_zone_navigation
         self.tabs._zone_enabled = lambda: self.view_mode == 'expanded'
@@ -4594,6 +4601,14 @@ class Launcher(QWidget):
             if self.menu: self.menu.close()
             self._frame_drag = None
             self._size_drag = (edge, event.globalPosition().toPoint(), self.geometry())
+            # Chromium needs several frames to resize its backing surface.
+            # While dragging a light-theme Browser, show an in-memory frozen
+            # webpage preview instead of exposing black right/bottom strips.
+            web = getattr(self.expanded_view, 'web_view', None)
+            if (self.view_mode == 'expanded'
+                    and self.expanded_view._workspace_mode == 'browser'
+                    and web is not None):
+                web.begin_live_resize()
             event.accept(); return
         if event.button() == Qt.MouseButton.LeftButton and self.frame_hit(event.position()):
             self.hover_timer.stop(); self.pending_menu_item = None
@@ -4629,6 +4644,9 @@ class Launcher(QWidget):
             self._frame_drag = None
             if getattr(self, '_size_drag', None):
                 self._size_drag = None
+                web = getattr(self.expanded_view, 'web_view', None)
+                if web is not None:
+                    web.end_live_resize()
                 self.save_window_size()
                 if self.can_save_normal_window_geometry():
                     self.settings.setValue('position', self.pos())

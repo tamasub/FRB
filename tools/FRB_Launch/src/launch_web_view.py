@@ -23,7 +23,43 @@ from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from wheel_adaptive import wheel_steps
 from history_wheel_navigation import history_target_index, warp_to_history_row
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QColor, QPainter
+
+
+class _ResizePreview(QWidget):
+    """Opaque, in-memory last-frame preview during a live Windows resize.
+
+    Chromium paints asynchronously. Enlarging QWebEngineView while dragging
+    the frame can expose black right/bottom strips before its new texture is
+    ready. Hide that surface and draw the previous frame at 1:1 scale, with
+    the surrounding light panel color, until the resize finishes. No URL
+    reload, disk screenshot or modification of the page is involved.
+    """
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._snapshot = None
+        self._fill = QColor('#fcfffd')
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.hide()
+
+    def set_preview(self, snapshot, color):
+        self._snapshot = snapshot if snapshot is not None and not snapshot.isNull() else None
+        self._fill = QColor(color)
+        self.update()
+
+    def clear_preview(self):
+        self._snapshot = None
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), self._fill)
+        if self._snapshot is not None:
+            # Never stretch webpage text. Newly exposed space gets the light
+            # panel color instead of a black Chromium backing surface.
+            painter.drawPixmap(0, 0, self._snapshot)
+        painter.end()
 
 
 class _WebTabs(QTabWidget):
@@ -35,6 +71,9 @@ class _WebTabs(QTabWidget):
         if isinstance(bar, _WebTabBar):
             bar.reserve_new_tab_space()
             bar._queue_new_tab_position()
+        owner = self.parentWidget()
+        if owner is not None and hasattr(owner, '_position_resize_preview'):
+            owner._position_resize_preview()
 
 
 class _WebTabBar(QTabBar):
@@ -142,6 +181,39 @@ class _LaunchWebPage(QWebEngineView):
     def __init__(self, owner):
         super().__init__(owner.tabs)
         self._owner = owner
+        self._last_viewport_size = None
+        self._repairing_surface = False
+        self._resize_surface_timer = QTimer(self)
+        self._resize_surface_timer.setSingleShot(True)
+        self._resize_surface_timer.timeout.connect(self._repair_resize_surface)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # On some Windows/QtWebEngine combinations the Chromium surface
+        # retains the OLD dimensions after QTabWidget is enlarged. The newly
+        # exposed right/bottom area is black. QSS/background does not fix it.
+        previous = self._last_viewport_size
+        self._last_viewport_size = event.size()
+        if (previous is not None and previous != event.size()
+                and not self._repairing_surface
+                and theme_family(getattr(self._owner, '_current_theme', 'dark')) == 'light'):
+            self._resize_surface_timer.start(160)
+
+    def _repair_resize_surface(self):
+        """Recreate the visible surface after resizing, without a URL reload."""
+        if (self._repairing_surface or not self.isVisible()
+                or self._owner.current_view() is not self
+                or theme_family(getattr(self._owner, '_current_theme', 'dark')) != 'light'):
+            return
+        self._repairing_surface = True
+        try:
+            self.hide()
+            self.show()
+            self.update()
+            # Give responsive websites the final viewport measurements.
+            self.page().runJavaScript('window.dispatchEvent(new Event("resize"))')
+        finally:
+            self._repairing_surface = False
 
     def mousePressEvent(self, event):
         self._owner.surface_selected.emit('web_body')
@@ -488,6 +560,14 @@ class LaunchWebView(QFrame):
         bar.set_new_tab_button(new_tab)
         bar.tabMoved.connect(lambda *_: bar._queue_new_tab_position())
         layout.addWidget(self.tabs, 1)
+        # The overlay is a sibling of the WebEngine viewport, not its child.
+        # It remains visible while the actual Chromium widget is hidden.
+        self._resize_preview = _ResizePreview(self.tabs)
+        self._resize_preview_view = None
+        self._resize_preview_active = False
+        self._resize_preview_finish_timer = QTimer(self)
+        self._resize_preview_finish_timer.setSingleShot(True)
+        self._resize_preview_finish_timer.timeout.connect(self._finish_live_resize)
         self.hint = QLabel('HOMEでFilesに戻る', self)
         self.hint.setObjectName('launchWebHint')
         layout.addWidget(self.hint)
@@ -730,6 +810,32 @@ class LaunchWebView(QFrame):
             if isinstance(view, QWebEngineView):
                 self.update_tab_icon(view, view.icon(), theme=theme)
 
+    def _apply_view_backgrounds(self, theme):
+        """Avoid black resize gaps in light mode; keep dark mode unchanged."""
+        colors = theme_palette(theme)
+        light = theme_family(theme) == 'light'
+        panel = colors['panel'] if light else 'transparent'
+        self.setAutoFillBackground(light)
+        palette = self.palette()
+        palette.setColor(self.backgroundRole(), QColor(colors['panel']))
+        self.setPalette(palette)
+        self.tabs.setAutoFillBackground(light)
+        tab_palette = self.tabs.palette()
+        tab_palette.setColor(self.tabs.backgroundRole(), QColor(colors['panel']))
+        self.tabs.setPalette(tab_palette)
+        self.tabs.setStyleSheet((self.tabs.styleSheet() or '') + '')
+        for index in range(self.tabs.count()):
+            view = self.tabs.widget(index)
+            if isinstance(view, QWebEngineView):
+                try:
+                    if light:
+                        view.page().setBackgroundColor(QColor(colors['panel']))
+                    else:
+                        view.page().setBackgroundColor(QColor(0, 0, 0, 0))
+                except Exception:
+                    pass
+                view.setStyleSheet(f'background:{panel}; border:0;')
+
     def update_tab_icon(self, view, icon, *, theme=None):
         """Show the site's favicon; use a quiet globe until one arrives."""
         index = self.tabs.indexOf(view)
@@ -745,6 +851,61 @@ class LaunchWebView(QFrame):
         widget = self.tabs.currentWidget()
         return widget if isinstance(widget, QWebEngineView) else None
 
+    def _position_resize_preview(self):
+        """Follow the current Web viewport even during rapid width changes."""
+        if not getattr(self, '_resize_preview_active', False):
+            return
+        view = self._resize_preview_view
+        if view is None:
+            return
+        top_left = view.mapTo(self.tabs, QPoint(0, 0))
+        # QStackedWidget may delay resizing a temporarily hidden WebEngine
+        # child. Extend the opaque preview through the entire new tab pane.
+        width = max(view.width(), self.tabs.width() - top_left.x() - 4)
+        height = max(view.height(), self.tabs.height() - top_left.y() - 4)
+        self._resize_preview.setGeometry(top_left.x(), top_left.y(), width, height)
+        self._resize_preview.raise_()
+
+    def begin_live_resize(self):
+        """Before border dragging starts, freeze only the light-mode Web body."""
+        if theme_family(getattr(self, '_current_theme', 'dark')) != 'light':
+            return
+        if self._resize_preview_active:
+            self._resize_preview_finish_timer.stop()
+            return
+        view = self.current_view()
+        if view is None or not view.isVisible():
+            return
+        # Capture BEFORE the first resize; taking a screenshot afterwards
+        # captures the very black strip this workaround is meant to prevent.
+        snapshot = view.grab()
+        self._resize_preview.set_preview(snapshot, theme_palette(self._current_theme)['panel'])
+        self._resize_preview_view = view
+        self._resize_preview_active = True
+        self._position_resize_preview()
+        view.hide()
+        self._resize_preview.show()
+        self._resize_preview.raise_()
+
+    def end_live_resize(self):
+        """Let Chromium finish allocating its new surface, then restore."""
+        if self._resize_preview_active:
+            self._resize_preview_finish_timer.start(170)
+
+    def _finish_live_resize(self):
+        if not self._resize_preview_active:
+            return
+        view = self._resize_preview_view
+        self._resize_preview_active = False
+        self._resize_preview_view = None
+        if view is not None and view is self.current_view():
+            view.show()
+            view.update()
+            # Retain the existing post-resize recovery as a fallback.
+            view._resize_surface_timer.start(160)
+        self._resize_preview.hide()
+        self._resize_preview.clear_preview()
+
     def add_tab(self, url=None, *, activate=True):
         view = _LaunchWebPage(self)
         view.setPage(QWebEnginePage(self.profile, view))
@@ -752,6 +913,15 @@ class LaunchWebView(QFrame):
         # links opened via 'new tab' and window.open. Do this before loading.
         view.setZoomFactor(self.web_settings.get('default_zoom_percent', 90) / 100.0)
         view.setObjectName('launchWebPage')
+        current_theme = getattr(self, '_current_theme', 'light')
+        try:
+            if theme_family(current_theme) == 'light':
+                view.page().setBackgroundColor(QColor(theme_palette(current_theme)['panel']))
+            else:
+                view.page().setBackgroundColor(QColor(0, 0, 0, 0))
+        except Exception:
+            pass
+        view.setStyleSheet(f"background:{theme_palette(current_theme)['panel'] if theme_family(current_theme) == 'light' else 'transparent'}; border:0;")
         index = self.tabs.addTab(view, '新規タブ')
         # Replace Qt's platform-dependent square close glyph with a small X.
         close_button = _WebCloseButton(self.tabs.tabBar())
@@ -1087,6 +1257,10 @@ class LaunchWebView(QFrame):
 
     def apply_theme(self, theme):
         from launch_appearance import theme_palette
+        if (getattr(self, '_resize_preview_active', False)
+                and theme_family(theme) != 'light'):
+            self._resize_preview_finish_timer.stop()
+            self._finish_live_resize()
         colors = theme_palette(theme)
         self._current_theme = theme
         bg = colors['panel']
@@ -1105,9 +1279,11 @@ class LaunchWebView(QFrame):
         self.setStyleSheet(f'''
             /* Files-like Web chrome: the large surrounding area is mint-green.
                The rendered website is still owned by QWebEngineView itself. */
+            QFrame#launchWebView {{background:{hdr};border:1px solid {border};border-top:0;
+                 border-top-left-radius:0;border-top-right-radius:11px;}}
             QFrame#launchWebView[remoteWebArea="web_body"] {{border:2px solid #58ad82;}}
-            QTabWidget#launchWebTabs {{border:0;background:transparent;}}
-            QTabWidget#launchWebTabs::pane {{border:0;margin:0;padding:0;}}
+            QTabWidget#launchWebTabs {{border:0;background:{bg};}}
+            QTabWidget#launchWebTabs::pane {{border:0;margin:0;padding:0;background:{bg};}}
             QTabBar#launchWebTabBar {{background:transparent;border:none;}}
             QTabBar#launchWebTabBar::scroller {{border:none;background:transparent;}}
             QTabWidget#launchWebTabs::tab-bar {{border:none;}}
@@ -1143,3 +1319,4 @@ class LaunchWebView(QFrame):
                  border-radius:10px;padding:0;margin:0;}}
             QToolButton#launchWebCloseButton:hover {{background:{hover};}}
         ''')
+        self._apply_view_backgrounds(theme)

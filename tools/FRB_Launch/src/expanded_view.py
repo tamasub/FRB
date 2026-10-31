@@ -1572,6 +1572,7 @@ class ExpandedLauncherView(QWidget):
             /* Soften ONLY the workspace strip/scroll surface. The two tab
                buttons below still use their original {hdr}/{stripe} colors. */
             QWidget#expandedRootBar {{background:{colors["workspace_strip"]};border:0;}}
+            QWidget#expandedWorkspaceDragHandle {{background:transparent;border:0;}}
             QScrollArea#expandedRootScroller {{background:{colors["workspace_strip"]};border:0;}}
             QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
                 border-radius:9px;padding:4px 10px;text-align:left;font-size:12px; }}
@@ -1774,7 +1775,19 @@ class ExpandedLauncherView(QWidget):
             self.files_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('files'))
             self.browser_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('browser'))
             self._update_workspace_tabs()
-            self.root_layout.addStretch(1)
+            # Use a real mouse-receiving widget for the wide blank band.
+            # QLayout.addStretch() has no QWidget hit target: clicks used to
+            # fall through to the root's 'select first shortcut' handler.
+            # The decorative spacer is the only extra drag target; the
+            # workspace tabs and every authored shortcut remain clickable.
+            self.workspace_drag_handle = QWidget(self.root_widget)
+            self.workspace_drag_handle.setObjectName('expandedWorkspaceDragHandle')
+            self.workspace_drag_handle.setCursor(Qt.CursorShape.ArrowCursor)
+            self.workspace_drag_handle.setToolTip('ここをドラッグしてFRB Launchを移動')
+            self.workspace_drag_handle.setMinimumWidth(1)
+            self.workspace_drag_handle.installEventFilter(
+                self.launcher._passive_header_drag)
+            self.root_layout.addWidget(self.workspace_drag_handle, 1)
             for index, row in enumerate(visible_roots):
                 button = QPushButton(row.get('title', ''), self.root_widget)
                 button.setObjectName('expandedRootButton')
