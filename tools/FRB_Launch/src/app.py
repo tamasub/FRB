@@ -953,6 +953,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if screen is None:
             return super().popup(pos, at)
         rect = screen.availableGeometry()  # Excludes the Windows taskbar.
+        popup_bounds = getattr(self, 'remote_popup_bounds', None)
+        # Remote requests may extend below the monitor; always keep the real
+        # usable screen (including taskbar exclusion) as the hard boundary.
+        bound_top = popup_bounds[0] if popup_bounds is not None else rect.top()
+        bound_bottom = popup_bounds[1] if popup_bounds is not None else (rect.bottom() + 1)
+        bound_top = max(rect.top(), bound_top)
+        bound_bottom = max(bound_top + 1, min(rect.bottom() + 1, bound_bottom))
         raw_height = self.sizeHint().height()
         # Some Qt styles pre-clamp QMenu.sizeHint() to a screen height even
         # though actions beyond that height cannot be reached reliably.
@@ -961,12 +968,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
         estimated_height = row_count * max(32, self.fontMetrics().height() + 18) + 12
         requested_height = max(raw_height, estimated_height) if not isinstance(self, AppCascadeMenu) else raw_height
         placement = place_popup(pos.x(), pos.y(), self.sizeHint().width(), requested_height,
-                                rect.left(), rect.top(), rect.right()+1, rect.bottom()+1)
+                                rect.left(), bound_top, rect.right()+1, bound_bottom)
         if placement.scroll and self.scroll_tree is None and not isinstance(self, AppCascadeMenu):
             self._enable_scroll_tree(placement.height)
             placement = place_popup(pos.x(), pos.y(), self.sizeHint().width(),
-                                    self.sizeHint().height(), rect.left(), rect.top(),
-                                    rect.right()+1, rect.bottom()+1)
+                                    self.sizeHint().height(), rect.left(), bound_top,
+                                    rect.right()+1, bound_bottom)
         target = QPoint(placement.x, placement.y)
         self._refresh_transfer_visuals()
         return super().popup(target, at)
@@ -1396,7 +1403,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
             if (getattr(self, 'remote_page_navigation', False)
-                    or getattr(self, 'remote_context_root', False)) and action in self.openers:
+                    or getattr(self, 'remote_context_root', False)
+                    or getattr(self, 'remote_files_roots', False)) and action in self.openers:
                 # Remote Page is a one-click navigation menu. A second click
                 # must not launch a directory in Explorer or dismiss the menu.
                 self._bookmark_ignore_double_release = True
@@ -1451,7 +1459,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         if (action is press_action
                 and (getattr(self, 'remote_page_navigation', False)
-                     or getattr(self, 'remote_context_root', False))
+                     or getattr(self, 'remote_context_root', False)
+                     or getattr(self, 'remote_files_roots', False))
                 and action in self.openers):
             # A QAction release can cause QMenu to dismiss itself before the
             # child popup is shown. Open Remote Page folders explicitly and
@@ -1703,11 +1712,16 @@ class RemoteFolderCascade(CascadeMenu):
 
     def _remote_entry(self, action):
         row = action.data() if action is not None else None
-        if not isinstance(row, dict) or not row.get('_file'):
+        if not isinstance(row, dict):
             return None
         if row.get('item_kind') not in ('directory', 'command'):
             return None
-        return row
+        # The user-authored Files first-column shortcuts are directory rows
+        # but do not have _file. Keep native browser file rows unchanged.
+        if row.get('_file') or (row.get('item_kind') == 'directory'
+                                 and row.get('launch_browse_target')):
+            return row
+        return None
 
     def _remote_activate_file(self, row):
         filename = row.get('_browse_file')
@@ -1716,6 +1730,9 @@ class RemoteFolderCascade(CascadeMenu):
 
     def _remote_commit_folder(self, row):
         path = row.get('launch_browse_target')
+        # Root shortcuts may contain %USERPROFILE%, unlike filesystem rows.
+        if path and not Path(path).is_dir():
+            path = self.launcher.expander().expand(path)
         view = self.launcher.expanded_view
         if not path or not Path(path).is_dir() or not view.isVisible() or view._workspace_mode != 'files':
             return
@@ -1727,7 +1744,21 @@ class RemoteFolderCascade(CascadeMenu):
         try:
             if not view.go_to_directory(path, preserve_remote_popup=True):
                 return
-            root._remote_rebase(str(view.current_directory()))
+            if getattr(root, 'remote_files_roots', False):
+                # Clicking a first-column root updates the breadcrumb AND
+                # opens its next column immediately, even without a prior
+                # hover. The initial root choices remain available.
+                if self is root:
+                    selected = root.activeAction() if hasattr(root, 'activeAction') else None
+                    opener = getattr(root, 'openers', {}).get(selected)
+                    if opener is not None and not (root.child is not None
+                            and root.child.owner_action is selected
+                            and root.child.isVisible()):
+                        opener('keyboard')
+            else:
+                # The lower-blank menu follows the current breadcrumb, while
+                # the Files-button menu keeps its first-column roots intact.
+                root._remote_rebase(str(view.current_directory()))
         finally:
             self.launcher._remote_folder_navigation = False
             self.launcher._remote_folder_commit_pending = False
@@ -2959,6 +2990,69 @@ class Launcher(QWidget):
         self.show_expanded_background_paste_menu(
             QCursor.pos(), remote_folder_list=True)
 
+    def _remote_popup_vertical_bounds(self):
+        """Remote popup band begins at Files and extends 3x downward."""
+        remote = getattr(self, 'remote_window', None)
+        if remote is None or not remote.isVisible():
+            return None
+        top = remote.files_button.mapToGlobal(QPoint(0, 0)).y() - 1
+        former_bottom = remote.mapToGlobal(QPoint(0, remote.height() - 6)).y()
+        if former_bottom <= top:
+            return None
+        # Previously this band ended at Remote's footer (~200px after Files).
+        # User now wants three times that *vertical reach*, for every column.
+        # CascadeMenu.popup() independently clips to the available monitor.
+        return (top, top + 3 * (former_bottom - top))
+
+    def _apply_remote_popup_bounds(self, menu):
+        bounds = self._remote_popup_vertical_bounds()
+        if bounds is not None:
+            menu.remote_popup_bounds = bounds
+        return menu
+
+    def _remote_folder_root_hidden(self, menu):
+        if (getattr(self, '_remote_folder_root_menu', None) is menu
+                and not getattr(self, '_remote_folder_commit_pending', False)):
+            self._remote_folder_root_menu = None
+            self._remote_folder_source_path = None
+            self._remote_folder_popup_pos = None
+
+    def _remote_files_first_column_rows(self):
+        """Read the rendered Files column 1, not the breadcrumb/current dir."""
+        view = self.expanded_view
+        tree = view.left.tree
+        return [row for row in (
+            view.row_data(tree.topLevelItem(i))
+            for i in range(tree.topLevelItemCount()))
+            if isinstance(row, dict)]
+
+    def show_remote_files_first_column_menu(self):
+        """Right-click Files: show exactly the *Files left column* roots."""
+        remote = getattr(self, 'remote_window', None)
+        view = self.expanded_view
+        if (remote is None or not remote.isVisible() or not view.isVisible()
+                or view._workspace_mode != 'files'):
+            return
+        if view.files_root is None or view.left.tree.topLevelItemCount() == 0:
+            return
+        self.close_remote_folder_menu()
+        menu = self._apply_remote_popup_bounds(RemoteFolderCascade(parent=self, launcher=self))
+        menu.remote_files_roots = True   # Keep the root list through breadcrumb commits.
+        menu.remote_folder_navigation = True
+        menu.remote_folder_root = menu
+        self._remote_folder_root_menu = menu
+        self._remote_folder_opener = None
+        directory = view.current_directory()
+        self._remote_folder_source_path = (os.path.normcase(os.path.normpath(str(directory)))
+                                           if directory else None)
+        anchor = remote.files_button.mapToGlobal(QPoint(remote.files_button.width() - 1, 0))
+        self._remote_folder_popup_pos = anchor
+        self.fill_cascade(menu, {'item_kind': 'category', 'item_id': 'remote-files-first-column',
+                                 'title': 'Files', 'launch_source': 'remote_files_roots'})
+        menu.aboutToHide.connect(lambda m=menu: self._remote_folder_root_hidden(m))
+        menu.popup(anchor)
+        menu.setFocus()
+
     def _remote_folder_context(self, directory):
         return {'item_kind': 'directory', 'item_id': f'remote-fs:{directory}',
                 'title': Path(directory).name or directory,
@@ -2987,6 +3081,8 @@ class Launcher(QWidget):
             opener.child.deleteLater()
             opener.child = None
         child = RemoteFolderCascade(parent=opener, launcher=self)
+        if hasattr(opener, 'remote_popup_bounds'):
+            child.remote_popup_bounds = opener.remote_popup_bounds
         child.remote_folder_root = child
         child.owner_action = action
         child.open_mode = 'keyboard'
@@ -3894,6 +3990,9 @@ class Launcher(QWidget):
             return
         if command == 'REMOTE_CURRENT_FOLDER_MENU':
             self.show_remote_current_folder_menu()
+            return
+        if command == 'REMOTE_FILES_FIRST_COLUMN_MENU':
+            self.show_remote_files_first_column_menu()
             return
         if command == 'BACKGROUND_CONTEXT_MENU':
             # Same action builder as a right-click on Files column 2 blank
@@ -6281,13 +6380,22 @@ class Launcher(QWidget):
     def fill_cascade(self, menu, parent):
         if isinstance(menu,AppCascadeMenu):
             menu.populate(self.children(parent));return
-        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source') not in {'installed_apps','browser_bookmarks'} and not parent.get('_browser_bookmark')
+        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source') not in {'installed_apps','browser_bookmarks','remote_files_roots'} and not parent.get('_browser_bookmark')
         menu.order_page=parent.get('page_id',self.page_id)
         menu.order_parent=parent.get('item_id','')
         menu.order_context=parent
         menu.order_rows=[]
         try:
-            rows = self.displayed_children(parent)
+            if parent.get('launch_source') == 'remote_files_roots':
+                # The first column belongs to ExpandedLauncherView, not to
+                # the current breadcrumb or a separate configuration tree.
+                rows = self._remote_files_first_column_rows()
+            elif getattr(menu, 'remote_folder_navigation', False) and parent.get('_system_drives_root'):
+                # "PC" is a virtual root. Expanded Files resolves it to real
+                # drive rows, so re-use that same resolver here.
+                rows = self.expanded_view.browser_rows(parent)
+            else:
+                rows = self.displayed_children(parent)
             if parent.get('launch_source') == 'remote_page':
                 rows = visible_remote_page_roots(rows)
             for row in rows:
@@ -6307,6 +6415,8 @@ class Launcher(QWidget):
                         m.child=(RemoteFolderCascade if getattr(m, 'remote_folder_navigation', False)
                                  else AppCascadeMenu if r.get('launch_source')=='installed_apps'
                                  else CascadeMenu)(parent=m,launcher=self)
+                        if hasattr(m, 'remote_popup_bounds'):
+                            m.child.remote_popup_bounds = m.remote_popup_bounds
                         m.child.open_mode=mode;m.child.owner_action=a
                         m.child.bookmark_navigation = getattr(m, 'bookmark_navigation', False)
                         m.child.remote_page_navigation = getattr(m, 'remote_page_navigation', False)
@@ -8128,6 +8238,7 @@ class Launcher(QWidget):
             return False
         menu = CascadeMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
         if remote_folder_list:
+            menu = self._apply_remote_popup_bounds(menu)
             menu.remote_context_root = True
             menu.open_mode = 'keyboard'
         if remote_folder_list:

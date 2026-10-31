@@ -328,9 +328,12 @@ class LaunchRemote(QWidget):
         row_workspaces = QHBoxLayout()
         row_workspaces.setContentsMargins(0, 0, 0, 0)
         row_workspaces.setSpacing(2)
-        self.files_button = self._button('Files', 'Files画面へ切り替え',
+        self.files_button = self._button('Files', 'Files画面へ切り替え / 右クリック：第1列から開く',
                                          'WORKSPACE_FILES', width=85, height=27,
                                          role='workspace', wheel_enabled=True)
+        self.files_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.files_button.customContextMenuRequested.connect(
+            lambda _point: self.command.emit('REMOTE_FILES_FIRST_COLUMN_MENU'))
         self.browser_button = self._button('Browser', 'Browser画面へ切り替え',
                                            'WORKSPACE_BROWSER', width=85, height=27,
                                            role='workspace', wheel_enabled=True)
