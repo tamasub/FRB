@@ -1497,6 +1497,7 @@ class ExpandedLauncherView(QWidget):
         # stripe is subtler than the active tab's panel border.
         self.root_widget.set_underline_color(border)
         self._files_top_right_outline.set_outline_color(border)
+        self._files_top_right_outline.hide()
         if self.right._top_right_outline is not None:
             self.right._top_right_outline.set_outline_color(border)
         tight = self.row_density == 'compact'
@@ -1548,7 +1549,7 @@ class ExpandedLauncherView(QWidget):
                 border-bottom-right-radius:0px;border-bottom:0;font-weight:400;}}
             QPushButton#expandedWorkspaceTab[workspace="browser"]:checked {{background:{hdr};
                 color:{text};border:0;border-bottom:0;font-weight:400;}}
-            QFrame#expandedFilesGroup {{background:{bg};border:1px solid {border};border-top:0;
+            QFrame#expandedFilesGroup {{background:{bg};border:0px solid {border};border-top:0;
                 border-top-left-radius:0;border-top-right-radius:0;
                 border-bottom-left-radius:12px;border-bottom-right-radius:12px;}}
             QWidget#expandedCombinedHeader {{background:{hdr};border:0;border-bottom:1px solid {border};

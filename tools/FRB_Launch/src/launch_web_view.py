@@ -373,6 +373,7 @@ class LaunchWebView(QFrame):
         # foreground stroke rather than a radius with no visible border.
         from expanded_view import _WorkspaceTopRightOutline
         self._top_right_outline = _WorkspaceTopRightOutline(self)
+        self._top_right_outline.hide()  # 実験：右上の角丸線を非表示
         self._tabs = []
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -867,9 +868,6 @@ class LaunchWebView(QFrame):
         self.setStyleSheet(f'''
             /* Files-like Web chrome: the large surrounding area is mint-green.
                The rendered website is still owned by QWebEngineView itself. */
-            QFrame#launchWebView {{background:{hdr};border:1px solid {border};border-top:0;
-                border-top-left-radius:0;border-top-right-radius:11px;
-                border-bottom-left-radius:10px;border-bottom-right-radius:10px;}}
             QFrame#launchWebView[remoteWebArea="web_body"] {{border:2px solid #58ad82;}}
             QTabWidget#launchWebTabs {{border:0;background:transparent;}}
             QTabWidget#launchWebTabs::pane {{border:0;margin:0;padding:0;}}
