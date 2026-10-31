@@ -1943,6 +1943,9 @@ class ExpandedLauncherView(QWidget):
                 self.current_directory(), self.path,
                 row.get('item_id') if row else None)
         self.launcher._nav_update_buttons()
+        changed = getattr(self.launcher, 'on_files_directory_changed', None)
+        if callable(changed):
+            changed(self.current_directory())
 
     def _restore_directory_history(self, entry):
         if entry is None:
@@ -2345,22 +2348,31 @@ class ExpandedLauncherView(QWidget):
             if str(exc) != '拡張子の変更を取り消しました':
                 self.launcher.error('名前を変更できませんでした: ' + str(exc))
 
-    def go_to_directory(self, path):
-        """Breadcrumb/edit/favorite navigation stays inside FRB Launch."""
+    def go_to_directory(self, path, *, preserve_remote_popup=False):
+        """Breadcrumb/edit/favorite navigation stays inside FRB Launch.
+
+        A folder *clicked inside an open Remote context submenu* must update
+        Files without transferring Qt focus away from that menu.  All normal
+        callers retain the original Files focus behavior.
+        """
         import os
         target = normalized_directory(path)
         if not target or not os.path.isdir(target):
             return False
         self.path = [directory_row(target)]
         self.refresh_middle()
-        self.focus_panel(self.middle)
+        if not preserve_remote_popup:
+            self.focus_panel(self.middle)
         # A direct breadcrumb/address navigation changes the real keyboard
-        # target to Files column 2.  Keep an already-open Remote on that same
-        # target; otherwise its Left button can still point to column 1 and
-        # silently do nothing while the physical Left key ascends normally.
+        # target to Files column 2. Remote navigation only changes the logical
+        # target so its popup does not close due to an unrelated setFocus().
         remote = getattr(self.launcher, 'remote_window', None)
         if remote is not None and remote.isVisible():
-            self.launcher.remote_focus_area('directory')
+            if preserve_remote_popup:
+                self.launcher._remote_area = 'directory'
+                remote.set_area('directory')
+            else:
+                self.launcher.remote_focus_area('directory')
         return True
 
     def select_middle_file(self, filename):
@@ -3731,6 +3743,9 @@ class ExpandedLauncherView(QWidget):
             self.middle.label.setText(row.get('title', ''))
             self.address_bar.set_directory(None, row.get('title', ''))
             self.middle.tree.clear()
+            changed = getattr(self.launcher, 'on_files_directory_changed', None)
+            if callable(changed):
+                changed(None)
 
     def choose_middle(self, item, _col, *, force=False):
         # Extended-selection clicks must not descend into a folder: doing so

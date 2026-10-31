@@ -24,12 +24,14 @@ def get_method(source, cls, name):
     return env[name]
 
 
-def test_right_click_on_blank_band_emits_only_background_command():
+def test_right_click_on_blank_band_adds_folder_list_to_existing_background_menu():
     command = Mock()
-    band = SimpleNamespace(command=SimpleNamespace(emit=command))
+    band = SimpleNamespace(command=SimpleNamespace(emit=command), _files_mode=True)
     event = SimpleNamespace(accept=Mock())
     get_method(REMOTE, 'UpDoubleClickBand', 'contextMenuEvent')(band, event)
-    command.assert_called_once_with('BACKGROUND_CONTEXT_MENU')
+    command.assert_called_once_with('REMOTE_CURRENT_FOLDER_MENU')
+    # The command now calls the SAME blank-area builder with one extra submenu.
+    assert 'remote_folder_list=True' in APP
     event.accept.assert_called_once_with()
 
 

@@ -24,9 +24,11 @@ def hook_functions(window, modal=None):
     functions = {}
     for node in ast.walk(TREE):
         if isinstance(node, ast.FunctionDef) and node.name in (
-                'launcher_surface_visible', 'dismiss_from_outside_click'):
+                'launcher_surface_visible', 'remote_visible',
+                'remote_folder_popup_visible', 'remote_page_popup_visible',
+                'dismiss_from_outside_click'):
             functions[node.name] = node
-    assert len(functions) == 2
+    assert len(functions) == 5
     scope = {'window': window,
              'QApplication': SimpleNamespace(activeModalWidget=lambda: modal),
              'DIAG': Mock()}
@@ -56,7 +58,7 @@ def test_restores_main_tool_window_without_restarting_or_resetting_navigation():
 def test_mouse_hook_treats_orphaned_folder_column_as_visible_launcher():
     column = SimpleNamespace(isVisible=lambda: True)
     launcher = SimpleNamespace(isVisible=lambda: False, menu=column,
-                               _filesystem_dialog_depth=0, dismiss=Mock())
+                               _filesystem_dialog_depth=0, dismiss_on_outside_click=True, dismiss=Mock())
     functions = hook_functions(launcher)
     assert functions['launcher_surface_visible']() is True
     functions['dismiss_from_outside_click']()
@@ -78,6 +80,6 @@ def test_mouse_hook_ignores_outside_click_while_delete_confirmation_active():
 
 def test_hook_wiring_uses_same_visibility_check_as_outside_callback():
     source = SOURCE.read_text(encoding='utf-8')
-    assert 'is_launcher_visible=launcher_surface_visible' in source
-    assert 'if (launcher_surface_visible()' in source
+    assert 'is_launcher_visible=lambda: (remote_visible()' in source
+    assert 'if launcher_surface_visible() and window.dismiss_on_outside_click:' in source
     assert 'self.restore_launcher_for_transfer_review()' in source

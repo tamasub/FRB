@@ -755,6 +755,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # Even when the user chose double-click for Files, a Remote category
         # must expand on hover or one click (also in every nested column).
         return (not getattr(self, 'remote_page_navigation', False)
+                and not getattr(self, 'compact_files_cascade', False)
+                and not getattr(self, 'remote_folder_navigation', False)
+                and not getattr(self, 'remote_context_root', False)
                 and getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
                 and not getattr(self, 'bookmark_navigation', False))
 
@@ -841,7 +844,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if action is self.activeAction():
             # The first row is selected when a popup appears, before the
             # pointer arrives.  Remote Page must still open it on hover.
-            if (not getattr(self, 'remote_page_navigation', False)
+            if (not (getattr(self, 'remote_page_navigation', False)
+                      or getattr(self, 'remote_folder_navigation', False)
+                      or getattr(self, 'remote_context_root', False)
+                      or getattr(self, 'compact_files_cascade', False))
                     or action not in self.openers
                     or (self.child is not None and self.child.isVisible()
                         and self.child.owner_action is action)
@@ -939,7 +945,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self._transfer_data_changed_connected = True
         # All popup columns, including the installed-app catalog, share the
         # same full-height local search bar before their first paint/focus.
-        self._ensure_local_filter()
+        if not getattr(self, 'remote_context_root', False):
+            self._ensure_local_filter()
         if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
             self.launcher.style_cascade_menu(self)
         screen = QApplication.screenAt(pos) or self.screen() or QApplication.primaryScreen()
@@ -1004,7 +1011,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         layout.addWidget(self.filter_edit, 1)
         # This button belongs ONLY to actual filesystem directories, never
         # Studio categories, bookmarks, apps or global search columns.
-        if self._folder_container_row() is not None:
+        if (self._folder_container_row() is not None
+                and not getattr(self, 'remote_folder_navigation', False)):
             self.paste_button = QPushButton('貼り付け', container)
             self.paste_button.setObjectName('directoryPasteButton')
             self.paste_button.setToolTip('Explorerでコピー／切り取りしたファイル・フォルダーをこの場所へ貼り付け')
@@ -1387,7 +1395,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
-            if getattr(self, 'remote_page_navigation', False) and action in self.openers:
+            if (getattr(self, 'remote_page_navigation', False)
+                    or getattr(self, 'remote_context_root', False)) and action in self.openers:
                 # Remote Page is a one-click navigation menu. A second click
                 # must not launch a directory in Explorer or dismiss the menu.
                 self._bookmark_ignore_double_release = True
@@ -1440,15 +1449,22 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self._open_folder_after_release()
             event.accept()
             return
-        if (action is press_action and getattr(self, 'remote_page_navigation', False)
+        if (action is press_action
+                and (getattr(self, 'remote_page_navigation', False)
+                     or getattr(self, 'remote_context_root', False))
                 and action in self.openers):
             # A QAction release can cause QMenu to dismiss itself before the
             # child popup is shown. Open Remote Page folders explicitly and
             # consume that release; leave file execution / other modes alone.
             self.hover_timer.stop()
             self.setActiveAction(action)
-            if not (self.child is not None and self.child.isVisible()
-                    and self.child.owner_action is action):
+            if getattr(self, 'remote_context_root', False):
+                # The Remote's folder-list row is also an explicit Refresh.
+                # Even if its child column is still on screen, a new click
+                # must rebuild that column from the CURRENT Files breadcrumb.
+                self.openers[action]('refresh')
+            elif not (self.child is not None and self.child.isVisible()
+                      and self.child.owner_action is action):
                 self.openers[action]('keyboard')
             event.accept()
             return
@@ -1496,7 +1512,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         before = self.activeAction()
         super().mouseMoveEvent(event)
         action = self.activeAction()
-        remote_first_hover = (getattr(self, 'remote_page_navigation', False)
+        remote_first_hover = ((getattr(self, 'remote_page_navigation', False)
+                               or getattr(self, 'remote_folder_navigation', False)
+                               or getattr(self, 'remote_context_root', False)
+                               or getattr(self, 'compact_files_cascade', False))
                               and action in self.openers
                               and self.actionAt(event.position().toPoint()) is action
                               and not (self.child is not None and self.child.isVisible()
@@ -1664,6 +1683,146 @@ class CascadeMenu(OrderDragMixin,QMenu):
         QApplication.sendEvent(self.filter_edit, event)
         event.accept()
 
+
+
+class RemoteFolderCascade(CascadeMenu):
+    """Remote filesystem columns reuse Compact's proven non-grabbing Tool menus.
+
+    The only difference from an ordinary CascadeMenu is the *commit policy*:
+    hover previews a folder, click commits its path to the Files breadcrumb,
+    while a file needs a double-click to execute. Right-click delegates to
+    the same safe context menu used by search results.
+    """
+    def __init__(self, parent=None, launcher=None):
+        super().__init__(parent=parent, launcher=launcher)
+        self.remote_folder_navigation = True
+        self.compact_files_cascade = True  # Never apply Files-pane double-click mode.
+        self.remote_folder_root = None
+        self._remote_pressed_action = None
+        self._remote_dbl_file = None
+
+    def _remote_entry(self, action):
+        row = action.data() if action is not None else None
+        if not isinstance(row, dict) or not row.get('_file'):
+            return None
+        if row.get('item_kind') not in ('directory', 'command'):
+            return None
+        return row
+
+    def _remote_activate_file(self, row):
+        filename = row.get('_browse_file')
+        if filename and Path(filename).is_file():
+            self.launcher.activate(row)
+
+    def _remote_commit_folder(self, row):
+        path = row.get('launch_browse_target')
+        view = self.launcher.expanded_view
+        if not path or not Path(path).is_dir() or not view.isVisible() or view._workspace_mode != 'files':
+            return
+        root = self.remote_folder_root or self
+        if getattr(self.launcher, '_remote_folder_root_menu', None) is not root:
+            return
+        self.launcher._remote_folder_navigation = True
+        self.launcher._remote_folder_commit_pending = True
+        try:
+            if not view.go_to_directory(path, preserve_remote_popup=True):
+                return
+            root._remote_rebase(str(view.current_directory()))
+        finally:
+            self.launcher._remote_folder_navigation = False
+            self.launcher._remote_folder_commit_pending = False
+
+    def _remote_rebase(self, directory):
+        """Keep parent + first column on screen; rebuild only the contents."""
+        self.hover_timer.stop()
+        self.folder_click_timer.stop()
+        if self.child is not None:
+            self.child.close()
+            self.child.deleteLater()
+            self.child = None
+        self.clear_local_filter()
+        self.clear()
+        self.openers.clear()
+        row = self.launcher._remote_folder_context(directory)
+        self.launcher.fill_cascade(self, row)
+        self._ensure_local_filter()
+        self.launcher._remote_folder_source_path = os.path.normcase(os.path.normpath(directory))
+        self.select_first()
+        self.adjustSize()
+        self.update()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            action = self.actionAt(event.position().toPoint())
+            if self._remote_entry(action) is not None:
+                self.hover_timer.stop()
+                self._remote_pressed_action = action
+                self.setActiveAction(action)
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            action = self.actionAt(event.position().toPoint())
+            dbl = self._remote_dbl_file
+            if dbl is not None:
+                self._remote_dbl_file = None
+                self._remote_pressed_action = None
+                QTimer.singleShot(0, lambda r=dbl: self._remote_activate_file(r))
+                event.accept()
+                return
+            if self._remote_pressed_action is not None:
+                pressed = self._remote_pressed_action
+                self._remote_pressed_action = None
+                row = self._remote_entry(pressed)
+                if pressed is action and row is not None and row['item_kind'] == 'directory':
+                    QTimer.singleShot(0, lambda r=row: self._remote_commit_folder(r))
+                # File single-click is selection only; do not dismiss menu.
+                event.accept()
+                return
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            row = self._remote_entry(self.actionAt(event.position().toPoint()))
+            if row is not None:
+                self._remote_dbl_file = row if row['item_kind'] != 'directory' else None
+                event.accept()
+                return
+        super().mouseDoubleClickEvent(event)
+
+    def _scroll_activate(self, item):
+        # Oversized menus route clicks to their QTreeWidget instead of QMenu.
+        action = self._scroll_item_action(item)
+        row = self._remote_entry(action)
+        if row is None:
+            return super()._scroll_activate(item)
+        self.setActiveAction(action)
+        if row['item_kind'] == 'directory':
+            QTimer.singleShot(0, lambda r=row: self._remote_commit_folder(r))
+
+    def _scroll_double_clicked(self, item, column):
+        row = self._remote_entry(self._scroll_item_action(item))
+        if row is not None:
+            if row['item_kind'] != 'directory':
+                QTimer.singleShot(0, lambda r=row: self._remote_activate_file(r))
+            return
+        super()._scroll_double_clicked(item, column)
+
+    def _open_context_properties(self, row, pos):
+        # The safe global-search menu is the authoritative allowlist for both
+        # files and folders. Unlike the old nested Qt.Popup, this Tool column
+        # survives the second popup being shown and closed.
+        if self.launcher is None or not self.launcher.isVisible():
+            return
+        shown = self.launcher.show_launch_context_menu(
+            pos, row, context_parent=self, force_search_context=True)
+        context = getattr(self.launcher, '_launch_context_menu', None)
+        if shown and context is not None:
+            context.aboutToHide.connect(self._clear_context_highlight)
+        else:
+            self._clear_context_highlight()
 
 
 class AppCascadeMenu(CascadeMenu):
@@ -1867,6 +2026,35 @@ class CascadeOutsideClickFilter(QObject):
 
     def eventFilter(self, obj, event):
         launcher = self.launcher
+        # Ordinary Qt mouse presses (e.g. Files pane) also dismiss the Remote
+        # filesystem preview.  A click inside the opener, nested Tool column,
+        # or a file's own context menu must continue to work normally.
+        if event.type() == QEvent.Type.MouseButtonPress and isinstance(obj, QWidget):
+            opener = getattr(launcher, '_remote_folder_opener', None)
+            root = getattr(launcher, '_remote_folder_root_menu', None)
+            if opener is not None or root is not None:
+                inside = False
+                current = obj
+                while isinstance(current, QObject):
+                    if (current is opener or current is root
+                            or (isinstance(current, CascadeMenu)
+                                and getattr(current, 'remote_folder_navigation', False))):
+                        inside = True
+                        break
+                    current = current.parent()
+                context = getattr(launcher, '_launch_context_menu', None)
+                if context is not None and context is not opener and context.isVisible():
+                    inside = True  # File's secondary context menu.
+                remote = getattr(launcher, 'remote_window', None)
+                if (remote is not None and remote.isVisible()
+                        and (obj is remote or remote.isAncestorOf(obj))):
+                    # The Remote remains usable, but a press on ANY of its
+                    # surfaces dismisses the old folder preview first.
+                    # Never swallow the click: Page/Files/History must run.
+                    launcher.close_remote_folder_menu()
+                    inside = True
+                if not inside:
+                    launcher.close_remote_folder_menu()
         menu = getattr(launcher, 'menu', None)
         if menu is None or not menu.isVisible():
             return False
@@ -1894,12 +2082,15 @@ class CascadeOutsideClickFilter(QObject):
             return False
         if event.type() != QEvent.Type.MouseButtonPress:
             return False
-        # The remote is also a Launcher-owned Qt.Tool. A click on its wheel
-        # must not dismiss the cascade before the semantic ENTER command runs.
+        # Clicking ANY Remote surface dismisses an already open Page column
+        # (the Remote itself stays visible).  Do this on press so the native
+        # button click on release can immediately open a replacement Page.
         remote = getattr(launcher, 'remote_window', None)
         if (remote is not None and remote.isVisible()
                 and isinstance(obj, QWidget)
                 and (obj is remote or remote.isAncestorOf(obj))):
+            if getattr(launcher, '_remote_page_menu', None) is not None:
+                launcher.close_remote_page_menu()
             return False
         current = obj
         while isinstance(current, QObject):
@@ -2735,11 +2926,111 @@ class Launcher(QWidget):
         self.footer.setText('デスクトップリモコン：' +
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
 
-    def hide_remote(self):
+    def close_remote_folder_menu(self):
+        """Close Remote filesystem preview and its right-click opener."""
+        menu = getattr(self, '_remote_folder_root_menu', None)
+        self._remote_folder_root_menu = None
+        opener = getattr(self, '_remote_folder_opener', None)
+        self._remote_folder_opener = None
+        self._remote_folder_commit_pending = False
+        self._remote_folder_popup_pos = None
+        self._remote_folder_source_path = None
+        if menu is not None:
+            menu.close()
+        if opener is not None:
+            opener.close()
+            opener.deleteLater()
+
+    def show_remote_current_folder_menu(self):
+        """Show the EXISTING Files background menu plus Remote's file list.
+
+        The add-on must not replace Paste/New/Explorer/Properties: they are
+        still the normal right-click operations on this Remote blank strip.
+        """
+        remote = getattr(self, 'remote_window', None)
+        view = self.expanded_view
+        if (remote is None or not remote.isVisible() or not view.isVisible()
+                or view._workspace_mode != 'files'):
+            return
+        directory = view.current_directory()
+        if not directory or not Path(directory).is_dir():
+            return
+        self.close_remote_folder_menu()
+        self.show_expanded_background_paste_menu(
+            QCursor.pos(), remote_folder_list=True)
+
+    def _remote_folder_context(self, directory):
+        return {'item_kind': 'directory', 'item_id': f'remote-fs:{directory}',
+                'title': Path(directory).name or directory,
+                'launch_browse_target': str(directory), 'launch_source': 'remote_filesystem'}
+
+    def _open_remote_folder_cascade(self, opener, action, directory, mode='hover'):
+        """Open or refresh the Remote list using the *current* Files breadcrumb.
+
+        ``directory`` is only the path from when the context menu was first
+        constructed.  A folder click can update the breadcrumb while this
+        parent menu remains open, so never use that captured value as truth.
+        """
+        current = self.expanded_view.current_directory()
+        if not current or not Path(current).is_dir():
+            return
+        directory = str(current)
+        if opener.child is not None:
+            if (opener.child.isVisible() and opener.child.owner_action is action
+                    and mode != 'refresh'):
+                return
+            # On an explicit click replace the entire child Tool column,
+            # including its optional scroll-tree and search QWidgetAction.
+            # Rebasing an already rendered column could leave a stale view
+            # showing no rows after the Files breadcrumb has changed.
+            opener.child.close()
+            opener.child.deleteLater()
+            opener.child = None
+        child = RemoteFolderCascade(parent=opener, launcher=self)
+        child.remote_folder_root = child
+        child.owner_action = action
+        child.open_mode = 'keyboard'
+        opener.child = child
+        self._remote_folder_root_menu = child
+        self._remote_folder_source_path = os.path.normcase(os.path.normpath(directory))
+        self.fill_cascade(child, self._remote_folder_context(directory))
+        rect = opener.actionGeometry(action)
+        child.popup(opener.mapToGlobal(QPoint(opener.width() - 1, rect.top())))
+        child.setFocus()
+
+    def _remote_folder_opener_hidden(self, opener):
+        """Forget only the Remote menu that actually closed."""
+        if (getattr(self, '_remote_folder_opener', None) is opener
+                and not getattr(self, '_remote_folder_commit_pending', False)):
+            self._remote_folder_opener = None
+            self._remote_folder_root_menu = None
+            self._remote_folder_source_path = None
+
+    def on_files_directory_changed(self, directory):
+        """Breadcrumb is authoritative. External changes close all previews."""
+        if (getattr(self, '_remote_folder_opener', None) is None
+                and getattr(self, '_remote_folder_root_menu', None) is None):
+            return
+        path = (os.path.normcase(os.path.normpath(str(directory)))
+                if directory else None)
+        if path == getattr(self, '_remote_folder_source_path', None):
+            return
+        self._remote_folder_source_path = path
+        if not getattr(self, '_remote_folder_navigation', False):
+            self.close_remote_folder_menu()
+
+    def close_remote_page_menu(self):
+        """Dismiss the Remote Page cascade, not an unrelated Compact menu."""
         page_menu = getattr(self, '_remote_page_menu', None)
         self._remote_page_menu = None
         if page_menu is not None:
-            page_menu.close()
+            page_menu.close()  # CascadeMenu closes its child columns as well.
+            if getattr(self, 'menu', None) is page_menu:
+                self.menu = None
+
+    def hide_remote(self):
+        self.close_remote_folder_menu()
+        self.close_remote_page_menu()
         popup = getattr(self, '_remote_popup_area', None)
         self._remote_popup_area = None
         if popup == 'search_history':
@@ -2837,6 +3128,26 @@ class Launcher(QWidget):
         self._remote_mouse_menu_click = None
         web = self.expanded_view._workspace_mode == 'browser'
         self._remote_area = ('bookmarks' if web else 'files') if self.expanded_view.isVisible() else 'list'
+        # When the previous session deliberately left Files column 2 current,
+        # keep that selection visible when the Remote is summoned again.
+        # A fresh session still begins at Files column 1 as before.
+        saved = normalize_focus_state(self._saved_focus_state)
+        if not web and self.expanded_view.isVisible():
+            middle = self.expanded_view.middle.tree
+            # A still-visible Launch has LIVE focus/selection state.  The
+            # persisted snapshot describes a previous dismissal, not the
+            # current row: do not reset column 2 to column 1 on Remote summon.
+            live_directory_current = (middle.currentItem() is not None and
+                                      (self._last_focus_area == 'directory'
+                                       or middle.hasFocus()
+                                       or getattr(middle, 'remote_logical_active', False)))
+            saved_directory_current = (
+                self._last_focus_area not in ('files', 'directory')
+                and saved.get('area') == 'directory'
+                and saved.get('middle_path') == self.expanded_view.current_directory()
+                and middle.currentItem() is not None)
+            if live_directory_current or saved_directory_current:
+                self._remote_area = 'directory'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
 
@@ -2852,6 +3163,8 @@ class Launcher(QWidget):
 
     def workspace_changed(self, mode):
         """Refresh Remote without resetting the retained Files/Browser state."""
+        if mode != 'files':
+            self.close_remote_folder_menu()
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_workspace(mode)
@@ -3543,6 +3856,9 @@ class Launcher(QWidget):
             return
         if command == 'CONTEXT_MENU':
             self.remote_context_menu()
+            return
+        if command == 'REMOTE_CURRENT_FOLDER_MENU':
+            self.show_remote_current_folder_menu()
             return
         if command == 'BACKGROUND_CONTEXT_MENU':
             # Same action builder as a right-click on Files column 2 blank
@@ -4758,7 +5074,7 @@ class Launcher(QWidget):
                         self._last_root_id = view.root_rows[index].get('item_id')
 
     def save_last_current(self):
-        """Capture the keyboard anchor BEFORE popups and windows are hidden."""
+        """Capture current rows before hiding Remote and its tool popups."""
         view = self.expanded_view
         area = self._last_focus_area or self._saved_focus_state.get('area', 'search')
         # A Qt.Tool cascade lives outside the main widget. Reopen at its
@@ -4790,6 +5106,13 @@ class Launcher(QWidget):
                     root_item_id = view.root_rows[view.root_buttons.index(opener)].get('item_id')
             if root_item_id is None:
                 root_item_id = self._last_root_id or self._saved_focus_state.get('item_id')
+        # A transient Qt focus loss may clear the middle tree current while the
+        # row is still remembered by Files.  Preserve its stable ID only when
+        # that memory belongs to the displayed breadcrumb directory.
+        middle_id = self._selected_item_id(view.middle.tree)
+        remembered = getattr(view, '_middle_current_memory', None)
+        if not middle_id and remembered and remembered[0] == view.current_directory():
+            middle_id = remembered[1]
         # Only persist stable IDs, never Qt pointers or transient QWidgetItems.
         state = normalize_focus_state({
             'area': area,
@@ -4797,7 +5120,7 @@ class Launcher(QWidget):
             'mode': self.view_mode,
             'item_id': root_item_id if area == 'roots' else self._selected_item_id(self.list),
             'left_id': self._selected_item_id(view.left.tree),
-            'middle_id': self._selected_item_id(view.middle.tree),
+            'middle_id': middle_id,
             'bookmarks_id': self._selected_item_id(view.right.tree),
             'path_ids': [r.get('item_id') for r in view.path if r.get('item_id')],
             'middle_path': view.current_directory(),
@@ -4977,10 +5300,18 @@ class Launcher(QWidget):
                   reason, active, before, windows.foreground(), self._last_focus_area)
 
     def dismiss(self):
+        # Capture the Remote's logical Files column BEFORE hide_remote() removes
+        # its selection highlighting.  Mouse-only operation does not always
+        # send a native Qt focusChanged signal to the selected Files row.
+        remote = getattr(self, 'remote_window', None)
+        remote_area = (self._remote_area if remote is not None and remote.isVisible()
+                       and self._remote_area == 'directory' else None)
+        if self.isVisible():
+            if remote_area is not None:
+                self._last_focus_area = remote_area
+            self.save_last_current()
         self.hide_remote()
         self.finish_cloud_link_handoff()
-        if self.isVisible():
-            self.save_last_current()
         # Never carry a half-finished double-click into the next summon.
         # Delayed delete callbacks must not resurrect a previously hidden UI.
         self._cascade_dismiss_generation = getattr(self, '_cascade_dismiss_generation', 0) + 1
@@ -5344,6 +5675,8 @@ class Launcher(QWidget):
         menu_type = AppCascadeMenu if row.get('launch_source') == 'installed_apps' else CascadeMenu
         self.menu = menu_type(parent=self, launcher=self)
         self.menu.open_mode = 'keyboard'
+        self.menu.compact_files_cascade = (row.get('item_kind') == 'directory'
+                                           and not row.get('launch_source') == 'browser_bookmarks')
         # Only Three-layer bookmark cascades use the slimmer popup. Nested
         # children inherit the limit; all other popup widths remain untouched.
         view = getattr(self, 'expanded_view', None)
@@ -5909,10 +6242,15 @@ class Launcher(QWidget):
                 if folder:
                     def open_child(mode="keyboard", m=menu, r=row, a=action):
                         if m.child:m.child.close();m.child.deleteLater()
-                        m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
+                        m.child=(RemoteFolderCascade if getattr(m, 'remote_folder_navigation', False)
+                                 else AppCascadeMenu if r.get('launch_source')=='installed_apps'
+                                 else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
                         m.child.bookmark_navigation = getattr(m, 'bookmark_navigation', False)
                         m.child.remote_page_navigation = getattr(m, 'remote_page_navigation', False)
+                        m.child.compact_files_cascade = getattr(m, 'compact_files_cascade', False)
+                        if getattr(m, 'remote_folder_navigation', False):
+                            m.child.remote_folder_root = m.remote_folder_root or m
                         if getattr(m, 'bookmark_compact_width', False):
                             m.child.bookmark_compact_width = True
                             m.child.setMaximumWidth(min(m.child.maximumWidth(),
@@ -5928,7 +6266,8 @@ class Launcher(QWidget):
                     action.triggered.connect(lambda checked=False, fn=open_child:fn())
                 else:
                     action.triggered.connect(lambda checked=False,r=row:self.run_menu_item(r))
-            if parent['item_kind']=='directory':
+            if (parent['item_kind']=='directory'
+                    and not getattr(menu, 'remote_folder_navigation', False)):
                 menu.addSeparator()
                 open_folder_action = menu.addAction('このフォルダーを開く',
                                                      lambda: self.run_menu_item(parent))
@@ -6145,6 +6484,7 @@ class Launcher(QWidget):
         if self.menu:self.menu.close();self.menu.deleteLater()
         self.menu=(AppCascadeMenu if row.get('launch_source')=='installed_apps' else CascadeMenu)(parent=self,launcher=self)
         self.menu.open_mode=mode;self.menu.owner_item=q or self.list.currentItem()
+        self.menu.compact_files_cascade = (row.get('item_kind') == 'directory')
         self.fill_cascade(self.menu,row)
         # Experimental main-Page layout: start the first popup at the
         # title/description divider, overlapping the description column.
@@ -7708,8 +8048,12 @@ class Launcher(QWidget):
         else:
             self.paste_into_expanded_directory()
 
-    def show_expanded_background_paste_menu(self, global_pos):
-        """Paste is available even when the current directory has zero rows."""
+    def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False):
+        """Shared Files blank-area menu; Remote adds ONE optional submenu.
+
+        Keep the existing actions and their callbacks exactly the same for
+        both the Files column and Remote's right-click blank strip.
+        """
         if not self.expanded_view.current_directory():
             return False
         try:
@@ -7720,7 +8064,29 @@ class Launcher(QWidget):
         paste = next((x for x in definitions if x.get('action_id') == 'paste'), None)
         if paste is None:
             return False
-        menu = QMenu(self)
+        menu = CascadeMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
+        if remote_folder_list:
+            menu.remote_context_root = True
+            menu.open_mode = 'keyboard'
+        if remote_folder_list:
+            directory = str(self.expanded_view.current_directory())
+            folder_list_action = menu.addAction('フォルダー・ファイルリスト  ▶')
+            folder_list_action.setIcon(self.file_icons.icon(QFileInfo(directory)))
+            folder_list_action.setData({'item_kind': 'category', 'item_id': 'remote-folder-list'})
+            menu.openers[folder_list_action] = (
+                lambda mode='hover', m=menu, a=folder_list_action:
+                self._open_remote_folder_cascade(m, a, None, mode))
+            folder_list_action.triggered.connect(
+                lambda checked=False, a=folder_list_action:
+                menu.openers[a]('refresh'))
+            self._remote_folder_opener = menu
+            self._remote_folder_root_menu = None
+            self._remote_folder_source_path = os.path.normcase(os.path.normpath(directory))
+            self._remote_folder_popup_pos = global_pos
+            menu.aboutToHide.connect(
+                lambda m=menu: self._remote_folder_opener_hidden(m))
+            # Visually separate the Remote navigator from existing Paste/New.
+            menu.addSeparator()
         action = menu.addAction(paste['title'],
                                 lambda checked=False: self._paste_from_context_menu(self))
         action.setIcon(context_action_icon('paste'))
@@ -7801,17 +8167,18 @@ class Launcher(QWidget):
             self.error('プログラムから開けませんでした: ' + str(exc))
 
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None,
-                                 selected_paths=None):
+                                 selected_paths=None, force_search_context=False):
         """Choose context actions by authoritative source, not displayed item ID."""
         if not self.data:
             return False
-        if self.selection:
+        if self.selection and not force_search_context:
             return False
         origin, path = resolve_context_target(row, self.authored_items)
         # Main-search results use a safe, shared filesystem context menu.
         # The Files pane/cascade still use their own existing commands.
-        search_result = (bool(self.search.text().strip())
-                         and context_parent is None and selected_paths is None)
+        search_result = (bool(force_search_context) or
+                         (bool(self.search.text().strip())
+                          and context_parent is None and selected_paths is None))
         if search_result and origin == 'studio':
             from context_menu_resolver import resolve_search_context_target
             origin, path = resolve_search_context_target(
@@ -7915,7 +8282,7 @@ class Launcher(QWidget):
                     self.add_open_with_submenu(menu, definition['title'], path)
                     continue
                 elif (action_id == 'open_parent_folder' and origin == 'file'
-                      and self.search.text().strip()):
+                      and search_result):
                     # Main-search file results jump into *Launch's* Files pane.
                     # The normal Files-column action keeps its old OS behavior.
                     action = menu.addAction(definition['title'],
@@ -8700,14 +9067,54 @@ def main():
             # Qt may have destroyed a column whose Python wrapper still exists.
             return False
 
+    def remote_folder_popup_visible():
+        # The new filesystem columns are Qt.Tool windows, not Qt.Popup.
+        # They must close on an outside click in either main window mode.
+        for name in ('_remote_folder_root_menu', '_remote_folder_opener'):
+            candidate = getattr(window, name, None)
+            if candidate is not None:
+                try:
+                    if candidate.isVisible():
+                        return True
+                except RuntimeError:
+                    pass  # A native popup may have just been destroyed.
+        return False
+
+    def remote_visible():
+        remote = getattr(window, 'remote_window', None)
+        try:
+            return remote is not None and remote.isVisible()
+        except RuntimeError:
+            return False
+
+    def remote_page_popup_visible():
+        page = getattr(window, '_remote_page_menu', None)
+        try:
+            return page is not None and page.isVisible()
+        except RuntimeError:
+            return False
+
     def dismiss_from_outside_click():
-        # An outside mouse press closes the ENTIRE UI, including an orphaned
-        # folder cascade. Never do this while the OS confirmation is active.
-        if (launcher_surface_visible()
-                and window.dismiss_on_outside_click
-                and not getattr(window, '_filesystem_dialog_depth', 0)
-                and not getattr(window, '_cloud_link_handoff', False)
-                and QApplication.activeModalWidget() is None):
+        # The native hook sees desktop/other-app clicks even when a no-focus
+        # Remote Tool window generates no Qt activation change.  One rule:
+        # outside click ALWAYS hides Remote and ALL its cascades; the Launcher
+        # itself follows its separate, persisted dismiss_on_outside_click mode.
+        if (getattr(window, '_filesystem_dialog_depth', 0)
+                or getattr(window, '_cloud_link_handoff', False)
+                or QApplication.activeModalWidget() is not None):
+            return
+        if remote_visible():
+            DIAG.info('REMOTE_OUTSIDE_CLICK_HIDE')
+            window.hide_remote()
+            if launcher_surface_visible() and window.dismiss_on_outside_click:
+                window.dismiss()
+            return
+        if remote_folder_popup_visible() or remote_page_popup_visible():
+            DIAG.info('REMOTE_POPUP_OUTSIDE_CLICK_CLOSE')
+            window.close_remote_folder_menu()
+            window.close_remote_page_menu()
+            return
+        if launcher_surface_visible() and window.dismiss_on_outside_click:
             DIAG.info('OUTSIDE_CLICK_DISMISS')
             window.dismiss()
 
@@ -8715,8 +9122,10 @@ def main():
         desktop_click = DesktopDoubleClick(
             open_from_desktop, DIAG,
             on_outside_click=dismiss_from_outside_click,
-            is_launcher_visible=lambda: (launcher_surface_visible()
-                                         and window.dismiss_on_outside_click),
+            is_launcher_visible=lambda: (remote_visible() or remote_folder_popup_visible()
+                                         or remote_page_popup_visible()
+                                         or (launcher_surface_visible()
+                                             and window.dismiss_on_outside_click)),
         )
         DIAG.info('DESKTOP_DOUBLE_CLICK_HOOK active=%s', desktop_click.start())
     except Exception:

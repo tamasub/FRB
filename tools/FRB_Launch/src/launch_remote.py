@@ -197,11 +197,22 @@ class UpDoubleClickBand(QFrame):
         super().__init__(parent)
         self.setObjectName('remoteUpDoubleClickBand')
         self.setFixedHeight(23)
-        self.setToolTip('ダブルクリック：第2列の上位フォルダーへ / 右クリック：第2列の空白メニュー')
+        self.setToolTip('ダブルクリック：上位フォルダーへ / 右クリック：カレントフォルダー操作')
+        self._files_mode = True
+        self._caption = QLabel('（カレントフォルダー操作）', self)
+        self._caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._caption)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
+    def set_files_mode(self, enabled):
+        self._files_mode = bool(enabled)
+        self._caption.setVisible(self._files_mode)
+
     def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self._files_mode:
             self.command.emit('FOLDER_UP')
             event.accept()
         else:
@@ -210,7 +221,8 @@ class UpDoubleClickBand(QFrame):
     def contextMenuEvent(self, event):
         # Use Qt's native context-menu event (on Windows it arrives on mouse
         # release). Do not synthesize a click or select a row in Launch.
-        self.command.emit('BACKGROUND_CONTEXT_MENU')
+        if self._files_mode:
+            self.command.emit('REMOTE_CURRENT_FOLDER_MENU')
         event.accept()
 
 
@@ -325,7 +337,8 @@ class LaunchRemote(QWidget):
         row_workspaces.addWidget(self.files_button)
         row_workspaces.addWidget(self.browser_button)
         root.addLayout(row_workspaces)
-        # History -> wheel pad -> TAB controls: keep the active list central.
+        # History -> TAB controls -> wheel pad: keep Tab/BackTab next to the
+        # history operations and immediately above the three-way wheel row.
         row_bottom = QHBoxLayout()
         row_bottom.setContentsMargins(0, 0, 0, 0)
         row_bottom.setSpacing(2)
@@ -344,7 +357,7 @@ class LaunchRemote(QWidget):
         row_mid.addWidget(self.pad)
         row_mid.addWidget(self._button('→', 'フォルダーへ / 右へ',
                                        'RIGHT', width=50, height=46))
-        root.addLayout(row_mid)
+        # The wheel row is added after the Tab/BackTab row below.
 
         row_top = QHBoxLayout()
         row_top.setContentsMargins(0, 0, 0, 0)
@@ -354,6 +367,7 @@ class LaunchRemote(QWidget):
         row_top.addWidget(self._button('Tab', '次の操作列へ',
                                        'TAB', width=85, height=37, role='tab', wheel_enabled=True))
         root.addLayout(row_top)
+        root.addLayout(row_mid)
 
         self.up_band = UpDoubleClickBand(self)
         self.up_band.command.connect(self.command.emit)
@@ -458,6 +472,8 @@ class LaunchRemote(QWidget):
             QLabel#remotePadCaption {{color:{c['muted_text']};font-size:10px;}}
             QLabel#remotePadLabel {{font-size:9px;font-weight:bold;}}
             QLabel#remotePadGlyph {{font-family:'Segoe UI Emoji';font-size:11px;}}
+            QFrame#remoteUpDoubleClickBand {{border:0;background:transparent;}}
+            QFrame#remoteUpDoubleClickBand QLabel {{color:{c['muted_text']};font-size:10px;}}
             QFrame#remoteWheelPad {{background:{c['selection']};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
         """)
@@ -487,6 +503,7 @@ class LaunchRemote(QWidget):
         self.adjustSize()
 
     def set_workspace(self, mode):
+        self.up_band.set_files_mode(mode == 'files')
         """Active mode is visible even though Remote never takes focus."""
         for button, value in ((self.files_button, 'files'),
                               (self.browser_button, 'browser')):
