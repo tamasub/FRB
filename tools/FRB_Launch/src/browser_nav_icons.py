@@ -21,6 +21,8 @@ def _draw_icon(name: str, color: str) -> QPixmap:
     painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
     pen = QPen(QColor(color))
     pen.setWidthF(1.0 if name == 'home' else 1.6 if name == 'close' else 2.0)
+    if name in ('folder_open', 'unzip'):
+        pen.setWidthF(1.75)  # quiet Chrome-style action strokes at 22 px
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
     painter.setPen(pen)
@@ -83,33 +85,34 @@ def _draw_icon(name: str, color: str) -> QPixmap:
         shape.moveTo(5, 19.5)
         shape.lineTo(19, 19.5)
     elif name == 'folder_open':
-        # Open folder: simple rounded file-folder silhouette.
-        shape.moveTo(3.5, 18.5)
-        shape.lineTo(5.0, 8.2)
-        shape.lineTo(9, 8.2)
-        shape.lineTo(11, 10.3)
-        shape.lineTo(20.5, 10.3)
-        shape.lineTo(19, 18.5)
+        # Chrome-style folder: one clean outline with a raised tab.
+        # The previous double-outline made the icon look crushed at 20px.
+        shape.moveTo(4.5, 7.0)
+        shape.lineTo(9.7, 7.0)
+        shape.lineTo(12.0, 9.1)
+        shape.lineTo(19.3, 9.1)
+        shape.quadTo(20.2, 9.1, 20.2, 10.0)
+        shape.lineTo(20.2, 18.0)
+        shape.quadTo(20.2, 18.9, 19.3, 18.9)
+        shape.lineTo(4.5, 18.9)
+        shape.quadTo(3.7, 18.9, 3.7, 18.0)
+        shape.lineTo(3.7, 7.8)
+        shape.quadTo(3.7, 7.0, 4.5, 7.0)
         shape.closeSubpath()
-        shape.moveTo(4.7, 8.0)
-        shape.lineTo(4.7, 5.6)
-        shape.lineTo(10.5, 5.6)
-        shape.lineTo(12.2, 7.5)
-        shape.lineTo(19, 7.5)
     elif name == 'unzip':
-        # Archive square and an up-arrow: extract without executing contents.
-        shape.moveTo(5, 6)
-        shape.lineTo(19, 6)
-        shape.lineTo(19, 19.5)
-        shape.lineTo(5, 19.5)
-        shape.closeSubpath()
-        shape.moveTo(10, 9)
-        shape.lineTo(12, 7)
-        shape.lineTo(14, 9)
-        shape.moveTo(12, 7)
-        shape.lineTo(12, 15.5)
-        shape.moveTo(9, 16.5)
-        shape.lineTo(15, 16.5)
+        # Chrome-style open/external-arrow silhouette for the existing
+        # explicit "ZIPを展開して開く" action (behavior is NOT changed).
+        # Keep the diagonal arrow separated from the square's right edge.
+        shape.moveTo(13.2, 5.2)
+        shape.lineTo(19.1, 5.2)
+        shape.lineTo(19.1, 11.1)
+        shape.moveTo(19.1, 5.2)
+        shape.lineTo(10.3, 14.0)
+        shape.moveTo(18.5, 14.5)
+        shape.lineTo(18.5, 18.8)
+        shape.lineTo(5.2, 18.8)
+        shape.lineTo(5.2, 6.7)
+        shape.lineTo(9.8, 6.7)
     elif name == 'close':
         shape.moveTo(8, 8)
         shape.lineTo(16, 16)

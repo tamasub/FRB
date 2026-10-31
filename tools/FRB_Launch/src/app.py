@@ -4971,6 +4971,23 @@ class Launcher(QWidget):
         self.render()
         self.search.setFocus()
 
+    def prepare_browser_before_first_show(self):
+        """Initialize the embedded Browser while the launcher is still hidden.
+
+        Creating Qt WebEngine while the main window is visible can cause a
+        native-window flash.  Preloading after Files is shown only moves that
+        flash from the Browser click to startup, so do it before any show().
+        """
+        if self.webview_settings.get('mode') != 'embedded':
+            return
+        if self.isVisible() or self.expanded_view.web_view is not None:
+            return
+        try:
+            self.expanded_view.prewarm_browser()
+        except Exception:
+            # The launcher must remain usable even without Qt WebEngine.
+            DIAG.exception('BROWSER_PREWARM before first show failed')
+
     def update_expanded_visibility(self):
         if not hasattr(self, 'expanded_view') or self.data is None:
             return
@@ -8277,6 +8294,10 @@ def main():
     server=QLocalServer()
     if not server.listen(name):raise RuntimeError(server.errorString())
     window=Launcher()
+    # Prime Qt WebEngine before any launcher window is shown.  Unlike a
+    # delayed on-screen warm-up, this avoids shifting the first-use flash
+    # from the Browser click to the already-visible Files screen.
+    window.prepare_browser_before_first_show()
     # CLaunch-style: double-click empty desktop wallpaper to open the launcher.
     # Keep a strong reference for the whole Qt event loop and release on exit.
     # Desktop double-click support is optional: a Windows API/COM error must

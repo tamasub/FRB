@@ -742,18 +742,20 @@ class DirectoryAddressBar(QStackedWidget):
         combo = self._overlay_dropdown
         favorite = self._overlay_favorite
         apply = self._overlay_apply
+        right_inset = 10
+        overlay_gap = 4
         if combo is not None:
-            combo.move(max(0, self.width() - combo.width() - 4),
+            combo.move(max(0, self.width() - combo.width() - right_inset),
                        max(0, (self.height() - combo.height()) // 2))
         if favorite is not None:
-            combo_start = combo.x() if combo is not None else self.width() - 28
-            favorite.move(max(0, combo_start - favorite.width() - 3),
+            combo_start = combo.x() if combo is not None else self.width() - (28 + right_inset)
+            favorite.move(max(0, combo_start - favorite.width() - overlay_gap),
                           max(0, (self.height() - favorite.height()) // 2))
             favorite.raise_()
         if apply is not None:
             left_edge = (favorite.x() if favorite is not None else
-                         combo.x() if combo is not None else self.width() - 30)
-            apply.move(max(0, left_edge - apply.width() - 3),
+                         combo.x() if combo is not None else self.width() - (30 + right_inset))
+            apply.move(max(0, left_edge - apply.width() - overlay_gap),
                        max(0, (self.height() - apply.height()) // 2))
             apply.raise_()
         if combo is not None:
@@ -1655,14 +1657,17 @@ class ExpandedLauncherView(QWidget):
             QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:transparent;color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
-            QFrame#addressBreadcrumbSurface {{border:1px solid {border};border-radius:17px;background:{bg};}}
+            /* Align the Files breadcrumb pill with the Browser address bar. */
+            QFrame#addressBreadcrumbSurface {{border:1px solid {colors['search_border']};
+                border-radius:12px;background:{colors['search_bg']};}}
             QToolButton#addressCrumb {{border:0;background:transparent;color:{text};padding:2px 3px;}}
             QToolButton#addressCrumb:hover {{background:{active};border-radius:4px;}}
             QLabel#addressSeparator {{border:0;color:{text};background:transparent;padding:0 2px;}}
-            QLabel#addressPlaceholder {{border:0;color:{text};background:transparent;}}
-            QLineEdit#directoryAddressEdit {{background:{bg};color:{text};border:1px solid #55a38c;
-                border-bottom:2px solid #167f72;border-radius:17px;padding:3px 5px;selection-background-color:#138c8d;
-                selection-color:white;}}
+            QLabel#addressPlaceholder {{border:0;color:{colors['muted_text']};background:transparent;}}
+            QLineEdit#directoryAddressEdit {{background:{colors['search_bg']};color:{colors['muted_text']};
+                border:1px solid {colors['search_border']};border-radius:12px;padding:4px 10px;
+                selection-background-color:#138c8d;selection-color:white;font-size:12px;}}
+            QLineEdit#directoryAddressEdit:focus {{border:1px solid {colors['search_focus']};}}
         ''')
         self.favorite_popup.setStyleSheet(history_popup_qss(
             theme, frame_name='expandedFavoritesPopup',
@@ -3777,6 +3782,22 @@ class ExpandedLauncherView(QWidget):
         # The underline is a single seam with a gap under the selected tab.
         active = self.files_mode_tab if self._workspace_mode == 'files' else self.browser_mode_tab
         self.root_widget.set_selected_tab(active)
+
+    def prewarm_browser(self):
+        """Prepare the embedded Browser after Files is already on screen.
+
+        Never switch workspace during warm-up: the user can keep working in
+        Files, and the first Browser click only reveals an existing widget.
+        """
+        if self.launcher.webview_settings.get('mode') != 'embedded':
+            return
+        if self.web_view is not None:
+            return
+        if not self._ensure_web_view():
+            return
+        if not self.web_view.tabs.count():
+            self.web_view.add_tab(self.launcher.webview_settings.get(
+                'new_tab_url', 'https://www.google.com/'))
 
     def _ensure_web_view(self):
         """Build the embedded browser once; preserve every tab on mode switches."""

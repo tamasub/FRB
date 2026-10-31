@@ -180,7 +180,7 @@ class _DownloadRow(QFrame):
         self.folder.setObjectName('launchDownloadAction')
         self.folder.setIcon(browser_navigation_icon('folder_open', theme_family(
             getattr(owner, '_current_theme', 'light'))))
-        self.folder.setIconSize(QSize(20, 20))
+        self.folder.setIconSize(QSize(22, 22))
         self.folder.setToolTip('エクスプローラーで保存フォルダーを開く')
         self.folder.setFixedSize(30, 28)
         policy = self.folder.sizePolicy()
@@ -192,7 +192,7 @@ class _DownloadRow(QFrame):
         self.extract.setObjectName('launchDownloadAction')
         self.extract.setIcon(browser_navigation_icon('unzip', theme_family(
             getattr(owner, '_current_theme', 'light'))))
-        self.extract.setIconSize(QSize(20, 20))
+        self.extract.setIconSize(QSize(22, 22))
         self.extract.setToolTip('ZIPを展開してフォルダーを開く')
         self.extract.setFixedSize(30, 28)
         policy = self.extract.sizePolicy()
