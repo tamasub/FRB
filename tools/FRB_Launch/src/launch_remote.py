@@ -4,7 +4,7 @@ Mouse actions emit semantic commands.  No SendKeys, synthetic key presses or
 cross-process keyboard injection are involved.
 """
 
-from PySide6.QtCore import Qt, Signal, QPoint, QRect, QRectF, QSize
+from PySide6.QtCore import Qt, QEvent, Signal, QPoint, QRect, QRectF, QSize, QTimer
 from PySide6.QtGui import QPainter, QPen, QColor, QFont, QPixmap, QIcon
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                                 QLabel, QFrame, QApplication, QMenu)
@@ -52,7 +52,7 @@ class WheelPad(QFrame):
         if self._compact:
             # Compact, but not too tiny: keep neighbor travel short while
             # preserving enough hit area and visual balance.
-            self.setFixedSize(56, 46)
+            self.setFixedSize(68, 46)
         else:
             self.setMinimumHeight(70)
         layout = QVBoxLayout(self)
@@ -61,11 +61,20 @@ class WheelPad(QFrame):
                                   1 if self._compact else 4,
                                   1 if self._compact else 8)
         layout.setSpacing(2 if self._compact else 4)
-        label = QLabel('◉ ぐりぐり' if not self._compact else 'ぐりぐり', self)
+        label = QLabel('ぐりぐり' if self._compact else '◉ ぐりぐり', self)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setObjectName('remotePadLabel')
         label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         layout.addWidget(label)
+        if self._compact:
+            # Second line: use the requested circle glyph one font step
+            # larger than the text, without altering wheel/click handling.
+            glyph = QLabel('🔘', self)
+            glyph.setObjectName('remotePadGlyph')
+            glyph.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            glyph.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+            layout.setSpacing(0)
+            layout.addWidget(glyph)
         if not self._compact:
             caption = QLabel('ホイールで選択  /  押して決定', self)
             caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -149,6 +158,37 @@ class RemoteWheelButton(QPushButton):
             super().wheelEvent(event)
 
 
+class RemoteSearchHistoryButton(RemoteWheelButton):
+    """Distinguish a real double-click from a single history confirmation.
+
+    QPushButton.clicked fires on the first release of a double-click. The
+    owning Remote therefore defers only this button's single-click command
+    until the platform double-click interval has elapsed.
+    """
+    double_clicked = Signal()
+
+    def __init__(self, text, parent=None):
+        super().__init__(text, parent)
+        self._double_pending = False
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._double_pending = True
+            event.accept()
+        else:
+            super().mouseDoubleClickEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._double_pending and event.button() == Qt.MouseButton.LeftButton:
+            self._double_pending = False
+            if self.rect().contains(event.position().toPoint()):
+                # Dispatch after the second mouse release, not on press.
+                self.double_clicked.emit()
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+
 class UpDoubleClickBand(QFrame):
     """Blank Remote strip: left double-click = Back, right-click = folder menu."""
     command = Signal(str)
@@ -178,6 +218,7 @@ class LaunchRemote(QWidget):
     command = Signal(str)
     header_pressed = Signal()
     more_menu_opening = Signal()
+    page_clicked = Signal(str)
 
     def __init__(self, launcher):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
@@ -251,56 +292,69 @@ class LaunchRemote(QWidget):
         title_frame.installEventFilter(self._passive_header_drag)
         title.installEventFilter(self._passive_header_drag)
 
+        # Remote Page selector: click opens that Page's compact first column.
+        # Its child categories use the existing CascadeMenu hover/search logic.
+        self.page_buttons = []
+        self.page_column = QVBoxLayout()
+        self.page_column.setContentsMargins(0, 0, 0, 0)
+        self.page_column.setSpacing(3)
+        root.addLayout(self.page_column)
+        self.set_pages(getattr(launcher, 'pages', ()))
+
+        # Separate the three Page launchers from the Files/Browser controls.
+        self.page_separator = QFrame(self)
+        self.page_separator.setObjectName('remotePageSeparator')
+        self.page_separator.setFixedHeight(7)
+        root.addWidget(self.page_separator)
+
         # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
         # on these buttons still go through the shared WheelPad accumulator.
+        # Geometry shared by the Page and all control rows:
+        # Page = 172px. Two columns = 85 + 2 gap + 85 = 172px.
+        # Wheel row = 50 + 2 gap + 68 + 2 gap + 50 = 172px.
+        # Every row starts at the same 5px root left margin.
         row_workspaces = QHBoxLayout()
         row_workspaces.setContentsMargins(0, 0, 0, 0)
         row_workspaces.setSpacing(2)
         self.files_button = self._button('Files', 'Files画面へ切り替え',
-                                         'WORKSPACE_FILES', width=84, height=30,
-                                         role='workspace')
+                                         'WORKSPACE_FILES', width=85, height=27,
+                                         role='workspace', wheel_enabled=True)
         self.browser_button = self._button('Browser', 'Browser画面へ切り替え',
-                                           'WORKSPACE_BROWSER', width=84, height=30,
-                                           role='workspace')
+                                           'WORKSPACE_BROWSER', width=85, height=27,
+                                           role='workspace', wheel_enabled=True)
         row_workspaces.addWidget(self.files_button)
         row_workspaces.addWidget(self.browser_button)
         root.addLayout(row_workspaces)
-        # Three dense rows: no empty middle column in the top/bottom rows.
-        row_top = QHBoxLayout()
-        row_top.setContentsMargins(0, 0, 0, 0)
-        row_top.setSpacing(2)
-        row_top.addStretch(1)
-        row_top.addWidget(self._button('BackTab', '前の操作列へ',
-                                       'BACKTAB', width=76, height=37, role='tab', wheel_enabled=True))
-        row_top.addWidget(self._button('Tab', '次の操作列へ',
-                                       'TAB', width=76, height=37, role='tab', wheel_enabled=True))
-        row_top.addStretch(1)
-        root.addLayout(row_top)
-
+        # History -> wheel pad -> TAB controls: keep the active list central.
+        row_bottom = QHBoxLayout()
+        row_bottom.setContentsMargins(0, 0, 0, 0)
+        row_bottom.setSpacing(2)
+        row_bottom.addWidget(self._button('検索履歴', '1回目：検索履歴を開く／2回目：選択中の履歴を決定。ダブルクリック：検索結果のカレント行を実行',
+                                          'SEARCH_HISTORY', width=85, height=37, role='small', wheel_enabled=True))
+        row_bottom.addWidget(self._button('フォルダー履歴', '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動',
+                                          'FOLDER_HISTORY', width=85, height=37, role='small', wheel_enabled=True))
+        root.addLayout(row_bottom)
         row_mid = QHBoxLayout()
         row_mid.setContentsMargins(0, 0, 0, 0)
         row_mid.setSpacing(2)
-        row_mid.addStretch(1)
         row_mid.addWidget(self._button('←', '戻る / 左へ',
-                                       'LEFT', width=45, height=44))
+                                       'LEFT', width=50, height=46))
         self.pad = WheelPad(self, compact=True)
         self.pad.command.connect(self.command.emit)
         row_mid.addWidget(self.pad)
         row_mid.addWidget(self._button('→', 'フォルダーへ / 右へ',
-                                       'RIGHT', width=45, height=44))
-        row_mid.addStretch(1)
+                                       'RIGHT', width=50, height=46))
         root.addLayout(row_mid)
 
-        row_bottom = QHBoxLayout()
-        row_bottom.setContentsMargins(0, 0, 0, 0)
-        row_bottom.setSpacing(2)
-        row_bottom.addStretch(1)
-        row_bottom.addWidget(self._button('検索履歴', 'メイン検索の履歴を開く / 選択',
-                                          'SEARCH_HISTORY', width=84, height=37, role='small', wheel_enabled=True))
-        row_bottom.addWidget(self._button('フォルダー履歴', 'パンくずのフォルダー履歴を開く / 選択',
-                                          'FOLDER_HISTORY', width=84, height=37, role='small', wheel_enabled=True))
-        row_bottom.addStretch(1)
-        root.addLayout(row_bottom)
+        row_top = QHBoxLayout()
+        row_top.setContentsMargins(0, 0, 0, 0)
+        row_top.setSpacing(2)
+        row_top.addWidget(self._button('BackTab', '前の操作列へ',
+                                       'BACKTAB', width=85, height=37, role='tab', wheel_enabled=True))
+        row_top.addWidget(self._button('Tab', '次の操作列へ',
+                                       'TAB', width=85, height=37, role='tab', wheel_enabled=True))
+        root.addLayout(row_top)
+
         self.up_band = UpDoubleClickBand(self)
         self.up_band.command.connect(self.command.emit)
         root.addWidget(self.up_band)
@@ -321,6 +375,32 @@ class LaunchRemote(QWidget):
         # Keep the window large enough for the intentionally tall tab/history
         # buttons. Their height is fixed on each button, not by the stylesheet.
         self.setMinimumHeight(root.sizeHint().height())
+
+        # Accept the same wheel gesture over *every* Remote surface: empty
+        # strips, title/status text, arrows, Page buttons and the central pad.
+        # Never install this on a cascade QMenu (it has its own window/scroll).
+        self.installEventFilter(self)
+        for widget in self.findChildren(QWidget):
+            if widget.window() is self:
+                widget.installEventFilter(self)
+
+    def hideEvent(self, event):
+        # A pending single-click must not reopen history after Remote closes.
+        timer = getattr(self, 'search_history_click_timer', None)
+        if timer is not None:
+            timer.stop()
+        super().hideEvent(event)
+
+    def eventFilter(self, obj, event):
+        if (event.type() == QEvent.Type.Wheel
+                and (obj is self or (isinstance(obj, QWidget) and obj.window() is self))
+                and hasattr(self, 'pad')):
+            # Directly reuse WheelPad's angle/pixel remainder so a half-step
+            # over one button plus a half-step over another is one movement.
+            # This does not synthesize keys or trigger any button's click.
+            self.pad.wheelEvent(event)
+            return True
+        return super().eventFilter(obj, event)
 
     def paintEvent(self, event):
         """Render a truly rounded window with a thin pale-grey outline."""
@@ -349,12 +429,15 @@ class LaunchRemote(QWidget):
                 border:1px solid {c['panel_border']};border-radius:5px;}}
             QFrame#remoteStatusBar {{background:{c['subheader']};
                 border:1px solid {c['panel_border']};border-radius:4px;}}
+            QFrame#remotePageSeparator {{background:transparent;border:0;
+                border-top:1px solid {c['panel_border']};margin:3px 2px 0 2px;}}
             QPushButton {{background:{c['panel_header']};color:{c['text']};
                 border:1px solid {c['panel_border']};border-radius:5px;
                 font-size:12px;padding:0 4px;}}
             QPushButton[role="small"] {{font-size:12px;padding:0 2px;}}
             QPushButton[role="tab"] {{font-size:12px;}}
             QPushButton[role="workspace"] {{font-size:12px;}}
+            QPushButton[role="page"] {{text-align:left;padding-left:10px;font-size:12px;}}
             QPushButton[role="workspace"][active="true"] {{background:{c['selection']};
                 border:1px solid {c['focus_outline']};}}
             QPushButton[role="icon"] {{font-size:12px;padding:0;}}
@@ -374,10 +457,34 @@ class LaunchRemote(QWidget):
             QLabel#remoteAreaLabel {{color:{c['muted_text']};font-size:10px;font-weight:bold;}}
             QLabel#remotePadCaption {{color:{c['muted_text']};font-size:10px;}}
             QLabel#remotePadLabel {{font-size:9px;font-weight:bold;}}
+            QLabel#remotePadGlyph {{font-family:'Segoe UI Emoji';font-size:11px;}}
             QFrame#remoteWheelPad {{background:{c['selection']};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
         """)
         self.update()
+
+    def set_pages(self, pages):
+        """Mirror the current configured Page order; no separate menu data."""
+        for button in self.page_buttons:
+            self.page_column.removeWidget(button)
+            button.deleteLater()
+        self.page_buttons = []
+        for page in list(pages)[:3]:
+            page_id = str(page.get('page_id', ''))
+            if not page_id:
+                continue
+            button = self._button(str(page.get('title', 'Page')),
+                                  'クリック：このPageのメニューを右に表示',
+                                  'PAGE_BUTTON_UNUSED', width=172, height=27,
+                                  role='page')
+            # Do not emit the generic command; Page selection has its own signal.
+            button.clicked.disconnect()
+            button.clicked.connect(lambda checked=False, pid=page_id:
+                                   self.page_clicked.emit(pid))
+            button.setProperty('remote_page_id', page_id)
+            self.page_column.addWidget(button)
+            self.page_buttons.append(button)
+        self.adjustSize()
 
     def set_workspace(self, mode):
         """Active mode is visible even though Remote never takes focus."""
@@ -425,13 +532,30 @@ class LaunchRemote(QWidget):
 
     def _button(self, text, tip, command, *, width=50, height=24,
                 role='normal', wheel_enabled=False):
-        button = (RemoteWheelButton(text, self) if wheel_enabled
+        button = (RemoteSearchHistoryButton(text, self) if command == 'SEARCH_HISTORY'
+                  else RemoteWheelButton(text, self) if wheel_enabled
                   else QPushButton(text, self))
         button.setToolTip(tip)
         button.setProperty('role', role)
         button.setFixedSize(width, height)
         button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        button.clicked.connect(lambda checked=False, name=command: self.command.emit(name))
+        # Dynamic Page buttons are rebuilt by set_pages() on every Remote
+        # opening, so install the shared wheel listener at construction time.
+        if hasattr(button, 'installEventFilter'):
+            button.installEventFilter(self)
+        if command == 'SEARCH_HISTORY':
+            # Delay ONLY this button's single click; a native double-click
+            # must not first confirm a history keyword and change results.
+            timer = QTimer(button)
+            timer.setSingleShot(True)
+            timer.timeout.connect(lambda: self.command.emit('SEARCH_HISTORY'))
+            button.clicked.connect(lambda checked=False: timer.start(
+                QApplication.instance().doubleClickInterval()))
+            button.double_clicked.connect(lambda: (
+                timer.stop(), self.command.emit('SEARCH_RESULT_DOUBLE_CLICK')))
+            self.search_history_click_timer = timer
+        else:
+            button.clicked.connect(lambda checked=False, name=command: self.command.emit(name))
         return button
 
     def set_area(self, name):

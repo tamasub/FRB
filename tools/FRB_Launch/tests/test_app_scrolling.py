@@ -37,8 +37,12 @@ class AppScrollingTests(unittest.TestCase):
         self.assertFalse(menu.isVisible())
         self.w.cascade(next(r for r in self.w.data['items'] if r['item_id']=='installed_apps'))
         menu=self.w.menu;QTest.keyClicks(menu.tree,'Application 199')
-        self.assertEqual(self.w.search.text(),'Application 199')
-        self.assertIn('Application 199',[self.w.list.topLevelItem(i).data(0,Qt.ItemDataRole.UserRole)['title'] for i in range(self.w.list.topLevelItemCount())])
+        # Installed apps now use the same per-column search as other popups.
+        self.assertEqual(menu.filter_edit.text(),'Application 199')
+        self.assertEqual(self.w.search.text(),'')
+        self.assertEqual([menu.tree.topLevelItem(i).text(0)
+                          for i in range(menu.tree.topLevelItemCount())
+                          if not menu.tree.topLevelItem(i).isHidden()], ['Application 199'])
         self.w.search.clear();self.w.cascade(next(r for r in self.w.data['items'] if r['item_id']=='installed_apps'))
         menu=self.w.menu;QTest.keyClick(menu.tree,Qt.Key.Key_Left);self.assertFalse(menu.isVisible())
 

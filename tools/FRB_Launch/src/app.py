@@ -89,6 +89,7 @@ from desktop_double_click import DesktopDoubleClick
 from launch_remote import LaunchRemote
 from passive_header_drag import PassiveHeaderDrag
 from remote_navigation import next_area, previous_area, starting_area
+from remote_page_items import visible_remote_page_roots
 
 # Limit cascade-column width; never let a long description/URL stretch across the screen.
 CASCADE_MAX_WIDTH = 560
@@ -134,7 +135,10 @@ CONFIG = LAUNCH_HOME / 'config' / 'frb_launch_sample_data_v0_1.json'
 STATE = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'FRBLaunch'
 STATE.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(handlers=[RotatingFileHandler(STATE / 'error.log', maxBytes=1024*1024,
-                                                  backupCount=2, encoding='utf-8')], level=logging.WARNING)
+                                                  backupCount=2, encoding='utf-8')],
+                    level=logging.WARNING,
+                    format='%(asctime)s [%(levelname)s] %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 DIAG = make_logger(STATE)
 LOG_RETENTION_OPTIONS = LAUNCH_HOME / 'config' / 'log_retention_options.json'
 CONTEXT_MENU_OPTIONS = LAUNCH_HOME / 'config' / 'context_menu_options.json'
@@ -322,8 +326,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self.open_mode = "keyboard"; self.owner_item = None; self.owner_action = None; self.outside_since = None
         self.setup_order_drag();self.order_press=None
         self.openers = {}
-        # A search belongs to one open column, not to the launcher's global search.
-        # AppCascadeMenu intentionally keeps its existing global-search behavior.
+        # A search belongs to one open column, including installed-app lists.
         self.filter_action = None
         self.filter_edit = None
         self.filter_count = None
@@ -360,6 +363,118 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # launcher-owned tool column while the popup temporarily owns focus.
         self._context_highlight_action = None
         self._transfer_data_changed_connected = False
+        # Per-column wheel navigation. The cursor follows only when the user's
+        # "マウスポインター自動" setting is ON; the OFF mode keeps Qt's native wheel.
+        self._column_wheel_remainder = 0
+        self._column_wheel_follow_pending = None
+        self._column_wheel_follow_scheduled = False
+
+    def _wheel_column_viewport(self):
+        """Return the row surface of *this* column, not its parent/child."""
+        if self.scroll_tree is not None:
+            return self.scroll_tree.viewport()
+        tree = getattr(self, 'tree', None)  # Installed-app compact column.
+        return tree.viewport() if tree is not None else self
+
+    def _wheel_column_browse(self, event):
+        """Browse the column physically under the wheel; never run an item.
+
+        The remote's own wheel pad is separate and retains its Page-root-only
+        one-level preview rule. Here the user has moved the mouse *into* a
+        popup column, so that specific column is the navigation target.
+        """
+        if (not self.isVisible()
+                or not getattr(self.launcher, 'pointer_warp_enabled', True)
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return False
+        surface = self._wheel_column_viewport()
+        pointer = QCursor.pos()
+        local = surface.mapFromGlobal(pointer)
+        if not surface.rect().contains(local):
+            return False
+        if surface is self:
+            # The per-column search editor and blank margins remain native.
+            hovered = self.actionAt(local)
+            if hovered is None or hovered is self.filter_action:
+                return False
+
+        angle = event.angleDelta().y()
+        pixel = event.pixelDelta().y()
+        if not angle and not pixel:
+            return False
+        self._column_wheel_remainder, steps = wheel_steps(
+            self._column_wheel_remainder, angle, pixel)
+        # High-resolution touchpads produce partial notches; consume them
+        # without prematurely changing rows or letting Qt scroll underneath.
+        if steps:
+            self.hover_timer.stop()
+            self.folder_click_timer.stop()
+            self._folder_click_action = None
+            for _ in range(min(abs(steps), 5)):
+                direction = 1 if steps > 0 else -1
+                tree = getattr(self, 'tree', None)
+                if tree is not None:
+                    move_tree_selection(tree, direction)
+                else:
+                    self._move_filtered_selection(direction)
+            # Unlike the remote pad, direct wheel-over-column navigation
+            # stays in this column, including a hovered second/third column.
+            remote_root = getattr(self.launcher, '_remote_page_menu', None)
+            if self is remote_root:
+                self.launcher._remote_page_wheel_expand(self)
+            self._schedule_column_wheel_follow(pointer, self.activeAction())
+        event.accept()
+        return True
+
+    def _schedule_column_wheel_follow(self, original_pos, action):
+        """Coalesce bursts and follow after Qt lays out/scrolls the new row."""
+        self._column_wheel_follow_pending = (original_pos, action)
+        if not self._column_wheel_follow_scheduled:
+            self._column_wheel_follow_scheduled = True
+            QTimer.singleShot(0, self._follow_column_wheel_pointer)
+
+    def _follow_column_wheel_pointer(self):
+        """Warp vertically inside the selected row, never across columns."""
+        self._column_wheel_follow_scheduled = False
+        pending = self._column_wheel_follow_pending
+        self._column_wheel_follow_pending = None
+        if (pending is None or not self.isVisible()
+                or not getattr(self.launcher, 'pointer_warp_enabled', True)
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        original_pos, action = pending
+        if (action is None or action is not self.activeAction()
+                or QCursor.pos() != original_pos):
+            return  # The user moved the mouse, or the selection changed.
+        surface = self._wheel_column_viewport()
+        local = surface.mapFromGlobal(original_pos)
+        if not surface.rect().contains(local):
+            return  # Pointer moved to a different column / surface.
+        if self.scroll_tree is not None:
+            item = self.scroll_tree.currentItem()
+            if item is None or self._scroll_item_action(item) is not action:
+                return
+            bounds = self.scroll_tree.visualItemRect(item)
+        elif getattr(self, 'tree', None) is not None:
+            item = self.tree.currentItem()
+            if item is None:
+                return
+            bounds = self.tree.visualItemRect(item)
+        else:
+            bounds = self.actionGeometry(action)
+        target = cursor_target((surface.width(), surface.height()),
+                               (bounds.left(), bounds.top(), bounds.width(), bounds.height()),
+                               local.x())
+        if target is None:
+            return
+        destination = surface.mapToGlobal(QPoint(*target))
+        if destination != original_pos:
+            QCursor.setPos(destination)
+
+    def wheelEvent(self, event):
+        if not self._wheel_column_browse(event):
+            super().wheelEvent(event)
 
     @staticmethod
     def _filesystem_row_path(row):
@@ -636,11 +751,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
         return row if isinstance(row, dict) and row.get('item_kind') == 'directory' else None
 
     def _double_folder_mode(self):
-        return (getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
+        # Remote Page cascades are navigation menus, not a file-manager view.
+        # Even when the user chose double-click for Files, a Remote category
+        # must expand on hover or one click (also in every nested column).
+        return (not getattr(self, 'remote_page_navigation', False)
+                and getattr(self.launcher, 'folder_open_mode', 'single') == 'double'
                 and not getattr(self, 'bookmark_navigation', False))
 
     def _manual_bookmark_mode(self):
-        return (getattr(self, 'bookmark_navigation', False)
+        return (not getattr(self, 'remote_page_navigation', False)
+                and getattr(self, 'bookmark_navigation', False)
                 and getattr(self.launcher, 'folder_open_mode', 'single') == 'double')
 
     def _navigable_folder_action(self, action):
@@ -719,8 +839,16 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         action = self._scroll_item_action(item)
         if action is self.activeAction():
-            return
-        self.scroll_tree.setCurrentItem(item)
+            # The first row is selected when a popup appears, before the
+            # pointer arrives.  Remote Page must still open it on hover.
+            if (not getattr(self, 'remote_page_navigation', False)
+                    or action not in self.openers
+                    or (self.child is not None and self.child.isVisible()
+                        and self.child.owner_action is action)
+                    or self.hover_timer.isActive()):
+                return
+        else:
+            self.scroll_tree.setCurrentItem(item)
         # Do not immediately close a hover child when the pointer crosses a
         # neighbouring row on its way to the child column.  If the pointer
         # *settles* on another row, open_current replaces the child after the
@@ -809,10 +937,9 @@ class CascadeMenu(OrderDragMixin,QMenu):
         if not isinstance(self, AppCascadeMenu) and not self._transfer_data_changed_connected:
             QApplication.clipboard().dataChanged.connect(self._on_clipboard_change)
             self._transfer_data_changed_connected = True
-        # A real, full-height editor exists before the popup gets native focus.
-        # Never insert a 2px hidden editor: that broke QMenu layout on Windows.
-        if not isinstance(self, AppCascadeMenu):
-            self._ensure_local_filter()
+        # All popup columns, including the installed-app catalog, share the
+        # same full-height local search bar before their first paint/focus.
+        self._ensure_local_filter()
         if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
             self.launcher.style_cascade_menu(self)
         screen = QApplication.screenAt(pos) or self.screen() or QApplication.primaryScreen()
@@ -960,7 +1087,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # Reproduce the already-working Tab-from-search focus destination.
         # CascadeMenu.setFocus() targets scroll_tree for oversized columns.
         self.setFocus(Qt.FocusReason.TabFocusReason)
-        focus_target = self.scroll_tree if self.scroll_tree is not None else self
+        focus_target = (self.scroll_tree if self.scroll_tree is not None
+                        else getattr(self, 'tree', None) or self)
 
         def initialize_once():
             if (self.filter_edit is not editor or not self.isVisible()
@@ -1091,6 +1219,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
                                  self.scroll_tree, self.scroll_tree.viewport()))
                              or (getattr(self, 'tree', None) is not None and obj in (
                                  self.tree, self.tree.viewport())))
+        # Oversized cascade columns use a child QTreeWidget; its viewport
+        # receives wheel events directly instead of CascadeMenu.wheelEvent.
+        if (self.scroll_tree is not None
+                and obj in (self.scroll_tree, self.scroll_tree.viewport())
+                and event.type() == QEvent.Type.Wheel
+                and self._wheel_column_browse(event)):
+            return True
         if right_click_child and self._handle_right_click_properties(event, obj):
             return True
         if right_click_child and self._consume_unused_right_click(event):
@@ -1186,6 +1321,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
             QTimer.singleShot(0, self._focus_initial_filter)
 
     def hideEvent(self, event):
+        self._column_wheel_follow_pending = None
+        self._column_wheel_remainder = 0
         self.hover_timer.stop()
         self.folder_click_timer.stop()
         self._folder_click_action = None
@@ -1250,6 +1387,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
+            if getattr(self, 'remote_page_navigation', False) and action in self.openers:
+                # Remote Page is a one-click navigation menu. A second click
+                # must not launch a directory in Explorer or dismiss the menu.
+                self._bookmark_ignore_double_release = True
+                event.accept()
+                return
             if self._manual_bookmark_mode() and action in self.openers:
                 # Bookmark folders opened on the FIRST click in double mode.
                 # The second click/release must not execute in Explorer or
@@ -1297,6 +1440,18 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self._open_folder_after_release()
             event.accept()
             return
+        if (action is press_action and getattr(self, 'remote_page_navigation', False)
+                and action in self.openers):
+            # A QAction release can cause QMenu to dismiss itself before the
+            # child popup is shown. Open Remote Page folders explicitly and
+            # consume that release; leave file execution / other modes alone.
+            self.hover_timer.stop()
+            self.setActiveAction(action)
+            if not (self.child is not None and self.child.isVisible()
+                    and self.child.owner_action is action):
+                self.openers[action]('keyboard')
+            event.accept()
+            return
         if (action is press_action and self._double_folder_mode()
                 and self._navigable_folder_action(action)):
             self.setActiveAction(action)
@@ -1340,7 +1495,14 @@ class CascadeMenu(OrderDragMixin,QMenu):
                     return
         before = self.activeAction()
         super().mouseMoveEvent(event)
-        if self.activeAction() != before:
+        action = self.activeAction()
+        remote_first_hover = (getattr(self, 'remote_page_navigation', False)
+                              and action in self.openers
+                              and self.actionAt(event.position().toPoint()) is action
+                              and not (self.child is not None and self.child.isVisible()
+                                       and self.child.owner_action is action)
+                              and not self.hover_timer.isActive())
+        if action != before or remote_first_hover:
             if self.folder_click_timer.isActive():
                 self.folder_click_timer.stop()
                 self._folder_click_action = None
@@ -1473,20 +1635,15 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self.launcher.run_menu_item(row);event.accept();return
         if (mods & Qt.KeyboardModifier.ControlModifier and key==Qt.Key.Key_F):
             self.launcher.focus_search();event.accept();return
-        if not isinstance(self, AppCascadeMenu):
-            if key == Qt.Key.Key_Backspace and self.filter_edit is not None:
-                self.filter_edit.backspace();event.accept();return
-            # Ctrl+V belongs to folder paste unless the real search QLineEdit
-            # has keyboard focus (then its own native paste behavior applies).
-            if (event.text() and (event.text().isprintable() or event.text() == '\u3000')
-                    and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
-                self._ensure_local_filter()
-                QApplication.sendEvent(self.filter_edit, QKeyEvent(event.type(),key,mods,event.text()))
-                event.accept();return
-        elif event.text() and event.text().isprintable() and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
-            # The large installed-app catalog intentionally retains global search.
-            self.launcher.focus_search(False)
-            QApplication.sendEvent(self.launcher.search, QKeyEvent(event.type(),key,mods,event.text()))
+        if key == Qt.Key.Key_Backspace and self.filter_edit is not None:
+            self.filter_edit.backspace();event.accept();return
+        # Typing while navigating an installed-app row searches ONLY this
+        # column. Ctrl+F/F3 retain their explicit global-search shortcuts.
+        # The real QLineEdit also retains native paste/caret/IME handling.
+        if (event.text() and (event.text().isprintable() or event.text() == '\u3000')
+                and not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
+            self._ensure_local_filter()
+            QApplication.sendEvent(self.filter_edit, QKeyEvent(event.type(),key,mods,event.text()))
             event.accept();return
         super().keyPressEvent(event)
 
@@ -1501,14 +1658,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         return super().inputMethodQuery(query)
 
     def inputMethodEvent(self, event):
-        if isinstance(self, AppCascadeMenu):
-            self.launcher.focus_search(False)
-            QApplication.sendEvent(self.launcher.search, event)
-        else:
-            # The real QLineEdit is already visible: forward IME composition
-            # without synthesizing keys or altering the user's chosen mode.
-            self._ensure_local_filter()
-            QApplication.sendEvent(self.filter_edit, event)
+        # The same visible QLineEdit owns IME composition for both folder and
+        # installed-app columns; never hand it to global search implicitly.
+        self._ensure_local_filter()
+        QApplication.sendEvent(self.filter_edit, event)
         event.accept()
 
 
@@ -1534,6 +1687,36 @@ class AppCascadeMenu(CascadeMenu):
         if self.launcher is not None and hasattr(self.launcher, 'style_cascade_menu'):
             self.launcher.style_cascade_menu(self)
 
+    def setFocus(self, reason=Qt.FocusReason.OtherFocusReason):
+        # The catalog is a QWidgetAction, so QMenu's own focus does not move
+        # its QTreeWidget selection. The editor still owns focus when clicked.
+        self.tree.setFocus(reason)
+
+    def _apply_local_filter(self, query):
+        # Filter the actual app tree, not QMenu actions (which only contain
+        # the tree's QWidgetAction and the search bar).
+        self.hover_timer.stop()
+        if self.child:
+            self.child.close()
+        total = self.tree.topLevelItemCount()
+        shown = 0
+        for index in range(total):
+            item = self.tree.topLevelItem(index)
+            row = item.data(0, Qt.ItemDataRole.UserRole)
+            matches = not query or (isinstance(row, dict)
+                                    and column_filter_match(row, query))
+            item.setHidden(not matches)
+            shown += bool(matches)
+        if self.filter_count is not None:
+            self.filter_count.setText(f'{shown}/{total}' if query else '')
+        self.select_first()
+
+    def _restore_local_rows(self):
+        self._apply_local_filter('')
+
+    def _move_filtered_selection(self, increment):
+        return move_tree_selection(self.tree, increment)
+
     def populate(self, rows):
         for row in rows:
             item=QTreeWidgetItem([row['title'],row.get('description','')])
@@ -1545,7 +1728,14 @@ class AppCascadeMenu(CascadeMenu):
         self.select_first()
 
     def select_first(self):
-        if hasattr(self,'tree') and self.tree.topLevelItemCount():self.tree.setCurrentItem(self.tree.topLevelItem(0))
+        # A no-results query must never leave a hidden, executable selection.
+        for index in range(self.tree.topLevelItemCount()):
+            item = self.tree.topLevelItem(index)
+            if not item.isHidden() and not item.isDisabled():
+                self.tree.setCurrentItem(item)
+                self.tree.scrollToItem(item)
+                return
+        self.tree.setCurrentItem(None)
 
     def activeAction(self):
         item=self.tree.currentItem() if hasattr(self,'tree') else None
@@ -1563,6 +1753,10 @@ class AppCascadeMenu(CascadeMenu):
         if obj==self.tree and event.type()==QEvent.Type.InputMethod:
             self.inputMethodEvent(event);return True
         if obj==self.tree.viewport() and event.type()==QEvent.Type.Wheel:
+            # Follow the currently selected app row only in pointer-auto mode.
+            # With pointer-auto OFF, retain the existing native scrolling.
+            if self._wheel_column_browse(event):
+                return True
             # Three rows per wheel notch; touchpads keep their pixel delta.
             pixels=event.pixelDelta().y()
             delta=pixels if pixels else event.angleDelta().y()/120*105
@@ -2542,6 +2736,10 @@ class Launcher(QWidget):
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
 
     def hide_remote(self):
+        page_menu = getattr(self, '_remote_page_menu', None)
+        self._remote_page_menu = None
+        if page_menu is not None:
+            page_menu.close()
         popup = getattr(self, '_remote_popup_area', None)
         self._remote_popup_area = None
         if popup == 'search_history':
@@ -2586,6 +2784,41 @@ class Launcher(QWidget):
         if remote is not None and remote.isVisible():
             remote.raise_()
 
+    def open_remote_page(self, page_id):
+        """Click a Remote Page to open the existing searchable compact cascade.
+
+        Page selection is isolated from the main window's selected Page and
+        workspace; nested columns and their hover logic are shared unchanged.
+        """
+        remote = getattr(self, 'remote_window', None)
+        if remote is None or not remote.isVisible() or not self.data:
+            return
+        page = next((p for p in self.pages if str(p.get('page_id')) == str(page_id)), None)
+        button = next((b for b in remote.page_buttons
+                       if b.property('remote_page_id') == str(page_id)), None)
+        if page is None or button is None:
+            return
+        existing = getattr(self, '_remote_page_menu', None)
+        if existing is not None:
+            existing.close()
+            existing.deleteLater()
+            self._remote_page_menu = None
+        if self.menu is not None and self.menu is not existing:
+            self.menu.close()
+        # A virtual category with the page's root item ID ('') is sufficient
+        # for fill_cascade() to use the same filters, icons and hover expansion.
+        root = {'item_id': '', 'page_id': page_id,
+                'item_kind': 'category', 'launch_source': 'remote_page'}
+        menu = CascadeMenu(parent=self, launcher=self)
+        menu.open_mode = 'mouse'
+        menu.remote_page_navigation = True
+        self._remote_page_menu = menu
+        self.menu = menu
+        self.fill_cascade(menu, root)
+        # Always open to the right of Remote, aligned to the clicked Page.
+        pos = button.mapToGlobal(QPoint(remote.width() - button.x() - 1, 0))
+        menu.popup(pos)
+
     def show_remote_at(self, pointer):
         """Open at a verified desktop mouse point; do not steal IME focus."""
         if not self.remote_on_desktop_double_click or not self.isVisible() or self.isMinimized():
@@ -2595,16 +2828,15 @@ class Launcher(QWidget):
             self.remote_window.command.connect(self.remote_command)
             self.remote_window.header_pressed.connect(self.bring_launcher_forward_from_remote_header)
             self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
+            self.remote_window.page_clicked.connect(self.open_remote_page)
+        self.remote_window.set_pages(self.pages)
         self.remote_window.apply_theme(self.color_theme)
         self.remote_window.set_workspace(self.expanded_view._workspace_mode)
         self._remote_popup_area = None
         self._remote_mouse_last_click = None
         self._remote_mouse_menu_click = None
         web = self.expanded_view._workspace_mode == 'browser'
-        self._remote_area = starting_area(
-            self._last_focus_area, expanded=self.expanded_view.isVisible(), web=web,
-            web_tab_count=self._web_tab_count(),
-            bookmarks_visible=self.expanded_view.browser_bookmarks_visible)
+        self._remote_area = ('bookmarks' if web else 'files') if self.expanded_view.isVisible() else 'list'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
 
@@ -2626,8 +2858,7 @@ class Launcher(QWidget):
         area = getattr(self, '_remote_area', None)
         if remote is not None and remote.isVisible():
             if mode == 'browser' and area in ('files', 'directory', 'breadcrumb'):
-                self.remote_focus_area('bookmarks' if self.expanded_view.browser_bookmarks_visible
-                                       else self._current_web_body_area())
+                self.remote_focus_area('bookmarks')
             elif mode == 'files' and (area == 'bookmarks' or
                                       str(area).startswith('web_body:')):
                 self.remote_focus_area('files')
@@ -2655,8 +2886,7 @@ class Launcher(QWidget):
         if remote is not None and remote.isVisible():
             area = self._remote_area
             if area in ('files', 'directory', 'sort', 'breadcrumb'):
-                self.remote_focus_area('bookmarks' if view.browser_bookmarks_visible
-                                       else self._current_web_body_area())
+                self.remote_focus_area('bookmarks')
             else:
                 view.web_view.set_remote_area(
                     'web_body' if str(area).startswith('web_body:') else area)
@@ -2835,12 +3065,21 @@ class Launcher(QWidget):
         menu = getattr(self, 'menu', None)
         if menu is None or not menu.isVisible():
             return False
-        # Always target the last open child column of a cascading menu.
-        while (isinstance(getattr(menu, 'child', None), CascadeMenu)
-               and menu.child.isVisible()):
-            menu.open_mode = 'keyboard'
-            menu.outside_since = None
-            menu = menu.child
+        # A Remote Page's wheel always browses the FIRST column. Its selected
+        # row may preview one child column, but scrolling must never jump into
+        # that child (or cascade all the way to the right). Explicit click,
+        # hover, LEFT/RIGHT still use the normal deepest-column behavior.
+        remote_root = getattr(self, '_remote_page_menu', None)
+        page_wheel = (command in ('UP', 'DOWN')
+                      and remote_root is not None and remote_root.isVisible())
+        if page_wheel:
+            menu = remote_root
+        else:
+            while (isinstance(getattr(menu, 'child', None), CascadeMenu)
+                   and menu.child.isVisible()):
+                menu.open_mode = 'keyboard'
+                menu.outside_since = None
+                menu = menu.child
         menu.open_mode = 'keyboard'
         menu.outside_since = None
         menu.hover_timer.stop()
@@ -2900,6 +3139,10 @@ class Launcher(QWidget):
                                 or bool(a.property('launch_right_arrow_executes')))]
                 if actions:
                     menu.setActiveAction(next_wrapped(actions, menu.activeAction(), direction))
+            # Page wheel = first-column selection plus a ONE-LEVEL preview.
+            # All deeper columns remain available through mouse/explicit keys.
+            if page_wheel:
+                self._remote_page_wheel_expand(menu)
         elif command == 'LEFT':
             menu.close_one_level()
         elif command in ('RIGHT', 'ENTER'):
@@ -2932,6 +3175,44 @@ class Launcher(QWidget):
                 else (self._remote_area or 'list'))
         return True
 
+    @staticmethod
+    def _remote_page_wheel_expand(menu):
+        """Preview only the selected Page-root item's immediate child column.
+
+        A wheel gesture NEVER triggers leaf actions, advances into the preview,
+        or leaves previously opened grandchildren floating beside a new row.
+        Ordinary compact menus and mouse-hover expansion are unaffected.
+        """
+        if not getattr(menu, 'remote_page_navigation', False):
+            return False
+        action = menu.activeAction()
+        child = getattr(menu, 'child', None)
+        menu.hover_timer.stop()
+
+        # Leaf/empty rows have no preview; discard an obsolete former child.
+        if action is None or action not in menu.openers or not action.isEnabled():
+            if child is not None:
+                child.close()
+                child.deleteLater()
+                menu.child = None
+            return False
+
+        if child is not None and child.isVisible() and child.owner_action is action:
+            # An earlier pointer hover may have opened a third/fourth column.
+            # Roll back to exactly one preview column on the next wheel tick.
+            grandchild = getattr(child, 'child', None)
+            if grandchild is not None:
+                grandchild.close()
+                grandchild.deleteLater()
+                child.child = None
+            child.hover_timer.stop()
+            return False
+
+        # The existing opener replaces any previous preview and shares the
+        # compact menu's search, icons and normal hover behavior.
+        menu.openers[action]('keyboard')
+        return True
+
     def remote_mouse_click(self, *, double=False):
         """Dispatch the wheel pad like the real mouse, not the Enter key.
 
@@ -2940,7 +3221,10 @@ class Launcher(QWidget):
         bookmark folders which always use their native single-click policy.
         """
         expanded = self.expanded_view.isVisible()
-        if expanded and getattr(self.expanded_view, 'web_view_active', lambda: False)():
+        remote_page = getattr(self, '_remote_page_menu', None)
+        remote_page_visible = remote_page is not None and remote_page.isVisible()
+        if (expanded and not remote_page_visible
+                and getattr(self.expanded_view, 'web_view_active', lambda: False)()):
             area = self._remote_area
             web = self.expanded_view.web_view
             if str(area).startswith('web_body:') or area == 'web_body':
@@ -3188,6 +3472,24 @@ class Launcher(QWidget):
                 view._workspace_mode,
                 can_add_tab=view.web_view_active())
 
+    def remote_search_result_double_click(self):
+        """Run the current *visible global-search hit*, never a history row.
+
+        History single-click remains responsible for opening/confirming a
+        keyword. A double-click deliberately targets the main results list;
+        empty/hidden lists and non-search menus must never be activated.
+        """
+        results = self.list
+        if (not self.search.text().strip() or not results.isVisible()
+                or self.history_popup.isVisible()):
+            return
+        item = results.currentItem()
+        row = item.data(0, Qt.ItemDataRole.UserRole) if item is not None else None
+        if not isinstance(row, dict) or not row.get('enabled', True):
+            return
+        # Use the same result activation path as Enter / native double-click.
+        self.activate(row)
+
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
         if command == 'CLOSE':
@@ -3195,6 +3497,9 @@ class Launcher(QWidget):
             return
         if not self.isVisible() or self.isMinimized():
             self.hide_remote()
+            return
+        if command == 'SEARCH_RESULT_DOUBLE_CLICK':
+            self.remote_search_result_double_click()
             return
         if command == 'MORE_MENU':
             self.update_remote_more_menu()
@@ -3217,9 +3522,18 @@ class Launcher(QWidget):
                     'new_tab_url', 'https://www.google.com/'))
             return
         if command in ('WORKSPACE_FILES', 'WORKSPACE_BROWSER'):
-            mode = 'files' if command == 'WORKSPACE_FILES' else 'browser'
-            if self.expanded_view.isVisible() and self.expanded_view.switch_workspace(mode):
-                self.remote_focus_area('workspace_' + mode)
+            view = self.expanded_view
+            if not view.isVisible():
+                return
+            if command == 'WORKSPACE_FILES':
+                # Identical to HOME, including first-row selection and Files view.
+                self.navigate_home()
+                self.remote_focus_area('files')
+            elif view.switch_workspace('browser'):
+                # A collapsed Bookmarks list is reopened before selecting row 1.
+                if not view.browser_bookmarks_visible:
+                    view.show_browser_bookmarks()
+                self.remote_focus_area('bookmarks')
             return
         if command == 'REMOTE_FAVORITE_SAVE':
             # Exactly the same QToolButton as the breadcrumb heart.
@@ -3254,29 +3568,34 @@ class Launcher(QWidget):
             web_tab_count=self._web_tab_count(),
             bookmarks_visible=self.expanded_view.browser_bookmarks_visible)
         if command == 'SEARCH_HISTORY':
-            if getattr(self, '_remote_popup_area', None) == 'search_history' and self.history_popup.isVisible():
-                self.hide_history_popup()
-                self._remote_popup_area = None
-            else:
-                self.show_history_popup()
-                if self.history_popup.isVisible():
-                    self._remote_popup_area = 'search_history'
+            if (getattr(self, '_remote_popup_area', None) == 'search_history'
+                    and self.history_popup.isVisible()):
+                # First click opens the history. A subsequent click on the SAME
+                # Remote button confirms the selected row, just like ENTER.
+                # Category rows only expand/collapse; no selection is a no-op.
+                self.remote_history_command('ENTER')
+                return
+            self.show_history_popup()
+            if self.history_popup.isVisible():
+                self._remote_popup_area = 'search_history'
             self.remote_window.set_area(self._remote_popup_area or area)
             return
         if command == 'FOLDER_HISTORY':
             view = self.expanded_view
-            if getattr(self, '_remote_popup_area', None) == 'folder_history' and view.favorite_popup.isVisible():
-                view.hide_favorite_popup()
-                self._remote_popup_area = None
-            else:
-                # Breadcrumbs only exist in the three-layer Files view. Avoid
-                # changing the user's stored view preference in classic mode.
-                if not view.isVisible():
-                    self.remote_window.set_area('directory')
-                    return
-                view.toggle_directory_favorites()
-                if view.favorite_popup.isVisible():
-                    self._remote_popup_area = 'folder_history'
+            if (getattr(self, '_remote_popup_area', None) == 'folder_history'
+                    and view.favorite_popup.isVisible()):
+                # Use the existing safe folder-selection callback; never run
+                # the delete-column action or trigger an unrelated item.
+                self.remote_history_command('ENTER')
+                return
+            # Breadcrumbs only exist in the three-layer Files view. Avoid
+            # changing the user's stored view preference in classic mode.
+            if not view.isVisible():
+                self.remote_window.set_area('directory')
+                return
+            view.toggle_directory_favorites()
+            if view.favorite_popup.isVisible():
+                self._remote_popup_area = 'folder_history'
             self.remote_window.set_area(self._remote_popup_area or area)
             return
         if command == 'HOME':
@@ -3307,16 +3626,13 @@ class Launcher(QWidget):
             elif getattr(self, '_remote_popup_area', None) == 'folder_history':
                 self.expanded_view.hide_favorite_popup()
             self._remote_popup_area = None
-            tab_idx = (self.expanded_view.web_view.tabs.currentIndex()
-                       if web_active else 0)
-            bookmark_enabled = self.expanded_view.browser_bookmarks_visible
-            target = (previous_area(area, expanded=expanded, web=browser_mode,
-                                    web_tab_count=self._web_tab_count(), current_tab=tab_idx,
-                                    bookmarks_visible=bookmark_enabled)
-                      if command == 'BACKTAB' else
-                      next_area(area, expanded=expanded, web=browser_mode,
-                                web_tab_count=self._web_tab_count(), current_tab=tab_idx,
-                                bookmarks_visible=bookmark_enabled))
+            # Only the Remote uses this small ring. Keyboard TAB is untouched.
+            from remote_navigation import remote_tab_target
+            target = remote_tab_target(
+                area, expanded=expanded, web=browser_mode,
+                backward=(command == 'BACKTAB'))
+            if browser_mode and not self.expanded_view.browser_bookmarks_visible:
+                self.expanded_view.show_browser_bookmarks()
             self.remote_focus_area(target)
             return
         if command in ('CLICK', 'DOUBLE_CLICK'):
@@ -3329,9 +3645,11 @@ class Launcher(QWidget):
         # A nested cascade is visually in front of the main results. Route
         # the wheel/click to that column before considering the background.
         dispatch_cascade = getattr(self, 'remote_cascade_command', None)
-        if (not (web_active and str(area).startswith('web_body')) and
-                dispatch_cascade is not None and dispatch_cascade(command)):
-            return
+        remote_page = getattr(self, '_remote_page_menu', None)
+        remote_page_visible = remote_page is not None and remote_page.isVisible()
+        if (remote_page_visible or not (web_active and str(area).startswith('web_body'))):
+            if dispatch_cascade is not None and dispatch_cascade(command):
+                return
         step = (-1 if command in ('UP', 'LEFT') else 1)
         if web_active and str(area).startswith('web_body'):
             browser = self.expanded_view.web_view
@@ -5574,7 +5892,10 @@ class Launcher(QWidget):
         menu.order_context=parent
         menu.order_rows=[]
         try:
-            for row in self.displayed_children(parent):
+            rows = self.displayed_children(parent)
+            if parent.get('launch_source') == 'remote_page':
+                rows = visible_remote_page_roots(rows)
+            for row in rows:
                 folder = row['item_kind'] in {'category','directory'}
                 metrics = menu.fontMetrics()
                 label, tooltip = cascade_label(
@@ -5591,6 +5912,7 @@ class Launcher(QWidget):
                         m.child=(AppCascadeMenu if r.get('launch_source')=='installed_apps' else CascadeMenu)(parent=m,launcher=self)
                         m.child.open_mode=mode;m.child.owner_action=a
                         m.child.bookmark_navigation = getattr(m, 'bookmark_navigation', False)
+                        m.child.remote_page_navigation = getattr(m, 'remote_page_navigation', False)
                         if getattr(m, 'bookmark_compact_width', False):
                             m.child.bookmark_compact_width = True
                             m.child.setMaximumWidth(min(m.child.maximumWidth(),

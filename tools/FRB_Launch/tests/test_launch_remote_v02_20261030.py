@@ -36,6 +36,7 @@ def base_window():
                            _last_focus_area='directory',
                            remote_window=SimpleNamespace(set_area=Mock()),
                            show_history_popup=Mock(), hide_history_popup=Mock(),
+                           remote_history_command=Mock(),
                            focus_search=Mock(), hide_remote=Mock(),
                            remote_focus_area=Mock(), raise_=Mock(),
                            activateWindow=Mock(), dismiss_on_outside_click=True,
@@ -53,7 +54,7 @@ def test_tab_and_backtab_are_symmetric_and_wrap():
     win.remote_focus_area.assert_called_once_with('files')
 
 
-def test_search_history_button_uses_existing_popup_and_can_toggle():
+def test_search_history_button_opens_and_second_click_confirms():
     cmd, _ = method('remote_command')
     win = base_window()
     win.history_popup = SimpleNamespace(isVisible=lambda: True)
@@ -62,8 +63,9 @@ def test_search_history_button_uses_existing_popup_and_can_toggle():
     assert win._remote_popup_area == 'search_history'
     win.remote_window.set_area.assert_called_with('search_history')
     cmd(win, 'SEARCH_HISTORY')
-    win.hide_history_popup.assert_called_once()
-    assert win._remote_popup_area is None
+    win.remote_history_command.assert_called_once_with('ENTER')
+    win.hide_history_popup.assert_not_called()
+    assert win._remote_popup_area == 'search_history'
 
 
 def test_folder_history_is_only_available_when_breadcrumb_is_visible():
@@ -77,7 +79,9 @@ def test_folder_history_is_only_available_when_breadcrumb_is_visible():
     view.toggle_directory_favorites.assert_called_once()
     assert win._remote_popup_area == 'folder_history'
     cmd(win, 'FOLDER_HISTORY')
-    view.hide_favorite_popup.assert_called_once()
+    win.remote_history_command.assert_called_once_with('ENTER')
+    view.hide_favorite_popup.assert_not_called()
+    win._remote_popup_area = None
     view.isVisible = lambda: False
     cmd(win, 'FOLDER_HISTORY')
     assert view.toggle_directory_favorites.call_count == 1
@@ -161,5 +165,5 @@ def test_home_button_navigates_home_and_returns_remote_to_primary_area():
     cmd(win, 'HOME')
     win.hide_history_popup.assert_called_once()
     win.navigate_home.assert_called_once()
-    win.remote_focus_area.assert_called_once_with('roots')
+    win.remote_focus_area.assert_called_once_with('files')
     assert win._remote_popup_area is None

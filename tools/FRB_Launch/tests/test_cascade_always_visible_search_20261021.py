@@ -48,7 +48,7 @@ def test_initial_ime_halfwidth_and_never_forced_to_japanese():
     # directly in the SAME mode the user previously reached by pressing Tab.
     assert 'self.setFocus(Qt.FocusReason.TabFocusReason)' in focus
     assert 'editor.setFocus' not in focus
-    assert 'focus_target = self.scroll_tree if self.scroll_tree is not None else self' in focus
+    assert "else getattr(self, 'tree', None) or self" in focus  # AppCascadeMenu focuses its app tree
     assert 'initialize_halfwidth_english(int(focus_target.winId()))' in focus
     assert 'focus_target.hasFocus()' in focus
     assert 'editor.text()' in focus

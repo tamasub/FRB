@@ -73,3 +73,21 @@ def popup_at_hotspot(x, y, width, height, left, top, right, bottom, hot_x, hot_y
     """Put a remote's wheel pad under the mouse whenever screen room permits."""
     return (max(left, min(x - hot_x, max(left, right - width))),
             max(top, min(y - hot_y, max(top, bottom - height))))
+
+
+def remote_navigation_order(*, expanded=True, web=False):
+    """Remote-only ring; main-window keyboard tab traversal stays unchanged.
+
+    Files: first and second columns. Browser: bookmark list only.
+    Search, Page tabs, workspace tabs and second-layer controls are excluded.
+    """
+    if not expanded:
+        return ('list',)
+    return ('bookmarks',) if web else ('files', 'directory')
+
+
+def remote_tab_target(area, *, expanded=True, web=False, backward=False):
+    order = remote_navigation_order(expanded=expanded, web=web)
+    if area not in order:
+        return order[-1] if backward else order[0]
+    return order[(order.index(area) + (-1 if backward else 1)) % len(order)]
