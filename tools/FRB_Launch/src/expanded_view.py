@@ -1116,9 +1116,15 @@ class ExpandedLauncherView(QWidget):
         # Files and Browser are long-lived workspaces, not URL-driven previews.
         self._workspace_mode = 'files'
         self._browser_splitter_sizes = None
+        # Persist only the user's explicit Browser hide/show choice; Files mode
+        # hiding Bookmarks is independent and must not overwrite this setting.
+        stored_bookmarks = launcher.settings.value('browser_bookmarks_visible', True)
+        self._browser_bookmarks_visible = str(stored_bookmarks).strip().lower() not in (
+            '0', 'false', 'no', 'off')
         self.files_mode_tab = None
         self.browser_mode_tab = None
         self._browser_empty_page = None
+        self._browser_empty_bookmark_button = None
         self.path = []
         self.directory_history = DirectoryNavigationHistory(limit=100)
         self._restoring_directory_history = False
@@ -1384,6 +1390,16 @@ class ExpandedLauncherView(QWidget):
         self.files_splitter.setChildrenCollapsible(False)
         group_layout.addWidget(self.files_splitter, 1)
         self.right = ExpandedPanel('ブックマーク', 'bookmark')
+        self.bookmark_close_button = QToolButton(self.right.header)
+        self.bookmark_close_button.setObjectName('expandedBookmarkClose')
+        self.bookmark_close_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.bookmark_close_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.bookmark_close_button.setFixedSize(25, 25)
+        self.bookmark_close_button.setIconSize(QSize(17, 17))
+        self.bookmark_close_button.setToolTip('ブックマークを閉じる')
+        self.bookmark_close_button.clicked.connect(self.hide_browser_bookmarks)
+        # Header normally has an invisible Back button at its end.
+        self.right.header.layout().insertWidget(2, self.bookmark_close_button)
         # Bookmarks first level is also a wheel-driven selector.  Only the
         # tree/viewport are hooked: scrollbar dragging and deeper tool
         # columns continue to use their original native behavior.
@@ -1398,8 +1414,10 @@ class ExpandedLauncherView(QWidget):
         self._bookmark_hover_timer.setSingleShot(True)
         self._bookmark_hover_timer.timeout.connect(self.open_bookmark_hover)
         self.right.tree.itemEntered.connect(self.hover_bookmark_first_level)
-        self.splitter.addWidget(self.files_content_stack)
+        # Browser: Bookmarks first, then the retained WebView (left to right).
+        # Files hides Bookmarks and fills the whole splitter without rebuilding.
         self.splitter.addWidget(self.right)
+        self.splitter.addWidget(self.files_content_stack)
         self.root_widget.set_corner_end_provider(
             lambda: (None if self._workspace_mode == 'browser' else
                      self.files_content_stack.mapTo(
@@ -1408,15 +1426,16 @@ class ExpandedLauncherView(QWidget):
         # Bookmarks. The bookmarks frame has no competing upper border.
         self.root_widget.set_underline_end_provider(lambda: None)
         self.splitter.setChildrenCollapsible(False)
-        self.splitter.setSizes([660, 350])
-        self._browser_splitter_sizes = [660, 350]
+        self.splitter.setSizes([350, 660])
+        self._browser_splitter_sizes = [350, 660]
         self.files_splitter.setSizes([310, 350])
         # Compatible with the legacy saved 3-column sizes.
         saved = str(launcher.settings.value('expanded_splitter_sizes', '') or '')
         try:
             values = [int(value) for value in saved.split('|')]
             if len(values) == 3 and all(value >= 100 for value in values):
-                self._browser_splitter_sizes = [values[0] + values[1], values[2]]
+                # Legacy v49-v60 persisted Web width then Bookmarks width.
+                self._browser_splitter_sizes = [values[2], values[0] + values[1]]
                 self.splitter.setSizes(self._browser_splitter_sizes)
                 self.files_splitter.setSizes(values[:2])
         except ValueError:
@@ -1467,16 +1486,21 @@ class ExpandedLauncherView(QWidget):
             self.toolbar_scroller.setFixedHeight(required)
 
     def save_splitter_sizes(self, *_):
-        if self._workspace_mode == 'browser' and self.right.isVisible():
-            self._browser_splitter_sizes = self.splitter.sizes()
+        if (self._workspace_mode == 'browser' and self._browser_bookmarks_visible
+                and self.right.isVisible()):
+            widths = self.splitter.sizes()
+            if len(widths) == 2 and all(width > 0 for width in widths):
+                self._browser_splitter_sizes = widths
         # When hidden, the Bookmarks splitter segment has width zero. Never
         # persist this temporary Files layout as Browser's preferred widths.
         file_widths = self.files_splitter.sizes()
         self.launcher.settings.setValue('workspace_files_splitter_sizes',
                                         '|'.join(map(str, file_widths)))
-        if self._workspace_mode == 'files':
+        if (self._workspace_mode == 'files' or not self._browser_bookmarks_visible
+                or not self.right.isVisible()):
             return
-        widths = file_widths + self.splitter.sizes()[1:]
+        # Preserve legacy 3-width format for old builds: Files x2, Bookmarks.
+        widths = file_widths + self.splitter.sizes()[:1]
         self.launcher.settings.setValue('expanded_splitter_sizes',
                                         '|'.join(map(str, widths)))
 
@@ -1495,6 +1519,10 @@ class ExpandedLauncherView(QWidget):
             colors[key] for key in ('panel', 'panel_border', 'panel_header',
                                    'text', 'hover', 'selection', 'stripe'))
         root_border = colors['root_button_border']
+        # The workspace strip is deliberately a shade lighter than the tabs.
+        # Keep the active Files/Browser tab's existing {hdr} fill unchanged:
+        # only the wide background BEHIND those tabs is softened.
+        workspace_strip_bg = colors['workspace_strip']
         # Both active workspaces use exactly the same mint surface color.
         # Inactive tabs recede: a softer border and slightly muted caption.
         # Neutral gray makes the inactive label unobtrusive on either theme;
@@ -1504,7 +1532,7 @@ class ExpandedLauncherView(QWidget):
         root_viewport = self.toolbar_scroller.viewport()
         root_viewport.setAutoFillBackground(True)
         root_palette = root_viewport.palette()
-        root_palette.setColor(QPalette.ColorRole.Window, QColor(hdr))
+        root_palette.setColor(QPalette.ColorRole.Window, QColor(workspace_strip_bg))
         root_viewport.setPalette(root_palette)
         self.root_widget.set_underline_color(border)
         self._files_top_right_outline.set_outline_color(border)
@@ -1518,6 +1546,11 @@ class ExpandedLauncherView(QWidget):
         height, pad = (23, 1) if tight else (29, 3)
         self.density_button.setText('')
         self.density_button.setIcon(density_lines_icon(theme_family(theme)))
+        self.bookmark_close_button.setIcon(browser_navigation_icon(
+            'close', theme_family(theme)))
+        if self._browser_empty_bookmark_button is not None:
+            self._browser_empty_bookmark_button.setIcon(browser_navigation_icon(
+                'bookmark_outline', theme_family(theme)))
         self.density_button.setToolTip('行間隔：コンパクト（クリックで切替）' if not tight
                                        else '行間隔：標準（クリックで切替）')
         for pane in (self.left, self.middle, self.right):
@@ -1534,10 +1567,10 @@ class ExpandedLauncherView(QWidget):
                     self.favorite_choices.horizontalScrollBar()):
             bar.setStyleSheet(scrollbar_for_theme(theme, colors['history_bg']))
         self.setStyleSheet(f'''
-            /* Paint the strip AND the QScrollArea's surface mint so its
-               transparent/rounded ends cannot reveal a white Qt background. */
-            QWidget#expandedRootBar {{background:{hdr};border:0;}}
-            QScrollArea#expandedRootScroller {{background:{hdr};border:0;}}
+            /* Soften ONLY the workspace strip/scroll surface. The two tab
+               buttons below still use their original {hdr}/{stripe} colors. */
+            QWidget#expandedRootBar {{background:{colors["workspace_strip"]};border:0;}}
+            QScrollArea#expandedRootScroller {{background:{colors["workspace_strip"]};border:0;}}
             QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
                 border-radius:9px;padding:4px 10px;text-align:left;font-size:12px; }}
             QPushButton#expandedRootButton:hover {{background:{hover};}}
@@ -1589,6 +1622,12 @@ class ExpandedLauncherView(QWidget):
             QWidget#expandedHeader {{background:{hdr};border:0;
                 border-bottom:1px solid {border};border-radius:0;}}
             QLabel#expandedTitle {{background:transparent;border:0;color:{text};font-size:15px;font-weight:600;}}
+            QToolButton#expandedBookmarkClose {{background:transparent;border:0;
+                border-radius:7px;margin:0;padding:0;}}
+            QToolButton#expandedBookmarkClose:hover {{background:{hover};}}
+            QToolButton#expandedExternalShowBookmarks {{background:{bg};color:{text};
+                border:1px solid {border};border-radius:7px;padding:0;}}
+            QToolButton#expandedExternalShowBookmarks:hover {{background:{hover};}}
             QPushButton#expandedBack {{background:{bg};border:1px solid {border};
                 color:{text};border-radius:7px;padding:0;}}
             QPushButton#expandedBack:hover {{background:{hover};border-radius:7px;}}
@@ -1722,7 +1761,8 @@ class ExpandedLauncherView(QWidget):
                 button.setCheckable(True)
                 button.setFixedHeight(38)
                 button.setMinimumWidth(84)
-                button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # Mouse-first v49
+                button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # Keyboard/Remote target
+                button.installEventFilter(self.launcher)
                 self.root_layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignBottom)
             self.files_mode_tab.setToolTip('ファイル・フォルダーを表示（状態は保持）')
             self.browser_mode_tab.setToolTip('Webタブとブックマークを表示（状態は保持）')
@@ -3705,7 +3745,7 @@ class ExpandedLauncherView(QWidget):
             QTimer.singleShot(0, self.refresh_middle)
 
     def is_bookmark_row(self, row):
-        """Only third-column bookmark descendants enter the embedded WebView.
+        """Only Browser bookmark descendants enter the embedded WebView.
 
         Keep other URL actions (Quick, custom shell shortcuts, etc.) on their
         original external browser route, even in Three-layer mode.
@@ -3749,6 +3789,8 @@ class ExpandedLauncherView(QWidget):
             self.web_view.tabs.tabBar().area_tab_requested.connect(
                 self.launcher.web_keyboard_tab)
             self.web_view.surface_selected.connect(self.launcher.web_surface_selected)
+            self.web_view.bookmarks_show_requested.connect(self.show_browser_bookmarks)
+            self.web_view.set_bookmarks_visible(self._browser_bookmarks_visible)
             self.files_content_stack.addWidget(self.web_view)
             self.web_view.apply_theme(self.launcher.color_theme)
         except (ImportError, RuntimeError) as exc:
@@ -3756,20 +3798,72 @@ class ExpandedLauncherView(QWidget):
             return False
         return True
 
+    @property
+    def browser_bookmarks_visible(self):
+        return self._browser_bookmarks_visible
+
+    def show_browser_bookmarks(self):
+        self.set_browser_bookmarks_visible(True)
+
+    def hide_browser_bookmarks(self):
+        self.set_browser_bookmarks_visible(False)
+
+    def set_browser_bookmarks_visible(self, visible, *, persist=True):
+        """Collapse Bookmarks to ZERO width without destroying its selection.
+
+        The complete WebView gets the released width, and the last useful
+        Bookmarks/Web splitter sizes survive both the collapse and HOME.
+        """
+        visible = bool(visible)
+        if not visible and self._workspace_mode == 'browser' and self.right.isVisible():
+            widths = self.splitter.sizes()
+            if len(widths) == 2 and all(width > 0 for width in widths):
+                self._browser_splitter_sizes = widths
+        self._browser_bookmarks_visible = visible
+        self.cancel_bookmark_hover()
+        self.cancel_bookmark_pointer_follow()
+        if self._workspace_mode == 'browser' and visible:
+            self.right.show()
+            widths = self._browser_splitter_sizes
+            if widths is not None and len(widths) == 2 and all(w > 0 for w in widths):
+                self.splitter.setSizes(widths)
+        else:
+            self.right.hide()
+        if self.web_view is not None:
+            self.web_view.set_bookmarks_visible(visible)
+        if self._browser_empty_bookmark_button is not None:
+            self._browser_empty_bookmark_button.setEnabled(not visible)
+        # Never let a hidden row remain the Remote's logical target.
+        if (not visible and self._workspace_mode == 'browser' and
+                getattr(self.launcher, '_remote_area', None) == 'bookmarks' and
+                getattr(self.launcher, 'remote_window', None) is not None):
+            self.launcher.remote_focus_area(self.launcher._current_web_body_area())
+        if persist:
+            self.launcher.settings.setValue('browser_bookmarks_visible', visible)
+            self.launcher.settings.sync()
+        self.root_widget.refresh_underline()
+
     def _activate_browser_layout(self):
         """Show Browser + Bookmarks without discarding the Files column state."""
         self._workspace_mode = 'browser'
-        self.right.show()
-        if self._browser_splitter_sizes is not None and all(self._browser_splitter_sizes):
-            self.splitter.setSizes(self._browser_splitter_sizes)
+        visible = getattr(self, '_browser_bookmarks_visible', True)
+        if visible:
+            self.right.show()
+            widths = self._browser_splitter_sizes
+            if widths is not None and len(widths) == 2 and all(w > 0 for w in widths):
+                self.splitter.setSizes(widths)
+            else:
+                self.splitter.setSizes([350, 660])
         else:
-            # The splitter may have expanded Files to 100% while Bookmarks
-            # was hidden. Restore a useful Browser / Bookmarks initial ratio.
-            self.splitter.setSizes([660, 350])
+            self.right.hide()
+        if getattr(self, 'web_view', None) is not None:
+            self.web_view.set_bookmarks_visible(visible)
         # Repaint after the Browser/Bookmarks splitter has been restored,
         # so the underline ends at the actual bookmark-pane boundary.
         self._update_workspace_tabs()
         self.launcher.web_view_activated()
+        if hasattr(self.launcher, 'workspace_changed'):
+            self.launcher.workspace_changed('browser')
 
     def switch_workspace(self, mode):
         """Explicit Files/Browser tabs, initially mouse-driven (Remote later)."""
@@ -3781,11 +3875,30 @@ class ExpandedLauncherView(QWidget):
         if self.launcher.webview_settings.get('mode') != 'embedded':
             # Company/external mode: never instantiate Qt WebEngine.
             if self._browser_empty_page is None:
-                self._browser_empty_page = QLabel(
+                # External mode has no QWebEngineView toolbar. Keep a reopen
+                # control here too, otherwise a persisted collapsed bookmark
+                # panel would become impossible to reopen on company PCs.
+                self._browser_empty_page = QWidget(self.files_content_stack)
+                empty_layout = QVBoxLayout(self._browser_empty_page)
+                self._browser_empty_bookmark_button = QToolButton(self._browser_empty_page)
+                self._browser_empty_bookmark_button.setObjectName('expandedExternalShowBookmarks')
+                self._browser_empty_bookmark_button.setFixedSize(30, 29)
+                self._browser_empty_bookmark_button.setIconSize(QSize(19, 19))
+                self._browser_empty_bookmark_button.setToolTip('ブックマークを表示')
+                self._browser_empty_bookmark_button.setIcon(browser_navigation_icon(
+                    'bookmark_outline', theme_family(self.launcher.color_theme)))
+                self._browser_empty_bookmark_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                self._browser_empty_bookmark_button.clicked.connect(self.show_browser_bookmarks)
+                self._browser_empty_bookmark_button.setEnabled(
+                    not self._browser_bookmarks_visible)
+                empty_layout.addWidget(self._browser_empty_bookmark_button,
+                                       alignment=Qt.AlignmentFlag.AlignLeft)
+                placeholder = QLabel(
                     'Browser は外部ブラウザモードです。\n'
-                    '右側のブックマークをクリックすると外部ブラウザで開きます。',
-                    self.files_content_stack)
-                self._browser_empty_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    'ブックマークをクリックすると外部ブラウザで開きます。',
+                    self._browser_empty_page)
+                placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                empty_layout.addWidget(placeholder, 1)
                 self.files_content_stack.addWidget(self._browser_empty_page)
             self.files_content_stack.setCurrentWidget(self._browser_empty_page)
             self._activate_browser_layout()
@@ -3824,6 +3937,11 @@ class ExpandedLauncherView(QWidget):
         self.files_content_stack.setCurrentWidget(self.files_group)
         self.right.hide()  # Bookmarks belong to Browser, never Files.
         self._update_workspace_tabs()
+        # During ExpandedLauncherView.__init__, Launcher.expanded_view has not
+        # yet been assigned; a callback here would touch an uninitialized UI.
+        if (getattr(getattr(self, 'launcher', None), 'expanded_view', None) is self
+                and hasattr(self.launcher, 'workspace_changed')):
+            self.launcher.workspace_changed('files')
 
     def web_view_active(self):
         return (self._workspace_mode == 'browser' and self.web_view is not None

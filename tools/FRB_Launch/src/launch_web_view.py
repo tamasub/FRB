@@ -351,6 +351,7 @@ class _ZipExtractionWorker(QThread):
 class LaunchWebView(QFrame):
     """A disposable View over a persistent Files model, not a second app."""
     surface_selected = Signal(str)
+    bookmarks_show_requested = Signal()
 
     def __init__(self, parent=None, *, settings=None):
         super().__init__(parent)
@@ -381,6 +382,13 @@ class LaunchWebView(QFrame):
         nav = QHBoxLayout()
         nav.setContentsMargins(4, 0, 4, 0)
         nav.setSpacing(4)
+        # Visible in both bookmark states; disabled while the left panel is open.
+        # No hidden spacer is left behind when Bookmarks is fully collapsed.
+        self.show_bookmarks_button = self._nav_button(
+            'bookmark_outline', 'ブックマークを表示',
+            self.bookmarks_show_requested.emit, nav)
+        self.show_bookmarks_button.setObjectName('launchWebShowBookmarks')
+        self.show_bookmarks_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.back = self._nav_button('back_arrow', 'Webページを戻る', self.go_back, nav)
         self.forward = self._nav_button('forward', 'Webページを進む', self.go_forward, nav)
         self.reload = self._nav_button('reload', '再読み込み', self.reload_page, nav)
@@ -424,6 +432,12 @@ class LaunchWebView(QFrame):
         self.hint.setObjectName('launchWebHint')
         layout.addWidget(self.hint)
         self.apply_theme('dark')
+
+    def set_bookmarks_visible(self, visible):
+        """Keep show control visible but unclickable while Bookmarks is open."""
+        self.show_bookmarks_button.setEnabled(not visible)
+        self.show_bookmarks_button.setToolTip(
+            'ブックマークは表示中' if visible else 'ブックマークを表示')
 
     def _create_profile(self):
         """Separate local WebEngine profile; never use or modify Chrome data."""
@@ -642,7 +656,7 @@ class LaunchWebView(QFrame):
     def _refresh_icons(self, theme):
         """Share the Launch toolbar's vector language and theme colors."""
         family = theme_family(theme)
-        for button in (self.back, self.forward, self.reload, self.external,
+        for button in (self.show_bookmarks_button, self.back, self.forward, self.reload, self.external,
                        self.downloads_button):
             button.setIcon(browser_navigation_icon(button.property('webIconName'), family))
         self.new_tab_button.setIcon(browser_navigation_icon('plus', family))

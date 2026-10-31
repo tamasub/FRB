@@ -120,7 +120,8 @@ def test_runtime_qss_expressions_evaluate_in_both_modes_without_name_errors():
         panel_expr = ast.Expression(panel_css.args[0])
         search_css = eval(compile(search_expr, '<search-qss>', 'eval'),
                           {'colors': c})
-        local = dict(bg=c['panel'], border=c['panel_border'],
+        # Keep QSS evaluation aligned with the live theme's semantic palette.
+        local = dict(colors=c, bg=c['panel'], border=c['panel_border'],
                      root_border=c['root_button_border'],
                      hdr=c['panel_header'], text=c['text'], hover=c['hover'],
                      active=c['selection'], stripe=c['stripe'], height=29, pad=3)

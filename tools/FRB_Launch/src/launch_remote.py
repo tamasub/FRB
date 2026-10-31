@@ -227,6 +227,7 @@ class LaunchRemote(QWidget):
         self.more_settings_action = self.more_menu.addAction('設定')
         self.more_category_action = self.more_menu.addAction('検索履歴カテゴリーを追加')
         self.more_favorite_action = self.more_menu.addAction('現在のフォルダーをお気に入り登録')
+        self.more_new_tab_action = self.more_menu.addAction('新規タブ追加')
         # Use the *actual* main-window glyphs (not a platform folder icon).
         # The menu text stays unchanged; Qt reserves an icon column itself.
         self.update_more_menu_icons(launcher.theme_button.icon(),
@@ -238,6 +239,10 @@ class LaunchRemote(QWidget):
             lambda checked=False: self.command.emit('REMOTE_CATEGORY_ADD'))
         self.more_favorite_action.triggered.connect(
             lambda checked=False: self.command.emit('REMOTE_FAVORITE_SAVE'))
+        self.more_new_tab_action.setIcon(browser_navigation_icon(
+            'plus', theme_family(launcher.color_theme)))
+        self.more_new_tab_action.triggered.connect(
+            lambda checked=False: self.command.emit('REMOTE_NEW_WEB_TAB'))
         self.more_menu.aboutToShow.connect(self.more_menu_opening.emit)
         root.addWidget(title_frame)
         # The header's empty background and title text move this frameless
@@ -246,6 +251,20 @@ class LaunchRemote(QWidget):
         title_frame.installEventFilter(self._passive_header_drag)
         title.installEventFilter(self._passive_header_drag)
 
+        # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
+        # on these buttons still go through the shared WheelPad accumulator.
+        row_workspaces = QHBoxLayout()
+        row_workspaces.setContentsMargins(0, 0, 0, 0)
+        row_workspaces.setSpacing(2)
+        self.files_button = self._button('Files', 'Files画面へ切り替え',
+                                         'WORKSPACE_FILES', width=84, height=30,
+                                         role='workspace')
+        self.browser_button = self._button('Browser', 'Browser画面へ切り替え',
+                                           'WORKSPACE_BROWSER', width=84, height=30,
+                                           role='workspace')
+        row_workspaces.addWidget(self.files_button)
+        row_workspaces.addWidget(self.browser_button)
+        root.addLayout(row_workspaces)
         # Three dense rows: no empty middle column in the top/bottom rows.
         row_top = QHBoxLayout()
         row_top.setContentsMargins(0, 0, 0, 0)
@@ -319,6 +338,9 @@ class LaunchRemote(QWidget):
         # On subsequent theme changes refresh the shared vector icon too.
         if hasattr(self, 'home_button'):
             self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
+        if hasattr(self, 'more_new_tab_action'):
+            self.more_new_tab_action.setIcon(browser_navigation_icon(
+                'plus', theme_family(theme)))
         self._remote_background = QColor(c['panel'])
         self._remote_outline = QColor('#ccd3d7')  # subtle light-grey, 1px
         self.setStyleSheet(f"""
@@ -332,6 +354,9 @@ class LaunchRemote(QWidget):
                 font-size:12px;padding:0 4px;}}
             QPushButton[role="small"] {{font-size:12px;padding:0 2px;}}
             QPushButton[role="tab"] {{font-size:12px;}}
+            QPushButton[role="workspace"] {{font-size:12px;}}
+            QPushButton[role="workspace"][active="true"] {{background:{c['selection']};
+                border:1px solid {c['focus_outline']};}}
             QPushButton[role="icon"] {{font-size:12px;padding:0;}}
             QPushButton#remoteHomeButton {{border-radius:7px;padding:0;}}
             QPushButton:hover {{background:{c['hover']};}}
@@ -353,6 +378,23 @@ class LaunchRemote(QWidget):
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
         """)
         self.update()
+
+    def set_workspace(self, mode):
+        """Active mode is visible even though Remote never takes focus."""
+        for button, value in ((self.files_button, 'files'),
+                              (self.browser_button, 'browser')):
+            active = mode == value
+            if button.property('active') != active:
+                button.setProperty('active', active)
+                button.style().unpolish(button)
+                button.style().polish(button)
+
+    def set_more_menu_mode(self, mode, *, can_add_tab=True):
+        browser = mode == 'browser'
+        self.more_new_tab_action.setVisible(browser)
+        self.more_new_tab_action.setEnabled(browser and can_add_tab)
+        self.more_category_action.setVisible(not browser)
+        self.more_favorite_action.setVisible(not browser)
 
     def show_more_menu(self):
         """Show a three-action menu next to …, not over the main Launcher."""
@@ -398,8 +440,12 @@ class LaunchRemote(QWidget):
                   'sort': '第2列 並び替え', 'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
                   'search_history': '検索履歴', 'folder_history': 'フォルダー履歴',
                   'cascade': '展開メニュー', 'breadcrumb': 'パンくず',
-                  'web_tabs': 'Webタブ', 'web_body': 'Web本文'}
-        self.area_label.setText('操作先：' + labels.get(name, name))
+                  'web_tabs': 'Webタブ', 'web_body': 'Web本文',
+                  'workspace_files': 'Filesタブ', 'workspace_browser': 'Browserタブ'}
+        label = ('Web本文 ' + str(int(name.split(':', 1)[1]) + 1) if
+                 name.startswith('web_body:') and name.split(':', 1)[1].isdigit()
+                 else labels.get(name, name))
+        self.area_label.setText('操作先：' + label)
 
     def show_at(self, global_point):
         screen = QApplication.screenAt(global_point)

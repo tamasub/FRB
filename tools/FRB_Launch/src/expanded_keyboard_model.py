@@ -4,8 +4,10 @@ Arrow keys express hierarchy; Tab/Shift+Tab express focus-area changes.
 Keep these rules separate from Qt controls so they can be contract-tested.
 """
 
-FOCUS_ORDER = ('search', 'pages', 'roots', 'breadcrumb', 'files', 'directory', 'bookmarks')
-WEB_FOCUS_ORDER = ('search', 'pages', 'roots', 'web_tabs', 'web_body', 'bookmarks')
+from remote_navigation import navigation_order, normalize_area
+
+FOCUS_ORDER = navigation_order(expanded=True, web=False)
+WEB_FOCUS_ORDER = navigation_order(expanded=True, web=True, web_tab_count=1)
 
 
 def tab_target(current, *, backward=False, order=FOCUS_ORDER):

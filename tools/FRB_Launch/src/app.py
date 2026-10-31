@@ -1724,6 +1724,7 @@ from focus_session import (normalize_focus_state, focus_area_for_reopen,
                            resolve_path_ids)
 from expanded_keyboard_model import (tab_target, FOCUS_ORDER, WEB_FOCUS_ORDER, root_step, middle_back_target,
                                      row_right_action)
+from remote_navigation import navigation_order, normalize_area
 
 
 class NormalWindowClickActivationFilter(QObject):
@@ -2595,16 +2596,55 @@ class Launcher(QWidget):
             self.remote_window.header_pressed.connect(self.bring_launcher_forward_from_remote_header)
             self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
         self.remote_window.apply_theme(self.color_theme)
+        self.remote_window.set_workspace(self.expanded_view._workspace_mode)
         self._remote_popup_area = None
         self._remote_mouse_last_click = None
         self._remote_mouse_menu_click = None
-        web = getattr(self.expanded_view, 'web_view_active', lambda: False)()
+        web = self.expanded_view._workspace_mode == 'browser'
         self._remote_area = starting_area(
-            self._last_focus_area, expanded=self.expanded_view.isVisible(), web=web)
-        if web and self._remote_area in ('files', 'directory', 'sort'):
-            self._remote_area = 'web_tabs' if self._remote_area == 'files' else 'web_body'
+            self._last_focus_area, expanded=self.expanded_view.isVisible(), web=web,
+            web_tab_count=self._web_tab_count(),
+            bookmarks_visible=self.expanded_view.browser_bookmarks_visible)
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
+
+    def _web_tab_count(self):
+        web = self.expanded_view.web_view
+        return web.tabs.count() if web is not None else 0
+
+    def _current_web_body_area(self):
+        web = self.expanded_view.web_view
+        return (f'web_body:{max(0, web.tabs.currentIndex())}' if web else
+                ('bookmarks' if self.expanded_view.browser_bookmarks_visible
+                 else 'workspace_browser'))
+
+    def workspace_changed(self, mode):
+        """Refresh Remote without resetting the retained Files/Browser state."""
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_workspace(mode)
+        area = getattr(self, '_remote_area', None)
+        if remote is not None and remote.isVisible():
+            if mode == 'browser' and area in ('files', 'directory', 'breadcrumb'):
+                self.remote_focus_area('bookmarks' if self.expanded_view.browser_bookmarks_visible
+                                       else self._current_web_body_area())
+            elif mode == 'files' and (area == 'bookmarks' or
+                                      str(area).startswith('web_body:')):
+                self.remote_focus_area('files')
+
+    def _focus_bookmark_first(self):
+        """Entering Bookmarks via Tab begins at the first actionable row."""
+        if not self.expanded_view.browser_bookmarks_visible:
+            return
+        tree = self.expanded_view.right.tree
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            if (item is not None and not item.isHidden() and
+                    bool(item.flags() & Qt.ItemFlag.ItemIsSelectable)):
+                tree.setCurrentItem(item)
+                tree.scrollToItem(item)
+                break
+        self.expanded_view.focus_panel(self.expanded_view.right)
 
     def web_view_activated(self):
         """A bookmark can change the View without changing the selected bookmark."""
@@ -2615,23 +2655,31 @@ class Launcher(QWidget):
         if remote is not None and remote.isVisible():
             area = self._remote_area
             if area in ('files', 'directory', 'sort', 'breadcrumb'):
-                self.remote_focus_area('web_tabs' if area == 'files' else 'web_body')
+                self.remote_focus_area('bookmarks' if view.browser_bookmarks_visible
+                                       else self._current_web_body_area())
             else:
-                view.web_view.set_remote_area(area)
+                view.web_view.set_remote_area(
+                    'web_body' if str(area).startswith('web_body:') else area)
 
     def web_surface_selected(self, area):
         """A real click on Web tabs/body moves Remote logical current as well."""
         remote = getattr(self, 'remote_window', None)
         if (getattr(self.expanded_view, 'web_view_active', lambda: False)() and remote is not None
                 and remote.isVisible() and area in ('web_tabs', 'web_body')):
-            self.remote_focus_area(area)
+            self.remote_focus_area(self._current_web_body_area())
 
     def web_keyboard_tab(self, backward):
         """Tab on the Web tab STRIP changes Launch areas; HTML forms stay native."""
         if not getattr(self.expanded_view, 'web_view_active', lambda: False)():
             return
-        target = tab_target('web_tabs', backward=backward, order=WEB_FOCUS_ORDER)
+        area = self._current_web_body_area()
+        order = navigation_order(expanded=True, web=True,
+                                 web_tab_count=self._web_tab_count(),
+                                 bookmarks_visible=self.expanded_view.browser_bookmarks_visible)
+        target = tab_target(area, backward=backward, order=order)
         self.remote_focus_area(target)
+        if str(target).startswith('web_body:'):
+            self.expanded_view.web_view.focus_page()
 
     def remote_focus_area(self, area):
         """Keep the highlighted current row in the main UI, not in the remote."""
@@ -2646,15 +2694,24 @@ class Launcher(QWidget):
         else:
             view = self.expanded_view
             web_active = getattr(view, 'web_view_active', lambda: False)()
-            if web_active and area in ('files', 'directory', 'sort', 'breadcrumb'):
-                area = 'web_tabs' if area == 'files' else 'web_body'
-            if not web_active and area in ('web_tabs', 'web_body'):
-                area = 'files' if area == 'web_tabs' else 'directory'
-            if web_active and area == 'web_tabs':
-                view.web_view.tabs.tabBar().setFocus(Qt.FocusReason.OtherFocusReason)
-            elif web_active and area == 'web_body':
-                # Don't steal focus from a web form just to scroll its document.
-                pass
+            browser_mode = view._workspace_mode == 'browser'
+            order = navigation_order(expanded=True, web=browser_mode,
+                                     web_tab_count=self._web_tab_count(),
+                                     bookmarks_visible=view.browser_bookmarks_visible)
+            area = normalize_area(area, order, current_tab=(
+                view.web_view.tabs.currentIndex() if web_active else 0))
+            if area not in order:
+                area = (('bookmarks' if view.browser_bookmarks_visible else
+                         self._current_web_body_area()) if browser_mode else 'files')
+            if area == 'workspace_files':
+                view.files_mode_tab.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif area == 'workspace_browser':
+                view.browser_mode_tab.setFocus(Qt.FocusReason.OtherFocusReason)
+            elif web_active and str(area).startswith('web_body:'):
+                index = int(area.split(':', 1)[1])
+                if 0 <= index < view.web_view.tabs.count():
+                    view.web_view.tabs.setCurrentIndex(index)
+                # A non-activating Remote must not steal focus from web forms.
             elif area == 'search':
                 self.search.setFocus(Qt.FocusReason.OtherFocusReason)
             elif area == 'pages':
@@ -2676,10 +2733,14 @@ class Launcher(QWidget):
                 pane = {'files': view.left, 'directory': view.middle,
                         'bookmarks': view.right}.get(area)
                 if pane is not None:
-                    view.focus_panel(pane)
+                    if area == 'bookmarks' and browser_mode:
+                        self._focus_bookmark_first()
+                    else:
+                        view.focus_panel(pane)
         if getattr(self.expanded_view, 'web_view', None) is not None:
             self.expanded_view.web_view.set_remote_area(
-                area if getattr(self.expanded_view, 'web_view_active', lambda: False)() else None)
+                ('web_body' if str(area).startswith('web_body:') else area)
+                if getattr(self.expanded_view, 'web_view_active', lambda: False)() else None)
         # A non-activating remote can leave QApplication.focusWidget() outside
         # Launch. Keep the remote's logical current pane highlighted regardless.
         if self.expanded_view.isVisible():
@@ -2882,11 +2943,7 @@ class Launcher(QWidget):
         if expanded and getattr(self.expanded_view, 'web_view_active', lambda: False)():
             area = self._remote_area
             web = self.expanded_view.web_view
-            if area == 'web_tabs':
-                # Wheel has already selected the live tab; click confirms it.
-                self._remote_mouse_last_click = None
-                return
-            if area == 'web_body':
+            if str(area).startswith('web_body:') or area == 'web_body':
                 self._remote_mouse_last_click = None
                 if not double:
                     web.focus_page()
@@ -2936,6 +2993,12 @@ class Launcher(QWidget):
             self._remote_mouse_last_click = None
             if not double:
                 self.expanded_view.address_bar._submit()
+            return
+        if area in ('workspace_files', 'workspace_browser'):
+            self._remote_mouse_last_click = None
+            if not double:
+                mode = 'files' if area == 'workspace_files' else 'browser'
+                self.expanded_view.switch_workspace(mode)
             return
         if area in ('pages',):
             self._remote_mouse_last_click = None
@@ -3011,11 +3074,13 @@ class Launcher(QWidget):
             elif double:
                 view.activate_row(pane, item)
         elif pane is view.right:
-            if folder:
-                if not double:
+            # Browser selection and activation are separate. A wheel turn
+            # only selects; an explicit Remote click opens the chosen URL.
+            if not double:
+                if folder:
                     view.choose_bookmark(item, 0)
-            elif double:
-                view.activate_row(pane, item)
+                else:
+                    view.activate_row(pane, item)
 
     def remote_web_context_menu(self, area):
         """Remote right click is page/tab-level, never a fabricated DOM click."""
@@ -3057,8 +3122,10 @@ class Launcher(QWidget):
         pos = pad.mapToGlobal(QPoint(pad.width() + 4, 0))
         web = self.expanded_view
         if (getattr(web, 'web_view_active', lambda: False)() and
-                self._remote_area in ('web_tabs', 'web_body')):
-            self.remote_web_context_menu(self._remote_area)
+                (self._remote_area == 'web_tabs' or
+                 str(self._remote_area).startswith('web_body'))):
+            self.remote_web_context_menu('web_body' if
+                str(self._remote_area).startswith('web_body:') else self._remote_area)
             return
         cascade = getattr(self, 'menu', None)
         if cascade is not None and cascade.isVisible():
@@ -3083,8 +3150,9 @@ class Launcher(QWidget):
         if not expanded:
             return
         view = self.expanded_view
-        if getattr(view, 'web_view_active', lambda: False)() and area in ('web_tabs', 'web_body'):
-            self.remote_web_context_menu(area)
+        if getattr(view, 'web_view_active', lambda: False)() and (
+                area == 'web_tabs' or str(area).startswith('web_body')):
+            self.remote_web_context_menu('web_body' if str(area).startswith('web_body:') else area)
             return
         if area == 'directory':
             view.ensure_middle_current_selection()
@@ -3115,6 +3183,10 @@ class Launcher(QWidget):
                                       self.history_category_action.icon(),
                                       view.favorite_save.text())
         remote.set_favorite_action_available(available)
+        if hasattr(remote, 'set_more_menu_mode'):
+            remote.set_more_menu_mode(
+                view._workspace_mode,
+                can_add_tab=view.web_view_active())
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
@@ -3137,6 +3209,17 @@ class Launcher(QWidget):
             # Reuse the search + QAction after the popup is dismissed, so
             # the native text-input dialog can take focus normally.
             QTimer.singleShot(0, self.history_category_action.trigger)
+            return
+        if command == 'REMOTE_NEW_WEB_TAB':
+            view = self.expanded_view
+            if view.isVisible() and view._workspace_mode == 'browser' and view.web_view_active():
+                view.web_view.add_tab(self.webview_settings.get(
+                    'new_tab_url', 'https://www.google.com/'))
+            return
+        if command in ('WORKSPACE_FILES', 'WORKSPACE_BROWSER'):
+            mode = 'files' if command == 'WORKSPACE_FILES' else 'browser'
+            if self.expanded_view.isVisible() and self.expanded_view.switch_workspace(mode):
+                self.remote_focus_area('workspace_' + mode)
             return
         if command == 'REMOTE_FAVORITE_SAVE':
             # Exactly the same QToolButton as the breadcrumb heart.
@@ -3165,8 +3248,11 @@ class Launcher(QWidget):
             self._remote_mouse_menu_click = None
         expanded = self.expanded_view.isVisible()
         web_active = expanded and getattr(self.expanded_view, 'web_view_active', lambda: False)()
+        browser_mode = expanded and getattr(self.expanded_view, '_workspace_mode', 'files') == 'browser'
         area = self._remote_area or starting_area(
-            self._last_focus_area, expanded=expanded, web=web_active)
+            self._last_focus_area, expanded=expanded, web=web_active,
+            web_tab_count=self._web_tab_count(),
+            bookmarks_visible=self.expanded_view.browser_bookmarks_visible)
         if command == 'SEARCH_HISTORY':
             if getattr(self, '_remote_popup_area', None) == 'search_history' and self.history_popup.isVisible():
                 self.hide_history_popup()
@@ -3221,8 +3307,16 @@ class Launcher(QWidget):
             elif getattr(self, '_remote_popup_area', None) == 'folder_history':
                 self.expanded_view.hide_favorite_popup()
             self._remote_popup_area = None
-            target = (previous_area(area, expanded=expanded, web=web_active) if command == 'BACKTAB'
-                      else next_area(area, expanded=expanded, web=web_active))
+            tab_idx = (self.expanded_view.web_view.tabs.currentIndex()
+                       if web_active else 0)
+            bookmark_enabled = self.expanded_view.browser_bookmarks_visible
+            target = (previous_area(area, expanded=expanded, web=browser_mode,
+                                    web_tab_count=self._web_tab_count(), current_tab=tab_idx,
+                                    bookmarks_visible=bookmark_enabled)
+                      if command == 'BACKTAB' else
+                      next_area(area, expanded=expanded, web=browser_mode,
+                                web_tab_count=self._web_tab_count(), current_tab=tab_idx,
+                                bookmarks_visible=bookmark_enabled))
             self.remote_focus_area(target)
             return
         if command in ('CLICK', 'DOUBLE_CLICK'):
@@ -3235,27 +3329,25 @@ class Launcher(QWidget):
         # A nested cascade is visually in front of the main results. Route
         # the wheel/click to that column before considering the background.
         dispatch_cascade = getattr(self, 'remote_cascade_command', None)
-        if (not (web_active and area in ('web_tabs', 'web_body')) and
+        if (not (web_active and str(area).startswith('web_body')) and
                 dispatch_cascade is not None and dispatch_cascade(command)):
             return
         step = (-1 if command in ('UP', 'LEFT') else 1)
-        if web_active and area in ('web_tabs', 'web_body'):
+        if web_active and str(area).startswith('web_body'):
             browser = self.expanded_view.web_view
-            if area == 'web_tabs':
-                if command in ('UP', 'DOWN', 'LEFT', 'RIGHT'):
-                    browser.select_tab(step)
-                elif command == 'ENTER':
-                    browser.focus_page()
-                    self.remote_focus_area('web_body')
-            else:
-                if command in ('UP', 'DOWN'):
-                    browser.scroll_page(step)
-                elif command == 'LEFT':
-                    browser.go_back()
-                elif command == 'RIGHT':
-                    browser.go_forward()
-                elif command == 'ENTER':
-                    browser.focus_page()
+            if command in ('UP', 'DOWN'):
+                browser.scroll_page(step)
+            elif command == 'LEFT':
+                browser.go_back()
+            elif command == 'RIGHT':
+                browser.go_forward()
+            elif command == 'ENTER':
+                browser.focus_page()
+            return
+        if area in ('workspace_files', 'workspace_browser'):
+            if command in ('RIGHT', 'ENTER'):
+                mode = 'files' if area == 'workspace_files' else 'browser'
+                self.expanded_view.switch_workspace(mode)
             return
         if area == 'search':
             if command == 'ENTER':
@@ -3327,7 +3419,7 @@ class Launcher(QWidget):
                 if target == 'files':
                     self.remote_focus_area('files')
             elif pane is view.right:
-                self.remote_focus_area('directory')
+                self.remote_focus_area('workspace_browser')
             # Files first column is already the leftmost folder column.
             return
         item = tree.currentItem()
@@ -6508,14 +6600,22 @@ class Launcher(QWidget):
             return 'search'
         if obj is self.tabs:
             return 'pages'
+        if obj is self.expanded_view.files_mode_tab:
+            return 'workspace_files'
+        if obj is self.expanded_view.browser_mode_tab:
+            return 'workspace_browser'
         if obj in (self.expanded_view.address_bar.editor, self.expanded_view.address_bar):
             return 'breadcrumb'
         web = getattr(self.expanded_view, 'web_view', None)
         if web is not None and getattr(self.expanded_view, 'web_view_active', lambda: False)():
             if obj is web.tabs.tabBar():
-                return 'web_tabs'
-            if obj in [web.tabs.widget(i) for i in range(web.tabs.count())]:
-                return 'web_body'
+                return self._current_web_body_area()
+            for i in range(web.tabs.count()):
+                widget = web.tabs.widget(i)
+                # The embedded webpage owns Tab inside HTML inputs/forms.
+                # Avoid treating WebEngine's child widgets as Launcher controls.
+                if obj is widget:
+                    return f'web_body:{i}'
         if obj in self.expanded_view.root_buttons:
             return 'roots'
         for name, pane in (('files', self.expanded_view.left),
@@ -6543,12 +6643,21 @@ class Launcher(QWidget):
         backward = (event.key() == Qt.Key.Key_Backtab or
                     bool(mods & Qt.KeyboardModifier.ShiftModifier))
         view = self.expanded_view
-        order = WEB_FOCUS_ORDER if getattr(view, 'web_view_active', lambda: False)() else FOCUS_ORDER
+        web_active = getattr(view, 'web_view_active', lambda: False)()
+        order = navigation_order(expanded=True, web=(view._workspace_mode == 'browser'),
+                                 web_tab_count=self._web_tab_count(),
+                                 bookmarks_visible=view.browser_bookmarks_visible)
+        area = normalize_area(area, order, current_tab=(
+            view.web_view.tabs.currentIndex() if web_active else 0))
         target = tab_target(area, backward=backward, order=order)
         if target == 'search':
             self.search.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'pages':
             self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+        elif target == 'workspace_files':
+            view.files_mode_tab.setFocus(Qt.FocusReason.TabFocusReason)
+        elif target == 'workspace_browser':
+            view.browser_mode_tab.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             view.focus_root()
         elif target == 'breadcrumb':
@@ -6557,12 +6666,11 @@ class Launcher(QWidget):
             view.focus_panel(view.left)
         elif target == 'directory':
             view.focus_panel(view.middle)
-        elif target == 'web_tabs' and getattr(view, 'web_view_active', lambda: False)():
-            view.web_view.tabs.tabBar().setFocus(Qt.FocusReason.TabFocusReason)
-        elif target == 'web_body' and getattr(view, 'web_view_active', lambda: False)():
+        elif str(target).startswith('web_body:') and web_active:
+            view.web_view.tabs.setCurrentIndex(int(target.split(':', 1)[1]))
             view.web_view.focus_page()
         elif target == 'bookmarks':
-            view.focus_panel(view.right)
+            self._focus_bookmark_first()
         event.accept()
         return True
 

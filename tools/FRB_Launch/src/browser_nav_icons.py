@@ -115,6 +115,16 @@ def _draw_icon(name: str, color: str) -> QPixmap:
         shape.lineTo(16, 16)
         shape.moveTo(16, 8)
         shape.lineTo(8, 16)
+    elif name == 'bookmark_outline':
+        # Monochrome twin of the Bookmarks pane glyph: no solid green fill.
+        shape.moveTo(6.5, 4.0)
+        shape.lineTo(17.5, 4.0)
+        shape.quadTo(18.5, 4.0, 18.5, 5.2)
+        shape.lineTo(18.5, 20)
+        shape.lineTo(12, 15.7)
+        shape.lineTo(5.5, 20)
+        shape.lineTo(5.5, 5.2)
+        shape.quadTo(5.5, 4, 6.5, 4)
     elif name == 'globe':
         painter.drawEllipse(QRectF(4, 4, 16, 16))
         painter.drawEllipse(QRectF(8, 4, 8, 16))
