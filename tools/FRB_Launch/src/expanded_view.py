@@ -3969,6 +3969,9 @@ class ExpandedLauncherView(QWidget):
                 self._browser_splitter_sizes = sizes
         if self.web_view is not None:
             self.web_view.set_remote_area(None)
+            hide_url_favorites = getattr(self.web_view, 'hide_url_favorites', None)
+            if callable(hide_url_favorites):
+                hide_url_favorites()
         self._workspace_mode = 'files'
         self.files_content_stack.setCurrentWidget(self.files_group)
         self.right.hide()  # Bookmarks belong to Browser, never Files.

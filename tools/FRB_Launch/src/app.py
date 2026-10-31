@@ -3037,6 +3037,10 @@ class Launcher(QWidget):
             self.hide_history_popup()
         elif popup == 'folder_history':
             self.expanded_view.hide_favorite_popup()
+        elif popup == 'browser_history':
+            web = getattr(self.expanded_view, 'web_view', None)
+            if web is not None:
+                web.hide_url_favorites()
         if self.remote_window is not None and self.remote_window.isVisible():
             self.remote_window.hide()
         if getattr(self.expanded_view, 'web_view', None) is not None:
@@ -3163,6 +3167,14 @@ class Launcher(QWidget):
 
     def workspace_changed(self, mode):
         """Refresh Remote without resetting the retained Files/Browser state."""
+        if getattr(self, '_remote_popup_area', None) == 'browser_history' and mode != 'browser':
+            web = getattr(self.expanded_view, 'web_view', None)
+            if web is not None:
+                web.hide_url_favorites()
+            self._remote_popup_area = None
+        elif getattr(self, '_remote_popup_area', None) == 'folder_history' and mode != 'files':
+            self.expanded_view.hide_favorite_popup()
+            self._remote_popup_area = None
         if mode != 'files':
             self.close_remote_folder_menu()
         remote = getattr(self, 'remote_window', None)
@@ -3344,6 +3356,29 @@ class Launcher(QWidget):
             if not self.history_popup.isVisible():
                 self._remote_popup_area = None
                 self.remote_window.set_area(self._remote_area or 'search')
+            return True
+        if area == 'browser_history':
+            web = getattr(self.expanded_view, 'web_view', None)
+            if web is None or not web.favorite_popup.isVisible():
+                self._remote_popup_area = None
+                if self.remote_window is not None:
+                    self.remote_window.set_area(self._remote_area or 'bookmarks')
+                return True
+            tree = web.favorite_choices
+            if command in ('UP', 'DOWN'):
+                row = move_tree_selection(tree, -1 if command == 'UP' else 1)
+                if row is not None:
+                    tree.scrollToItem(row, QAbstractItemView.ScrollHint.EnsureVisible)
+            elif command in ('RIGHT', 'ENTER'):
+                row = tree.currentItem()
+                if row is not None:
+                    web.url_favorite_clicked(row, 0)  # Never invoke delete via Remote.
+            elif command == 'LEFT':
+                web.hide_url_favorites()
+            if not web.favorite_popup.isVisible():
+                self._remote_popup_area = None
+                if self.remote_window is not None:
+                    self.remote_window.set_area(self._remote_area or 'bookmarks')
             return True
         if area == 'folder_history':
             view = self.expanded_view
@@ -3898,17 +3933,36 @@ class Launcher(QWidget):
             return
         if command == 'FOLDER_HISTORY':
             view = self.expanded_view
-            if (getattr(self, '_remote_popup_area', None) == 'folder_history'
-                    and view.favorite_popup.isVisible()):
-                # Use the existing safe folder-selection callback; never run
-                # the delete-column action or trigger an unrelated item.
-                self.remote_history_command('ENTER')
-                return
-            # Breadcrumbs only exist in the three-layer Files view. Avoid
-            # changing the user's stored view preference in classic mode.
             if not view.isVisible():
                 self.remote_window.set_area('directory')
                 return
+            # The same Remote button serves Files breadcrumb favorites and
+            # Browser address-bar URL favorites; no second remote button.
+            if browser_mode:
+                web = getattr(view, 'web_view', None)
+                if web is None or not view.web_view_active():
+                    return  # External browser mode has no embedded address bar.
+                if (self._remote_popup_area == 'browser_history'
+                        and web.favorite_popup.isVisible()):
+                    self.remote_history_command('ENTER')
+                    return
+                if self._remote_popup_area == 'folder_history':
+                    view.hide_favorite_popup()
+                elif self._remote_popup_area == 'search_history':
+                    self.hide_history_popup()
+                self._remote_popup_area = None
+                web.toggle_url_favorites()
+                if web.favorite_popup.isVisible():
+                    self._remote_popup_area = 'browser_history'
+                self.remote_window.set_area(self._remote_popup_area or area)
+                return
+            if (self._remote_popup_area == 'folder_history'
+                    and view.favorite_popup.isVisible()):
+                self.remote_history_command('ENTER')
+                return
+            if self._remote_popup_area == 'browser_history' and view.web_view is not None:
+                view.web_view.hide_url_favorites()
+            self._remote_popup_area = None
             view.toggle_directory_favorites()
             if view.favorite_popup.isVisible():
                 self._remote_popup_area = 'folder_history'
@@ -3919,6 +3973,10 @@ class Launcher(QWidget):
                 self.hide_history_popup()
             elif getattr(self, '_remote_popup_area', None) == 'folder_history':
                 self.expanded_view.hide_favorite_popup()
+            elif getattr(self, '_remote_popup_area', None) == 'browser_history':
+                web = getattr(self.expanded_view, 'web_view', None)
+                if web is not None:
+                    web.hide_url_favorites()
             self._remote_popup_area = None
             self.navigate_home()
             expanded = self.expanded_view.isVisible()
@@ -3941,6 +3999,10 @@ class Launcher(QWidget):
                 self.hide_history_popup()
             elif getattr(self, '_remote_popup_area', None) == 'folder_history':
                 self.expanded_view.hide_favorite_popup()
+            elif getattr(self, '_remote_popup_area', None) == 'browser_history':
+                web = getattr(self.expanded_view, 'web_view', None)
+                if web is not None:
+                    web.hide_url_favorites()
             self._remote_popup_area = None
             # Only the Remote uses this small ring. Keyboard TAB is untouched.
             from remote_navigation import remote_tab_target

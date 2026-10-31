@@ -344,8 +344,10 @@ class LaunchRemote(QWidget):
         row_bottom.setSpacing(2)
         row_bottom.addWidget(self._button('検索履歴', '1回目：検索履歴を開く／2回目：選択中の履歴を決定。ダブルクリック：検索結果のカレント行を実行',
                                           'SEARCH_HISTORY', width=85, height=37, role='small', wheel_enabled=True))
-        row_bottom.addWidget(self._button('フォルダー履歴', '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動',
-                                          'FOLDER_HISTORY', width=85, height=37, role='small', wheel_enabled=True))
+        self.folder_history_button = self._button(
+            'フォルダー履歴', '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動',
+            'FOLDER_HISTORY', width=85, height=37, role='small', wheel_enabled=True)
+        row_bottom.addWidget(self.folder_history_button)
         root.addLayout(row_bottom)
         row_mid = QHBoxLayout()
         row_mid.setContentsMargins(0, 0, 0, 0)
@@ -504,6 +506,10 @@ class LaunchRemote(QWidget):
 
     def set_workspace(self, mode):
         self.up_band.set_files_mode(mode == 'files')
+        self.folder_history_button.setToolTip(
+            '1回目：URLのお気に入りを開く／2回目：選択中のURLを開く'
+            if mode == 'browser' else
+            '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動')
         """Active mode is visible even though Remote never takes focus."""
         for button, value in ((self.files_button, 'files'),
                               (self.browser_button, 'browser')):
@@ -580,6 +586,7 @@ class LaunchRemote(QWidget):
                   'files': 'Files第1列', 'directory': 'Files第2列',
                   'sort': '第2列 並び替え', 'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
                   'search_history': '検索履歴', 'folder_history': 'フォルダー履歴',
+                  'browser_history': 'URLお気に入り',
                   'cascade': '展開メニュー', 'breadcrumb': 'パンくず',
                   'web_tabs': 'Webタブ', 'web_body': 'Web本文',
                   'workspace_files': 'Filesタブ', 'workspace_browser': 'Browserタブ'}

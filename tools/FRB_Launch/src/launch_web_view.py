@@ -7,16 +7,23 @@ import os
 from pathlib import Path, PureWindowsPath
 
 from PySide6.QtCore import (QUrl, Qt, Signal, QStandardPaths, QSize, QPoint, QTimer, QFileInfo,
-                            QPropertyAnimation, QEasingCurve, QThread)
+                            QPropertyAnimation, QEasingCurve, QThread, QEvent)
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QVBoxLayout, QLineEdit,
                                QToolButton, QTabWidget, QTabBar, QMenu, QWidget, QLabel,
-                               QScrollArea, QGraphicsOpacityEffect, QMessageBox, QFileIconProvider)
+                               QScrollArea, QGraphicsOpacityEffect, QMessageBox, QFileIconProvider,
+                               QTreeWidgetItem, QHeaderView, QAbstractItemView)
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile, QWebEngineDownloadRequest
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from browser_nav_icons import browser_navigation_icon
 from launch_downloads import safe_download_name, unique_path, safe_extract_zip
-from launch_appearance import theme_family
+from launch_appearance import theme_family, theme_palette, history_popup_qss
+from browser_url_favorites import BrowserUrlFavorites, normalize_favorite_url
+from combo_chevron_icon import combo_chevron_icon
+from reorderable_tree import ReorderablePopupTree
+from wheel_adaptive import wheel_steps
+from history_wheel_navigation import history_target_index, warp_to_history_row
+from PySide6.QtGui import QCursor
 
 
 class _WebTabs(QTabWidget):
@@ -357,6 +364,8 @@ class LaunchWebView(QFrame):
         super().__init__(parent)
         self.web_settings = settings or {}
         self._remote_area = None
+        self._url_favorite_wheel_delta = 0
+        self._url_favorite_warp_generation = 0
         self._downloads = []
         self._downloads_folder = ''
         self._download_file_icon_provider = QFileIconProvider()
@@ -392,11 +401,62 @@ class LaunchWebView(QFrame):
         self.back = self._nav_button('back_arrow', 'Webページを戻る', self.go_back, nav)
         self.forward = self._nav_button('forward', 'Webページを進む', self.go_forward, nav)
         self.reload = self._nav_button('reload', '再読み込み', self.reload_page, nav)
-        self.address = QLineEdit(self)
+        # Match the Files breadcrumb: URL editor, heart and favorite-list ▼
+        # are one address-bar control. These are separate from authored bookmarks.
+        self.url_favorites = BrowserUrlFavorites(
+            Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) /
+            'FRBLaunch' / 'browser_url_favorites.json')
+        self.address_shell = QFrame(self)
+        self.address_shell.setObjectName('launchWebAddressShell')
+        address_row = QHBoxLayout(self.address_shell)
+        address_row.setContentsMargins(5, 0, 4, 0)
+        address_row.setSpacing(1)
+        self.address = QLineEdit(self.address_shell)
         self.address.setObjectName('launchWebAddress')
         self.address.setPlaceholderText('https://...')
         self.address.returnPressed.connect(self.open_address)
-        nav.addWidget(self.address, 1)
+        address_row.addWidget(self.address, 1)
+        self.favorite_save = QToolButton(self.address_shell)
+        self.favorite_save.setObjectName('launchWebFavoriteSave')
+        self.favorite_save.setFixedSize(25, 25)
+        self.favorite_save.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.favorite_save.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.favorite_save.clicked.connect(self.register_url_favorite)
+        address_row.addWidget(self.favorite_save)
+        self.favorite_dropdown = QToolButton(self.address_shell)
+        self.favorite_dropdown.setObjectName('launchWebFavoriteDropdown')
+        self.favorite_dropdown.setFixedSize(24, 25)
+        self.favorite_dropdown.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.favorite_dropdown.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.favorite_dropdown.clicked.connect(self.toggle_url_favorites)
+        address_row.addWidget(self.favorite_dropdown)
+        nav.addWidget(self.address_shell, 1)
+        # Same two-column delete / scroll / reorder popup as Files favorites.
+        self.favorite_popup = QFrame(self.window())
+        self.favorite_popup.setObjectName('launchWebFavoritesPopup')
+        favorite_layout = QVBoxLayout(self.favorite_popup)
+        favorite_layout.setContentsMargins(5, 5, 5, 5)
+        favorite_layout.setSpacing(0)
+        self.favorite_choices = ReorderablePopupTree(self.favorite_popup)
+        self.favorite_choices.setObjectName('launchWebFavoritesChoices')
+        self.favorite_choices.setColumnCount(2)
+        self.favorite_choices.setHeaderHidden(True)
+        self.favorite_choices.setRootIsDecorated(False)
+        self.favorite_choices.setIndentation(0)
+        self.favorite_choices.setSortingEnabled(False)
+        self.favorite_choices.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.favorite_choices.header().setStretchLastSection(False)
+        self.favorite_choices.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.favorite_choices.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        self.favorite_choices.setColumnWidth(1, 34)
+        self.favorite_choices.itemClicked.connect(self.url_favorite_clicked)
+        self.favorite_choices.orderChanged.connect(self.url_favorites_reordered)
+        favorite_layout.addWidget(self.favorite_choices)
+        self.favorite_popup.hide()
+        self.favorite_popup.installEventFilter(self)
+        self.favorite_choices.installEventFilter(self)
+        self.favorite_choices.viewport().installEventFilter(self)
+        QApplication.instance().installEventFilter(self)
         self.external = self._nav_button('external', 'このページを既定ブラウザで開く',
                                          self.open_external, nav)
         self.downloads_button = self._nav_button('download', 'ダウンロード一覧',
@@ -432,6 +492,7 @@ class LaunchWebView(QFrame):
         self.hint.setObjectName('launchWebHint')
         layout.addWidget(self.hint)
         self.apply_theme('dark')
+        self.update_url_favorite_button()
 
     def set_bookmarks_visible(self, visible):
         """Keep show control visible but unclickable while Bookmarks is open."""
@@ -799,6 +860,7 @@ class LaunchWebView(QFrame):
         view.setUrl(QUrl(url))
         if self.tabs.currentWidget() is view:
             self.address.setText(url)
+            self.update_url_favorite_button()
 
     def update_title(self, view, text):
         index = self.tabs.indexOf(view)
@@ -811,6 +873,7 @@ class LaunchWebView(QFrame):
     def url_changed(self, view, url):
         if view is self.current_view():
             self.address.setText(url.toString())
+            self.update_url_favorite_button()
             self.update_navigation()
 
     def load_finished(self, view, ok):
@@ -822,6 +885,7 @@ class LaunchWebView(QFrame):
     def current_changed(self, _index):
         view = self.current_view()
         self.address.setText(view.url().toString() if view else '')
+        self.update_url_favorite_button()
         self.update_navigation()
 
     def update_navigation(self):
@@ -830,6 +894,157 @@ class LaunchWebView(QFrame):
         self.forward.setEnabled(bool(view and view.history().canGoForward()))
         self.reload.setEnabled(view is not None)
         self.external.setEnabled(bool(view and view.url().isValid()))
+
+    def current_url_for_favorite(self):
+        """Use the current Web page, not an unsubmitted edit in the address bar."""
+        view = self.current_view() if hasattr(self, 'tabs') else None
+        return normalize_favorite_url(view.url().toString()) if view else ''
+
+    def update_url_favorite_button(self):
+        url = self.current_url_for_favorite()
+        saved = bool(url and url in self.url_favorites.urls)
+        self.favorite_save.setText('🩶' if saved else '💛')
+        self.favorite_save.setToolTip('お気に入り登録済み' if saved else '今のURLをお気に入りに登録')
+        self.favorite_save.setEnabled(bool(url))
+        self.favorite_dropdown.setEnabled(bool(self.url_favorites.urls))
+        self.favorite_dropdown.setToolTip(
+            f'URLのお気に入り一覧（{len(self.url_favorites.urls)}件）')
+
+    def register_url_favorite(self):
+        url = self.current_url_for_favorite()
+        if not url:
+            return
+        try:
+            self.url_favorites.add(url)
+        except OSError:
+            QMessageBox.warning(self, 'お気に入り', 'URLのお気に入りを保存できませんでした')
+            return
+        self.update_url_favorite_button()
+        if self.favorite_popup.isVisible():
+            self.populate_url_favorites(selected=url)
+
+    def populate_url_favorites(self, selected=None):
+        tree = self.favorite_choices
+        tree.blockSignals(True)
+        try:
+            tree.clear()
+            for url in self.url_favorites.urls:
+                row = QTreeWidgetItem([url, '×'])
+                row.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+                row.setToolTip(0, 'クリックでBrowser内のURLを開く／ドラッグで並び替え')
+                row.setToolTip(1, 'お気に入りを削除（Webページは削除されません）')
+                tree.addTopLevelItem(row)
+                if url == selected:
+                    tree.setCurrentItem(row)
+            if tree.topLevelItemCount() and tree.currentItem() is None:
+                tree.setCurrentItem(tree.topLevelItem(0))
+        finally:
+            tree.blockSignals(False)
+        if self.favorite_popup.isVisible():
+            self.position_url_favorites()
+
+    def position_url_favorites(self):
+        from popup_sizing import popup_tree_height
+        host = self.favorite_popup.parentWidget()
+        point = self.address_shell.mapTo(host, QPoint(0, self.address_shell.height() + 4))
+        width = min(self.address_shell.width(), max(1, host.width() - 12))
+        x = max(6, min(point.x(), host.width() - width - 6))
+        available = max(60, host.height() - point.y() - 12)
+        rows = (self.favorite_choices.topLevelItem(i)
+                for i in range(self.favorite_choices.topLevelItemCount()))
+        height = popup_tree_height(self.favorite_choices, rows,
+                                   minimum_row_height=34, chrome_height=16,
+                                   available_height=available)
+        self.favorite_popup.setGeometry(x, point.y(), width, height)
+
+    def toggle_url_favorites(self):
+        if self.favorite_popup.isVisible():
+            self.hide_url_favorites()
+            return
+        if not self.url_favorites.urls:
+            return
+        self.populate_url_favorites(selected=self.current_url_for_favorite())
+        self.position_url_favorites()
+        self.favorite_popup.show()
+        self.favorite_popup.raise_()
+        self.favorite_choices.setFocus(Qt.FocusReason.MouseFocusReason)
+
+    def hide_url_favorites(self):
+        self.favorite_popup.hide()
+        self._url_favorite_wheel_delta = 0
+        self._url_favorite_warp_generation += 1
+
+    def url_favorite_clicked(self, item, column):
+        url = item.text(0)
+        if column == 1:
+            try:
+                self.url_favorites.remove(url)
+            except OSError:
+                QMessageBox.warning(self, 'お気に入り', 'URLのお気に入りを削除できませんでした')
+                return
+            self.populate_url_favorites()
+            self.update_url_favorite_button()
+            if not self.url_favorites.urls:
+                self.hide_url_favorites()
+            return
+        self.hide_url_favorites()
+        self.show_url(url)
+
+    def url_favorites_reordered(self, urls):
+        try:
+            if not self.url_favorites.reorder(urls):
+                self.populate_url_favorites()
+        except OSError:
+            QMessageBox.warning(self, 'お気に入り', 'URLお気に入りの並び替えを保存できませんでした')
+            self.populate_url_favorites()
+
+    def eventFilter(self, obj, event):
+        if not hasattr(self, 'favorite_popup'):
+            return super().eventFilter(obj, event)
+        if (self.favorite_popup.isVisible() and
+                event.type() == QEvent.Type.MouseButtonPress and
+                isinstance(obj, QWidget) and obj.window() is self.window() and
+                obj is not self.favorite_dropdown and
+                not self.favorite_dropdown.isAncestorOf(obj) and
+                obj is not self.favorite_popup and
+                not self.favorite_popup.isAncestorOf(obj)):
+            self.hide_url_favorites()
+        if (self.favorite_popup.isVisible() and
+                obj in (self.favorite_choices, self.favorite_choices.viewport()) and
+                event.type() == QEvent.Type.Wheel and
+                event.modifiers() == Qt.KeyboardModifier.NoModifier):
+            tree = self.favorite_choices
+            pending, steps = wheel_steps(self._url_favorite_wheel_delta,
+                                         event.angleDelta().y(), event.pixelDelta().y())
+            self._url_favorite_wheel_delta = pending
+            count = tree.topLevelItemCount()
+            if steps and count:
+                index = history_target_index(tree.indexOfTopLevelItem(tree.currentItem()),
+                                             count, steps)
+                item = tree.topLevelItem(index)
+                tree.setCurrentItem(item)
+                tree.scrollToItem(item, QAbstractItemView.ScrollHint.EnsureVisible)
+                if getattr(self.window(), 'pointer_warp_enabled', False):
+                    origin = QCursor.pos()
+                    self._url_favorite_warp_generation += 1
+                    generation = self._url_favorite_warp_generation
+                    QTimer.singleShot(0, lambda: (
+                        warp_to_history_row(tree, item, origin, QCursor)
+                        if generation == self._url_favorite_warp_generation else None))
+            event.accept()
+            return True
+        if (self.favorite_popup.isVisible() and
+                obj in (self.favorite_choices, self.favorite_choices.viewport()) and
+                event.type() == QEvent.Type.KeyPress):
+            if event.key() == Qt.Key.Key_Escape:
+                self.hide_url_favorites()
+                return True
+            if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                row = self.favorite_choices.currentItem()
+                if row is not None:
+                    self.url_favorite_clicked(row, 0)
+                return True
+        return super().eventFilter(obj, event)
 
     def open_address(self):
         from webview_routes import bookmark_web_url
@@ -865,6 +1080,8 @@ class LaunchWebView(QFrame):
         view.deleteLater()
         if self.tabs.count() == 0:
             self.hint.setText('ブックマークのURLを選ぶと表示されます。HOMEでFilesに戻る')
+        self.address.setText(self.current_view().url().toString() if self.current_view() else '')
+        self.update_url_favorite_button()
         self.update_navigation()
         self.tabs.tabBar()._queue_new_tab_position()
 
@@ -878,6 +1095,9 @@ class LaunchWebView(QFrame):
         hdr = colors['panel_header']
         self._top_right_outline.set_outline_color(border)
         self._refresh_icons(theme)
+        self.favorite_dropdown.setIcon(combo_chevron_icon(theme))
+        self.favorite_popup.setStyleSheet(history_popup_qss(theme, frame_name='launchWebFavoritesPopup',
+                                                    tree_name='launchWebFavoritesChoices'))
         if self._download_popup is not None:
             self._download_popup.apply_colors(colors)
         hover = colors['hover']
@@ -900,10 +1120,16 @@ class LaunchWebView(QFrame):
             QTabBar#launchWebTabBar::tab:hover:!selected {{background:{hover};}}
             QTabBar#launchWebTabBar[remoteWebActive="true"]::tab:selected
                 {{border:2px solid #58ad82;background:{bg};}}
-            QLineEdit#launchWebAddress {{background:{colors['search_bg']};color:{muted};
-                 border:1px solid {colors['search_border']};border-radius:12px;
-                 padding:4px 10px;font-size:12px;}}
-            QLineEdit#launchWebAddress:focus {{border:1px solid {colors['search_focus']};}}
+            QFrame#launchWebAddressShell {{background:{colors['search_bg']};
+                 border:1px solid {colors['search_border']};border-radius:12px;}}
+            QLineEdit#launchWebAddress {{background:transparent;color:{muted};
+                 border:0;padding:2px 5px;font-size:12px;}}
+            QLineEdit#launchWebAddress:focus {{border:0;}}
+            QToolButton#launchWebFavoriteSave,
+            QToolButton#launchWebFavoriteDropdown {{background:transparent;border:0;
+                 padding:0;margin:0;}}
+            QToolButton#launchWebFavoriteSave:hover,
+            QToolButton#launchWebFavoriteDropdown:hover {{background:{hover};border-radius:7px;}}
             QLabel#launchWebHint {{color:{colors['text']};font-size:10px;}}
             QToolButton {{background:{bg};color:{text};border:1px solid {border};border-radius:7px;}}
             QToolButton:hover {{background:{hover};}}

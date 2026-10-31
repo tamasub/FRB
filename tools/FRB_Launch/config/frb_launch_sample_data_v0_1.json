@@ -132,7 +132,7 @@
       "launch_context_url_pattern": "",
       "launch_actions": [
         {
-          "launch_action_type": "SendKey",
+          "launch_action_type": "ClipboardCopy",
           "launch_text": "%yesterday:yyyy/MM/dd%",
           "launch_target": "",
           "launch_program": "",
@@ -166,7 +166,7 @@
       "launch_context_url_pattern": "",
       "launch_actions": [
         {
-          "launch_action_type": "SendKey",
+          "launch_action_type": "ClipboardCopy",
           "launch_text": "%today:yyyy/MM/dd%",
           "launch_target": "",
           "launch_program": "",
@@ -200,7 +200,7 @@
       "launch_context_url_pattern": "",
       "launch_actions": [
         {
-          "launch_action_type": "SendKey",
+          "launch_action_type": "ClipboardCopy",
           "launch_text": "%now:yyyy/M%",
           "launch_target": "",
           "launch_program": "",
@@ -234,7 +234,7 @@
       "launch_context_url_pattern": "",
       "launch_actions": [
         {
-          "launch_action_type": "SendKey",
+          "launch_action_type": "ClipboardCopy",
           "launch_text": "新しいチャットに移行したいので、高密度圧縮した引継ぎmdを作ってください。",
           "launch_target": "",
           "launch_program": "",
@@ -1989,7 +1989,7 @@
       "launch_context_url_pattern": "",
       "launch_actions": [
         {
-          "launch_action_type": "SendKey",
+          "launch_action_type": "ClipboardCopy",
           "launch_text": "USERPROFILE：%USERPROFILE%\nAPPDATA：%APPDATA%\nLOCALAPPDATA：%LOCALAPPDATA%\nTEMP：%TEMP%\nPath：%Path%\nUSERNAME：%USERNAME%\nOneDrive：%OneDrive%\n\n----\n\nstudio_root：%studio_root%\nyesterday：%yesterday:yyyy/MM/dd%",
           "launch_target": "",
           "launch_program": "",
