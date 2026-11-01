@@ -379,6 +379,18 @@ def density_lines_icon(theme):
     return QIcon(pix)
 
 
+class _ReadOnlyMetadataDelegate(QStyledItemDelegate):
+    """Display file properties without allowing Qt to edit their cells.
+
+    QTreeWidgetItem's ItemIsEditable flag applies to the whole row, so the
+    SelectedClicked rename trigger would otherwise make the date, size and
+    file-type columns editable as well as the filename.
+    """
+
+    def createEditor(self, parent, option, index):
+        return None
+
+
 class _InlineRenameDelegate(QStyledItemDelegate):
     """Keep the editor text exactly the same size as its surrounding row."""
 
@@ -1297,8 +1309,11 @@ class ExpandedLauncherView(QWidget):
         tree.setHeaderLabels(['名前', '更新日', 'サイズ', '種類', ''])
         tree.setHeaderHidden(False)
         tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        # Rename is restricted to the filename (column 0). Qt item flags are
+        # row-wide: protect *every* metadata column with a non-editing delegate.
         tree.setItemDelegateForColumn(0, _InlineRenameDelegate(tree))
-        tree.setItemDelegateForColumn(1, QStyledItemDelegate(tree))
+        for metadata_column in (1, 2, 3):
+            tree.setItemDelegateForColumn(metadata_column, _ReadOnlyMetadataDelegate(tree))
         tree.setItemDelegateForColumn(4, _NavigationChevronDelegate(tree, right_inset=15))
         header = tree.header()
         header.setObjectName('expandedMiddleColumnsHeader')
@@ -1919,8 +1934,12 @@ class ExpandedLauncherView(QWidget):
         mode = self._middle_sort_mode
         column = (1 if mode.startswith('date') else 2 if mode.startswith('size')
                   else 3 if mode.startswith('type') else 0)
-        direction = (Qt.SortOrder.DescendingOrder
-                     if mode.endswith('desc') else Qt.SortOrder.AscendingOrder)
+        # Qt's native sort indicator artwork points opposite to the Explorer
+        # convention on this view/style. The rows themselves are sorted by
+        # filter_sort_folder_rows, with QTreeWidget sorting disabled; swap the
+        # indicator order ONLY to show ▲ for ascending and ▼ for descending.
+        direction = (Qt.SortOrder.AscendingOrder
+                     if mode.endswith('desc') else Qt.SortOrder.DescendingOrder)
         self.middle.tree.header().setSortIndicator(column, direction)
 
     def _middle_header_clicked(self, logical_column):

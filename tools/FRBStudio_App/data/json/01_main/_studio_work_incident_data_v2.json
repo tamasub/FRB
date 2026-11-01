@@ -38810,32 +38810,32 @@
       "incident_type": "enhancement",
       "category": "common_core_external_api",
       "priority": "high",
-      "status": "未着手",
-      "follow_up_status": "NOT_STARTED",
-      "verification_status": "計画登録のみ／実装・動作未確認",
+      "status": "確認中",
+      "follow_up_status": "IN_PROGRESS",
+      "verification_status": "Step 1：既存コード静的調査／NodeでService再利用確認／既存テスト14/14 PASS。Step 2・3実装未着手。",
       "context_def_status": "draft",
       "context_def_updated_at": "2026-11-01",
       "owner": "tamasub",
       "ai_owner": "ChatGPT",
       "created_at": "2026-11-01",
       "updated_at": "2026-11-01",
-      "work_summary": "## やりたいこと\n- Studioくんの**外部変更インターフェース**を作る（Launch専用にはしない）。\n- **1件～複数件**のJSONをChangeSetとして受け取り、追加・変更・削除・並べ替えへ拡張できる設計にする。\n- Studio画面と外部呼び出しで**同じバリデーション・保存処理**を再利用する。\n- Launch（Python）から呼べるようにし、利用者にはNode.jsの別途インストールを求めない。\n\n## 進め方\n1. **共通化できる処理を確認**：JSのValidationと.NETの保存処理を棚卸しする。\n2. **ChangeSetの入口を作る**：まず複数件Addで、Expected → Actual → Diff → 保存まで通す。\n3. **Pythonから呼ぶ**：Node.js CLIで実行し、配布・競合・回帰テストを確認する。\n\n**状態：計画登録のみ／実装は未着手。**",
-      "target_files": "- 調査：Studioのバリデーション(JS)と既存保存処理(.NET/NativeShell)\n- 新規候補：ChangeSet契約・共通Core(ES Modules)・Node.js CLI\n- 対象を確定するまで既存コードは改修しない。",
-      "actual_updated_files": "data/json/01_main/_studio_work_incident_data_v2.json",
+      "work_summary": "## 目的\n- Studio画面と外部ChangeSetで共通の検証・Diff・保存保証を利用する。\n- Node.js CLIからPython連携でき、Portを不要とする。\n\n## 2026-11-01 Step 1 結果\n- **既存JS検証のNodeからの再利用を実証**。関連する既存Nodeテスト14/14 PASS。\n- Treeモデル・F12検証・UI保存・Native書込の責務境界を調査。\n- 現行JSON保存は競合検出・原子的置換を保証できないことを確認。\n- ChangeSet v0.1要求・応答を**未承認の設計案**として整理。\n- 詳細：`data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`。\n\n## 次のステップ\n1. Step 2：複数件Add、Expected／Actual／Diff、共通Commit、競合検出と安全保存を実装。\n2. Step 3：Python経由実行、Node同梱、Studio回帰とWindows実機検証。\n\n**状態：Step 1調査完了。Core・CLI・Python連携は未実装。**",
+      "target_files": "## 今回調査\n- `wwwroot/js/services/definition/*`／`wwwroot/js/runtime/tree_model.js`\n- `wwwroot/js/runtime/detail_save.js`／`wwwroot/js/runtime/tree_file_drop.js`\n- `wwwroot/js/core/native_host_bridge.js`\n- `NativeShell/NativeCommandDispatcher.cs`／`NativeShell/WorkspacePolicy.cs`\n- `defs/launch/frb_launch_maintenance_view_def_v0_1.json`\n\n## 今回更新\n- `data/json/01_main/_studio_work_incident_data_v2.json`\n- `data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`\n\n## 次工程候補\n- 共通Core（ES Modules）／Node CLI／UI側同一保証への接続\n- ソース修正はStep 2の契約確認・小範囲実証後に判断。",
+      "actual_updated_files": "- `data/json/01_main/_studio_work_incident_data_v2.json`\n- `data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`\n- 既存アプリコードの変更：なし。",
       "context_def_draft": "## 責務の境界\n- 呼び出し元（Launch等）：操作を受け取り、対象JSONのレコード・更新先・順序を決める。\n- Studio共通Core：ChangeSetを受理し、承認された定義に沿って検証・変更・保存する。\n- Studio画面と外部APIは**同じ保証処理を使う**。UIからの起動操作はCoreに持ち込まない。\n\n## 基本フロー\n- 変更要求 → 制約検証 → Expected → Actual → Diff → 保存結果\n- まず複数件Addで検証。Update／Delete／Moveは同じ契約で段階的に追加する。",
       "objective": "- **JSON変更の保証を一か所に集約**し、Studio画面とPythonから同じ処理を利用できるようにする。",
       "background": "- LaunchのFilesへのDropを起点に、Studioと外部アプリの責務分担を整理した。\n- Studioは「Dropされた事実」を知らなくてよい。外部が作ったCopyJSON相当のレコードと操作情報を受ければよい。\n- 既存のJavaScript検証・.NET保存を移植で二重実装せず、再利用を優先する。",
       "scope": "- **汎用インターフェース**：単一／複数レコードをChangeSetで受ける。\n- **操作種別**：Add／Update／Delete／Moveを契約上表現。初回実装は複数件Addを優先。\n- **対象指定**：データファイル、対象コレクション、追加位置／対象IDを操作情報として渡す。\n- **関連データ**：メイン／明細を含む複数件を将来扱える契約とする。\n- **共通保証**：入力検証、Expected Diff、Actual Diff、想定外の変更検出、競合検出、安全な保存。\n- **全件成否**：1つのChangeSetは原則、全件成功または全件不成立。\n- **Python連携**：Node.js CLI経由、標準入出力でJSON通信、TCP Portなし。\n- **配布**：node.exe同梱を第一候補とし、利用者のNode.js別途インストールを不要にする。",
-      "out_of_scope": "- 今回は**計画登録のみ**。Studio本体・Launchの実装変更は行わない。\n- Launch固有のDrop UIや、業務上のレコード生成ルールをCoreへ埋め込まない。\n- LaunchのメインJSON名変更・メール宛先の別JSON化は別作業で扱う。\n- HTTPサーバー常駐、TCP Port確保、C#全面移植、最初から全操作完成は対象外。",
+      "out_of_scope": "## 今回のStep 1で行わないこと\n- Core／CLI／Launchのソース実装・保存方式変更。\n- Update／Delete／Moveの実装。\n- Launch固有のDrop UI・レコード生成・設定名変更。\n- HTTP常駐、C#全面移植、無関係な既存Launchロジックの整理。\n- Node同梱・Windows実機での配布検証（Step 3）。",
       "fixed_name_policy": "- Coreに `page_id=work`、`parent_item_id=folders` 等のLaunch固有値を埋め込まない。\n- 対象データ・キー項目・関連フィールドは要求と定義から解決する。\n- 重複パス禁止など、現在のLaunchにない制約を勝手に追加しない。",
       "module_policy": "- **JavaScript ES Modulesを第一候補**。ブラウザDOM依存ロジックは切り離す。\n- **.NET保存処理を調査**し、Studio画面とCLIが同じ検証・保存経路を共有できる設計にする。\n- Python側は `subprocess` からCLIを呼び、JSON要求／結果だけ扱う。\n- 具体的なCoreと保存アダプターの境界はStep 1で決める。",
       "expected_outputs": "- 既存の検証／保存責務の一覧と、共通化できる境界の設計。\n- ChangeSet要求・応答のJSON契約と、複数件Addの最小実装。\n- Expected／Actual／Diff／保存結果を返す動作確認。\n- Python → CLIのサンプル・自動テスト・Node同梱の配布確認。",
       "risk": "- 現行の検証がDOM依存なら、Node.jsからそのまま呼べない。\n- 現行の保存処理が.NET側なら、Node CLIとの接続方式を先に確認する。\n- ExpectedとActualが同じ実装を無条件に再利用すると誤りを見逃す。\n- 並べ替えでは既存行のsort_orderが変わるため、許可する差分を明示する。\n- 同時編集による上書き、複数件途中失敗、Node同梱ライセンス・更新を確認する。",
       "test_points": "## 受入条件（実装時に確認）\n- **共通化**：Studio画面と外部APIが同じバリデーション／保存処理を利用する。\n- **複数件**：複数レコードAddが1 ChangeSetで保存できる。\n- **原子性**：途中で1件失敗したら、変更セット全体を保存しない。\n- **差分**：Expected DiffとActual Diffが一致しない場合は保存しない。\n- **競合**：Studio編集途中や外部更新と競合したら既存データを壊さない。\n- **業務非依存**：Launch固有のID・パス重複禁止をCoreに埋め込まない。\n- **Python／配布**：別途Node.jsインストール不要・Port不要で利用できる。\n- **回帰**：Studio既存の編集・検証・保存操作を壊さない。",
-      "verification_log": "- 2026-11-01：添付ZIP内のインシデント管理JSON／入力Schema／foundation_rule_019を確認し、計画のみ登録。\n- 変更対象はインシデント管理JSONのみ。Core／CLI／Launchは未実装・未検証。",
+      "verification_log": "- 2026-11-01：添付ZIP内のインシデント管理JSON／入力Schema／foundation_rule_019を確認し、計画のみ登録。\n- 変更対象はインシデント管理JSONのみ。Core／CLI／Launchは未実装・未検証。\n- 2026-11-01 Step 1：添付`FRBStudio_App20261101_185136.zip`の既存JS検証・Tree・保存・NativeShellパス制御を静的確認。\n- 2026-11-01 Step 1：Node.js v22.16.0上で既存FieldContractResolver／DefinitionValueValidator／RuntimeFieldDefinitionValidationServiceの順序付きdynamic importに成功。既存Field Definitionの欠損値を`REJECT / REQUIRED_MISSING`と判定。\n- 2026-11-01 Step 1：`node --test tests/tree/tree_model.test.cjs tests/definition/cross_field_definition_test.test.mjs` → 14 PASS / 0 FAIL。\n- 2026-11-01 Step 1：ChangeSet実装／Expected–Actual検証／原子的保存／競合テスト／dotnet build／Windows実機テストは未実施。\n- 2026-11-01 Step 1：`data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`に契約**案**と未決事項を記載。承認済み仕様・実装完了とは扱わない。",
       "user_request": "「では、計画をインシデント登録お願してもよい？前もいったけど、いつもインシデント登録してくれる文章が長い文章で分かりにくいから、いつもチャットで回答してくれるような感じでマークダウン書式使って、箇条書き中心のわかりやすい文章でお願します💦」",
       "ai_response": "## 登録内容\n- `studio_work_0269`：Studio共通Change Core／外部ChangeSet受入とPython連携。\n- **計画は3ステップ**：既存処理調査 → 複数件Addと共通保証 → Python CLI・配布・回帰テスト。\n- **今回の実装はなし**。インシデントだけ追加。",
-      "latest_ai_response": "## 計画登録：studio_work_0269\n- **目的**：Studio画面と外部アプリが同一のJSON変更・検証・保存処理を利用。\n- **入力**：単一／複数レコードのChangeSet。操作はAdd／Update／Delete／Moveへ拡張。\n- **初回**：複数件Add、Expected → Actual → Diff、全件成功または全件不成立。\n- **連携**：Python → Node.js CLI。Port不要、Node.js別途インストール不要の配布を目標。\n- **計画3ステップ**：①既存処理調査 ②ChangeSet＋共通Core ③Python連携＋回帰・配布テスト。\n- **状態**：未着手。今回の変更はインシデント管理JSONだけ。",
+      "latest_ai_response": "## Step 1 結果：調査・契約案\n- **既存JS検証の再利用可能性**：Node.jsで実行確認。既存テスト14/14 PASS。\n- **UI側**：F12はField Definition検証後にDataへ反映。通常保存はJSON全体POST。\n- **NativeShell側**：現行のJSON保存は`File.WriteAllText`。CAS・原子的置換は未確認／非対応。\n- **契約案**：ChangeSet複数Add、対象ViewDef／Grid、汎用配置、基準SHA-256、Expected／Actual／Unexpected Diff、競合時保存禁止。\n- **未決**：Studio外のLaunchデータ許可方法、共通Commit境界、UI既存保存の切替方法、揮発ID・順序Diffの規則。\n- **更新ファイル**：インシデント管理JSON＋`data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`。\n- **未実施**：Core／CLI実装、Python連携、共通保存、Windows実機。\n- **次**：Step 2で小範囲から複数件Add・安全保存を実証。",
       "latest_user_comment": "「では、計画をインシデント登録お願してもよい？前もいったけど、いつもインシデント登録してくれる文章が長い文章で分かりにくいから、いつもチャットで回答してくれるような感じでマークダウン書式使って、箇条書き中心のわかりやすい文章でお願します💦」",
       "context_refs": [],
       "follow_up_actions": [
@@ -38843,10 +38843,10 @@
           "action_id": "followup_0269_001",
           "action_type": "OTHER",
           "required": true,
-          "status": "NOT_STARTED",
+          "status": "COMPLETED",
           "related_ids": [],
           "action": "Step 1：既存バリデーション／保存の実体と共通Core境界を調査し、ChangeSet契約を確定する。",
-          "note": "UIとCLIで同じ処理を再利用できることを優先。JS／.NET境界は調査後に決定。"
+          "note": "Step 1の静的棚卸しとNode再利用確認完了。契約案は未承認。保存境界に関する課題はStep 2前の確認事項として残る。`data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`参照。"
         },
         {
           "action_id": "followup_0269_002",
@@ -38855,7 +38855,7 @@
           "status": "NOT_STARTED",
           "related_ids": [],
           "action": "Step 2：複数件AddのChangeSet APIを作り、Expected／Actual／Diffと一括保存を検証する。",
-          "note": "Update／Delete／Moveは契約に載せ、実装は段階追加。"
+          "note": "未着手。まず契約・保存の共通化方針（UI/CLI、Node/.NET境界、Studio外ファイル許可）を確定し、複数Addの最小実装を進める。"
         },
         {
           "action_id": "followup_0269_003",
@@ -38909,6 +38909,13 @@
           "speaker": "assistant",
           "topic": "計画登録",
           "message": "## 登録した計画\n- 既存のバリデーションと保存処理の共通化を優先。\n- まず複数件AddでChangeSet入口を成立させる。\n- PythonからNode.js CLIを呼ぶ。Port不要・Node.js別途インストール不要の配布を目標とする。\n- 変更結果はExpected／Actual／Diffで検証する。\n- 今回はインシデント登録のみ。"
+        },
+        {
+          "history_id": "disc_0269_007",
+          "at": "2026-11-01",
+          "speaker": "assistant",
+          "topic": "Step 1：調査・契約案の完了報告",
+          "message": "## Step 1 結果：調査・契約案\n- **既存JS検証の再利用可能性**：Node.jsで実行確認。既存テスト14/14 PASS。\n- **UI側**：F12はField Definition検証後にDataへ反映。通常保存はJSON全体POST。\n- **NativeShell側**：現行のJSON保存は`File.WriteAllText`。CAS・原子的置換は未確認／非対応。\n- **契約案**：ChangeSet複数Add、対象ViewDef／Grid、汎用配置、基準SHA-256、Expected／Actual／Unexpected Diff、競合時保存禁止。\n- **未決**：Studio外のLaunchデータ許可方法、共通Commit境界、UI既存保存の切替方法、揮発ID・順序Diffの規則。\n- **更新ファイル**：インシデント管理JSON＋`data/markdown/STUDIO_CHANGE_CORE_STEP1_0269.md`。\n- **未実施**：Core／CLI実装、Python連携、共通保存、Windows実機。\n- **次**：Step 2で小範囲から複数件Add・安全保存を実証。"
         }
       ],
       "decision_log": [
@@ -38942,6 +38949,14 @@
           "decision": "JavaScript ES Modules＋Node.js CLIを第一候補とし、Port不要・Node.js別途インストール不要を目指す。",
           "reason": "既存JSの検証ロジックを活かし、Pythonから呼べる構成にするため。",
           "conditions": "既存.NET保存処理との共通化可否はStep 1で確認し、方式を確定する。"
+        },
+        {
+          "decision_id": "dec_0269_006",
+          "at": "2026-11-01",
+          "decision": "【Step 1提案・未承認】document_ref・baseline SHA-256・汎用placement・単一文書ChangeSetをv0.1契約候補とする。",
+          "reason": "既存のTree ViewDefを活用し、Launch固有値を埋め込まず、現状の保存競合リスクに対応するため。",
+          "conditions": "Step 2着手前に保存アダプター・Studio UI同一保証の接続法と外部ファイル許可方式を確定する。",
+          "remaining_risks": "現行UIは従来POST経路のままであり、共通Coreを追加しただけでは保証が揃わない。変更時は回帰確認が必要。"
         }
       ],
       "change_history": [
@@ -38952,6 +38967,14 @@
           "before": "外部ChangeSet受入・共通検証保存・Python連携は会話中の構想で、個別計画未登録。",
           "after": "studio_work_0269として、3ステップ計画と受入条件をMarkdown中心で登録（実装未着手）。",
           "reason": "次の実装時に共通の責務境界を確認し、段階的に進められるようにするため。"
+        },
+        {
+          "history_id": "chg_0269_002",
+          "at": "2026-11-01",
+          "change_type": "step1_investigation_contract_draft",
+          "before": "Step 1未着手。既存JS・.NET境界、ChangeSet契約、共通保存条件は未調査。",
+          "after": "Step 1の既存責務棚卸し・Node実証・契約案を記録。新設計文書を追加。アプリ本体変更なし。",
+          "reason": "承認された判断軸を維持し、既存保証の不足（競合検出・原子的保存）を実装前に明らかにするため。"
         }
       ],
       "failure_stories": []
