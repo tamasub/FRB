@@ -507,8 +507,15 @@ namespace FRBStudio.NativeShell
                 if (!IsAllowedSource(e.Source)) return;
                 // UI-only profile message from the trusted Studio origin; never forward
                 // to the file/command dispatcher or synthesize a bridge response.
-                var message = new JavaScriptSerializer().DeserializeObject(e.WebMessageAsJson)
-                    as Dictionary<string, object>;
+                // studio_work_0269: UI-only messages are tiny. Do not deserialize large
+                // file.writeText/CAS payloads with JavaScriptSerializer's 2 MiB default
+                // MaxJsonLength here: that exception previously swallowed the reply,
+                // leaving the browser waiting until NATIVE_TIMEOUT. The dispatcher
+                // handles full-size commands with MaxJsonLength = int.MaxValue.
+                var rawMessage = e.WebMessageAsJson;
+                var message = rawMessage.Length <= 32768
+                    ? new JavaScriptSerializer().DeserializeObject(rawMessage) as Dictionary<string, object>
+                    : null;
                 // Ctrl+Q from the trusted Studio main page closes this WinForms form
                 // through the same Close() / OnFormClosing path as the title-bar X.
                 // The page checks the unsaved guard before sending this request.
@@ -545,7 +552,7 @@ namespace FRBStudio.NativeShell
                     ApplyNativePresentation(get("preset"), get("theme"), get("shell"));
                     return;
                 }
-                var responseJson = await _dispatcher.DispatchAsync(e.WebMessageAsJson, e.AdditionalObjects);
+                var responseJson = await _dispatcher.DispatchAsync(rawMessage, e.AdditionalObjects);
                 _webView.CoreWebView2.PostWebMessageAsJson(responseJson);
                 _status.Text = "Native Bridge: message processed / App Root: " + _workspace.RootPath;
             }

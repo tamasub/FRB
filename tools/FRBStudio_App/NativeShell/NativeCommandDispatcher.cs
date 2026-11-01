@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Web.Script.Serialization;
@@ -240,6 +241,9 @@ namespace FRBStudio.NativeShell
 
                 case "file.writeText":
                     return WriteText(payload);
+
+                case "file.writeTextCas":
+                    return WriteTextCas(payload);
 
                 case "dialog.openText":
                     return OpenTextDialog(payload);
@@ -835,13 +839,102 @@ namespace FRBStudio.NativeShell
             var full = _workspace.ResolveRelativePath(path);
             if (!File.Exists(full)) throw new FileNotFoundException("File not found.", full);
 
+            // Hash and decoded content MUST come from the same snapshot.
+            var bytes = File.ReadAllBytes(full);
+            string content;
+            using (var memory = new MemoryStream(bytes, writable: false))
+            using (var reader = new StreamReader(memory, new UTF8Encoding(false, true), true))
+                content = reader.ReadToEnd(); // preserves original BOM detection
             return new Dictionary<string, object>
             {
                 ["path"] = path.Replace('\\', '/'),
-                ["content"] = File.ReadAllText(full, new UTF8Encoding(false, true)),
-                ["size"] = new FileInfo(full).Length,
+                ["content"] = content,
+                ["sha256"] = ComputeSha256(bytes),
+                ["size"] = bytes.Length,
                 ["last_write_time_utc"] = File.GetLastWriteTimeUtc(full).ToString("o")
             };
+        }
+
+        private static string ComputeSha256(byte[] bytes)
+        {
+            using (var sha = SHA256.Create())
+                return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+        }
+
+        // The lock name, raw-byte SHA and same-directory replace match the external
+        // Change Core storage protocol. This API is for an ALREADY-EXISTING JSON
+        // document loaded from the Studio UI; no arbitrary file creation is allowed.
+        private object WriteTextCas(IDictionary<string, object> payload)
+        {
+            var relative = RequiredString(payload, "path").Replace('\\', '/');
+            if (!(relative.StartsWith("data/json/", StringComparison.OrdinalIgnoreCase) ||
+                  relative.StartsWith("fielddefs/", StringComparison.OrdinalIgnoreCase)) ||
+                !relative.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ||
+                relative.Split('/').Any(part => part == "." || part == ".."))
+                throw new InvalidOperationException("CAS_PATH_DENIED: Only data/json/*.json and fielddefs/*.json are supported.");
+            var expected = RequiredString(payload, "expected_sha256");
+            if (!Regex.IsMatch(expected, "^[a-f0-9]{64}$"))
+                throw new InvalidDataException("BASE_SHA_REQUIRED: expected_sha256 is required.");
+            var full = _workspace.ResolveWritablePath(relative, _config.WritableRoots, _config.WritableFiles, allowMissingLeaf: false);
+            if (!File.Exists(full)) throw new FileNotFoundException("CAS document not found.", full);
+            var content = RequiredString(payload, "content");
+            if (!(_serializer.DeserializeObject(content) is IDictionary<string, object>))
+                throw new InvalidDataException("CAS JSON must contain a top-level object.");
+
+            var lockPath = full + ".studio-changeset.lock";
+            var tempPath = string.Empty;
+            FileStream lockStream;
+            try
+            {
+                lockStream = new FileStream(lockPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException ex)
+            {
+                if (File.Exists(lockPath)) throw new IOException("LOCKED: Another Studio ChangeSet writer holds the lock.", ex);
+                throw;
+            }
+            try
+            {
+                using (lockStream)
+                {
+                try
+                {
+                    if (!string.Equals(ComputeSha256(File.ReadAllBytes(full)), expected, StringComparison.Ordinal))
+                        throw new InvalidOperationException("CONFLICT: The JSON file has changed since loading.");
+                    tempPath = Path.Combine(Path.GetDirectoryName(full), "." + Path.GetFileName(full) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                    var output = new UTF8Encoding(false);
+                    var encoded = output.GetBytes(content);
+                    using (var tmp = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    {
+                        tmp.Write(encoded, 0, encoded.Length);
+                        tmp.Flush(true);
+                    }
+                    // Minimize the window for a non-cooperating external editor.
+                    if (!string.Equals(ComputeSha256(File.ReadAllBytes(full)), expected, StringComparison.Ordinal))
+                        throw new InvalidOperationException("CONFLICT: JSON changed before replace.");
+                    // Windows NTFS: File.Replace preserves the original until replacement;
+                    // open handles/share violations cause failure without partial overwrite.
+                    File.Replace(tempPath, full, null, true);
+                    tempPath = string.Empty;
+                    return new Dictionary<string, object>
+                    {
+                        ["saved"] = relative,
+                        ["sha256"] = ComputeSha256(encoded),
+                        ["size"] = encoded.Length
+                    };
+                }
+                finally
+                {
+                    if (tempPath.Length > 0 && File.Exists(tempPath)) File.Delete(tempPath);
+                }
+                }
+            }
+            finally
+            {
+                // Only delete our lock after releasing the exclusive handle.
+                // An expired lock from another writer is never removed by this method.
+                if (File.Exists(lockPath)) File.Delete(lockPath);
+            }
         }
 
         private object WriteText(IDictionary<string, object> payload)

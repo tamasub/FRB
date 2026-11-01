@@ -36,6 +36,9 @@
   const PROTOCOL_VERSION = '1.0';
   const pending = new Map();
   let requestSequence = 0;
+  // NativeShell snapshots: raw-file SHA from the exact GET response.
+  // They live in memory and are cleared only by a new GET or successful CAS save.
+  const dataFileBaselines = new Map();
   const originalFetch = global.fetch.bind(global);
 
   function nextRequestId() {
@@ -487,6 +490,7 @@
         if (method === 'GET') {
           const result = await invoke('file.readText', { path: workspacePath });
           const raw = result?.content ?? '';
+          if (typeof result?.sha256 === 'string') dataFileBaselines.set(workspacePath, result.sha256);
           // SQLite rows are projected into memory; the DataJSON on disk stays a connection definition.
           if (JSON.parse(raw)?.data_source?.type === 'sqlite') {
             const loaded = await invoke('sqlite.documentLoad', { document_path: workspacePath }, { timeoutMs: 120000 });
@@ -503,8 +507,15 @@
             const saved = await invoke('sqlite.documentSave', { document_path: workspacePath, content: JSON.stringify(body) }, { timeoutMs: 120000 });
             return jsonResponse(saved);
           }
-          await invoke('file.writeText', { path: workspacePath, content: prettyJson(body), create_directories: true });
-          return jsonResponse({ saved: relative });
+          const expectedSha = dataFileBaselines.get(workspacePath);
+          if (!expectedSha) return errorResponse(409, 'BASE_SHA_REQUIRED', '保存基準がありません。JSONを再読み込みしてください。');
+          const saved = await invoke('file.writeTextCas', {
+            path: workspacePath,
+            content: prettyJson(body),
+            expected_sha256: expectedSha
+          }, { timeoutMs: 120000 });
+          dataFileBaselines.set(workspacePath, saved.sha256);
+          return jsonResponse({ saved: relative, sha256: saved.sha256 });
         }
       }
 
@@ -618,8 +629,10 @@
 
       return errorResponse(404, 'NATIVE_API_NOT_MAPPED', `${method} ${path} is not mapped by Native Shell Phase A.`);
     } catch (error) {
-      const status = error?.code === 'WORKSPACE_PATH_DENIED' ? 403 : 500;
-      return errorResponse(status, String(error?.code ?? 'NATIVE_BRIDGE_ERROR'), String(error?.message ?? error), error?.details);
+      const nativeMessage = String(error?.message ?? error);
+      const status = /^(CONFLICT|LOCKED|BASE_SHA_REQUIRED):/.test(nativeMessage) ? 409 :
+        error?.code === 'WORKSPACE_PATH_DENIED' ? 403 : 500;
+      return errorResponse(status, String(error?.code ?? 'NATIVE_BRIDGE_ERROR'), nativeMessage, error?.details);
     }
   }
 

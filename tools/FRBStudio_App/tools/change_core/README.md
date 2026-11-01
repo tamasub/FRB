@@ -54,3 +54,38 @@ node --test tests/change_core/change_core.test.mjs tests/tree/tree_model.test.cj
 ```
 
 See `data/markdown/STUDIO_CHANGE_CORE_STEP2_0269.md` for acceptance evidence and remaining work.
+
+## Step 3 / NativeShell integration (2026-11-01)
+
+- The NativeShell main `/api/data/{name}.json` save path now uses `file.writeTextCas` (including `fielddefs/` paths). It shares the **lock filename**, raw-byte SHA-256 precondition, and same-directory replacement approach with the external CLI.
+- The Studio UI sends the SHA returned by `file.readText` on the initial GET; a changed file yields HTTP 409 and does not overwrite the other writer. **Reload/reconcile before retrying**.
+- A 3.9 MB incident document previously failed in `NativeShellForm.OnWebMessageReceived`: the preliminary `new JavaScriptSerializer()` had the default ~2 MB limit, and the caught exception left no browser response. Large native messages now bypass the preliminary UI-control-message decode and reach the existing large-capacity dispatcher.
+- **Important limitation**: UI full-document save and CLI `add` use different validation/Expected-diff implementations. They now coordinate storage via the shared lock/CAS **protocol**, but they do **not yet share all validation/Expected-diff Core code**. Other save routes (`/api/defs`, Markdown, startup document, etc.) remain on their prior implementation.
+- Windows `File.Replace` and the Node `fs.rename` path are not yet proven equivalent under all Windows external-editor sharing modes. A real Windows NativeShell integration run is still mandatory.
+
+### Python client (no Port)
+
+```python
+from tools.change_core.python_client import run_changeset, file_sha256
+
+# document_path must come from trusted configuration, not an arbitrary request path.
+request['base_sha256'] = file_sha256(document_path)  # at initial read, BEFORE edits
+result = run_changeset(request, node_executable=r'portable\node.exe',
+                       cli_path=r'portable\tools\change_core\cli.mjs',
+                       config_path=r'approved_config.json')
+if result['status'] != 'COMMITTED':
+    print(result['status'], result['errors'])  # do not assume success
+```
+
+### Windows portable builder (requires valid Node distribution)
+
+```powershell
+powershell -File tools/change_core/prepare_portable.ps1 `
+  -NodeExecutable C:\trusted-node\node.exe `
+  -NodeLicenseFile C:\trusted-node\LICENSE `
+  -Destination C:\build\change-core-portable
+```
+
+- The script copies only the CLI's needed application support files plus the user-provided executable and license. It **does not download**, verify, or license Node automatically; verify provenance and license before distribution.
+- Output is a standalone **CLI folder**, not a Windows executable built or tested by this task. A separate Node install/PATH entry is not needed for a correctly assembled folder.
+- No `node.exe` is included in the returned source patch. Test on Windows 11 with actual NativeShell + deployed binary before claiming the packaging acceptance condition.
