@@ -328,7 +328,8 @@
               "visibleWhen": {
                 "field": "item_kind",
                 "equals": "directory"
-              }
+              },
+              "width": 523
             },
             {
               "field": "launch_context_app",

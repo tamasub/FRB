@@ -1013,8 +1013,34 @@ class CascadeMenu(OrderDragMixin,QMenu):
         layout.setSpacing(5)
         search_row = QHBoxLayout() if bookmark_root else layout
         if bookmark_root:
-            search_row.setSpacing(5)
-        glyph = QLabel('⌕', container)
+            # The empty match counter still occupies two layout gaps before
+            # the editor. Tighten only this row: move the editor's left edge
+            # ~8px left while retaining the right-edge alignment with the
+            # New tab / Current tab buttons and the centered 22px icon.
+            search_row.setSpacing(1)
+        if bookmark_root:
+            # A proper magnifier rather than the tiny platform-font '⌕'.
+            # Draw at 3x for crisp Windows / high-DPI rendering, then center
+            # its 20px canvas in the 22px-wide whitespace left of the editor.
+            icon_canvas = QPixmap(60, 60)
+            icon_canvas.setDevicePixelRatio(3)
+            icon_canvas.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(icon_canvas)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            color = '#648071' if theme_family(getattr(self.launcher, 'color_theme', 'light')) == 'light' else '#9fb9d5'
+            outline = QPen(QColor(color), 1.6)
+            outline.setCapStyle(Qt.PenCapStyle.RoundCap)
+            painter.setPen(outline)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QRectF(2.8, 2.8, 10.5, 10.5))
+            painter.drawLine(QPointF(12.2, 12.2), QPointF(17.3, 17.3))
+            painter.end()
+            glyph = QLabel(container)
+            glyph.setPixmap(icon_canvas)
+            glyph.setFixedSize(22, 30)
+            glyph.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        else:
+            glyph = QLabel('⌕', container)
         search_row.addWidget(glyph)
         self.filter_edit = QLineEdit(container)
         self.filter_edit.setPlaceholderText('この列から探す…')
@@ -1047,7 +1073,15 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self._update_paste_button()
             search_row.addWidget(self.paste_button)
         self.filter_count = QLabel('', container)
-        search_row.addWidget(self.filter_count)
+        if bookmark_root:
+            # The match counter used to sit AFTER the search edit. Even when
+            # empty, Qt reserves two layout spacings on that side, leaving the
+            # edit's right edge ~10px short of the tab-choice buttons below.
+            # Place it before the edit instead: both right edges now share
+            # the container's exact same right margin, with counts retained.
+            search_row.insertWidget(1, self.filter_count)
+        else:
+            search_row.addWidget(self.filter_count)
         if bookmark_root:
             layout.addLayout(search_row)
             # Use full-width segmented choices instead of native radio dots.
@@ -1112,7 +1146,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
             button.setStyleSheet(
                 'QPushButton#remoteBookmarkTabChoice {'
                 f'background:{selected_bg if chosen else idle_bg};'
-                f'border:2px solid {selected_border if chosen else idle_border};'
+                f'border:1px solid {selected_border if chosen else idle_border};'
                 f'color:{selected_fg if chosen else idle_fg};'
                 f'font-weight:{"bold" if chosen else "normal"};'
                 'border-radius:6px;padding:1px 2px;font-size:12px;}'
@@ -6269,6 +6303,11 @@ class Launcher(QWidget):
         url = bookmark_web_url(row)
         if not url:
             return False
+        # A bookmark picked in a nested cascade must honor the same choice
+        # as a direct click in the left Bookmarks pane. Remote Browser's own
+        # popup destination is handled separately in run_menu_item().
+        if getattr(self.expanded_view, 'bookmark_new_tab', False):
+            return self.expanded_view.show_web_url(url, new_tab=True)
         return self.expanded_view.show_web_url(url)
 
     def navigate_home(self):
@@ -6808,9 +6847,9 @@ class Launcher(QWidget):
                                       review_deleted=True)
 
     def run_menu_item(self, row):
-        # Only URLs launched from Remote > Browser right-click honor the
-        # first-column tab destination. The normal Bookmarks pane and all
-        # other cascades retain their established activation semantics.
+        # Remote > Browser right-click uses its own tab destination, while
+        # the normal Bookmarks pane has an independent destination selector.
+        # Other cascades retain their established activation semantics.
         root = getattr(self, 'menu', None)
         if (getattr(root, 'remote_browser_bookmark_roots', False)
                 and self.webview_settings.get('mode') == 'embedded'):

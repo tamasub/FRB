@@ -1125,6 +1125,9 @@ class ExpandedLauncherView(QWidget):
             '0', 'false', 'no', 'off')
         self.files_mode_tab = None
         self.browser_mode_tab = None
+        # Normal Bookmarks has its OWN tab destination; Remote's compact
+        # Browser popup keeps its existing independent selector.
+        self.bookmark_new_tab = True
         self._browser_empty_page = None
         self._browser_empty_bookmark_button = None
         self.path = []
@@ -1402,6 +1405,35 @@ class ExpandedLauncherView(QWidget):
         self.bookmark_close_button.clicked.connect(self.hide_browser_bookmarks)
         # Header normally has an invisible Back button at its end.
         self.right.header.layout().insertWidget(2, self.bookmark_close_button)
+        # Match Remote > Browser's two explicit URL destinations.  Put the
+        # choices BELOW the bookmark heading so the narrow pane retains its
+        # title and close icon; do not add items to the bookmark tree itself.
+        self.bookmark_tab_target_bar = QWidget(self.right)
+        self.bookmark_tab_target_bar.setObjectName('expandedBookmarkTabTargetBar')
+        target_row = QHBoxLayout(self.bookmark_tab_target_bar)
+        target_row.setContentsMargins(9, 5, 9, 5)
+        target_row.setSpacing(4)
+        self.bookmark_new_tab_button = QPushButton('新規タブ', self.bookmark_tab_target_bar)
+        self.bookmark_current_tab_button = QPushButton('カレントタブ', self.bookmark_tab_target_bar)
+        for button in (self.bookmark_new_tab_button, self.bookmark_current_tab_button):
+            button.setObjectName('expandedBookmarkTabChoice')
+            button.setCheckable(True)
+            button.setFixedHeight(28)
+            button.setMinimumWidth(0)
+            button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.bookmark_new_tab_button.clicked.connect(
+            lambda _checked=False: self.select_bookmark_tab(True))
+        self.bookmark_current_tab_button.clicked.connect(
+            lambda _checked=False: self.select_bookmark_tab(False))
+        target_row.addWidget(self.bookmark_new_tab_button, 1)
+        target_row.addWidget(self.bookmark_current_tab_button, 1)
+        self.right.layout_box.insertWidget(1, self.bookmark_tab_target_bar)
+        # External browsers own their tab rules: a misleading selector must
+        # not appear when Launch is configured to open URLs externally.
+        self.bookmark_tab_target_bar.setVisible(
+            self.launcher.webview_settings.get('mode') == 'embedded')
+        self.select_bookmark_tab(True)  # Same initial target as Remote Browser.
         # Bookmarks first level is also a wheel-driven selector.  Only the
         # tree/viewport are hooked: scrollbar dragging and deeper tool
         # columns continue to use their original native behavior.
@@ -1475,6 +1507,20 @@ class ExpandedLauncherView(QWidget):
                 self.context_menu(pane, point))
         self.apply_theme('light')
         self.show_files_view()  # No Bookmarks column in the Files workspace.
+
+    def select_bookmark_tab(self, new_tab):
+        """Select the destination for direct and nested bookmark clicks.
+
+        This is a view-only choice, not a change to Launch's JSON data.
+        Do not steal keyboard/Remote focus from the bookmark tree.
+        """
+        self.bookmark_new_tab = bool(new_tab)
+        for button, label, selected in (
+                (self.bookmark_new_tab_button, '新規タブ', self.bookmark_new_tab),
+                (self.bookmark_current_tab_button, 'カレントタブ', not self.bookmark_new_tab)):
+            button.setChecked(selected)
+            button.setText(('✓ ' if selected else '') + label)
+            button.setToolTip(('選択中：' if selected else '切り替える：') + label)
 
     def update_root_toolbar_height(self, minimum=0, maximum=0):
         """Keep buttons visible when narrow widths require a scrollbar.
@@ -1628,6 +1674,19 @@ class ExpandedLauncherView(QWidget):
             QToolButton#expandedBookmarkClose {{background:transparent;border:0;
                 border-radius:7px;margin:0;padding:0;}}
             QToolButton#expandedBookmarkClose:hover {{background:{hover};}}
+            QWidget#expandedBookmarkTabTargetBar {{background:{hdr};border:0;
+                border-bottom:1px solid {border};}}
+            QPushButton#expandedBookmarkTabChoice {{
+                background:{'#f8fcfa' if light else '#263a35'};
+                border:1px solid {'#b6cfc1' if light else '#537468'};
+                color:{'#3d6253' if light else '#b7cec3'};
+                border-radius:6px;padding:1px 2px;font-size:12px;}}
+            QPushButton#expandedBookmarkTabChoice:checked {{
+                background:{'#d6e7f8' if light else '#345d7a'};
+                border:1px solid {'#548fc8' if light else '#83bce4'};
+                color:{'#173e60' if light else '#f1f8ff'};font-weight:bold;}}
+            QPushButton#expandedBookmarkTabChoice:hover {{
+                border-color:{'#548fc8' if light else '#83bce4'};}}
             QToolButton#expandedExternalShowBookmarks {{background:{bg};color:{text};
                 border:1px solid {border};border-radius:7px;padding:0;}}
             QToolButton#expandedExternalShowBookmarks:hover {{background:{hover};}}
@@ -3963,7 +4022,7 @@ class ExpandedLauncherView(QWidget):
         return True
 
     def show_web_url(self, url, *, new_tab=False):
-        """Open a bookmark in Browser; Remote may explicitly request a new tab."""
+        """Open a bookmark in Browser using the requested tab destination."""
         if self.launcher.webview_settings.get('mode') != 'embedded':
             return False
         if not self._ensure_web_view():
@@ -4016,7 +4075,12 @@ class ExpandedLauncherView(QWidget):
         url = bookmark_web_url(row)
         if url and self.is_bookmark_row(row):
             self._web_selection_timer.stop()
-            if not self.show_web_url(url):
+            # Keep legacy current-tab call shape for existing integrations;
+            # new-tab selection explicitly asks the WebView for another tab.
+            opened = (self.show_web_url(url, new_tab=True)
+                      if getattr(self, 'bookmark_new_tab', False)
+                      else self.show_web_url(url))
+            if not opened:
                 # Do not route through activate()/execute() again: that would
                 # retry the failed WebEngine import and show the same error twice.
                 step = row['launch_actions'][0]

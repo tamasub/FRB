@@ -6,13 +6,13 @@
   "target": "FRB Studio / JSON Object Studio / FRBStudio App 改修計画",
   "status": "active",
   "created_at": "2026-06-21",
-  "updated_at": "2026-10-23",
+  "updated_at": "2026-11-01",
   "owner": "tamasub",
   "ai_partner": "ChatGPT",
   "purpose": "Studioくん本体改修に関する重要な修正依頼・方針・会話履歴を作業項目ごとに残す。承認ワークフローではなく、インシデント管理・作業項目管理・会話履歴管理を目的とする。",
   "operation_policy": "重要な修正依頼は作業項目として登録する。仕様変更・方針変更・実装方針の会話は discussion_history / decision_log / change_history に残す。作業項目ごとの会話履歴を残し、未来の人間とAIが経緯を追体験できるようにする。インシデントから派生する制約追加・TestPattern追加・Expected定義・回帰テスト追加等はfollow_up_actionsで管理し、親Grid検索用のfollow_up_statusへ代表状態を同期する。",
   "standard_field_policy": "Runtime内のData固定名は原則NG。ただし、Studio標準メタフィールドとして憲法・仕様に明記されたものは使用可能。例: created_at, updated_at, deleted, is_deleted, created_by, updated_by などは、標準メタフィールドとして定義すれば使用可。 インシデント標準項目として follow_up_status / follow_up_actions を使用する。follow_up_statusは検索用の代表状態、follow_up_actionsは個別後続作業を保持する。既存データで要否未評価の場合はUNASSESSEDとし、NOT_REQUIREDへ推測移行しない。",
-  "items_count": 256,
+  "items_count": 257,
   "full_dataset_info": {
     "dataset_type": "full_incident_dataset",
     "generated_at": "2026-07-26",
@@ -38802,6 +38802,159 @@
           "article_hook": "Launch式のキー操作がStudio全体のEnter処理に止められた日 — イベント伝播順の落とし穴"
         }
       ]
+    },
+    {
+      "work_item_id": "studio_work_0269",
+      "phase": "studio-external-changeset-core-v0_1",
+      "title": "Studio共通Change Core／外部ChangeSet受入とPython連携",
+      "incident_type": "enhancement",
+      "category": "common_core_external_api",
+      "priority": "high",
+      "status": "未着手",
+      "follow_up_status": "NOT_STARTED",
+      "verification_status": "計画登録のみ／実装・動作未確認",
+      "context_def_status": "draft",
+      "context_def_updated_at": "2026-11-01",
+      "owner": "tamasub",
+      "ai_owner": "ChatGPT",
+      "created_at": "2026-11-01",
+      "updated_at": "2026-11-01",
+      "work_summary": "## やりたいこと\n- Studioくんの**外部変更インターフェース**を作る（Launch専用にはしない）。\n- **1件～複数件**のJSONをChangeSetとして受け取り、追加・変更・削除・並べ替えへ拡張できる設計にする。\n- Studio画面と外部呼び出しで**同じバリデーション・保存処理**を再利用する。\n- Launch（Python）から呼べるようにし、利用者にはNode.jsの別途インストールを求めない。\n\n## 進め方\n1. **共通化できる処理を確認**：JSのValidationと.NETの保存処理を棚卸しする。\n2. **ChangeSetの入口を作る**：まず複数件Addで、Expected → Actual → Diff → 保存まで通す。\n3. **Pythonから呼ぶ**：Node.js CLIで実行し、配布・競合・回帰テストを確認する。\n\n**状態：計画登録のみ／実装は未着手。**",
+      "target_files": "- 調査：Studioのバリデーション(JS)と既存保存処理(.NET/NativeShell)\n- 新規候補：ChangeSet契約・共通Core(ES Modules)・Node.js CLI\n- 対象を確定するまで既存コードは改修しない。",
+      "actual_updated_files": "data/json/01_main/_studio_work_incident_data_v2.json",
+      "context_def_draft": "## 責務の境界\n- 呼び出し元（Launch等）：操作を受け取り、対象JSONのレコード・更新先・順序を決める。\n- Studio共通Core：ChangeSetを受理し、承認された定義に沿って検証・変更・保存する。\n- Studio画面と外部APIは**同じ保証処理を使う**。UIからの起動操作はCoreに持ち込まない。\n\n## 基本フロー\n- 変更要求 → 制約検証 → Expected → Actual → Diff → 保存結果\n- まず複数件Addで検証。Update／Delete／Moveは同じ契約で段階的に追加する。",
+      "objective": "- **JSON変更の保証を一か所に集約**し、Studio画面とPythonから同じ処理を利用できるようにする。",
+      "background": "- LaunchのFilesへのDropを起点に、Studioと外部アプリの責務分担を整理した。\n- Studioは「Dropされた事実」を知らなくてよい。外部が作ったCopyJSON相当のレコードと操作情報を受ければよい。\n- 既存のJavaScript検証・.NET保存を移植で二重実装せず、再利用を優先する。",
+      "scope": "- **汎用インターフェース**：単一／複数レコードをChangeSetで受ける。\n- **操作種別**：Add／Update／Delete／Moveを契約上表現。初回実装は複数件Addを優先。\n- **対象指定**：データファイル、対象コレクション、追加位置／対象IDを操作情報として渡す。\n- **関連データ**：メイン／明細を含む複数件を将来扱える契約とする。\n- **共通保証**：入力検証、Expected Diff、Actual Diff、想定外の変更検出、競合検出、安全な保存。\n- **全件成否**：1つのChangeSetは原則、全件成功または全件不成立。\n- **Python連携**：Node.js CLI経由、標準入出力でJSON通信、TCP Portなし。\n- **配布**：node.exe同梱を第一候補とし、利用者のNode.js別途インストールを不要にする。",
+      "out_of_scope": "- 今回は**計画登録のみ**。Studio本体・Launchの実装変更は行わない。\n- Launch固有のDrop UIや、業務上のレコード生成ルールをCoreへ埋め込まない。\n- LaunchのメインJSON名変更・メール宛先の別JSON化は別作業で扱う。\n- HTTPサーバー常駐、TCP Port確保、C#全面移植、最初から全操作完成は対象外。",
+      "fixed_name_policy": "- Coreに `page_id=work`、`parent_item_id=folders` 等のLaunch固有値を埋め込まない。\n- 対象データ・キー項目・関連フィールドは要求と定義から解決する。\n- 重複パス禁止など、現在のLaunchにない制約を勝手に追加しない。",
+      "module_policy": "- **JavaScript ES Modulesを第一候補**。ブラウザDOM依存ロジックは切り離す。\n- **.NET保存処理を調査**し、Studio画面とCLIが同じ検証・保存経路を共有できる設計にする。\n- Python側は `subprocess` からCLIを呼び、JSON要求／結果だけ扱う。\n- 具体的なCoreと保存アダプターの境界はStep 1で決める。",
+      "expected_outputs": "- 既存の検証／保存責務の一覧と、共通化できる境界の設計。\n- ChangeSet要求・応答のJSON契約と、複数件Addの最小実装。\n- Expected／Actual／Diff／保存結果を返す動作確認。\n- Python → CLIのサンプル・自動テスト・Node同梱の配布確認。",
+      "risk": "- 現行の検証がDOM依存なら、Node.jsからそのまま呼べない。\n- 現行の保存処理が.NET側なら、Node CLIとの接続方式を先に確認する。\n- ExpectedとActualが同じ実装を無条件に再利用すると誤りを見逃す。\n- 並べ替えでは既存行のsort_orderが変わるため、許可する差分を明示する。\n- 同時編集による上書き、複数件途中失敗、Node同梱ライセンス・更新を確認する。",
+      "test_points": "## 受入条件（実装時に確認）\n- **共通化**：Studio画面と外部APIが同じバリデーション／保存処理を利用する。\n- **複数件**：複数レコードAddが1 ChangeSetで保存できる。\n- **原子性**：途中で1件失敗したら、変更セット全体を保存しない。\n- **差分**：Expected DiffとActual Diffが一致しない場合は保存しない。\n- **競合**：Studio編集途中や外部更新と競合したら既存データを壊さない。\n- **業務非依存**：Launch固有のID・パス重複禁止をCoreに埋め込まない。\n- **Python／配布**：別途Node.jsインストール不要・Port不要で利用できる。\n- **回帰**：Studio既存の編集・検証・保存操作を壊さない。",
+      "verification_log": "- 2026-11-01：添付ZIP内のインシデント管理JSON／入力Schema／foundation_rule_019を確認し、計画のみ登録。\n- 変更対象はインシデント管理JSONのみ。Core／CLI／Launchは未実装・未検証。",
+      "user_request": "「では、計画をインシデント登録お願してもよい？前もいったけど、いつもインシデント登録してくれる文章が長い文章で分かりにくいから、いつもチャットで回答してくれるような感じでマークダウン書式使って、箇条書き中心のわかりやすい文章でお願します💦」",
+      "ai_response": "## 登録内容\n- `studio_work_0269`：Studio共通Change Core／外部ChangeSet受入とPython連携。\n- **計画は3ステップ**：既存処理調査 → 複数件Addと共通保証 → Python CLI・配布・回帰テスト。\n- **今回の実装はなし**。インシデントだけ追加。",
+      "latest_ai_response": "## 計画登録：studio_work_0269\n- **目的**：Studio画面と外部アプリが同一のJSON変更・検証・保存処理を利用。\n- **入力**：単一／複数レコードのChangeSet。操作はAdd／Update／Delete／Moveへ拡張。\n- **初回**：複数件Add、Expected → Actual → Diff、全件成功または全件不成立。\n- **連携**：Python → Node.js CLI。Port不要、Node.js別途インストール不要の配布を目標。\n- **計画3ステップ**：①既存処理調査 ②ChangeSet＋共通Core ③Python連携＋回帰・配布テスト。\n- **状態**：未着手。今回の変更はインシデント管理JSONだけ。",
+      "latest_user_comment": "「では、計画をインシデント登録お願してもよい？前もいったけど、いつもインシデント登録してくれる文章が長い文章で分かりにくいから、いつもチャットで回答してくれるような感じでマークダウン書式使って、箇条書き中心のわかりやすい文章でお願します💦」",
+      "context_refs": [],
+      "follow_up_actions": [
+        {
+          "action_id": "followup_0269_001",
+          "action_type": "OTHER",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [],
+          "action": "Step 1：既存バリデーション／保存の実体と共通Core境界を調査し、ChangeSet契約を確定する。",
+          "note": "UIとCLIで同じ処理を再利用できることを優先。JS／.NET境界は調査後に決定。"
+        },
+        {
+          "action_id": "followup_0269_002",
+          "action_type": "IMPLEMENTATION_FIX",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [],
+          "action": "Step 2：複数件AddのChangeSet APIを作り、Expected／Actual／Diffと一括保存を検証する。",
+          "note": "Update／Delete／Moveは契約に載せ、実装は段階追加。"
+        },
+        {
+          "action_id": "followup_0269_003",
+          "action_type": "REGRESSION_TEST_ADD",
+          "required": true,
+          "status": "NOT_STARTED",
+          "related_ids": [],
+          "action": "Step 3：PythonからNode.js CLIを呼び出し、回帰・競合・配布動作を確認する。",
+          "note": "Port不要／Node.js別途インストール不要の配布を受入条件に含める。"
+        }
+      ],
+      "discussion_history": [
+        {
+          "history_id": "disc_0269_001",
+          "at": "2026-11-01",
+          "speaker": "user",
+          "topic": "複数行の汎用外部インターフェース",
+          "message": "で、これは、インターフェースは単一行でなくていいのよね。Studioくん標準としては。複数行の情報があってもこのインターフェースから取り込みできますってものを汎用にもっていればいいだけって話にすると、拡張性があがる。"
+        },
+        {
+          "history_id": "disc_0269_002",
+          "at": "2026-11-01",
+          "speaker": "user",
+          "topic": "同じ検証・保存の再利用とPython",
+          "message": "で、本来は、取り込む時のバリデーションチェックとか保存の処理とかが、本体と同じチェック処理を再利用できてかつ、PYTHONから呼び出せるものであればなおよしって感じやな笑"
+        },
+        {
+          "history_id": "disc_0269_003",
+          "at": "2026-11-01",
+          "speaker": "user",
+          "topic": "Node.jsとPort",
+          "message": "Node.js　使うときに、Portの概念はでてくる？"
+        },
+        {
+          "history_id": "disc_0269_004",
+          "at": "2026-11-01",
+          "speaker": "user",
+          "topic": "配布時のNode.js制約",
+          "message": "インストール媒体展開の時はどうなる？？？べつで、Node.jsをインストールしてもらわないと使えない制約は？"
+        },
+        {
+          "history_id": "disc_0269_005",
+          "at": "2026-11-01",
+          "speaker": "user",
+          "topic": "計画の登録とMarkdown記述",
+          "message": "では、計画をインシデント登録お願してもよい？前もいったけど、いつもインシデント登録してくれる文章が長い文章で分かりにくいから、いつもチャットで回答してくれるような感じでマークダウン書式使って、箇条書き中心のわかりやすい文章でお願します💦"
+        },
+        {
+          "history_id": "disc_0269_006",
+          "at": "2026-11-01",
+          "speaker": "assistant",
+          "topic": "計画登録",
+          "message": "## 登録した計画\n- 既存のバリデーションと保存処理の共通化を優先。\n- まず複数件AddでChangeSet入口を成立させる。\n- PythonからNode.js CLIを呼ぶ。Port不要・Node.js別途インストール不要の配布を目標とする。\n- 変更結果はExpected／Actual／Diffで検証する。\n- 今回はインシデント登録のみ。"
+        }
+      ],
+      "decision_log": [
+        {
+          "decision_id": "dec_0269_001",
+          "at": "2026-11-01",
+          "decision": "外部アプリは完成済みのレコードと変更操作を渡し、Studioは汎用的に変更要求を実行する。",
+          "reason": "StudioをLaunch専用のDrop処理から独立させるため。"
+        },
+        {
+          "decision_id": "dec_0269_002",
+          "at": "2026-11-01",
+          "decision": "外部インターフェースは単一レコード限定ではなく、複数レコードを含むChangeSetを標準とする。",
+          "reason": "メイン／明細を含む拡張に対応するため。"
+        },
+        {
+          "decision_id": "dec_0269_003",
+          "at": "2026-11-01",
+          "decision": "Studio UIと外部APIのバリデーション／保存は同じ共通処理を再利用する。",
+          "reason": "チェックの二重実装と保証水準の差を防ぐため。"
+        },
+        {
+          "decision_id": "dec_0269_004",
+          "at": "2026-11-01",
+          "decision": "初回は複数件Addを先行し、Update／Delete／Moveは契約を維持して段階的に対応する。",
+          "reason": "変更を小さく検証しながら共通Coreを育てるため。"
+        },
+        {
+          "decision_id": "dec_0269_005",
+          "at": "2026-11-01",
+          "decision": "JavaScript ES Modules＋Node.js CLIを第一候補とし、Port不要・Node.js別途インストール不要を目指す。",
+          "reason": "既存JSの検証ロジックを活かし、Pythonから呼べる構成にするため。",
+          "conditions": "既存.NET保存処理との共通化可否はStep 1で確認し、方式を確定する。"
+        }
+      ],
+      "change_history": [
+        {
+          "history_id": "chg_0269_001",
+          "at": "2026-11-01",
+          "change_type": "incident_plan_added",
+          "before": "外部ChangeSet受入・共通検証保存・Python連携は会話中の構想で、個別計画未登録。",
+          "after": "studio_work_0269として、3ステップ計画と受入条件をMarkdown中心で登録（実装未着手）。",
+          "reason": "次の実装時に共通の責務境界を確認し、段階的に進められるようにするため。"
+        }
+      ],
+      "failure_stories": []
     }
   ],
   "review_notes": [
@@ -39317,8 +39470,8 @@
       "body": "- studio_work_0161を親構想として見直した。\n- studio_work_0162～0168を未着手計画として追加した。\n- Studio Coreは汎用AI協働基盤として維持する。\n- Definition Verificationは標準Capabilityとして実装する。\n- Editor Componentと計算Serviceを分離し、PreviewとRunnerで共通導出ロジックを利用する。\n- 構造化記述原則の新設をルール改定計画へ含めた。"
     }
   ],
-  "work_revision": "studio-smart-search-plan-v0_1",
-  "latest_planning_note": "studio_work_0265: 実装済み未登録責務21候補をMarkdown表で計画登録（未着手）。studio_work_0266: Markdown表プレビュー修正・ブラウザー部品確認済み（NativeShell確認待ち）。\nstudio_work_0268：Smart Search v0.1を2ステップ（検索エンジン／IntelliSense＋統合）で計画登録。実装は未着手。",
+  "work_revision": "studio-external-changeset-core-plan-v0_1",
+  "latest_planning_note": "studio_work_0265: 実装済み未登録責務21候補をMarkdown表で計画登録（未着手）。studio_work_0266: Markdown表プレビュー修正・ブラウザー部品確認済み（NativeShell確認待ち）。\nstudio_work_0268：Smart Search v0.1を2ステップ（検索エンジン／IntelliSense＋統合）で計画登録。実装は未着手。\nstudio_work_0269：Studio共通Change Core／外部ChangeSet（複数件Add先行）、共通検証・保存、Python CLIの3ステップ計画を登録。実装未着手。",
   "view_def_candidates": [
     {
       "view_def": "rules/studio_work_incident_view_def_v0_4_readable_cards_confirm_status_markdown_preview.json",
