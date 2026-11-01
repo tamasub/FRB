@@ -36,6 +36,7 @@ foreach ($relative in @(
     'tools/change_core/README.md',
     'wwwroot/js/runtime/tree_model.js',
     'wwwroot/js/services/changeset/change_diff.js',
+    'wwwroot/js/services/changeset/change_gate.js',
     'wwwroot/js/services/definition/definition_verification_common.js',
     'wwwroot/js/services/definition/field_contract_resolver.js',
     'wwwroot/js/services/definition/definition_value_validator.js',

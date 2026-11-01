@@ -4,6 +4,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
 import {ChangeSetError} from './change_core.mjs';
+import {createRequire} from 'node:module';
+const require = createRequire(import.meta.url);
+const {assessFieldValidation} = require('../../wwwroot/js/services/changeset/change_gate.js');
 export async function buildFieldValidator(appRoot, viewDef){
   const ref=viewDef.item_definition_ref??viewDef.itemDefinitionRef;
   if(!ref)return {validate:()=>{},mode:'SKIPPED_FIELD_DEFINITION_NOT_DECLARED'};
@@ -21,7 +24,9 @@ export async function buildFieldValidator(appRoot, viewDef){
     mode:'STUDIO_RUNTIME_FIELD_DEFINITION',
     validate:(record,section)=>{
       const result=service.validateRow({row:record,gridDef:section,fieldDefinitionDocument:doc,registry});
-      if(result.status!=='ACCEPT')throw new ChangeSetError('FIELD_DEFINITION_REJECTED',`Field Definition検証が失敗: ${JSON.stringify(result.blocking_checks.map(c=>({field:c.field_name,reason:c.validation?.reason_code})))}`);
+      const decision=assessFieldValidation(result);
+      if(!decision.accepted)throw new ChangeSetError('FIELD_DEFINITION_REJECTED',`Field Definition検証が失敗: ${decision.reason_code} ${JSON.stringify(decision.blocking_checks.map(c=>({field:c.field_name,reason:c.validation?.reason_code})))}`);
+      return result;
     }
   };
 }

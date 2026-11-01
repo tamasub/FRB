@@ -111,3 +111,96 @@ test('ブラウザ／ポータブル配布双方が共有Diffを参照する', a
  assert.ok(bridge>=0&&detailSave>bridge,'ブラウザは保存処理より前に共通Diffライブラリをロードする');
  assert.ok(portable.includes("'wwwroot/js/services/changeset/change_diff.js'"));
 });
+
+// Step 5 - same acceptance decision for UI F12 and external CLI.
+const sharedGate = require('../../wwwroot/js/services/changeset/change_gate.js');
+test('共通Gate: ACCEPTと未宣言のみ許容／REJECT・UNRESOLVED・service不在を拒否',()=>{
+ assert.equal(sharedGate.assessFieldValidation({status:'ACCEPT'}).accepted,true);
+ assert.equal(sharedGate.assessFieldValidation({status:'SKIPPED',reason_code:'FIELD_DEFINITION_NOT_DECLARED'}).accepted,true);
+ for(const x of [null,{}, {status:'REJECT'}, {status:'UNRESOLVED'}, {status:'SKIPPED',reason_code:'RUNTIME_VALIDATION_SERVICE_UNAVAILABLE'}]) {
+  assert.equal(sharedGate.assessFieldValidation(x).accepted,false);
+ }
+});
+test('共通Gate: ブラウザ/NodeでField Definition判定と差分判定が一致',async()=>{
+ const win={FrbStudioChangeDiff:sharedDiff};
+ vm.runInNewContext(await fs.readFile(path.join(root,'wwwroot/js/services/changeset/change_gate.js'),'utf8'),{window:win,structuredClone});
+ for(const result of [
+  {status:'ACCEPT'}, {status:'REJECT',blocking_checks:[{field_name:'title'}]},
+  {status:'SKIPPED',reason_code:'FIELD_DEFINITION_NOT_DECLARED'},
+  {status:'UNRESOLVED',reason_code:'MISSING_REGISTRY'}
+ ]){
+  assert.deepEqual(JSON.parse(JSON.stringify(win.FrbStudioChangeGate.assessFieldValidation(result))),sharedGate.assessFieldValidation(result));
+ }
+ const before={x:1,y:0},pending={x:2,y:0};
+ assert.equal(sharedGate.assessRowCommit(before,pending,pending).accepted,true);
+ const mismatch=sharedGate.assessRowCommit(before,pending,{x:2,y:99});
+ assert.equal(mismatch.accepted,false);
+ assert.deepEqual(mismatch.unexpected_diff.map(x=>x.path),['/row/y']);
+ assert.deepEqual(JSON.parse(JSON.stringify(win.FrbStudioChangeGate.assessRowCommit(before,pending,{x:2,y:99}).unexpected_diff)),mismatch.unexpected_diff);
+});
+test('F12実経路: 共通Gateに従い正本反映／Field Definition拒否／Diff不一致でロールバック',async()=>{
+ const statuses=[];
+ const win={FrbStudioChangeGate:sharedGate};
+ const context={
+  window:win,document:{querySelectorAll:()=>[]},structuredClone,
+  registerRenderer:()=>{},$ :()=>null,cloneData:structuredClone,
+  setStatus:(message)=>statuses.push(message),
+  studioTreeProtect:()=>{},studioTreeValidateKind:()=>true,
+  gridDef:()=>({fields:[]}),queueRelatedGridAutoApply:()=>{},
+  currentRows:[{title:'before',memo:'unchanged'}],selectedIndex:0,detailMode:'edit'
+ };
+ vm.createContext(context);
+ vm.runInContext(await fs.readFile(path.join(root,'wwwroot/js/runtime/detail_save.js'),'utf8'),context,{filename:'detail_save.js'});
+ // Mock only editor DOM draft collection and evaluator results; execute real F12 commit code.
+ context.buildPendingDetailApplyRow=()=>({title:'after',memo:'unchanged'});
+ context.validatePendingDetailApplyRow=()=>({status:'ACCEPT'});
+ const original=context.currentRows[0];
+ assert.equal(vm.runInContext('tryCommitCurrentDetailEdits()',context),true);
+ assert.equal(context.currentRows[0],original,'canonical row identity must be retained');
+ assert.equal(original.title,'after');
+ context.buildPendingDetailApplyRow=()=>({title:'invalid',memo:'unchanged'});
+ context.validatePendingDetailApplyRow=()=>({status:'REJECT',blocking_checks:[{field_name:'title'}]});
+ context.reportRuntimeFieldDefinitionValidationFailure=()=>statuses.push('validation rejected');
+ assert.equal(vm.runInContext('tryCommitCurrentDetailEdits()',context),false);
+ assert.equal(original.title,'after');
+ assert.ok(statuses.includes('validation rejected'));
+ context.validatePendingDetailApplyRow=()=>({status:'ACCEPT'});
+ win.FrbStudioChangeGate={...sharedGate,assessRowCommit:()=>({accepted:false})};
+ assert.equal(vm.runInContext('tryCommitCurrentDetailEdits()',context),false);
+ assert.equal(context.currentRows[0],original);
+ assert.equal(original.title,'after');
+ assert.ok(statuses.some(s=>s.includes('Expected / Actual Diff')));
+});
+test('F12新規追加: 不一致なら行数を戻し、既存行は残す',async()=>{
+ const win={FrbStudioChangeGate:sharedGate};
+ const ctx={window:win,document:{querySelectorAll:()=>[]},structuredClone,
+  registerRenderer:()=>{},$ :()=>null,cloneData:structuredClone,
+  setStatus:()=>{},studioTreeProtect:()=>{},assignNewRowKeys:()=>{},
+  gridDef:()=>({fields:[]}),queueRelatedGridAutoApply:()=>{},
+  currentRows:[{title:'existing'}],selectedIndex:0,detailMode:'new',draftRow:{title:'new'},
+  applySearch:()=>{},renderGrid:()=>{},updateDetailNavButtons:()=>{},openDetail:()=>{}};
+ vm.createContext(ctx);
+ vm.runInContext(await fs.readFile(path.join(root,'wwwroot/js/runtime/detail_save.js'),'utf8'),ctx);
+ ctx.openDetail=()=>{}; // do not render DOM in the isolated F12 harness
+ ctx.buildPendingDetailApplyRow=()=>({title:'new'});
+ ctx.validatePendingDetailApplyRow=()=>({status:'SKIPPED',reason_code:'FIELD_DEFINITION_NOT_DECLARED'});
+ vm.runInContext('applyDetail()',ctx);
+ assert.equal(ctx.currentRows.length,2);
+ assert.equal(ctx.currentRows[1].title,'new');
+ ctx.detailMode='new';ctx.draftRow={title:'another'};
+ win.FrbStudioChangeGate={...sharedGate,assessRowCommit:()=>({accepted:false})};
+ vm.runInContext('applyDetail()',ctx);
+ assert.equal(ctx.currentRows.length,2);
+ assert.equal(ctx.currentRows[0].title,'existing');
+});
+test('ブラウザ・ポータブル双方が共通Gateを読込／保存前',async()=>{
+ const page=await fs.readFile(path.join(root,'wwwroot/index.html'),'utf8');
+ const portable=await fs.readFile(path.join(root,'tools/change_core/prepare_portable.ps1'),'utf8');
+ const diffIndex=page.indexOf('js/services/changeset/change_diff.js?');
+ const gateIndex=page.indexOf('js/services/changeset/change_gate.js?');
+ const detailIndex=page.indexOf('js/runtime/detail_save.js?');
+ assert.ok(diffIndex>=0&&gateIndex>diffIndex&&detailIndex>gateIndex);
+ assert.ok(portable.includes("'wwwroot/js/services/changeset/change_gate.js'"));
+ const fieldSource=await fs.readFile(path.join(root,'tools/change_core/field_validation.mjs'),'utf8');
+ assert.ok(fieldSource.includes('assessFieldValidation(result)'));
+});

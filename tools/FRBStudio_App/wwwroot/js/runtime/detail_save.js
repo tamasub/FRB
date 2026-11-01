@@ -396,7 +396,7 @@ function markRuntimeFieldDefinitionValidationErrors(result) {
 
 function validatePendingDetailApplyRow(row, gd) {
   if (typeof RuntimeFieldDefinitionValidationService === 'undefined') {
-    return { status: 'SKIPPED', reason_code: 'RUNTIME_VALIDATION_SERVICE_UNAVAILABLE', checks: [], blocking_checks: [] };
+    return { status: 'UNRESOLVED', reason_code: 'RUNTIME_VALIDATION_SERVICE_UNAVAILABLE', checks: [], blocking_checks: [] };
   }
   const service = new RuntimeFieldDefinitionValidationService();
   return service.validateRow({
@@ -404,6 +404,23 @@ function validatePendingDetailApplyRow(row, gd) {
     gridDef: gd,
     fieldDefinitionDocument: currentRuntimeFieldDefinitionDocument,
     registry: currentRuntimeValidationTypeRegistry
+  });
+}
+
+// One Field Definition acceptance policy for Studio F12 and external ChangeSet CLI.
+function studioDetailFieldGateAccepts(result) {
+  return window.FrbStudioChangeGate?.assessFieldValidation(result)?.accepted === true;
+}
+
+// Verify what actually reached canonical Data before triggering related-grid effects.
+// This is a row-local post-commit guard; it does NOT turn F12 into an external ChangeSet.
+function studioDetailCommitDiffCheck(beforeRow, proposedRow, actualRow) {
+  return window.FrbStudioChangeGate?.assessRowCommit(beforeRow, proposedRow, actualRow) ?? { accepted: false };
+}
+
+function reportStudioDetailCommitMismatch() {
+  setStatus('F12反映を拒否しました: Expected / Actual Diff不一致', {
+    kind: 'error', title: 'Change Core差分不一致', toast: false, sticky: true
   });
 }
 
@@ -456,12 +473,19 @@ function replaceDetailRowPreservingReferences(rows, index, nextRow) {
 }
 
 function finalizeValidatedDetailCommit(row, index) {
+  const originalRow = cloneData(currentRows[index]);
   replaceDetailRowPreservingReferences(currentRows, index, row);
+  if (!studioDetailCommitDiffCheck(originalRow, row, currentRows[index]).accepted) {
+    replaceDetailRowPreservingReferences(currentRows, index, originalRow);
+    reportStudioDetailCommitMismatch();
+    return false;
+  }
   if (typeof getStudioJsonRoundTripDraftRow === 'function' && getStudioJsonRoundTripDraftRow()) {
     if (typeof discardStudioJsonRoundTripDraft === 'function') discardStudioJsonRoundTripDraft();
   }
   if (typeof markDetailSubGridEditsCommitted === 'function') markDetailSubGridEditsCommitted();
   clearRuntimeFieldDefinitionValidationMarks();
+  return true;
 }
 
 function tryCommitCurrentDetailEdits(options={}) {
@@ -473,12 +497,12 @@ function tryCommitCurrentDetailEdits(options={}) {
 
   if (!studioTreeValidateKind(pending, selectedIndex)) return false;
   const validation = validatePendingDetailApplyRow(pending, gd);
-  if (validation.status === 'REJECT' || validation.status === 'UNRESOLVED') {
+  if (!studioDetailFieldGateAccepts(validation)) {
     reportRuntimeFieldDefinitionValidationFailure(validation);
     return false;
   }
 
-  finalizeValidatedDetailCommit(pending, selectedIndex);
+  if (!finalizeValidatedDetailCommit(pending, selectedIndex)) return false;
   if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
   return true;
 }
@@ -495,8 +519,17 @@ function applyDetail(e) {
     // 反映直前にもNo/Keyを再採番して、開いている間に増えた行との重複を避ける。
     assignNewRowKeys(pending, pending);
     const validation = validatePendingDetailApplyRow(pending, gridDef());
-    if (validation.status === 'REJECT' || validation.status === 'UNRESOLVED') {
+    if (!studioDetailFieldGateAccepts(validation)) {
       reportRuntimeFieldDefinitionValidationFailure(validation);
+      return;
+    }
+
+    // Preserve draft/editor state on a mismatch; no related effects before the gate.
+    const appendIndex = currentRows.length;
+    currentRows.push(pending);
+    if (!studioDetailCommitDiffCheck(undefined, pending, currentRows[appendIndex]).accepted) {
+      currentRows.pop();
+      reportStudioDetailCommitMismatch();
       return;
     }
 
@@ -506,7 +539,7 @@ function applyDetail(e) {
     if (typeof markDetailSubGridEditsCommitted === 'function') markDetailSubGridEditsCommitted();
     clearRuntimeFieldDefinitionValidationMarks();
 
-    currentRows.push(pending);
+    // Appended above, and verified against the editor-intent diff.
     if (typeof queueRelatedGridAutoApply === 'function') queueRelatedGridAutoApply();
     selectedIndex = currentRows.length - 1;
     detailMode = 'edit';

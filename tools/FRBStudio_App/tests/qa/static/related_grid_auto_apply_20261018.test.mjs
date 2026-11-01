@@ -89,8 +89,9 @@ test('別Gridには手動の「親画面へ反映」ボタンを表示しない'
 });
 
 test('F12, F7/F8 は検証成功後にのみ自動同期する', () => {
-  assert.match(detail, /finalizeValidatedDetailCommit\(pending, selectedIndex\);\s*if \(typeof queueRelatedGridAutoApply/);
-  assert.match(detail, /currentRows\.push\(pending\);\s*if \(typeof queueRelatedGridAutoApply/);
+  // F12 must reach the shared acceptance gate before synchronizing related Grid.
+  assert.match(detail, /if \(!finalizeValidatedDetailCommit\(pending, selectedIndex\)\) return false;\s*if \(typeof queueRelatedGridAutoApply/);
+  assert.match(detail, /currentRows\.push\(pending\);[\s\S]*?if \(!studioDetailCommitDiffCheck\([\s\S]*?\.accepted\) \{[\s\S]*?currentRows\.pop\(\);[\s\S]*?return;[\s\S]*?if \(typeof queueRelatedGridAutoApply/);
   assert.match(grid, /tryCommitCurrentDetailEdits\(\{ source: 'navigation' \}\)/);
   assert.match(grid, /nextPos < 0 \|\| nextPos >= filteredRows.length[\s\S]*?relatedGridChildRuntime/);
   assert.match(grid, /currentRows\.splice\(selectedIndex, 1\);[\s\S]*?if \(typeof queueRelatedGridAutoApply/);

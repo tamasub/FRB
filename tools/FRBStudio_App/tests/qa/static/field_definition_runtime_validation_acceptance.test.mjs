@@ -17,6 +17,9 @@ const scripts = [
   'wwwroot/js/services/definition/field_contract_resolver.js',
   'wwwroot/js/services/definition/definition_value_validator.js',
   'wwwroot/js/services/definition/runtime_field_definition_validation.js',
+  // F12 and CLI now share one field-validation/diff acceptance gate.
+  'wwwroot/js/services/changeset/change_diff.js',
+  'wwwroot/js/services/changeset/change_gate.js',
   'wwwroot/js/runtime/detail_save.js'
 ];
 

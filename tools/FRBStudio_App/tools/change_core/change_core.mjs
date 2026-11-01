@@ -10,7 +10,8 @@ export class ChangeSetError extends Error {
 }
 const fail=(code,message)=>{throw new ChangeSetError(code,message);};
 // One browser/Node diff contract; keep Expected/Actual comparison independent of the executor.
-const { compareDiff, compareExpectedActual } = require('../../wwwroot/js/services/changeset/change_diff.js');
+const { compareDiff } = require('../../wwwroot/js/services/changeset/change_diff.js');
+const { assessExpectedActual } = require('../../wwwroot/js/services/changeset/change_gate.js');
 const clone=value=>structuredClone(value);
 const pointerPart=value=>String(value).replaceAll("~","~0").replaceAll("/","~1");
 const object=value=>value && typeof value==='object' && !Array.isArray(value);
@@ -119,7 +120,7 @@ export function evaluateChangeSet(document,request,view,options={}) {
   // Actual is obtained from applying the planned operations to an independent deep copy.
   const after=(options.actualExecutor??executePlan)(document,plan.planned);
   const actualDiff=compareDiff(document,after);
-  const unexpectedDiff=compareExpectedActual(expectedDiff,actualDiff);
+  const { unexpected_diff: unexpectedDiff }=assessExpectedActual(expectedDiff,actualDiff);
   if(unexpectedDiff.length)fail('UNEXPECTED_DIFF','Expected DiffとActual Diffが一致しません');
   return {after,expected_diff:expectedDiff,actual_diff:actualDiff,unexpected_diff:[],summary:{added:plan.planned.length,changed_existing:0}};
 }

@@ -47,9 +47,12 @@ function testEditor({ readonly=false, success=true, raw=false }={}) {
     studioTreeProtect(){}, studioTreeValidateKind:()=>true,
     validatePendingDetailApplyRow:()=>({status:success?'ACCEPT':'REJECT'}),
     reportRuntimeFieldDefinitionValidationFailure(){},
-    finalizeValidatedDetailCommit:(row,index)=>{Object.assign(ctx.currentRows[index],row);},
+    finalizeValidatedDetailCommit:(row,index)=>{Object.assign(ctx.currentRows[index],row); return true;},
     queueRelatedGridAutoApply(){ctx.applies++;},
     applies:0,
+    window: { FrbStudioChangeGate: {
+      assessFieldValidation: result => ({ accepted: result?.status === 'ACCEPT' })
+    } },
     console
   });
   const functions = [
@@ -59,6 +62,7 @@ function testEditor({ readonly=false, success=true, raw=false }={}) {
     functionSource(grid,'isControlReadonly'),
     functionSource(grid,'applyDetailInputsToRow'),
     functionSource(detail,'buildPendingDetailApplyRow'),
+    functionSource(detail,'studioDetailFieldGateAccepts'),
     functionSource(detail,'tryCommitCurrentDetailEdits')
   ];
   vm.runInContext(functions.join('\n'),ctx);
