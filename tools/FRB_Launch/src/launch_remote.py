@@ -12,6 +12,7 @@ from remote_navigation import popup_at_hotspot
 from passive_header_drag import PassiveHeaderDrag
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
+from remote_files_explorer import RemoteFilesExplorer
 
 
 def remote_favorite_icon(heart):
@@ -396,6 +397,19 @@ class LaunchRemote(QWidget):
         self.area_label.setFixedHeight(16)
         status_layout.addWidget(self.area_label)
         root.addWidget(status_frame)
+
+        # Experimental Explorer-style tree: added ONLY at Remote's very bottom.
+        # A separate preview window keeps the 184px Remote and Files workspace
+        # completely unchanged. It does not navigate or modify anything.
+        self.files_exp_panel = None
+        self.files_exp_theme = launcher.color_theme
+        self.files_exp_button = self._button(
+            'Files Exp', '試作：Files第1列の登録フォルダーを起点にツリー展開（Files画面には反映しません）',
+            'FILES_EXP_PREVIEW', width=172, height=27, role='workspace',
+            wheel_enabled=True)
+        self.files_exp_button.clicked.disconnect()
+        self.files_exp_button.clicked.connect(self.toggle_files_exp)
+        root.addWidget(self.files_exp_button)
         # The old caption and up/down buttons are intentionally omitted.
         # The wheel pad emits UP/DOWN, CLICK and DOUBLE_CLICK without synthetic keys.
         self.adjustSize()
@@ -412,11 +426,46 @@ class LaunchRemote(QWidget):
                 widget.installEventFilter(self)
 
     def hideEvent(self, event):
+        # The experimental tool window must not outlive a dismissed Remote.
+        panel = getattr(self, 'files_exp_panel', None)
+        if panel is not None:
+            panel.hide()
         # A pending single-click must not reopen history after Remote closes.
         timer = getattr(self, 'search_history_click_timer', None)
         if timer is not None:
             timer.stop()
         super().hideEvent(event)
+
+    def toggle_files_exp(self):
+        """Show/hide the independent, read-only directory expansion preview."""
+        if self.files_exp_panel is None:
+            self.files_exp_panel = RemoteFilesExplorer(self, self.files_exp_theme)
+        panel = self.files_exp_panel
+        if panel.isVisible():
+            panel.hide()
+            return
+        # Use precisely the same rendered first-column rows as Files' Remote
+        # context menu. Never rebuild roots from the config JSON or breadcrumb.
+        launcher = self.parent()
+        if launcher is not None and hasattr(launcher, '_remote_files_first_column_rows'):
+            panel.set_roots(launcher._remote_files_first_column_rows(),
+                            launcher.expander().expand)
+        # Prefer the right of Remote; flip left near the screen edge. Keep
+        # the tool on-screen even when the Remote sits near the bottom.
+        anchor = self.files_exp_button.mapToGlobal(
+            QPoint(self.files_exp_button.width() + 4, self.files_exp_button.height()))
+        screen = QApplication.screenAt(anchor) or QApplication.primaryScreen()
+        x = anchor.x()
+        y = anchor.y() - panel.height()
+        if screen is not None:
+            area = screen.availableGeometry()
+            if x + panel.width() > area.right() + 1:
+                x = self.files_exp_button.mapToGlobal(QPoint(-panel.width() - 4, 0)).x()
+            x = max(area.left(), min(x, area.right() - panel.width() + 1))
+            y = max(area.top(), min(y, area.bottom() - panel.height() + 1))
+        panel.move(x, y)
+        panel.show()
+        panel.raise_()
 
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
@@ -440,6 +489,10 @@ class LaunchRemote(QWidget):
 
     def apply_theme(self, theme):
         """Follow the Launch appearance palette, including live theme changes."""
+        self.files_exp_theme = theme
+        panel = getattr(self, 'files_exp_panel', None)
+        if panel is not None:
+            panel.apply_theme(theme)
         c = theme_palette(theme)
         # The initial theme is applied before the header button exists.
         # On subsequent theme changes refresh the shared vector icon too.

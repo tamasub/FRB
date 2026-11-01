@@ -13,6 +13,8 @@ $docFile = Join-Path $testDir 'temporary-launch.json'
 $configFile = Join-Path $testDir 'trusted-config.json'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $passCount = 0
+# Keep this source file ASCII-compatible for Windows PowerShell 5.1 (which treats UTF-8 without BOM as ANSI).
+$nonAsciiTitle = 'Smoke B ' + [char]0x65E5 + [char]0x672C + [char]0x8A9E
 function Write-Utf8NoBom([string]$p, [string]$value) {
     [IO.File]::WriteAllText($p, $value, $utf8)
 }
@@ -32,11 +34,40 @@ function Assert-Equal($actual, $expected, [string]$description) {
 }
 function Invoke-ChangeCore($request) {
     $json = $request | ConvertTo-Json -Depth 40 -Compress
-    # A stdin pipe is used exactly as Python/Launch uses it; no server/Port.
-    $output = $json | & $NodeExecutable $cli --config $configFile
-    $code = $LASTEXITCODE
-    if (-not $output) { throw "No CLI JSON response (exit=$code)" }
-    return @{ exit_code=$code; result=($output | Out-String | ConvertFrom-Json) }
+    # Windows PowerShell 5.1 native pipelines use console code pages, not reliably UTF-8.
+    # Explicit UTF-8 bytes on stdin and UTF-8 decoding on stdout/stderr also work for errors.
+    $start = New-Object System.Diagnostics.ProcessStartInfo
+    $start.FileName = $NodeExecutable
+    $start.Arguments = ('"{0}" --config "{1}"' -f $cli, $configFile)
+    $start.WorkingDirectory = $root
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardInput = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.StandardOutputEncoding = $utf8
+    $start.StandardErrorEncoding = $utf8
+    $proc = New-Object System.Diagnostics.Process
+    $proc.StartInfo = $start
+    try {
+        if (-not $proc.Start()) { throw 'Failed to start Node CLI process.' }
+        # Read both pipes concurrently so a filled stderr pipe cannot deadlock the process.
+        $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+        $stderrTask = $proc.StandardError.ReadToEndAsync()
+        $requestBytes = $utf8.GetBytes($json)
+        $proc.StandardInput.BaseStream.Write($requestBytes, 0, $requestBytes.Length)
+        $proc.StandardInput.Close()
+        $proc.WaitForExit()
+        $output = $stdoutTask.GetAwaiter().GetResult()
+        $stderrText = $stderrTask.GetAwaiter().GetResult()
+        $code = $proc.ExitCode
+        if ([string]::IsNullOrWhiteSpace($output)) {
+            throw "No CLI JSON response (exit=$code; stderr=$stderrText)"
+        }
+        return @{ exit_code=$code; result=($output | ConvertFrom-Json) }
+    } finally {
+        $proc.Dispose()
+    }
 }
 function New-Request([string]$base, [string]$mode) {
     return @{
@@ -53,7 +84,7 @@ function New-Request([string]$base, [string]$mode) {
             placement = @{group_id='work'; parent_id='folders'; position='end'}
             records = @(
                 @{title='Smoke A'; item_kind='command'; launch_actions=@(@{ launch_action_type='Open'; launch_target='C:\A.txt'})},
-                @{title='Smoke B'; item_kind='command'; launch_actions=@(@{ launch_action_type='Open'; launch_target='C:\A.txt'})}
+                @{title=$nonAsciiTitle; item_kind='command'; launch_actions=@(@{ launch_action_type='Open'; launch_target='C:\A.txt'})}
             )
         })
     }
@@ -78,8 +109,11 @@ try {
     Assert-Equal $commit.result.status 'COMMITTED' 'two Add operations commit together'
     $after = Get-Sha $docFile
     Assert-Equal ((Get-Content -LiteralPath $docFile -Raw -Encoding UTF8 | ConvertFrom-Json).items.Count) 3 'all new rows persisted'
+    Assert-Equal ((Get-Content -LiteralPath $docFile -Raw -Encoding UTF8 | ConvertFrom-Json).items[2].title) $nonAsciiTitle 'UTF-8 request title persisted without mojibake'
     $stale = Invoke-ChangeCore (New-Request $base 'commit')
     Assert-Equal $stale.result.status 'CONFLICT' 'stale SHA returns conflict'
+    $conflictMarker = ([char]0x7AF6).ToString() + ([char]0x5408).ToString()
+    Assert-Equal $stale.result.errors[0].message.Contains($conflictMarker) $true 'UTF-8 conflict error message decoded correctly'
     Assert-Equal (Get-Sha $docFile) $after 'stale SHA leaves file unchanged'
 
     $lockedPath = $docFile + '.studio-changeset.lock'
