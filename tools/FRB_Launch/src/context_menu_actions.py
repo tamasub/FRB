@@ -191,8 +191,8 @@ def rename_file_or_folder(path, new_name):
     return destination
 
 
-# Git commit is deliberately independent from the Explorer selected ZIP.
-# The ZIP supplies ONLY the commit message; it is not unpacked or staged.
+# Git commit is independent from the selected filesystem file.
+# The selected filename supplies ONLY the commit message, not the staging target.
 def is_downloads_directory(directory):
     """True only for this user's Downloads folder, never a similarly named subfolder."""
     home = Path(os.environ.get('USERPROFILE') or str(Path.home()))
@@ -273,7 +273,7 @@ def git_commit_preview(options):
 
 
 def commit_tracked_changes(repository, message, include_untracked=False):
-    """Stage tracked modifications/deletions and commit, never stage selected ZIP."""
+    """Commit repository changes; selected filename is only the message."""
     if not isinstance(message, str) or not message.strip() or '\n' in message or '\r' in message:
         raise ValueError('コミットメッセージを1行で入力してください')
     repository = Path(repository)

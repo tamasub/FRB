@@ -1,0 +1,11 @@
+{
+  "schema_version": "studio_change_core_config_v0_1",
+  "documents": {
+    "approved_launch_config": {
+      "path": "C:\\path\\to\\your\\approved\\launch-config.json",
+      "view_def": "launch/frb_launch_maintenance_view_def_v0_1.json",
+      "view_id": "items_view",
+      "section_ids": ["items"]
+    }
+  }
+}

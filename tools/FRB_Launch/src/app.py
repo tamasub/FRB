@@ -8634,7 +8634,6 @@ class Launcher(QWidget):
                 return False
             menu = QMenu(context_parent if context_parent is not None else self)
             allowed = {d['action_id'] for d in actions if d.get('action_id')
-                       and not (d['action_id'] == 'git_commit_from_zip' and not is_downloads_zip(path))
                        and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))
                        and not (d['action_id'] == 'extract_all' and Path(path).suffix.casefold() != '.zip')}
             if search_result:
@@ -9129,11 +9128,11 @@ class Launcher(QWidget):
             DIAG.exception('FILESYSTEM_CONTEXT action=%s target=%s', action_id, target)
             self.error('操作を実行できませんでした: ' + str(exc))
 
-    def git_commit_using_filename(self, zip_path):
-        """Use a selected Downloads ZIP's name as a message, never as content."""
+    def git_commit_using_filename(self, selected_path):
+        """Use any selected file name as the message; commit repository changes."""
         try:
-            if not is_downloads_zip(zip_path) or not Path(zip_path).is_file():
-                raise ValueError('Downloads直下のZIPだけが対象です')
+            if not Path(selected_path).is_file():
+                raise ValueError('存在するファイルだけが対象です（フォルダーは対象外）')
             options = read_git_commit_options(GIT_COMMIT_OPTIONS)
             preview = git_commit_preview(options)
             # QInputDialog#setMinimumWidth only widened the outer dialog on
@@ -9144,9 +9143,9 @@ class Launcher(QWidget):
             form = QVBoxLayout(dialog)
             form.setContentsMargins(14, 12, 14, 12)
             form.setSpacing(8)
-            form.addWidget(QLabel('選択ZIPのファイル名（編集できます）:', dialog))
+            form.addWidget(QLabel('選択ファイルの名前（編集できます）:', dialog))
             message_editor = QLineEdit(dialog)
-            message_editor.setText(Path(zip_path).name)
+            message_editor.setText(Path(selected_path).name)
             message_editor.setMinimumWidth(360)  # The real text input, not its frame.
             message_editor.selectAll()
             form.addWidget(message_editor)
@@ -9176,7 +9175,7 @@ class Launcher(QWidget):
                 f'コミットメッセージ: {message}\n'
                 f'変更候補: {len(preview["changes"])} 件\n\n'
                 f'{visible_changes}\n\n'
-                '※ ZIPの展開・追加はしません。'
+                '※ 選択ファイルはメッセージの元になるだけで、コミット対象の限定・追加はしません。\n'
                 + ('未追跡ファイルも対象です。' if preview['include_untracked']
                    else '未追跡ファイルは追加しません。'))
             question.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -9188,7 +9187,7 @@ class Launcher(QWidget):
             QMessageBox.information(self, 'Gitコミット完了',
                                     'コミットしました。\n' + committed)
         except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
-            DIAG.exception('GIT_COMMIT_FROM_ZIP path=%s', zip_path)
+            DIAG.exception('GIT_COMMIT_FROM_FILENAME path=%s', selected_path)
             self.error('Gitコミットできませんでした: ' + str(exc))
 
     def contextMenuEvent(self, event):
