@@ -9,34 +9,12 @@ export class ChangeSetError extends Error {
   constructor(code, message) { super(message); this.code=code; }
 }
 const fail=(code,message)=>{throw new ChangeSetError(code,message);};
+// One browser/Node diff contract; keep Expected/Actual comparison independent of the executor.
+const { compareDiff, compareExpectedActual } = require('../../wwwroot/js/services/changeset/change_diff.js');
 const clone=value=>structuredClone(value);
+const pointerPart=value=>String(value).replaceAll("~","~0").replaceAll("/","~1");
 const object=value=>value && typeof value==='object' && !Array.isArray(value);
-const pointerPart=value=>String(value).replaceAll('~','~0').replaceAll('/','~1');
-const canonical=value=>JSON.stringify(value, (_key, v) => object(v) ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])) : v);
-export function compareDiff(left,right,path='') {
-  if(canonical(left)===canonical(right)) return [];
-  if(Array.isArray(left)&&Array.isArray(right)) {
-    const out=[];
-    for(let i=0;i<Math.max(left.length,right.length);i++) {
-      const p=`${path}/${i}`;
-      if(i>=left.length)out.push({op:'add',path:p,value:clone(right[i])});
-      else if(i>=right.length)out.push({op:'remove',path:p,before:clone(left[i])});
-      else out.push(...compareDiff(left[i],right[i],p));
-    }
-    return out;
-  }
-  if(object(left)&&object(right)) {
-    const out=[];
-    for(const k of new Set([...Object.keys(left),...Object.keys(right)])){
-      const p=`${path}/${pointerPart(k)}`;
-      if(!Object.hasOwn(right,k))out.push({op:'remove',path:p,before:clone(left[k])});
-      else if(!Object.hasOwn(left,k))out.push({op:'add',path:p,value:clone(right[k])});
-      else out.push(...compareDiff(left[k],right[k],p));
-    }
-    return out;
-  }
-  return [{op:'replace',path:path||'/',before:clone(left),value:clone(right)}];
-}
+export { compareDiff };
 function resolveArray(document,dataPath){
   if(!/^\$\.[a-zA-Z_][\w]*$/.test(dataPath||''))fail('UNSUPPORTED_DATA_PATH','v0.1 supports a top-level JSON array dataPath only');
   const key=dataPath.slice(2), rows=document?.[key];
@@ -141,11 +119,7 @@ export function evaluateChangeSet(document,request,view,options={}) {
   // Actual is obtained from applying the planned operations to an independent deep copy.
   const after=(options.actualExecutor??executePlan)(document,plan.planned);
   const actualDiff=compareDiff(document,after);
-  const fingerprint=d=>canonical(d);
-  const expectedKeys=new Map(expectedDiff.map(d=>[d.path,fingerprint(d)]));
-  const actualKeys=new Map(actualDiff.map(d=>[d.path,fingerprint(d)]));
-  const unexpectedDiff=actualDiff.filter(d=>expectedKeys.get(d.path)!==fingerprint(d));
-  for(const d of expectedDiff)if(actualKeys.get(d.path)!==fingerprint(d))unexpectedDiff.push({op:'missing_expected',path:d.path,value:d.value});
+  const unexpectedDiff=compareExpectedActual(expectedDiff,actualDiff);
   if(unexpectedDiff.length)fail('UNEXPECTED_DIFF','Expected DiffとActual Diffが一致しません');
   return {after,expected_diff:expectedDiff,actual_diff:actualDiff,unexpected_diff:[],summary:{added:plan.planned.length,changed_existing:0}};
 }

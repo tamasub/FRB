@@ -8,6 +8,10 @@ import {fileURLToPath} from 'node:url';
 import {evaluateChangeSet,compareDiff,ChangeSetError} from '../../tools/change_core/change_core.mjs';
 import {sha256,readSnapshot,commitDocument} from '../../tools/change_core/storage.mjs';
 import {buildFieldValidator} from '../../tools/change_core/field_validation.mjs';
+import vm from 'node:vm';
+import {createRequire} from 'node:module';
+const require = createRequire(import.meta.url);
+const sharedDiff = require('../../wwwroot/js/services/changeset/change_diff.js');
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const def=JSON.parse(await fs.readFile(path.join(root,'defs/launch/frb_launch_maintenance_view_def_v0_1.json'),'utf8'));
 const view=def.views.find(v=>v.id==='items_view');
@@ -76,4 +80,34 @@ test('Existing Studio Field Definition service blocks required missing fields',a
  const section=v.views[0].sections.find(s=>s.id==='measurement_sessions');
  assert.equal(validate.mode,'STUDIO_RUNTIME_FIELD_DEFINITION');
  assert.throws(()=>validate.validate({},section),e=>e.code==='FIELD_DEFINITION_REJECTED'&&/REQUIRED_MISSING/.test(e.message));
+});
+
+// Step 4 - Browser/Node parity and non-mutating diff contract.
+test('共有Diff: ブラウザとNodeで同一のExpected／Actual結果', async()=>{
+ const browser={structuredClone};
+ vm.runInNewContext(await fs.readFile(path.join(root,'wwwroot/js/services/changeset/change_diff.js'),'utf8'),{window:browser,structuredClone});
+ const before={title:'demo',items:[{item_id:'one',title:'old'}]};
+ const after={title:'demo',items:[{item_id:'one',title:'new'},{item_id:'two',title:'追加'}]};
+ const original=structuredClone(before);
+ const expected=[{op:'add',path:'/items/1',value:after.items[1]}];
+ const nodeActual=sharedDiff.compareDiff(before,after);
+ const browserActual=browser.FrbStudioChangeDiff.compareDiff(before,after);
+ assert.deepEqual(JSON.parse(JSON.stringify(browserActual)),nodeActual);
+ assert.deepEqual(JSON.parse(JSON.stringify(browser.FrbStudioChangeDiff.compareExpectedActual(expected,browserActual))),sharedDiff.compareExpectedActual(expected,nodeActual));
+ assert.deepEqual(sharedDiff.compareExpectedActual(expected,nodeActual).map(d=>d.path),['/items/0/title']);
+ assert.deepEqual(before,original);
+});
+test('共有Diff: 不足Expected、変更の種別、キー順序、JSON Pointer',()=>{
+ assert.deepEqual(sharedDiff.compareExpectedActual([{op:'add',path:'/items/1',value:{a:1}}],[]).map(d=>d.op),['missing_expected']);
+ assert.equal(sharedDiff.compareExpectedActual([{op:'add',path:'/x',value:{a:1,b:2}}],[{op:'add',path:'/x',value:{b:2,a:1}}]).length,0);
+ assert.equal(sharedDiff.compareExpectedActual([{op:'add',path:'/x',value:1}],[{op:'replace',path:'/x',value:1}]).length,2);
+ assert.deepEqual(sharedDiff.compareDiff({'a/b~c':1},{'a/b~c':2}).map(x=>x.path),['/a~1b~0c']);
+});
+test('ブラウザ／ポータブル配布双方が共有Diffを参照する', async()=>{
+ const page=await fs.readFile(path.join(root,'wwwroot/index.html'),'utf8');
+ const portable=await fs.readFile(path.join(root,'tools/change_core/prepare_portable.ps1'),'utf8');
+ const bridge=page.indexOf('js/services/changeset/change_diff.js?');
+ const detailSave=page.indexOf('js/runtime/detail_save.js?');
+ assert.ok(bridge>=0&&detailSave>bridge,'ブラウザは保存処理より前に共通Diffライブラリをロードする');
+ assert.ok(portable.includes("'wwwroot/js/services/changeset/change_diff.js'"));
 });
