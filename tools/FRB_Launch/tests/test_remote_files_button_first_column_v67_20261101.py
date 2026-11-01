@@ -85,15 +85,17 @@ def test_remote_popup_vertical_bounds_use_files_row_to_remote_bottom_band():
     assert fn(launcher) == (99, 564)  # 3x the previous vertical reach
 
 
-def test_show_remote_files_first_column_menu_ignores_non_files_workspace():
-    fn = method(APP, 'Launcher', 'show_remote_files_first_column_menu', {'Path': Path, 'QPoint': lambda x, y: (x, y), 'RemoteFolderCascade': object, 'os': __import__('os')})
-    launcher = NS(
-        remote_window=NS(isVisible=lambda: True),
-        expanded_view=NS(isVisible=lambda: True, _workspace_mode='browser', current_directory=lambda: 'F:/FRB'),
-        close_remote_folder_menu=Mock(),
-        _apply_remote_popup_bounds=Mock(),
-        fill_cascade=Mock(),
-        _remote_folder_context=Mock(),
-    )
-    fn(launcher)
-    launcher.close_remote_folder_menu.assert_not_called()
+def test_show_remote_files_first_column_menu_ignores_hidden_remote_or_view():
+    fn = method(APP, 'Launcher', 'show_remote_files_first_column_menu')
+    for remote_visible, view_visible in ((False, True), (True, False)):
+        view = NS(isVisible=lambda: view_visible, show_files_view=Mock())
+        launcher = NS(
+            remote_window=NS(isVisible=lambda: remote_visible),
+            expanded_view=view,
+            close_remote_folder_menu=Mock(),
+            close_remote_page_menu=Mock(),
+        )
+        fn(launcher)
+        view.show_files_view.assert_not_called()
+        launcher.close_remote_folder_menu.assert_not_called()
+        launcher.close_remote_page_menu.assert_not_called()

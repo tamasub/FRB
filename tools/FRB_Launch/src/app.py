@@ -1004,18 +1004,25 @@ class CascadeMenu(OrderDragMixin,QMenu):
             QLineEdit:focus { border-color: #85bbff; }
             QLabel { background: transparent; color: #9fb9d5; font-size: 11px; }
         """)
-        layout = QHBoxLayout(container)
+        # The Remote Browser bookmark root has one extra control directly
+        # below search.  It is INSIDE the filter QWidgetAction, so long menus
+        # keep both controls above their scrollable result tree.
+        bookmark_root = getattr(self, 'remote_browser_bookmark_roots', False)
+        layout = QVBoxLayout(container) if bookmark_root else QHBoxLayout(container)
         layout.setContentsMargins(7, 5, 7, 5)
         layout.setSpacing(5)
+        search_row = QHBoxLayout() if bookmark_root else layout
+        if bookmark_root:
+            search_row.setSpacing(5)
         glyph = QLabel('⌕', container)
-        layout.addWidget(glyph)
+        search_row.addWidget(glyph)
         self.filter_edit = QLineEdit(container)
         self.filter_edit.setPlaceholderText('この列から探す…')
         self.filter_edit.setClearButtonEnabled(True)
         self.filter_edit.setMinimumWidth(180)
         self.filter_edit.installEventFilter(self)
         self._filter_ime_composing = False
-        layout.addWidget(self.filter_edit, 1)
+        search_row.addWidget(self.filter_edit, 1)
         # This button belongs ONLY to actual filesystem directories, never
         # Studio categories, bookmarks, apps or global search columns.
         if (self._folder_container_row() is not None
@@ -1038,9 +1045,36 @@ class CascadeMenu(OrderDragMixin,QMenu):
             ''')
             self.paste_button.clicked.connect(lambda checked=False: self.launcher.paste_into_directory(self))
             self._update_paste_button()
-            layout.addWidget(self.paste_button)
+            search_row.addWidget(self.paste_button)
         self.filter_count = QLabel('', container)
-        layout.addWidget(self.filter_count)
+        search_row.addWidget(self.filter_count)
+        if bookmark_root:
+            layout.addLayout(search_row)
+            # Use full-width segmented choices instead of native radio dots.
+            # On Windows the radio indicator was clipped/indistinct in this
+            # ~230px popup, making the selected destination impossible to see.
+            target_row = QHBoxLayout()
+            target_row.setContentsMargins(0, 0, 0, 0)
+            target_row.setSpacing(4)
+            self.remote_bookmark_new_tab_button = QPushButton('新規タブ', container)
+            self.remote_bookmark_current_tab_button = QPushButton('カレントタブ', container)
+            for button in (self.remote_bookmark_new_tab_button,
+                           self.remote_bookmark_current_tab_button):
+                button.setObjectName('remoteBookmarkTabChoice')
+                button.setCheckable(True)
+                button.setFixedHeight(28)
+                button.setMinimumWidth(0)
+                button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+                # Mouse selection must not steal the cascade's keyboard focus.
+                button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            self.remote_bookmark_new_tab_button.clicked.connect(
+                lambda _checked=False: self._select_remote_bookmark_tab(True))
+            self.remote_bookmark_current_tab_button.clicked.connect(
+                lambda _checked=False: self._select_remote_bookmark_tab(False))
+            target_row.addWidget(self.remote_bookmark_new_tab_button, 1)
+            target_row.addWidget(self.remote_bookmark_current_tab_button, 1)
+            layout.addLayout(target_row)
+            self._select_remote_bookmark_tab(True)  # Each opening defaults to new tab.
         action = QWidgetAction(self)
         action.setDefaultWidget(container)
         self.filter_action = action
@@ -1058,6 +1092,32 @@ class CascadeMenu(OrderDragMixin,QMenu):
         # An empty, visible search field must not disable normal row dragging.
         self.filter_edit.textChanged.connect(self._apply_local_filter)
         # popup/showEvent transfers the actual keyboard focus after display.
+
+    def _select_remote_bookmark_tab(self, new_tab):
+        """Make the chosen URL destination unmistakable in the compact menu."""
+        self.remote_bookmark_new_tab = bool(new_tab)
+        light = theme_family(getattr(self.launcher, 'color_theme', 'light')) == 'light'
+        selected_bg = '#d6e7f8' if light else '#345d7a'
+        selected_border = '#548fc8' if light else '#83bce4'
+        selected_fg = '#173e60' if light else '#f1f8ff'
+        idle_bg = '#f8fcfa' if light else '#263a35'
+        idle_border = '#b6cfc1' if light else '#537468'
+        idle_fg = '#3d6253' if light else '#b7cec3'
+        for button, label, chosen in (
+                (self.remote_bookmark_new_tab_button, '新規タブ', bool(new_tab)),
+                (self.remote_bookmark_current_tab_button, 'カレントタブ', not new_tab)):
+            button.setChecked(chosen)
+            button.setText(('✓ ' if chosen else '') + label)
+            button.setToolTip(('選択中：' if chosen else '切り替える：') + label)
+            button.setStyleSheet(
+                'QPushButton#remoteBookmarkTabChoice {'
+                f'background:{selected_bg if chosen else idle_bg};'
+                f'border:2px solid {selected_border if chosen else idle_border};'
+                f'color:{selected_fg if chosen else idle_fg};'
+                f'font-weight:{"bold" if chosen else "normal"};'
+                'border-radius:6px;padding:1px 2px;font-size:12px;}'
+                'QPushButton#remoteBookmarkTabChoice:hover {'
+                f'border-color:{selected_border};}}')
 
     @staticmethod
     def _clipboard_paste_icon():
@@ -3024,6 +3084,52 @@ class Launcher(QWidget):
             self._remote_folder_source_path = None
             self._remote_folder_popup_pos = None
 
+    def _remote_browser_bookmark_rows(self):
+        """Use Browser's displayed Bookmarks rows, skipping section headings.
+
+        The right panel keeps its rows even when temporarily hidden in Files
+        mode.  Never create a parallel bookmark store or mutate the source.
+        """
+        view = self.expanded_view
+        tree = view.right.tree
+        return [row for row in (
+            view.row_data(tree.topLevelItem(i))
+            for i in range(tree.topLevelItemCount()))
+            if isinstance(row, dict) and row.get('item_kind') in
+            ('category', 'directory', 'command')]
+
+    def show_remote_browser_bookmark_menu(self):
+        """Right-click Browser: open its displayed bookmark first column.
+
+        This is a navigation preview, not a workspace switch. A URL uses the
+        normal bookmark activation route (embedded WebView / external mode).
+        """
+        remote = getattr(self, 'remote_window', None)
+        view = self.expanded_view
+        if (remote is None or not remote.isVisible() or not view.isVisible()
+                or view.bookmarks_root is None):
+            return
+        self.close_remote_folder_menu()
+        self.close_remote_page_menu()  # Page and Browser share one menu slot.
+        if self.menu is not None:
+            self.menu.close()
+        menu = self._apply_remote_popup_bounds(CascadeMenu(parent=self, launcher=self))
+        menu.remote_page_navigation = True  # First-click/hover opens folders.
+        menu.bookmark_navigation = True
+        menu.bookmark_compact_width = True
+        menu.remote_browser_bookmark_roots = True  # Add target radio buttons below search.
+        menu.remote_bookmark_new_tab = True        # Default on EACH opening: new tab.
+        menu.setMaximumWidth(min(menu.maximumWidth(), round(CASCADE_MAX_WIDTH * 0.7)))
+        menu.open_mode = 'mouse'
+        self._remote_page_menu = menu
+        self.menu = menu
+        root = {'item_kind': 'category', 'item_id': 'remote-browser-bookmarks',
+                'title': 'ブックマーク', 'launch_source': 'remote_browser_bookmark_roots'}
+        self.fill_cascade(menu, root)
+        button = remote.browser_button
+        anchor = button.mapToGlobal(QPoint(button.width() - 1, 0))
+        menu.popup(anchor)
+
     def _remote_files_first_column_rows(self):
         """Read the rendered Files column 1, not the breadcrumb/current dir."""
         view = self.expanded_view
@@ -3034,12 +3140,20 @@ class Launcher(QWidget):
             if isinstance(row, dict)]
 
     def show_remote_files_first_column_menu(self):
-        """Right-click Files: show exactly the *Files left column* roots."""
+        """Right-click Files: switch to Files and open its first-column roots.
+
+        Unlike HOME/left-click, keep the last Files breadcrumb and selection.
+        The remote Browser bookmark popup must close before switching modes.
+        """
         remote = getattr(self, 'remote_window', None)
         view = self.expanded_view
-        if (remote is None or not remote.isVisible() or not view.isVisible()
-                or view._workspace_mode != 'files'):
+        if remote is None or not remote.isVisible() or not view.isVisible():
             return
+        self.close_remote_page_menu()
+        if self.menu is not None:
+            self.menu.close()
+        if view._workspace_mode != 'files':
+            view.show_files_view()  # Switch only; do NOT call navigate_home().
         if view.files_root is None or view.left.tree.topLevelItemCount() == 0:
             return
         self.close_remote_folder_menu()
@@ -3918,6 +4032,17 @@ class Launcher(QWidget):
                                       self.history_category_action.icon(),
                                       view.favorite_save.text())
         remote.set_favorite_action_available(available)
+        # Browser: mirror the active Web address-bar heart, not the Files
+        # breadcrumb (whose path is retained while switching workspaces).
+        mode = getattr(view, '_workspace_mode', 'files')
+        url_available = False
+        if mode == 'browser':
+            web = getattr(view, 'web_view', None)
+            url_available = bool(view.isVisible() and web is not None
+                                 and view.web_view_active() and web.favorite_save.isEnabled()
+                                 and web.current_url_for_favorite())
+        if hasattr(remote, 'set_url_favorite_action_available'):
+            remote.set_url_favorite_action_available(url_available)
         if hasattr(remote, 'set_more_menu_mode'):
             remote.set_more_menu_mode(
                 view._workspace_mode,
@@ -3989,8 +4114,18 @@ class Launcher(QWidget):
         if command == 'REMOTE_FAVORITE_SAVE':
             # Exactly the same QToolButton as the breadcrumb heart.
             view = self.expanded_view
-            if view.isVisible() and view.current_directory() and view.favorite_save.isEnabled():
+            if (view.isVisible() and getattr(view, '_workspace_mode', 'files') == 'files'
+                    and view.current_directory() and view.favorite_save.isEnabled()):
                 view.favorite_save.click()
+            return
+        if command == 'REMOTE_URL_FAVORITE_SAVE':
+            # Reuse Browser's live address-bar heart. It owns URL validation,
+            # duplicate handling, JSON persistence, and enabled state.
+            view = self.expanded_view
+            if view.isVisible() and view._workspace_mode == 'browser' and view.web_view_active():
+                web = view.web_view
+                if web is not None and web.favorite_save.isEnabled() and web.current_url_for_favorite():
+                    web.favorite_save.click()
             return
         if command == 'CONTEXT_MENU':
             self.remote_context_menu()
@@ -4000,6 +4135,9 @@ class Launcher(QWidget):
             return
         if command == 'REMOTE_FILES_FIRST_COLUMN_MENU':
             self.show_remote_files_first_column_menu()
+            return
+        if command == 'REMOTE_BROWSER_BOOKMARK_MENU':
+            self.show_remote_browser_bookmark_menu()
             return
         if command == 'BACKGROUND_CONTEXT_MENU':
             # Same action builder as a right-click on Files column 2 blank
@@ -6398,7 +6536,7 @@ class Launcher(QWidget):
     def fill_cascade(self, menu, parent):
         if isinstance(menu,AppCascadeMenu):
             menu.populate(self.children(parent));return
-        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source') not in {'installed_apps','browser_bookmarks','remote_files_roots'} and not parent.get('_browser_bookmark')
+        menu.order_enabled=parent['item_kind']=='category' and parent.get('launch_source') not in {'installed_apps','browser_bookmarks','remote_files_roots','remote_browser_bookmark_roots'} and not parent.get('_browser_bookmark')
         menu.order_page=parent.get('page_id',self.page_id)
         menu.order_parent=parent.get('item_id','')
         menu.order_context=parent
@@ -6408,6 +6546,10 @@ class Launcher(QWidget):
                 # The first column belongs to ExpandedLauncherView, not to
                 # the current breadcrumb or a separate configuration tree.
                 rows = self._remote_files_first_column_rows()
+            elif parent.get('launch_source') == 'remote_browser_bookmark_roots':
+                # Exactly the visible Browser bookmark entries, retaining
+                # their underlying row identities for nested folder / URL use.
+                rows = self._remote_browser_bookmark_rows()
             elif getattr(menu, 'remote_folder_navigation', False) and parent.get('_system_drives_root'):
                 # "PC" is a virtual root. Expanded Files resolves it to real
                 # drive rows, so re-use that same resolver here.
@@ -6666,6 +6808,21 @@ class Launcher(QWidget):
                                       review_deleted=True)
 
     def run_menu_item(self, row):
+        # Only URLs launched from Remote > Browser right-click honor the
+        # first-column tab destination. The normal Bookmarks pane and all
+        # other cascades retain their established activation semantics.
+        root = getattr(self, 'menu', None)
+        if (getattr(root, 'remote_browser_bookmark_roots', False)
+                and self.webview_settings.get('mode') == 'embedded'):
+            url = bookmark_web_url(row)
+            if url:
+                new_tab = getattr(root, 'remote_bookmark_new_tab', True)
+                if root is not None:
+                    root.close()
+                if self.expanded_view.show_web_url(url, new_tab=new_tab):
+                    return
+                # WebEngine unavailable: preserve the existing activation
+                # fallback (including the configured external-browser mode).
         if self.menu:self.menu.close()
         self.activate(row)
 

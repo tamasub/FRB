@@ -280,6 +280,7 @@ class LaunchRemote(QWidget):
         self.more_settings_action = self.more_menu.addAction('設定')
         self.more_category_action = self.more_menu.addAction('検索履歴カテゴリーを追加')
         self.more_favorite_action = self.more_menu.addAction('現在のフォルダーをお気に入り登録')
+        self.more_url_favorite_action = self.more_menu.addAction('現在のアドレスをお気に入り登録')
         self.more_new_tab_action = self.more_menu.addAction('新規タブ追加')
         # Use the *actual* main-window glyphs (not a platform folder icon).
         # The menu text stays unchanged; Qt reserves an icon column itself.
@@ -292,6 +293,8 @@ class LaunchRemote(QWidget):
             lambda checked=False: self.command.emit('REMOTE_CATEGORY_ADD'))
         self.more_favorite_action.triggered.connect(
             lambda checked=False: self.command.emit('REMOTE_FAVORITE_SAVE'))
+        self.more_url_favorite_action.triggered.connect(
+            lambda checked=False: self.command.emit('REMOTE_URL_FAVORITE_SAVE'))
         self.more_new_tab_action.setIcon(browser_navigation_icon(
             'plus', theme_family(launcher.color_theme)))
         self.more_new_tab_action.triggered.connect(
@@ -334,9 +337,14 @@ class LaunchRemote(QWidget):
         self.files_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.files_button.customContextMenuRequested.connect(
             lambda _point: self.command.emit('REMOTE_FILES_FIRST_COLUMN_MENU'))
-        self.browser_button = self._button('Browser', 'Browser画面へ切り替え',
+        self.browser_button = self._button('Browser', 'Browser画面へ切り替え / 右クリック：ブックマークを展開',
                                            'WORKSPACE_BROWSER', width=85, height=27,
                                            role='workspace', wheel_enabled=True)
+        # Mirror Files: right-click opens a non-modal, searchable cascade.
+        # Native left-click remains WORKSPACE_BROWSER, never a context action.
+        self.browser_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.browser_button.customContextMenuRequested.connect(
+            lambda _point: self.command.emit('REMOTE_BROWSER_BOOKMARK_MENU'))
         row_workspaces.addWidget(self.files_button)
         row_workspaces.addWidget(self.browser_button)
         root.addLayout(row_workspaces)
@@ -528,6 +536,7 @@ class LaunchRemote(QWidget):
         self.more_new_tab_action.setEnabled(browser and can_add_tab)
         self.more_category_action.setVisible(not browser)
         self.more_favorite_action.setVisible(not browser)
+        self.more_url_favorite_action.setVisible(browser)
 
     def show_more_menu(self):
         """Show a three-action menu next to …, not over the main Launcher."""
@@ -551,6 +560,12 @@ class LaunchRemote(QWidget):
         self.more_settings_action.setIcon(settings_icon)
         self.more_category_action.setIcon(category_icon)
         self.more_favorite_action.setIcon(remote_favorite_icon(favorite_heart))
+        # The Browser address bar's heart and the Files breadcrumb heart
+        # share one icon language; each action has its own enabled state.
+        self.more_url_favorite_action.setIcon(remote_favorite_icon(favorite_heart))
+
+    def set_url_favorite_action_available(self, available):
+        self.more_url_favorite_action.setEnabled(bool(available))
 
     def set_favorite_action_available(self, available):
         """Do not offer the heart action outside a valid Files directory."""

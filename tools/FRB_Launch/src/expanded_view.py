@@ -3962,15 +3962,18 @@ class ExpandedLauncherView(QWidget):
         self._activate_browser_layout()
         return True
 
-    def show_web_url(self, url):
-        """Open explicit bookmark activation in the retained Browser workspace."""
+    def show_web_url(self, url, *, new_tab=False):
+        """Open a bookmark in Browser; Remote may explicitly request a new tab."""
         if self.launcher.webview_settings.get('mode') != 'embedded':
             return False
         if not self._ensure_web_view():
             return False
         self.files_content_stack.setCurrentWidget(self.web_view)
         self._activate_browser_layout()
-        self.web_view.show_url(url)
+        if new_tab:
+            self.web_view.show_url(url, new_tab=True)
+        else:
+            self.web_view.show_url(url)
         return True
 
     def show_files_view(self):
