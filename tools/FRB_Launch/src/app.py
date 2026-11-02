@@ -2656,6 +2656,13 @@ class HistoryOutsideClickFilter(QObject):
         if (remote is not None and remote.isVisible()
                 and (obj is remote or remote.isAncestorOf(obj))):
             return False
+        # The Files-header magnifier follows Remote's two-click history
+        # contract. Do not dismiss its history on the second mouse press.
+        files_button = getattr(getattr(launcher, 'expanded_view', None),
+                               'files_history_button', None)
+        if files_button is not None and (obj is files_button or
+                                         files_button.isAncestorOf(obj)):
+            return False
         current = obj
         while isinstance(current, QObject):
             if current is launcher.history_popup or current is launcher.search:
@@ -4277,8 +4284,8 @@ class Launcher(QWidget):
             if mode == 'browser' and area in ('files', 'directory', 'breadcrumb'):
                 self.remote_focus_area(self._current_web_body_area() if self.files_root_hidden_mode
                                        else 'bookmarks')
-            elif mode == 'files' and (area == 'bookmarks' or
-                                      str(area).startswith('web_body:')):
+            elif (mode == 'files' and not getattr(self, '_remote_preserve_files_selection', False)
+                  and (area == 'bookmarks' or str(area).startswith('web_body:'))):
                 self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
 
     def _focus_bookmark_first(self):
@@ -4931,6 +4938,26 @@ class Launcher(QWidget):
                 view._workspace_mode,
                 can_add_tab=view.web_view_active())
 
+    def files_history_button_clicked(self):
+        """Same two-click history contract as Remote, without requiring Remote.
+
+        First click opens the *existing* main search-history popup; a second
+        click confirms its current row (a category toggles rather than runs).
+        File/Folder selection and the Files breadcrumb remain untouched until
+        a history keyword is deliberately confirmed.
+        """
+        if self.history_popup.isVisible():
+            row = self.history_choices.currentItem()
+            if row is not None:
+                self.history_row_clicked(row, 0)  # Never the delete column.
+            if not self.history_popup.isVisible() and self._remote_popup_area == 'search_history':
+                self._remote_popup_area = None
+            return
+        self.show_history_popup(anchor=self.expanded_view.files_history_button)
+        if self.history_popup.isVisible() and self.remote_window is not None and self.remote_window.isVisible():
+            self._remote_popup_area = 'search_history'
+            self.remote_window.set_area('search_history')
+
     def remote_search_result_double_click(self):
         """Run the current *visible global-search hit*, never a history row.
 
@@ -4985,9 +5012,31 @@ class Launcher(QWidget):
             if not view.isVisible():
                 return
             if command == 'WORKSPACE_FILES':
-                # Identical to HOME, including first-row selection and Files view.
-                self.navigate_home()
-                self.remote_focus_area('files')
+                # Workspace switch != HOME: retain the breadcrumb, Files Exp
+                # expanded/selected rows, and the Files column-2 current item.
+                # Suppress the generic Browser->Files focus handler, which can
+                # otherwise select a root row or implicitly select a file.
+                self._remote_preserve_files_selection = True
+                try:
+                    view.show_files_view()
+                finally:
+                    self._remote_preserve_files_selection = False
+                if self._remote_area not in ('files', 'directory'):
+                    # Visual current column only: avoid focus_panel(), which
+                    # would potentially select the first file on an empty row.
+                    self._remote_area = 'directory'
+                    if self.remote_window is not None:
+                        self.remote_window.set_area('directory')
+                    for name, pane in (('files', view.left), ('directory', view.middle)):
+                        tree = pane.tree
+                        tree.remote_highlight_mode = True
+                        tree.remote_logical_active = name == 'directory'
+                        inactive = name != 'directory'
+                        if tree.property('remoteInactive') != inactive:
+                            tree.setProperty('remoteInactive', inactive)
+                            tree.style().unpolish(tree)
+                            tree.style().polish(tree)
+                        tree.viewport().update()
             elif view.switch_workspace('browser'):
                 if self.files_root_hidden_mode:
                     # Explicitly preserve hidden Bookmarks on Remote Browser.
@@ -8215,9 +8264,17 @@ class Launcher(QWidget):
     def position_history_popup(self):
         if not hasattr(self, 'history_popup'):
             return
-        # QLineEdit is nested in searchBar; map back to Launcher coordinates.
-        anchor = self.search.mapTo(self, QPoint(0, self.search.height() + 4))
-        x, y = anchor.x(), anchor.y()
+        # The header magnifier can open the SAME history below itself. The
+        # main search field and Remote retain their original popup anchor.
+        source = getattr(self, '_history_popup_anchor', None)
+        if source is not None and source.isVisible():
+            anchor = source.mapTo(self, QPoint(0, source.height() + 4))
+            x, y = anchor.x(), anchor.y()
+            width = min(max(330, self.search.width()), max(1, self.width() - x - 12))
+        else:
+            anchor = self.search.mapTo(self, QPoint(0, self.search.height() + 4))
+            x, y = anchor.x(), anchor.y()
+            width = self.search.width()
         footer_top = self.footer.mapTo(self, QPoint(0, 0)).y()
         available = popup_available_height(self.height(), y, footer_top)
         # 31px CSS row + vertical padding; header buttons and frame margins.
@@ -8225,7 +8282,7 @@ class Launcher(QWidget):
         height = popup_tree_height(self.history_choices, self.history_visible_rows(),
                                    minimum_row_height=35, chrome_height=48 + 33,
                                    available_height=available)
-        self.history_popup.setGeometry(x, y, self.search.width(), height)
+        self.history_popup.setGeometry(x, y, width, height)
 
     def populate_history_popup(self, selected=None):
         """Folders are visual containers; original keyword text stays intact."""
@@ -8491,9 +8548,10 @@ class Launcher(QWidget):
             DIAG.exception('SEARCH_HISTORY category drag failed')
             self.populate_history_popup()
 
-    def show_history_popup(self):
+    def show_history_popup(self, *, anchor=None):
         if not self.isVisible():
             return
+        self._history_popup_anchor = anchor
         if self.menu:
             self.menu.close()
         self.hover_timer.stop(); self.pending_menu_item = None
@@ -8511,6 +8569,7 @@ class Launcher(QWidget):
             return
         was_visible = self.history_popup.isVisible()
         self.history_popup.hide()
+        self._history_popup_anchor = None
         # Start each invocation with the full history; local filter is not a
         # global search and must not silently hide entries on next open.
         if self.history_filter.text():

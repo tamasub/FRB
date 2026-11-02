@@ -63,7 +63,7 @@ def test_favorite_popup_and_address_preview_are_distinct():
 def test_middle_back_strip_outside_view_and_not_a_tree_column():
     assert 'self.middle.layout_box.removeWidget(self.middle.tree)' in EXPANDED
     assert 'middle_tree_layout.addWidget(self.middle.tree, 1)' in EXPANDED
-    assert 'middle_tree_layout.addWidget(self.middle_back_lane)' in EXPANDED
+    assert 'middle_tree_layout.insertWidget(0, self.middle_back_lane)' in EXPANDED
     assert 'self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)' in EXPANDED
     assert 'self.middle.tree.setColumnWidth(1, 40 + MIDDLE_BACK_LANE_WIDTH)' not in EXPANDED
     assert 'QWidget#expandedBackLane' in EXPANDED  # lane is a painted QWidget

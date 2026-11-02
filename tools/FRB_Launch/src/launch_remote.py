@@ -85,6 +85,12 @@ class WheelPad(QFrame):
             layout.addWidget(caption)
 
     def wheelEvent(self, event):
+        # Works both for native pad events and button wheel forwarding.
+        # Ctrl+wheel changes ONLY the Remote background transparency.
+        remote = self.parentWidget() if hasattr(self, 'parentWidget') else None
+        adjust_opacity = getattr(remote, 'adjust_background_opacity_from_wheel', None)
+        if callable(adjust_opacity) and adjust_opacity(event):
+            return
         angle = event.angleDelta().y()
         pixel = event.pixelDelta().y()
         if angle:
@@ -267,6 +273,15 @@ class LaunchRemote(QWidget):
         # Transparent window corners; the antialiased panel is drawn in paintEvent.
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        # QSettings owns this experiment, not the user's Launch data JSON.
+        settings = getattr(launcher, 'settings', None)
+        try:
+            saved_opacity = float(settings.value('remote_background_opacity', 0.65)) if settings is not None else 0.65
+        except (TypeError, ValueError):
+            saved_opacity = 0.65
+        self._background_opacity = max(0.25, min(1.0, saved_opacity))
+        self._opacity_wheel_angle_remainder = 0
+        self._opacity_wheel_pixel_remainder = 0
 
         # Compact layout tuned from hands-on feedback: keep the pointer
         # travel short, but preserve enough button height and readable text.
@@ -355,7 +370,7 @@ class LaunchRemote(QWidget):
         self._applying_grid_alignment = False
         self.files_exp_theme = launcher.color_theme
         self.files_exp_button = self._button(
-            'Files Exp', 'LaunchのFiles画面へ切り替え',
+            'Files Exp', '作業フォルダーと選択状態を維持してFiles画面へ切り替え',
             'WORKSPACE_FILES', width=85, height=27, role='workspace',
             wheel_enabled=True)
 
@@ -668,14 +683,64 @@ class LaunchRemote(QWidget):
 
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
-                and (obj is self or (isinstance(obj, QWidget) and obj.window() is self))
-                and hasattr(self, 'pad')):
-            # Directly reuse WheelPad's angle/pixel remainder so a half-step
-            # over one button plus a half-step over another is one movement.
-            # This does not synthesize keys or trigger any button's click.
-            self.pad.wheelEvent(event)
-            return True
+                and (obj is self or (isinstance(obj, QWidget) and obj.window() is self))):
+            if self.adjust_background_opacity_from_wheel(event):
+                return True
+            if hasattr(self, 'pad'):
+                # Keep normal wheel navigation unchanged without Ctrl.
+                self.pad.wheelEvent(event)
+                return True
         return super().eventFilter(obj, event)
+
+    def adjust_background_opacity_from_wheel(self, event):
+        """Ctrl+wheel anywhere on Remote adjusts painted backgrounds only.
+
+        Text, icons, and the main Launch window remain fully opaque.  Fractional
+        wheel deltas accumulate; Ctrl+wheel must never navigate Files rows.
+        """
+        if not (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
+            return False
+        angle = event.angleDelta().y()
+        if angle:
+            self._opacity_wheel_angle_remainder += angle
+            steps = int(self._opacity_wheel_angle_remainder / 120)
+            self._opacity_wheel_angle_remainder -= steps * 120
+        else:
+            self._opacity_wheel_pixel_remainder += event.pixelDelta().y()
+            steps = int(self._opacity_wheel_pixel_remainder / 36)
+            self._opacity_wheel_pixel_remainder -= steps * 36
+        if steps:
+            value = self._background_opacity + max(-5, min(5, steps)) * 0.05
+            self.set_background_opacity(value)
+        event.accept()
+        return True
+
+    def set_background_opacity(self, value):
+        """Persist the uniform Remote panel/button fill opacity (25..100%)."""
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            return
+        if not 0.25 <= value <= 1.0:
+            value = max(0.25, min(1.0, value))
+        value = round(value, 2)
+        if value == self._background_opacity:
+            return
+        self._background_opacity = value
+        settings = getattr(self.parent(), 'settings', None)
+        if settings is not None:
+            settings.setValue('remote_background_opacity', value)
+            settings.sync()
+        self.apply_theme(self.files_exp_theme)
+        # Only Ctrl+wheel displays this hint; no permanent extra UI row.
+        from PySide6.QtGui import QCursor
+        from PySide6.QtWidgets import QToolTip
+        QToolTip.showText(QCursor.pos(), f'リモコン背景の不透明度：{int(value * 100)}%', self)
+
+    def _background_css(self, value):
+        """Qt stylesheet RGBA: alpha is applied to fills, not to glyphs."""
+        color = QColor(value)
+        return f'rgba({color.red()},{color.green()},{color.blue()},{round(self._background_opacity * 255)})'
 
     def paintEvent(self, event):
         """Render a truly rounded window with a thin pale-grey outline."""
@@ -701,28 +766,35 @@ class LaunchRemote(QWidget):
             self.more_new_tab_action.setIcon(browser_navigation_icon(
                 'plus', theme_family(theme)))
         self._remote_background = QColor(c['panel'])
+        self._remote_background.setAlphaF(self._background_opacity)
         self._remote_outline = QColor('#ccd3d7')  # subtle light-grey, 1px
+        self._remote_outline.setAlphaF(self._background_opacity)
+        header_bg = self._background_css(c['header'])
+        subheader_bg = self._background_css(c['subheader'])
+        button_bg = self._background_css(c['panel_header'])
+        active_bg = self._background_css(c['selection'])
+        hover_bg = self._background_css(c['hover'])
         self.setStyleSheet(f"""
             QWidget#launchRemoteWindow {{ background:transparent; border:0; }}
-            QFrame#remoteTitleBar {{background:{c['header']};
+            QFrame#remoteTitleBar {{background:{header_bg};
                 border:1px solid {c['panel_border']};border-radius:5px;}}
-            QFrame#remoteStatusBar {{background:{c['subheader']};
+            QFrame#remoteStatusBar {{background:{subheader_bg};
                 border:1px solid {c['panel_border']};border-radius:4px;}}
             QFrame#remotePageSeparator {{background:transparent;border:0;
                 border-top:1px solid {c['panel_border']};margin:3px 2px 0 2px;}}
-            QPushButton {{background:{c['panel_header']};color:{c['text']};
+            QPushButton {{background:{button_bg};color:{c['text']};
                 border:1px solid {c['panel_border']};border-radius:5px;
                 font-size:12px;padding:0 4px;}}
             QPushButton[role="small"] {{font-size:12px;padding:0 2px;}}
             QPushButton[role="tab"] {{font-size:12px;}}
             QPushButton[role="workspace"] {{font-size:12px;}}
             QPushButton[role="page"] {{text-align:left;padding-left:10px;font-size:12px;}}
-            QPushButton[role="workspace"][active="true"] {{background:{c['selection']};
+            QPushButton[role="workspace"][active="true"] {{background:{active_bg};
                 border:1px solid {c['focus_outline']};}}
             QPushButton[role="icon"] {{font-size:12px;padding:0;}}
             QPushButton#remoteHomeButton {{border-radius:7px;padding:0;}}
-            QPushButton:hover {{background:{c['hover']};}}
-            QPushButton:pressed {{background:{c['selection']};}}
+            QPushButton:hover {{background:{hover_bg};}}
+            QPushButton:pressed {{background:{active_bg};}}
             QLabel {{background:transparent;color:{c['text']};border:0;}}
             QLabel#remoteTitle {{font-size:10px;font-weight:bold;}}
             QMenu#remoteMoreMenu {{background:{c['panel']};color:{c['text']};
@@ -740,7 +812,7 @@ class LaunchRemote(QWidget):
             QFrame#remoteUpDoubleClickBand {{background:transparent;
                 border:1px solid #a5adb0;border-radius:4px;}}
             QFrame#remoteUpDoubleClickBand QLabel {{color:{c['muted_text']};font-size:10px;}}
-            QFrame#remoteWheelPad {{background:{c['selection']};
+            QFrame#remoteWheelPad {{background:{active_bg};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
         """)
         self.update()

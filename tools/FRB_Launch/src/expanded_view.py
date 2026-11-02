@@ -3,7 +3,7 @@
 This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
-from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo
+from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo, Signal
 from PySide6.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
@@ -46,7 +46,7 @@ from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
                                history_popup_qss, bookmark_section_colors)
 
 
-MIDDLE_BACK_LANE_WIDTH = 24  # Operation lane after the chevron.
+MIDDLE_BACK_LANE_WIDTH = 24  # Left-edge operation lane beside the file grid.
 
 
 class _WorkspaceSeamOverlay(QWidget):
@@ -220,11 +220,11 @@ class _WorkspaceTopRightOutline(QWidget):
 
 
 class _BackLaneWidget(QWidget):
-    """Dedicated right-side operation lane beside the middle file list.
+    """Fixed-width operation lane at the LEFT of the Files second-column grid.
 
-    The lane stays clickable through the full pane height, but its visible guide
-    line only extends to the last *visible* row so the per-folder operation
-    area reads clearly without visually slicing the lower blank area.
+    The separator covers the full grid height (including its final row), and
+    the lane remains outside the QTreeWidget viewport, so it cannot select a
+    file or become an accidental paste/rename target.
     """
 
     def __init__(self, view, parent=None):
@@ -233,35 +233,62 @@ class _BackLaneWidget(QWidget):
         self.line_color = QColor('#cbdcd1')
         self.line_width = 0.65
 
-    def visible_line_bottom(self):
-        middle = getattr(self.view, 'middle', None)
-        if middle is None:
-            return 0
-        tree = middle.tree
-        viewport = tree.viewport()
-        if tree.topLevelItemCount() <= 0:
-            return 0
-        rect = viewport.rect()
-        for index in range(tree.topLevelItemCount() - 1, -1, -1):
-            item = tree.topLevelItem(index)
-            if item is None:
-                continue
-            visual = tree.visualItemRect(item)
-            if visual.isValid() and visual.intersects(rect):
-                return max(0, min(self.height(), visual.bottom() + 1))
-        return min(self.height(), rect.height()) if tree.topLevelItemCount() else 0
-
     def paintEvent(self, event):
         super().paintEvent(event)
-        bottom = self.visible_line_bottom()
-        if bottom <= 0:
+        if self.height() <= 0:
             return
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         painter.setPen(QPen(self.line_color, self.line_width))
-        x = 0.5
-        painter.drawLine(QPointF(x, 0), QPointF(x, bottom - 1))
+        x = self.width() - 0.5  # Separator between lane and the file grid.
+        painter.drawLine(QPointF(x, 0), QPointF(x, self.height()))
         painter.end()
+
+
+class _FilesHistoryButton(QToolButton):
+    """Native click/double-click separation, matching Remote's history key.
+
+    A click on the first release of a double-click must not select/confirm a
+    search history row before the actual double-click executes its result.
+    """
+    double_clicked = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._double_pending = False
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._double_pending = True
+            event.accept()
+        else:
+            super().mouseDoubleClickEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._double_pending and event.button() == Qt.MouseButton.LeftButton:
+            self._double_pending = False
+            if self.rect().contains(event.position().toPoint()):
+                self.double_clicked.emit()
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+
+def _files_history_icon(theme):
+    """A small, theme-aware magnifier consistent with the Launch search icon."""
+    pix = QPixmap(48, 48)
+    pix.setDevicePixelRatio(2)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    pen = QPen(QColor('#647c70' if theme_family(theme) == 'light' else '#e3eee7'))
+    pen.setWidthF(1.8)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawEllipse(QRectF(5, 4, 13, 13))
+    painter.drawLine(QPointF(16, 16), QPointF(20, 20))
+    painter.end()
+    return QIcon(pix)
 
 
 def header_icon(kind, theme):
@@ -1279,9 +1306,32 @@ class ExpandedLauncherView(QWidget):
         self.density_button.setIconSize(QSize(19, 19))
         self.density_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         self.density_button.clicked.connect(self.toggle_row_density)
-        shared_layout.addWidget(self.density_button)
+        # History replaces the density button at the original left-hand slot.
+        # Single clicks are deferred to avoid confirming a keyword during a
+        # double-click; exactly the same protocol as the Remote history key.
+        self.files_history_button = _FilesHistoryButton(self.shared_header)
+        self.files_history_button.setObjectName('expandedFilesHistoryButton')
+        self.files_history_button.setFixedSize(30, 29)
+        self.files_history_button.setIconSize(QSize(22, 22))
+        self.files_history_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.files_history_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.files_history_button.setToolTip(
+            '検索履歴：1回目で開く／2回目で確定／ダブルクリックで検索結果を実行')
+        self._files_history_click_timer = QTimer(self.files_history_button)
+        self._files_history_click_timer.setSingleShot(True)
+        self._files_history_click_timer.timeout.connect(launcher.files_history_button_clicked)
+        self.files_history_button.clicked.connect(
+            lambda checked=False: self._files_history_click_timer.start(
+                QApplication.instance().doubleClickInterval()))
+        self.files_history_button.double_clicked.connect(
+            lambda: (self._files_history_click_timer.stop(),
+                     launcher.remote_search_result_double_click()))
+        shared_layout.addWidget(self.files_history_button)
         self.address_bar = DirectoryAddressBar(self.go_to_directory, self.shared_header)
         shared_layout.addWidget(self.address_bar, 1)
+        # Move the existing three-lines/density action to the breadcrumb's
+        # right end. Its QAction/callback and row-density setting are unchanged.
+        shared_layout.addWidget(self.density_button)
         # Ad-hoc work-directory favorites stay outside the authored Launch JSON.
         from os import environ
         self.folder_favorites = FolderFavorites(
@@ -1419,7 +1469,7 @@ class ExpandedLauncherView(QWidget):
         self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)
         self.middle_back_lane.setToolTip('ダブルクリック：上のフォルダーへ／右クリック：フォルダー操作')
         self.middle_back_lane.installEventFilter(self)
-        middle_tree_layout.addWidget(self.middle_back_lane)
+        middle_tree_layout.insertWidget(0, self.middle_back_lane)
         self.middle.tree.verticalScrollBar().valueChanged.connect(
             lambda *_: self.middle_back_lane.update())
         self.middle.tree.model().rowsInserted.connect(lambda *args: self.middle_back_lane.update())
@@ -1714,6 +1764,7 @@ class ExpandedLauncherView(QWidget):
         height, pad = (23, 1) if tight else (29, 3)
         self.density_button.setText('')
         self.density_button.setIcon(density_lines_icon(theme_family(theme)))
+        self.files_history_button.setIcon(_files_history_icon(theme))
         self.bookmark_close_button.setIcon(browser_navigation_icon(
             'close', theme_family(theme)))
         if self._browser_empty_bookmark_button is not None:
@@ -1782,6 +1833,9 @@ class ExpandedLauncherView(QWidget):
             QToolButton#expandedDensityToggle {{background:{bg};border:1px solid {border};
                 border-radius:7px;color:{text};padding:0;}}
             QToolButton#expandedDensityToggle:hover {{background:{hover};}}
+            QToolButton#expandedFilesHistoryButton {{background:{bg};border:1px solid {border};
+                border-radius:7px;color:{text};padding:0;}}
+            QToolButton#expandedFilesHistoryButton:hover {{background:{hover};}}
             QFrame#expandedPanel {{ background:{bg}; border:1px solid {border};border-radius:12px; }}
             /* Shared Files header already draws the separator below itself.
                Suppress the folder panes' top border to avoid a double rule

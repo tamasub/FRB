@@ -94,7 +94,7 @@ def test_right_lane_cannot_activate_a_row_with_single_click():
     source = (HERE / 'src/expanded_view.py').read_text(encoding='utf-8')
     assert 'MIDDLE_BACK_LANE_WIDTH = 24' in source
     assert 'self.middle_back_lane.setFixedWidth(MIDDLE_BACK_LANE_WIDTH)' in source
-    assert 'middle_tree_layout.addWidget(self.middle_back_lane)' in source
+    assert 'middle_tree_layout.insertWidget(0, self.middle_back_lane)' in source
     assert 'if lane:' in source
     assert 'This is an independent QWidget, not an editable item cell' in source
 
