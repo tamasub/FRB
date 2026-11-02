@@ -550,6 +550,10 @@ class _SeparatedFileTree(ExternalFileDragTree):
         self.remote_logical_active = False
         self.remote_highlight_mode = False
         self.adaptive_wheel_callback = None  # Only enabled on Files middle pane.
+        # The outline remembers the previous row without selecting it. A real
+        # blank click intentionally leaves the middle pane with no selection.
+        self.deliberate_blank_selection = False
+        self.blank_clicked = None
 
     def wheelEvent(self, event):
         # Preserve native smooth scrolling first; only the actual change in
@@ -562,6 +566,23 @@ class _SeparatedFileTree(ExternalFileDragTree):
             event.accept()
 
     def mousePressEvent(self, event):
+        if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
+                and event.button() == getattr(Qt.MouseButton, 'LeftButton', None)
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                and self.itemAt(event.position().toPoint()) is None):
+            # Unlike a click on an item, blank-space click must NOT select a
+            # fallback row. Keep currentItem() only as a passive outline.
+            self.deliberate_blank_selection = True
+            self.clearSelection()
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
+            if callable(self.blank_clicked):
+                self.blank_clicked()
+            self.viewport().update()
+            event.accept()
+            return
+        if (event.button() == getattr(Qt.MouseButton, 'LeftButton', None)
+                and self.itemAt(event.position().toPoint()) is not None):
+            self.deliberate_blank_selection = False
         if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
                 and event.button() == Qt.MouseButton.RightButton):
             # Qt's default right-press can silently ClearAndSelect. Keep all
@@ -635,18 +656,16 @@ class _SeparatedFileTree(ExternalFileDragTree):
                                          max(0, label_rect.width())))
                     painter.restore()
                 return
-        # Keep selection fill stable whether Remote is visible or not.
-        # Pane focus is represented by the current-row outline, not by
-        # erasing a user's selected-row fill on a non-active column.
-        focused = (self.remote_logical_active if self.remote_highlight_mode
-                   else self._column_is_focused())
+        # Draw the native selected-row fill only for the active pane; the
+        # inactive pane's stylesheet suppresses it. Current rows in either
+        # pane retain a thin outline as a passive keyboard-position memory.
         super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         current = self.currentItem()
-        if (not focused and current is not None and
+        if (current is not None and
                 self.indexOfTopLevelItem(current) == index.row()):
             rect = QRectF(option.rect.adjusted(5, 3, -5, -3))
             painter.setPen(QPen(self.inactive_current_border, 1.15))
@@ -1376,6 +1395,7 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.currentItemChanged.connect(
             lambda *_: self._queue_middle_selection_repair())
         self.middle.tree.itemSelectionChanged.connect(self._queue_middle_selection_repair)
+        self.middle.tree.blank_clicked = lambda: self._sync_remote_area_after_mouse_press('directory')
         self.middle.tree.model().modelReset.connect(self._queue_middle_selection_repair)
         self._middle_selection_watchdog = QTimer(self)
         self._middle_selection_watchdog.setInterval(400)
@@ -1531,6 +1551,12 @@ class ExpandedLauncherView(QWidget):
                 self.context_menu(pane, point))
         self.apply_theme('light')
         self.show_files_view()  # No Bookmarks column in the Files workspace.
+        # Startup has ONE active Files column. Keep the middle current row as
+        # a remembered outline until the user explicitly selects it.
+        self.left.tree.setProperty('remoteInactive', False)
+        self.middle.tree.setProperty('remoteInactive', True)
+        self.middle.tree.style().unpolish(self.middle.tree)
+        self.middle.tree.style().polish(self.middle.tree)
 
     def select_bookmark_tab(self, new_tab):
         """Select the destination for direct and nested bookmark clicks.
@@ -1736,8 +1762,8 @@ class ExpandedLauncherView(QWidget):
             QTreeWidget#expandedTree::item:selected:!active {{background:{active};color:{text};}}
             /* Selection is always the same color with or without Remote.
                The logical current column is tracked separately from the fill. */
-            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected {{background:{active};color:{text};}}
-            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:{active};color:{text};}}
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected {{background:transparent;color:{text};}}
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:transparent;color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
             /* Align the Files breadcrumb pill with the Browser address bar. */
@@ -2358,6 +2384,12 @@ class ExpandedLauncherView(QWidget):
         # QLineEdit should select only the stem, leaving the extension intact.
         editor = tree.findChild(QLineEdit)
         if editor is not None:
+            # A native popup must not remain open after an inline edit commits.
+            # Close *after* editingFinished so the QStyledItemDelegate can
+            # commit the final text before the menu loses its focus.
+            closer = getattr(self.launcher, 'close_finished_file_context_menus', None)
+            if callable(closer):
+                editor.editingFinished.connect(lambda: QTimer.singleShot(0, closer))
             if origin == 'file':
                 length = len(Path(path).stem)
                 editor.setSelection(0, length)
@@ -3648,6 +3680,16 @@ class ExpandedLauncherView(QWidget):
         folder-navigation click behavior while making column 2 current on the
         first click, not only after a double-click.
         """
+        # The first and second panes share ONE active row; remember the other
+        # column's current item as an outline only. This is not a selection.
+        for name, pane in (('files', self.left), ('directory', self.middle)):
+            tree = pane.tree
+            inactive = name != area
+            if tree.property('remoteInactive') != inactive:
+                tree.setProperty('remoteInactive', inactive)
+                tree.style().unpolish(tree)
+                tree.style().polish(tree)
+            tree.viewport().update()
         remote = getattr(self.launcher, 'remote_window', None)
         if remote is None or not remote.isVisible():
             return
@@ -3673,6 +3715,8 @@ class ExpandedLauncherView(QWidget):
         return self.middle.tree._column_is_focused()
 
     def _remember_middle_current(self, item, _previous):
+        if item is not None and item is not _previous:
+            self.middle.tree.deliberate_blank_selection = False
         row = self.row_data(item) if item is not None else None
         key = row_key(row)
         if key:
@@ -3696,6 +3740,7 @@ class ExpandedLauncherView(QWidget):
         """
         tree = self.middle.tree
         if (self._middle_selection_repair_running or
+                getattr(tree, 'deliberate_blank_selection', False) or
                 not self._middle_selection_is_active() or
                 tree.state() == QAbstractItemView.State.EditingState):
             return None
@@ -3721,7 +3766,8 @@ class ExpandedLauncherView(QWidget):
             # Called on real keyboard/Remote transitions. Recover a missing
             # current item before the old first-row fallback runs.
             self._queue_middle_selection_repair()
-        if tree.currentItem() is None and tree.topLevelItemCount():
+        if (not (panel is self.middle and tree.deliberate_blank_selection)
+                and tree.currentItem() is None and tree.topLevelItemCount()):
             first = next((tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
                           if self.row_data(tree.topLevelItem(i)) is not None), None)
             if first is not None:

@@ -2218,6 +2218,11 @@ class RemoteFolderCascade(CascadeMenu):
             self._inline_rename_editor = None
             editor.deleteLater()
             self._inline_rename_committing = False
+            # Enter/Escape ends the rename command; do not leave a floating
+            # context menu (or its ancestor folder columns) behind.
+            closer = getattr(self.launcher, 'close_finished_file_context_menus', None)
+            if callable(closer):
+                QTimer.singleShot(0, closer)
 
     def eventFilter(self, obj, event):
         if obj is getattr(self, '_inline_rename_editor', None):
@@ -3522,6 +3527,27 @@ class Launcher(QWidget):
         self.footer.setText('デスクトップリモコン：' +
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
 
+    def close_finished_file_context_menus(self):
+        """Dismiss filesystem context menus after an operation completes.
+
+        Navigating/hovering Filesリスト is not an operation, so callers run
+        this only after an action (Paste, Copy, Cut, Delete, etc.) is chosen.
+        Close from the root down to avoid leaving orphaned cascade columns.
+        """
+        context = getattr(self, '_launch_context_menu', None)
+        if context is not None:
+            try:
+                context.close()
+            except RuntimeError:  # Qt already destroyed the popup.
+                pass
+            if getattr(self, '_launch_context_menu', None) is context:
+                self._launch_context_menu = None
+        self.close_remote_folder_menu()
+        cascade = getattr(self, 'menu', None)
+        if (cascade is not None and cascade is not getattr(self, '_remote_page_menu', None)
+                and cascade.isVisible()):
+            cascade.close()
+
     def close_remote_folder_menu(self):
         """Close Remote filesystem preview and its right-click opener."""
         menu = getattr(self, '_remote_folder_root_menu', None)
@@ -3807,11 +3833,20 @@ class Launcher(QWidget):
             self.remote_window.hide()
         if getattr(self.expanded_view, 'web_view', None) is not None:
             self.expanded_view.web_view.set_remote_area(None)
-        for pane in (self.expanded_view.left, self.expanded_view.middle,
-                     self.expanded_view.right):
+        # Closing Remote must NOT turn both Files columns green. Preserve the
+        # single logical active column even while its companion UI is hidden.
+        active_files_area = (self._remote_area if self._remote_area in ('files', 'directory')
+                             else self._last_focus_area if self._last_focus_area in ('files', 'directory')
+                             else 'files')
+        for area_name, pane in (('files', self.expanded_view.left),
+                                ('directory', self.expanded_view.middle),
+                                ('bookmarks', self.expanded_view.right)):
             pane.tree.remote_logical_active = False
             pane.tree.remote_highlight_mode = False
-            pane.tree.setProperty('remoteInactive', False)
+            if area_name == 'bookmarks':
+                pane.tree.setProperty('remoteInactive', False)
+            else:
+                pane.tree.setProperty('remoteInactive', area_name != active_files_area)
             pane.tree.style().unpolish(pane.tree)
             pane.tree.style().polish(pane.tree)
             pane.tree.viewport().update()
@@ -7296,11 +7331,8 @@ class Launcher(QWidget):
                     belongs = False
                 if belongs:
                     view.refresh_middle()
-        # Do not close / rebase the existing Filesリスト cascade: refresh a
-        # matching open column in place, preserving its search and scroll.
-        popup = self._directory_menu_for_path(target)
-        if popup is not None and popup.isVisible():
-            QTimer.singleShot(0, lambda m=popup: self.refresh_pasted_directory(m, reopen=True))
+        # Refresh is itself a completed context action. Show fresh contents
+        # in Files/Exp, but never re-open a floating menu after dismissal.
         self.footer.setText('最新の情報に更新しました: ' + str(target))
         return True
 
@@ -7397,9 +7429,16 @@ class Launcher(QWidget):
             report = getattr(self, '_record_transfer_result', None)
             if callable(report):
                 report(destination, names_done)
-            # Refresh only the edited menu. Preserve its parent chain, scroll
-            # and search so the newly pasted rows can be visually confirmed.
-            QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(m, reopen=True, focus_pasted=True))
+            # A finished Paste closes its context menu; the updated Files/Exp
+            # views and transient feedback show the result instead of
+            # re-opening a floating cascade after the user's command.
+            closer = getattr(self, 'close_finished_file_context_menus', None)
+            if callable(closer):
+                QTimer.singleShot(0, closer)
+            else:
+                # Historical test adapters have no popup lifecycle owner.
+                QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(
+                    m, reopen=True, focus_pasted=True))
         except (OSError, ValueError) as exc:
             DIAG.exception('DIRECTORY_PASTE target=%s', context.get('launch_browse_target'))
             self.error('貼り付けできませんでした: ' + str(exc))
@@ -9101,6 +9140,11 @@ class Launcher(QWidget):
             self.paste_into_expanded_directory()
         else:
             self.paste_into_expanded_directory(destination_override=target_folder)
+        # The destination/clipboard result now lives in the Files views and
+        # status bar; never leave a source context menu hovering above them.
+        closer = getattr(self, 'close_finished_file_context_menus', None)
+        if callable(closer):
+            QTimer.singleShot(0, closer)
 
     def can_rename_remote_folder(self, directory):
         """Never rename a registered shortcut root, drive, or filesystem root."""
@@ -9417,8 +9461,26 @@ class Launcher(QWidget):
                               if remote_folder_list else ''))
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+        # QMenu keeps hover-preview branches open deliberately. Leaf actions
+        # are complete commands and must dismiss all related popup windows.
+        menu.triggered.connect(lambda action, m=menu:
+            self._on_file_context_action_triggered(m, action))
         menu.popup(global_pos)
         return True
+
+    def _on_file_context_action_triggered(self, menu, action):
+        if action is None or action.menu() is not None or action is getattr(menu, 'folder_list_action', None):
+            return  # Preview/submenu navigation is not a completed action.
+        # New Folder starts an inline grid edit asynchronously; closing the
+        # menu immediately can steal editor focus before Enter. Let editing-
+        # Finished close the context menu instead.
+        new_action = getattr(menu, 'new_submenu_action', None)
+        new_menu = new_action.menu() if new_action is not None else None
+        if new_menu is not None and action in new_menu.actions():
+            return
+        if action.text().strip() == '名前の変更':
+            return
+        QTimer.singleShot(0, self.close_finished_file_context_menus)
 
     def add_open_with_submenu(self, parent_menu, title, path):
         """Right-opening app list; native chooser remains the final fallback."""
@@ -9615,6 +9677,9 @@ class Launcher(QWidget):
         self.hover_timer.stop()
         self.pending_menu_item = None
         self._launch_context_menu = menu
+        if origin in ('folder', 'file'):
+            menu.triggered.connect(lambda action, m=menu:
+                self._on_file_context_action_triggered(m, action))
         # Do not keep a stale Python wrapper after a cascade tool-window is
         # closed/deleted. Hover polling must not ask a deleted QMenu if visible.
         if hasattr(menu, 'aboutToHide'):
@@ -10142,6 +10207,12 @@ class Launcher(QWidget):
         except (OSError, ValueError, RuntimeError) as exc:
             DIAG.exception('FILESYSTEM_CONTEXT action=%s target=%s', action_id, target)
             self.error('操作を実行できませんでした: ' + str(exc))
+        finally:
+            # Menus are command launchers, not persistent status displays.
+            # Keep inline editors alive: they close on their own commit.
+            closer = getattr(self, 'close_finished_file_context_menus', None)
+            if action_id != 'rename' and callable(closer):
+                QTimer.singleShot(0, closer)
 
     def git_commit_using_filename(self, selected_path):
         """Use any selected file name as the message; commit repository changes."""
