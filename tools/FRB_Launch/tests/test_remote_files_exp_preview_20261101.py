@@ -37,7 +37,7 @@ def test_explorer_uses_registered_roots_and_lazy_real_folders():
         assert clause in PREVIEW_SOURCE
 
 
-def test_preview_has_no_mutations_or_navigation_actions():
+def test_preview_navigation_is_read_only_except_explicit_safe_rename():
     for clause in ('self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)',
                    'self.tree.setDragEnabled(False)', 'self.tree.setAcceptDrops(False)',
                    'self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)',
@@ -45,8 +45,13 @@ def test_preview_has_no_mutations_or_navigation_actions():
                    'self.folder_selected.emit(path)'):
         assert clause in PREVIEW_SOURCE
     for forbidden in ('go_to_directory(', 'set_current_directory(', 'subprocess.',
-                      'rename(', 'os.remove(', 'shutil.'):
+                      'os.remove(', 'shutil.'):
         assert forbidden not in PREVIEW_SOURCE
+    # Rename is exclusively an explicit context command and uses Launch's
+    # validated rename helper, never an implicit click/drag operation.
+    assert 'self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)' in PREVIEW_SOURCE
+    assert 'self.model.itemChanged.connect(self._finish_folder_rename)' in PREVIEW_SOURCE
+    assert 'rename_file_or_folder(old_path, new_name)' in PREVIEW_SOURCE
 
 
 def test_remote_hidden_closes_preview_and_theme_follows_remote():
@@ -76,6 +81,7 @@ def test_preview_button_toggles_and_is_clamped_to_screen():
             self.visible = False; self.shown = 0; self.roots = None
             self.folder_selected = NS(connect=lambda callback: None)
             self.folder_context_requested = NS(connect=lambda callback: None)
+            self.folder_renamed = NS(connect=lambda callback: None)
         def isVisible(self): return self.visible
         def hide(self): self.visible = False
         def width(self): return 330
@@ -105,6 +111,7 @@ def test_preview_button_toggles_and_is_clamped_to_screen():
                 width=lambda: 184, mapToGlobal=lambda p: FakePoint(1080+p.x(), 850+p.y()),
                 files_exp_folder_selected=NS(emit=lambda path: None),
                 files_exp_folder_context=NS(emit=lambda path, pos: None),
+                files_exp_folder_renamed=NS(emit=lambda old, new: None),
                 parent=lambda: launcher)
     remote.position_files_exp = lambda: scope['position_files_exp'](remote)
     toggle(remote)

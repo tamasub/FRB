@@ -1788,6 +1788,34 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
 
 
+class RemoteFolderActionsMenu(CascadeMenu):
+    """Remote folder actions: show a trailing submenu chevron with native-like
+    right alignment while retaining the existing tool-window cascade handler.
+    A QAction text suffix would drift as labels/widths change.
+    """
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        action = getattr(self, 'folder_list_action', None)
+        if action is None or action not in self.actions():
+            return
+        rect = self.actionGeometry(action)
+        if not rect.isValid():
+            return
+        cx, cy = rect.right() - 15, rect.center().y()
+        arrow = QPainterPath()
+        arrow.moveTo(cx - 3, cy - 5)
+        arrow.lineTo(cx + 2, cy)
+        arrow.lineTo(cx - 3, cy + 5)
+        arrow.closeSubpath()
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = (self.palette().highlightedText().color()
+                 if self.activeAction() is action else self.palette().text().color())
+        painter.fillPath(arrow, color)
+        painter.end()
+
+
 class RemoteFolderCascade(CascadeMenu):
     """Remote filesystem columns reuse Compact's proven non-grabbing Tool menus.
 
@@ -1942,7 +1970,7 @@ class RemoteFolderCascade(CascadeMenu):
         if self.launcher is None or not self.launcher.isVisible():
             return
         shown = self.launcher.show_launch_context_menu(
-            pos, row, context_parent=self, force_search_context=True)
+            pos, row, context_parent=self, force_search_context=False)
         context = getattr(self.launcher, '_launch_context_menu', None)
         if shown and context is not None:
             context.aboutToHide.connect(self._clear_context_highlight)
@@ -3109,7 +3137,24 @@ class Launcher(QWidget):
             return False
         self.close_remote_folder_menu()
         return self.show_expanded_background_paste_menu(
-            position, remote_folder_list=True)
+            position, remote_folder_list=True,
+            files_exp_rename_target=str(directory))
+
+    def on_files_exp_folder_renamed(self, old_path, new_path):
+        """An inline Files Exp rename commits before breadcrumb navigation."""
+        if not Path(new_path).is_dir():
+            return False
+        # A renamed directory keeps its own customized sort preference.
+        from folder_sort_preferences import transfer_directory_sort
+        from middle_folder_filter import SORT_LABELS
+        transfer_directory_sort(self.settings, old_path, new_path, SORT_LABELS)
+        changed = self.navigate_files_exp_folder(new_path)
+        if changed:
+            self.footer.setText(
+                f'名前を変更しました: {Path(old_path).name} → {Path(new_path).name}')
+            if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
+                QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
+        return changed
 
     def _remote_popup_vertical_bounds(self):
         """Remote popup band begins at Files and extends 3x downward."""
@@ -3397,6 +3442,7 @@ class Launcher(QWidget):
             self.remote_window.page_clicked.connect(self.open_remote_page)
             self.remote_window.files_exp_folder_selected.connect(self.navigate_files_exp_folder)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
+            self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
         self.remote_window.set_pages(self.pages)
         self.remote_window.apply_theme(self.color_theme)
         self.remote_window.set_workspace(self.expanded_view._workspace_mode)
@@ -8454,7 +8500,93 @@ class Launcher(QWidget):
         else:
             self.paste_into_expanded_directory(destination_override=target_folder)
 
-    def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False):
+    def can_rename_remote_folder(self, directory):
+        """Never rename a registered shortcut root, drive, or filesystem root."""
+        path = Path(directory)
+        if not path.is_dir() or path.parent == path:
+            return False
+        try:
+            from remote_files_exp_roots import registered_folder_roots
+            roots = registered_folder_roots(self._remote_files_first_column_rows(),
+                                            self.expander().expand)
+            registered = {path_key(r['path']) for r in roots if r.get('path')}
+            if path_key(path) in registered:
+                return False
+            from system_drives import drive_rows
+            drives = {path_key(r['launch_browse_target']) for r in drive_rows()}
+            return path_key(path) not in drives
+        except (OSError, ValueError, TypeError, KeyError):
+            return False
+
+    def rename_remote_folder(self, directory):
+        """One Rename command for Files Exp and Remote's current-folder menu.
+
+        Prefer the inline tree editor when the requested folder is selected.
+        Otherwise use the same validated filesystem rename as Files.
+        """
+        if not self.can_rename_remote_folder(directory):
+            return False
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if (panel is not None and panel.isVisible()
+                and panel.can_rename_folder(directory)):
+            return panel.begin_folder_rename(directory)
+        path = Path(directory)
+        name, accepted = QInputDialog.getText(
+            self, '名前の変更', '新しい名前:', text=path.name)
+        if not accepted or name == path.name:
+            return False
+        try:
+            new_path = str(rename_file_or_folder(path, name))
+        except (OSError, ValueError) as exc:
+            self.error('名前を変更できませんでした: ' + str(exc))
+            return False
+        if panel is not None:
+            panel.reflect_external_folder_rename(directory, new_path)
+        self.on_files_exp_folder_renamed(directory, new_path)
+        return True
+
+    def rename_remote_cascade_entry(self, target, kind):
+        """Rename a real directory/file shown in the Remote folder-list cascade."""
+        path = Path(target)
+        if kind == 'folder' and not self.can_rename_remote_folder(path):
+            return False
+        if not (path.is_dir() if kind == 'folder' else path.is_file()):
+            self.error('名前を変更できませんでした: 対象が見つかりません')
+            return False
+        name, accepted = QInputDialog.getText(
+            self, '名前の変更', '新しい名前:', text=path.name)
+        if not accepted or name == path.name:
+            return False
+        if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
+            answer = QMessageBox.question(
+                self, '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No)
+            if answer != QMessageBox.StandardButton.Yes:
+                return False
+        try:
+            new_path = str(rename_file_or_folder(path, name))
+        except (OSError, ValueError) as exc:
+            self.error('名前を変更できませんでした: ' + str(exc))
+            return False
+        # A cached cascade row still refers to the old name. Reopen the folder
+        # list on demand using fresh disk entries, without rewriting DataJSON.
+        self.close_remote_folder_menu()
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if kind == 'folder':
+            if panel is not None:
+                panel.reflect_external_folder_rename(path, new_path)
+            self.on_files_exp_folder_renamed(str(path), new_path)
+        else:
+            if self.expanded_view.isVisible() and self.expanded_view.current_directory() == str(path.parent):
+                self.expanded_view.refresh_middle()
+            self.footer.setText(f'名前を変更しました: {path.name} → {Path(new_path).name}')
+        if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
+            QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
+        return True
+
+    def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False,
+                                            files_exp_rename_target=None):
         """Shared Files blank-area menu; Remote adds ONE optional submenu.
 
         Keep the existing actions and their callbacks exactly the same for
@@ -8470,14 +8602,15 @@ class Launcher(QWidget):
         paste = next((x for x in definitions if x.get('action_id') == 'paste'), None)
         if paste is None:
             return False
-        menu = CascadeMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
+        menu = RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
         if remote_folder_list:
             menu = self._apply_remote_popup_bounds(menu)
             menu.remote_context_root = True
             menu.open_mode = 'keyboard'
         if remote_folder_list:
             directory = str(self.expanded_view.current_directory())
-            folder_list_action = menu.addAction('フォルダー・ファイルリスト  ▶')
+            folder_list_action = menu.addAction('フォルダー・ファイルリスト')
+            menu.folder_list_action = folder_list_action
             folder_list_action.setIcon(self.file_icons.icon(QFileInfo(directory)))
             folder_list_action.setData({'item_kind': 'category', 'item_id': 'remote-folder-list'})
             menu.openers[folder_list_action] = (
@@ -8506,8 +8639,16 @@ class Launcher(QWidget):
         # Both the separate right Back lane and the lower blank area use this
         # SAME menu.  Read existing folder actions from the authoritative JSON
         # so captions, icons and separators match regular folder menus.
-        folder_actions = {'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'properties'}
-        target_directory = str(self.expanded_view.current_directory())
+        # One declarative action sequence for BOTH Remote blank-area and Files
+        # Exp. Keep the folder menu order from context_menu_options.json:
+        # Rename follows Delete's position (Delete is not yet exposed here),
+        # and appears before Properties. This must never be appended as a
+        # Files-Exp-only extra action again.
+        folder_actions = {'open_explorer', 'open_terminal', 'copy_path',
+                          'copy_cloud_link', 'properties'}
+        if remote_folder_list:
+            folder_actions.add('rename')  # Only Remote / Files Exp, not Files background.
+        target_directory = str(files_exp_rename_target or self.expanded_view.current_directory())
         selected = visible_context_entries(definitions, folder_actions)
         if selected:
             menu.addSeparator()
@@ -8516,10 +8657,17 @@ class Launcher(QWidget):
                     menu.addSeparator()
                     continue
                 action_id = definition['action_id']
-                folder_action = menu.addAction(
-                    definition['title'],
-                    lambda checked=False, a=action_id, p=target_directory:
-                    self.perform_filesystem_context_action(a, p, 'folder'))
+                if action_id == 'rename':
+                    folder_action = menu.addAction(
+                        definition['title'],
+                        lambda checked=False, p=target_directory:
+                        QTimer.singleShot(0, lambda: self.rename_remote_folder(p)))
+                    folder_action.setEnabled(self.can_rename_remote_folder(target_directory))
+                else:
+                    folder_action = menu.addAction(
+                        definition['title'],
+                        lambda checked=False, a=action_id, p=target_directory:
+                        self.perform_filesystem_context_action(a, p, 'folder'))
                 folder_action.setIcon(context_action_icon(action_id))
                 folder_action.setIconVisibleInMenu(True)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
@@ -8578,7 +8726,8 @@ class Launcher(QWidget):
         """Choose context actions by authoritative source, not displayed item ID."""
         if not self.data:
             return False
-        if self.selection and not force_search_context:
+        if (self.selection and not force_search_context
+                and not getattr(context_parent, 'remote_folder_navigation', False)):
             return False
         origin, path = resolve_context_target(row, self.authored_items)
         # Main-search results use a safe, shared filesystem context menu.
@@ -8683,6 +8832,14 @@ class Launcher(QWidget):
                         self._paste_from_context_menu(parent, target_folder=clicked)
                         if clicked is not None else self._paste_from_context_menu(parent))
                     action.setEnabled(self._context_paste_enabled(context_parent))
+                elif action_id == 'rename' and getattr(context_parent, 'remote_folder_navigation', False):
+                    # Remote's actual folder/file list is NOT a search result.
+                    # Keep the same JSON-defined rename position as Files.
+                    action = menu.addAction(definition['title'],
+                        lambda checked=False, p=path, k=origin:
+                        QTimer.singleShot(0, lambda: self.rename_remote_cascade_entry(p, k)))
+                    if origin == 'folder':
+                        action.setEnabled(self.can_rename_remote_folder(path))
                 elif action_id == 'open_with' and origin == 'file':
                     # Native Explorer uses a right-hand menu here, not an
                     # immediate modal chooser. Keep the OS chooser as the

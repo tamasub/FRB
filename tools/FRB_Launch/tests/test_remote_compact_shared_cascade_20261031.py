@@ -52,10 +52,10 @@ def test_remote_and_compact_use_same_tool_column_engine():
     assert remote.bases[0].id == 'CascadeMenu'
     root_menu = ast.get_source_segment(SOURCE, next(n for n in cls('Launcher').body
         if isinstance(n, ast.FunctionDef) and n.name == 'show_expanded_background_paste_menu'))
-    assert 'CascadeMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)' in root_menu
-    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト  ▶')" in root_menu
+    assert 'RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)' in root_menu
+    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト')" in root_menu
     assert 'self.expanded_view.add_lane_new_submenu(menu)' in root_menu
-    assert "'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'properties'" in root_menu
+    assert "folder_actions.add('rename')" in root_menu
 
 
 def test_remote_click_folder_commits_once_and_rebases_without_closing(tmp_path):
@@ -75,7 +75,7 @@ def test_remote_click_folder_commits_once_and_rebases_without_closing(tmp_path):
     assert not launcher._remote_folder_commit_pending
 
 
-def test_remote_context_is_search_results_allowlist_for_both_file_and_folder():
+def test_remote_context_uses_regular_filesystem_menu_for_both_file_and_folder():
     context = NS(aboutToHide=NS(connect=Mock()))
     launcher = NS(isVisible=lambda: True, _launch_context_menu=context,
                   show_launch_context_menu=Mock(return_value=True))
@@ -84,7 +84,7 @@ def test_remote_context_is_search_results_allowlist_for_both_file_and_folder():
     folder_row = {'item_kind':'directory', '_file':'C:/example'}
     callback(current, folder_row, (10, 20))
     launcher.show_launch_context_menu.assert_called_with(
-        (10, 20), folder_row, context_parent=current, force_search_context=True)
+        (10, 20), folder_row, context_parent=current, force_search_context=False)
     assert context.aboutToHide.connect.call_count == 1
 
 

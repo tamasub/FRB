@@ -234,6 +234,7 @@ class LaunchRemote(QWidget):
     page_clicked = Signal(str)
     files_exp_folder_selected = Signal(str)
     files_exp_folder_context = Signal(str, QPoint)
+    files_exp_folder_renamed = Signal(str, str)
 
     def __init__(self, launcher):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
@@ -447,6 +448,7 @@ class LaunchRemote(QWidget):
             self.files_exp_panel = RemoteFilesExplorer(self, self.files_exp_theme)
             self.files_exp_panel.folder_selected.connect(self.files_exp_folder_selected.emit)
             self.files_exp_panel.folder_context_requested.connect(self.files_exp_folder_context.emit)
+            self.files_exp_panel.folder_renamed.connect(self.files_exp_folder_renamed.emit)
         panel = self.files_exp_panel
         if panel.isVisible():
             panel.hide()

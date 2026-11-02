@@ -28,6 +28,8 @@ from context_menu_actions import rename_file_or_folder
 from pathlib import Path
 from middle_folder_filter import (SORT_LABELS, filter_sort_folder_rows,
                                   sort_mode_for_header)
+from folder_sort_preferences import (DEFAULT_SORT, load_directory_sort,
+                                     save_directory_sort)
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
 from folder_favorites import FolderFavorites
 from combo_chevron_icon import combo_chevron_icon
@@ -1284,10 +1286,11 @@ class ExpandedLauncherView(QWidget):
         # Local, immediate filter; separate from global search and its file index.
         # Preserve the 3-column navigation and right-side chevrons unchanged.
         self._middle_query_directory = None
-        self._middle_sort_mode = str(launcher.settings.value(
-            'expanded_middle_sort', 'name') or 'name')
-        if self._middle_sort_mode not in SORT_LABELS:
-            self._middle_sort_mode = 'name'
+        # Each visited filesystem directory owns an optional sort override.
+        # The old global setting is intentionally ignored: uncustomized
+        # directories always start with the Explorer-style standard sort.
+        self._middle_sort_mode = DEFAULT_SORT
+        self._middle_sort_directory = None
         self.middle_search_bar = QWidget(self.middle)
         self.middle_search_bar.setObjectName('expandedMiddleSearchBar')
         middle_search_layout = QHBoxLayout(self.middle_search_bar)
@@ -1951,7 +1954,10 @@ class ExpandedLauncherView(QWidget):
         if mode not in SORT_LABELS:
             return
         self._middle_sort_mode = mode
-        self.launcher.settings.setValue('expanded_middle_sort', mode)
+        directory = self.current_directory()
+        if directory:
+            save_directory_sort(self.launcher.settings, directory, mode, SORT_LABELS)
+            self._middle_sort_directory = directory
         self._update_middle_header_sort()
         self._fill_middle_from_current()
 
@@ -2012,6 +2018,11 @@ class ExpandedLauncherView(QWidget):
         # Search is scoped to ONE displayed directory. A folder transition
         # must not unexpectedly leave the new folder blank due to old filters.
         folder = self.current_directory()
+        if folder != self._middle_sort_directory:
+            self._middle_sort_directory = folder
+            self._middle_sort_mode = load_directory_sort(
+                self.launcher.settings, folder, SORT_LABELS)
+            self._update_middle_header_sort()
         if folder != self._middle_query_directory:
             self._middle_query_directory = folder
             previous = self.middle_search.blockSignals(True)

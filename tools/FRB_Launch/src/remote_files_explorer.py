@@ -9,14 +9,16 @@ import os
 from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
 from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
-                               QLabel, QPushButton, QSizeGrip, QStyle,
-                               QTreeView, QVBoxLayout, QWidget)
+                               QLabel, QLineEdit, QPushButton, QSizeGrip, QStyle,
+                               QStyledItemDelegate, QTreeView, QVBoxLayout, QWidget)
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
 from passive_header_drag import PassiveHeaderDrag
 from bookmark_cursor_follow import cursor_target
 from wheel_adaptive import wheel_steps, can_follow_at_edge
 from remote_files_exp_roots import registered_folder_roots, subdirectories
+from context_menu_actions import rename_file_or_folder
+from pathlib import Path
 from system_drives import drive_rows
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -163,11 +165,30 @@ class FilesExpWheelTree(QTreeView):
                 QCursor.setPos(dest)
 
 
+class FilesExpRenameDelegate(QStyledItemDelegate):
+    """Use the tree row font, not Launch's larger default QLineEdit font."""
+
+    def createEditor(self, parent, option, index):
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, QLineEdit):
+            editor.setObjectName('filesExpRenameEditor')
+            editor.setFont(option.font)
+            pixels = option.font.pixelSize()
+            if pixels <= 0:
+                from PySide6.QtGui import QFontInfo
+                pixels = QFontInfo(option.font).pixelSize()
+            editor.setStyleSheet(
+                'QLineEdit#filesExpRenameEditor {'
+                f'font-size:{max(9, pixels)}px; padding:0px 2px;}}')
+        return editor
+
+
 class RemoteFilesExplorer(QWidget):
     """Independent registered directory roots, with live Files navigation."""
 
     folder_selected = Signal(str)
     folder_context_requested = Signal(str, QPoint)
+    folder_renamed = Signal(str, str)
 
     def __init__(self, remote, theme):
         # The remote owns this independent, resizable frameless tool. Its
@@ -245,11 +266,13 @@ class RemoteFilesExplorer(QWidget):
         # QFileSystemModel accepts only ONE visual root. For several independent
         # shortcut roots retain QTreeView and use a lazy, read-only item model.
         self.model = QStandardItemModel(self)
+        self._rename_in_progress = None
         self.tree = FilesExpWheelTree(self)
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
             remote.parent(), 'pointer_warp_enabled', True))
         self.tree.setObjectName('filesExpTree')
         self.tree.setModel(self.model)
+        self.tree.setItemDelegate(FilesExpRenameDelegate(self.tree))
         self.tree.setHeaderHidden(True)
         # Narrower than the Qt default, but leave room for arrows and icons.
         self.tree.setIndentation(18)
@@ -270,6 +293,10 @@ class RemoteFilesExplorer(QWidget):
         self._selection_timer.timeout.connect(self._commit_current_selection)
         self.tree.selectionModel().currentChanged.connect(self._selection_changed)
         self.tree.expanded.connect(self._expand_index)
+        # Only an explicit Files Exp context Rename can start editing.
+        # Normal clicks and double-clicks remain navigation/expansion.
+        self.model.itemChanged.connect(self._finish_folder_rename)
+        self.tree.itemDelegate().closeEditor.connect(self._close_folder_rename_editor)
         layout.addWidget(self.tree, 1)
 
         # Guidance belongs below the tree; keep the resize handle reachable.
@@ -377,6 +404,113 @@ class RemoteFilesExplorer(QWidget):
         path = self._index_path(index)
         if path:
             self.folder_selected.emit(path)
+
+    def can_rename_folder(self, path):
+        """Never invalidate an authored first-column shortcut or drive root."""
+        for row in range(self.model.rowCount()):
+            root = self.model.index(row, 0)
+            if self._index_path(root) == path:
+                return False
+            # Drives directly beneath virtual PC are navigation anchors.
+            root_item = self.model.itemFromIndex(root)
+            if root_item is not None and (root_item.data(_DATA_ROLE) or {}).get('pc'):
+                for index in range(root_item.rowCount()):
+                    if self._index_path(root_item.child(index).index()) == path:
+                        return False
+        index = self.tree.currentIndex()
+        return bool(index.isValid() and self._index_path(index) == path
+                    and index.parent().isValid())
+
+    def begin_folder_rename(self, path):
+        """Edit a real folder name in Files Exp, not in the main Files grid."""
+        if not self.can_rename_folder(path) or not os.path.isdir(path):
+            return False
+        index = self.tree.currentIndex()
+        item = self.model.itemFromIndex(index)
+        if item is None:
+            return False
+        self._selection_timer.stop()
+        self.tree.clear_wheel_pending()
+        item.setEditable(True)
+        self._rename_in_progress = (item, path)
+        self.tree.setFocus(Qt.FocusReason.OtherFocusReason)
+        self.tree.edit(index)
+        return True
+
+    def _close_folder_rename_editor(self, *_):
+        # Escape/cancel must not leave a pending rename armed for a later edit.
+        pending = self._rename_in_progress
+        self._rename_in_progress = None
+        if pending is not None:
+            item, _ = pending
+            item.setEditable(False)
+
+    def _rewrite_child_paths(self, item, old_root, new_root):
+        """Keep already-expanded child branches navigable after a rename."""
+        for position in range(item.rowCount()):
+            child = item.child(position)
+            if child is None:
+                continue
+            data = child.data(_DATA_ROLE)
+            if not isinstance(data, dict) or not data.get('path'):
+                continue  # Lazy placeholder, not a physical folder.
+            try:
+                relative = Path(data['path']).relative_to(Path(old_root))
+            except ValueError:
+                continue
+            new_path = str(Path(new_root) / relative)
+            child.setData({**data, 'path': new_path}, _DATA_ROLE)
+            child.setToolTip(new_path)
+            self._rewrite_child_paths(child, old_root, new_root)
+
+    def _finish_folder_rename(self, changed):
+        pending = self._rename_in_progress
+        if pending is None or changed is not pending[0]:
+            return
+        self._rename_in_progress = None
+        item, old_path = pending
+        new_name = item.text()
+        item.setEditable(False)
+        if new_name == Path(old_path).name:
+            return
+        try:
+            # Share the exact Windows name validation and collision protection
+            # already used by Files and the ordinary context menu.
+            new_path = str(rename_file_or_folder(old_path, new_name))
+        except (OSError, ValueError) as exc:
+            item.setText(Path(old_path).name)
+            launcher = self.parentWidget().parent()
+            launcher.error('名前を変更できませんでした: ' + str(exc))
+            return
+        item.setData({'path': new_path, 'pc': False}, _DATA_ROLE)
+        item.setToolTip(new_path)
+        self._rewrite_child_paths(item, old_path, new_path)
+        self._selection_timer.stop()
+        self.folder_renamed.emit(old_path, new_path)
+
+    def reflect_external_folder_rename(self, old_path, new_path):
+        """Keep loaded tree nodes (and expanded descendants) coherent with a
+        rename committed by Remote's OTHER filesystem context menu.
+        """
+        wanted = os.path.normcase(os.path.normpath(str(old_path)))
+        def walk(parent):
+            for i in range(parent.rowCount()):
+                item = parent.child(i)
+                if item is None:
+                    continue
+                data = item.data(_DATA_ROLE)
+                if isinstance(data, dict) and data.get('path'):
+                    current = os.path.normcase(os.path.normpath(str(data['path'])))
+                    if current == wanted:
+                        item.setText(Path(new_path).name)
+                        item.setData({**data, 'path': str(new_path)}, _DATA_ROLE)
+                        item.setToolTip(str(new_path))
+                        self._rewrite_child_paths(item, old_path, new_path)
+                        return True
+                if walk(item):
+                    return True
+            return False
+        return walk(self.model.invisibleRootItem())
 
     def _show_folder_context(self, local_pos):
         # QAbstractScrollArea forwards positions in viewport coordinates.
