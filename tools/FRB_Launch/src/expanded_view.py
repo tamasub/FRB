@@ -442,6 +442,26 @@ class _InlineRenameDelegate(QStyledItemDelegate):
             return True
         return super().eventFilter(obj, event)
 
+    def paint(self, painter, option, index):
+        """Leave native icon/background painting intact for drive entries.
+
+        The actual drive name is painted *last* in _SeparatedFileTree.drawRow:
+        on Windows, the delegate's text sub-element can be clipped to an empty
+        rectangle by the platform/QSS combination. Non-drive rows remain
+        completely native and still support inline rename.
+        """
+        row = index.data(Qt.ItemDataRole.UserRole)
+        if index.column() != 0 or not isinstance(row, dict) or not row.get('_system_drive'):
+            super().paint(painter, option, index)
+            return
+        native = QStyleOptionViewItem(option)
+        self.initStyleOption(native, index)
+        native.text = ''  # Do not draw a duplicate beneath the final label.
+        style = native.widget.style() if native.widget else QApplication.style()
+        style.drawControl(QStyle.ControlElement.CE_ItemViewItem,
+                          native, painter, native.widget)
+
+
 
 class _MiddleDetailsDelegate(_InlineRenameDelegate):
     """File name and muted right-aligned date/size in the SAME name column.
@@ -662,6 +682,33 @@ class _SeparatedFileTree(ExternalFileDragTree):
         super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
+        # Always render the actual Windows volume name over the native row.
+        # In some Qt/Windows styles the delegate's text rectangle collapses
+        # even though its shell icon, date and type are present. Drawing here
+        # (AFTER all per-column delegates) prevents the label being masked.
+        if index.column() == 0:
+            item = self.topLevelItem(index.row())
+            row = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+            if isinstance(row, dict) and row.get('_system_drive'):
+                name = str(row.get('title') or item.text(0) or '')
+                if name:
+                    painter.save()
+                    font = QFont(self.font())
+                    painter.setFont(font)
+                    theme = getattr(self, '_drive_name_theme', 'light')
+                    painter.setPen(QColor('#e5ebf3' if theme == 'dark' else '#284238'))
+                    # 19px icon plus padding; keep the label wholly inside
+                    # column 0 without spilling into the date column.
+                    x = option.rect.left() + max(32, self.iconSize().width() + 12)
+                    width = max(0, self.columnWidth(0) - (x - option.rect.left()) - 12)
+                    if width:
+                        text = painter.fontMetrics().elidedText(
+                            name, Qt.TextElideMode.ElideRight, width)
+                        painter.drawText(QRectF(x, option.rect.top(), width,
+                                                option.rect.height()),
+                                         Qt.AlignmentFlag.AlignLeft |
+                                         Qt.AlignmentFlag.AlignVCenter, text)
+                    painter.restore()
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         current = self.currentItem()
@@ -1815,6 +1862,7 @@ class ExpandedLauncherView(QWidget):
             pane.tree.verticalScrollBar().setSingleStep(26 if tight else 35)
             pane.row_height = 27 if tight else 37
             pane._theme = theme
+            pane.tree._drive_name_theme = theme_family(theme)
             for row_index in range(pane.tree.topLevelItemCount()):
                 item = pane.tree.topLevelItem(row_index)
                 if pane.kind == 'bookmark' and item.data(0, Qt.ItemDataRole.UserRole + 1):
@@ -2481,6 +2529,11 @@ class ExpandedLauncherView(QWidget):
                 if answer != QMessageBox.StandardButton.Yes:
                     raise ValueError('拡張子の変更を取り消しました')
             renamed_path = rename_file_or_folder(old_path, new_name)
+            if origin == 'folder':
+                panel = getattr(getattr(self.launcher, 'remote_window', None), 'files_exp_panel', None)
+                if panel is not None:
+                    panel.reflect_external_folder_rename(str(old_path), str(renamed_path))
+                self.launcher.notify_folder_mutation(old_path.parent)
             self.launcher.footer.setText(f'名前を変更しました: {old_path.name} → {new_name}')
             # Renaming rebuilds the row; keep the newly created folder current.
             def refresh_and_reselect(p=renamed_path):
@@ -2819,6 +2872,8 @@ class ExpandedLauncherView(QWidget):
             # No dialog: create a collision-free real filesystem object.
             name = suggest_name(current, base, suffix)
             created = create_new_item(current, name, kind)
+            if kind == 'folder':
+                self.launcher.notify_folder_mutation(current)
         except (OSError, ValueError) as exc:
             self.launcher.error('新規作成できませんでした: ' + str(exc))
             return

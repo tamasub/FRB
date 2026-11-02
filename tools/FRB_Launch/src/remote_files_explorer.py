@@ -4,6 +4,7 @@ Only navigation and the existing Files context-menu interface are emitted;
 filesystem operations remain owned by Launch.  Children load lazily.
 """
 
+import json
 import os
 
 from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
@@ -205,6 +206,7 @@ class RemoteFilesExplorer(QWidget):
     """Independent registered directory roots, with live Files navigation."""
 
     folder_selected = Signal(str)
+    pc_selected = Signal()
     folder_context_requested = Signal(str, QPoint)
     folder_renamed = Signal(str, str)
 
@@ -230,6 +232,15 @@ class RemoteFilesExplorer(QWidget):
                 width, height = 330, 425
         self.resize(max(220, min(width, 1600)), max(180, min(height, 1400)))
         self._restoring_size = False
+        # Tree session is independent of the Launch breadcrumb. Restoring a
+        # window must not navigate Launch or collapse another user's branches.
+        self._restoring_tree = False
+        self._syncing_directory = False
+        self._tree_state_timer = QTimer(self)
+        self._tree_state_timer.setSingleShot(True)
+        self._tree_state_timer.setInterval(350)
+        self._tree_state_timer.timeout.connect(self._save_tree_state)
+        self._pending_restored_scroll = None
         # Avoid syncing state.ini for every pixel while the resize grip moves.
         self._size_save_timer = QTimer(self)
         self._size_save_timer.setSingleShot(True)
@@ -288,7 +299,6 @@ class RemoteFilesExplorer(QWidget):
         # paste or a new clipboard value. No separate Exp-only transfer state.
         QApplication.clipboard().dataChanged.connect(self._clipboard_changed)
         self._rename_in_progress = None
-        self._syncing_directory = False
         self.tree = FilesExpWheelTree(self)
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
             remote.parent(), 'pointer_warp_enabled', True))
@@ -314,6 +324,10 @@ class RemoteFilesExplorer(QWidget):
         self._selection_timer.setInterval(130)
         self._selection_timer.timeout.connect(self._commit_current_selection)
         self.tree.selectionModel().currentChanged.connect(self._selection_changed)
+        self.tree.expanded.connect(self._schedule_tree_state_save)
+        self.tree.collapsed.connect(self._schedule_tree_state_save)
+        self.tree.verticalScrollBar().valueChanged.connect(self._schedule_tree_state_save)
+        self.tree.horizontalScrollBar().valueChanged.connect(self._schedule_tree_state_save)
         self.tree.expanded.connect(self._expand_index)
         # Clicking the triangle is navigation too: Qt does not guarantee a
         # 'clicked' signal when the disclosure control consumes the click.
@@ -341,7 +355,11 @@ class RemoteFilesExplorer(QWidget):
         layout.addWidget(footer)
 
         style = QApplication.style()
-        self._folder_icon = style.standardIcon(QStyle.StandardPixmap.SP_DirIcon)
+        # Use the SAME glyph as Launch's ordinary directory rows; virtual PC
+        # intentionally keeps the Qt computer icon unique to Files Exp.
+        self._folder_icon = (launcher.row_icon({
+            'item_kind': 'directory', 'icon_key': 'folder.yellow'})
+            if launcher is not None else style.standardIcon(QStyle.StandardPixmap.SP_DirIcon))
         self._pc_icon = style.standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
         self.apply_theme(theme)
 
@@ -422,29 +440,31 @@ class RemoteFilesExplorer(QWidget):
         self.refresh_transfer_visuals()
 
     def set_roots(self, rows, expand):
-        """Re-sync from currently rendered Files column one on each opening.
+        """Rebuild live registered roots; opening subsequently restores state.
 
-        Does not rely on current breadcrumb or selected folder. Keeps duplicate
-        registered paths as separately named roots, in their displayed order.
+        HOME intentionally calls this without restoring the previous tree.
+        Changes to the first column and removed folders are handled on reload.
         """
         roots = registered_folder_roots(rows, expand)
-        # The model owns all loaded children and expansion state. Replacing it
-        # here resets both, so the next ▶ fetches directories from disk anew.
-        self._selection_timer.stop()
-        self.tree.clear_wheel_pending()
-        self.model.clear()
-        self.model.setHorizontalHeaderLabels(['フォルダー'])
-        parent = self.model.invisibleRootItem()
-        for root in roots:
-            path = root['path']
-            self._append_folder(parent, root['label'], path, pc=root['pc'],
-                                missing=not root['pc'] and not os.path.isdir(path))
-        # No row remains selected: HOME must not navigate the main Files view.
-        self.tree.clearSelection()
-        self.tree.setCurrentIndex(self.model.index(-1, 0))
-        self.tree.scrollToTop()
-        self.tree.horizontalScrollBar().setValue(
-            self.tree.horizontalScrollBar().minimum())
+        previous_restoring = getattr(self, '_restoring_tree', False)
+        self._restoring_tree = True
+        try:
+            self._selection_timer.stop()
+            self.tree.clear_wheel_pending()
+            self.model.clear()
+            self.model.setHorizontalHeaderLabels(['フォルダー'])
+            parent = self.model.invisibleRootItem()
+            for root in roots:
+                path = root['path']
+                self._append_folder(parent, root['label'], path, pc=root['pc'],
+                                    missing=not root['pc'] and not os.path.isdir(path))
+            self.tree.clearSelection()
+            self.tree.setCurrentIndex(self.model.index(-1, 0))
+            self.tree.scrollToTop()
+            self.tree.horizontalScrollBar().setValue(
+                self.tree.horizontalScrollBar().minimum())
+        finally:
+            self._restoring_tree = previous_restoring
         return len(roots)
 
     def refresh_directory_branch(self, directory):
@@ -566,6 +586,13 @@ class RemoteFilesExplorer(QWidget):
             return
         self.set_roots(launcher._remote_files_first_column_rows(),
                        launcher.expander().expand)
+        # HOME is a deliberate reset. Persist the empty expansion/selection so
+        # the next Remote opening does not resurrect discarded branches.
+        state_timer = getattr(self, '_tree_state_timer', None)
+        save_state = getattr(self, '_save_tree_state', None)
+        if state_timer is not None and callable(save_state):
+            state_timer.stop()
+            save_state()
 
     def _index_path(self, index):
         if not index.isValid():
@@ -616,17 +643,29 @@ class RemoteFilesExplorer(QWidget):
             launcher.refresh_folder_information(path)
         return True
 
+    def _is_pc_index(self, index):
+        if not index.isValid():
+            return False
+        item = self.model.itemFromIndex(index)
+        return bool(item is not None and
+                    (item.data(_DATA_ROLE) or {}).get('pc'))
+
     def _selection_changed(self, index, _previous):
+        self._schedule_tree_state_save()
         if self._syncing_directory:
             return
         # Wheel/keyboard selection settles before a potentially costly Files
         # refresh; an explicit mouse click still navigates immediately.
         self._selection_timer.stop()
-        if self._index_path(index):
+        if self._index_path(index) or self._is_pc_index(index):
             self._selection_timer.start()
 
     def _commit_current_selection(self):
-        path = self._index_path(self.tree.currentIndex())
+        index = self.tree.currentIndex()
+        if self._is_pc_index(index):
+            self.pc_selected.emit()
+            return
+        path = self._index_path(index)
         if path:
             self.folder_selected.emit(path)
 
@@ -634,6 +673,9 @@ class RemoteFilesExplorer(QWidget):
         if self._syncing_directory:
             return
         self._selection_timer.stop()
+        if self._is_pc_index(index):
+            self.pc_selected.emit()
+            return
         path = self._index_path(index)
         if path:
             self.folder_selected.emit(path)
@@ -730,6 +772,7 @@ class RemoteFilesExplorer(QWidget):
             return True
         finally:
             self._syncing_directory = False
+            self._schedule_tree_state_save()
 
     def can_rename_folder(self, path):
         """Never invalidate an authored first-column shortcut or drive root."""
@@ -895,6 +938,156 @@ class RemoteFilesExplorer(QWidget):
         item.removeRow(0)
         self.refresh_transfer_visuals()
 
+    @staticmethod
+    def _tree_node_key(item):
+        """Stable (shortcut identity, physical path) across sorted children.
+
+        The same physical directory can occur under several registered roots.
+        Keep each alias separate; virtual PC has no filesystem path.
+        """
+        if item is None:
+            return None
+        info = item.data(_DATA_ROLE)
+        if not isinstance(info, dict):
+            return None  # Placeholder row, not a real folder.
+        root = item
+        while root.parent() is not None:
+            parent = root.parent()
+            # QStandardItemModel can expose invisibleRootItem() as the
+            # top-level item's parent. It is not a registered folder.
+            if not isinstance(parent.data(_DATA_ROLE), dict):
+                break
+            root = parent
+        root_info = root.data(_DATA_ROLE) or {}
+        root_path = ('<PC>' if root_info.get('pc') else
+                     os.path.normcase(os.path.normpath(str(root_info.get('path') or ''))))
+        node_path = ('<PC>' if info.get('pc') else
+                     os.path.normcase(os.path.normpath(str(info.get('path') or ''))))
+        return [root.text(), root_path, node_path]
+
+    def _capture_tree_state(self):
+        opened = []
+        def visit(parent):
+            for row in range(parent.rowCount()):
+                item = parent.child(row)
+                if item is None:
+                    continue
+                key = self._tree_node_key(item)
+                if key is not None and self.tree.isExpanded(item.index()):
+                    opened.append(key)
+                    visit(item)
+        visit(self.model.invisibleRootItem())
+        selected_item = self.model.itemFromIndex(self.tree.currentIndex())
+        selected = self._tree_node_key(selected_item)
+        return {
+            'version': 1, 'expanded': opened,
+            'selected': selected,
+            'scroll_y': self.tree.verticalScrollBar().value(),
+            'scroll_x': self.tree.horizontalScrollBar().value(),
+        }
+
+    def _schedule_tree_state_save(self, *_):
+        if (self._settings is not None and not self._restoring_tree
+                and not self._syncing_directory):
+            self._tree_state_timer.start()
+
+    def _save_tree_state(self):
+        if self._settings is None or self._restoring_tree or self._syncing_directory:
+            return
+        state = self._capture_tree_state()
+        self._settings.setValue('remote_files_exp/tree_state_v1',
+                                json.dumps(state, ensure_ascii=False))
+        self._settings.sync()
+
+    def restore_previous_tree_state(self):
+        """Restore opened paths, current item and scroll without navigation.
+
+        No previous snapshot: the caller may sync to Launch's breadcrumb.
+        A stale/missing folder is simply skipped. HOME remains a hard reset.
+        """
+        if self._settings is None:
+            return False
+        raw = self._settings.value('remote_files_exp/tree_state_v1', '')
+        try:
+            state = json.loads(raw) if isinstance(raw, str) else None
+        except (ValueError, TypeError):
+            return False
+        if not isinstance(state, dict) or state.get('version') != 1:
+            return False
+        expanded = state.get('expanded', [])
+        if not isinstance(expanded, list):
+            return False
+        # Do not allow a corrupted/hostile state.ini to traverse unlimited rows.
+        keys = {tuple(value) for value in expanded[:800]
+                if isinstance(value, list) and len(value) == 3
+                and all(isinstance(piece, str) for piece in value)}
+        selection = state.get('selected')
+        selected_key = (tuple(selection) if isinstance(selection, list)
+                        and len(selection) == 3
+                        and all(isinstance(piece, str) for piece in selection)
+                        else None)
+        previous_restoring = self._restoring_tree
+        previous_sync = self._syncing_directory
+        self._restoring_tree = True
+        self._syncing_directory = True
+        previous_animated = self.tree.isAnimated()
+        self.tree.setAnimated(False)
+        found_selected = selected_key is None
+        try:
+            self._selection_timer.stop()
+            self.tree.clear_wheel_pending()
+            def visit(parent):
+                nonlocal found_selected
+                for row in range(parent.rowCount()):
+                    item = parent.child(row)
+                    if item is None:
+                        continue
+                    key = self._tree_node_key(item)
+                    if key is None:
+                        continue
+                    # Expand lazy parents before locating saved descendants.
+                    if tuple(key) in keys:
+                        self._expand_index(item.index())
+                        self.tree.setExpanded(item.index(), True)
+                    if tuple(key) == selected_key:
+                        self.tree.setCurrentIndex(item.index())
+                        found_selected = True
+                    if self.tree.isExpanded(item.index()):
+                        visit(item)
+            visit(self.model.invisibleRootItem())
+        finally:
+            self.tree.setAnimated(previous_animated)
+            self._syncing_directory = previous_sync
+            self._restoring_tree = previous_restoring
+            self._selection_timer.stop()
+        if not found_selected:
+            # Removed/renamed folder: let the caller choose the valid current
+            # Launch breadcrumb instead of selecting an unrelated sibling.
+            return False
+        try:
+            y = max(0, int(state.get('scroll_y', 0)))
+            x = max(0, int(state.get('scroll_x', 0)))
+        except (ValueError, TypeError):
+            y = x = 0
+        self._pending_restored_scroll = (y, x)
+        return True
+
+    def finish_restoring_tree_scroll(self):
+        """Scrollbars have their real extents only after the tool is shown."""
+        pending = self._pending_restored_scroll
+        self._pending_restored_scroll = None
+        if pending is None:
+            return
+        self._restoring_tree = True
+        try:
+            y, x = pending
+            ybar = self.tree.verticalScrollBar()
+            xbar = self.tree.horizontalScrollBar()
+            ybar.setValue(max(ybar.minimum(), min(y, ybar.maximum())))
+            xbar.setValue(max(xbar.minimum(), min(x, xbar.maximum())))
+        finally:
+            self._restoring_tree = False
+
     def _save_size(self):
         if self._settings is not None and not self._restoring_size:
             self._settings.setValue('remote_files_exp/width', self.width())
@@ -912,6 +1105,8 @@ class RemoteFilesExplorer(QWidget):
 
     def hideEvent(self, event):
         self._size_save_timer.stop()
+        self._tree_state_timer.stop()
+        self._save_tree_state()
         self._save_size()
         # Never apply a delayed wheel/keyboard navigation after dismissal.
         self._selection_timer.stop()
@@ -919,6 +1114,8 @@ class RemoteFilesExplorer(QWidget):
 
     def closeEvent(self, event):
         self._size_save_timer.stop()
+        self._tree_state_timer.stop()
+        self._save_tree_state()
         self._save_size()
         super().closeEvent(event)
 

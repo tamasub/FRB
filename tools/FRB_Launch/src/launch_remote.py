@@ -200,6 +200,11 @@ class UpDoubleClickBand(QFrame):
         self.setFixedHeight(23)
         self.setToolTip('ダブルクリック：上位フォルダーへ / 右クリック：カレントフォルダー操作')
         self._files_mode = True
+        self._skip_release_after_double = False
+        self._single_click_timer = QTimer(self)
+        self._single_click_timer.setSingleShot(True)
+        self._single_click_timer.timeout.connect(
+            lambda: self.command.emit('REMOTE_FOLDER_DESELECT') if self._files_mode else None)
         self._caption = QLabel('（カレントフォルダー操作）', self)
         self._caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
@@ -210,10 +215,25 @@ class UpDoubleClickBand(QFrame):
 
     def set_files_mode(self, enabled):
         self._files_mode = bool(enabled)
+        if not enabled:
+            self._single_click_timer.stop()
         self._caption.setVisible(self._files_mode)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and self._files_mode:
+            if self._skip_release_after_double:
+                self._skip_release_after_double = False
+                event.accept()
+                return
+            self._single_click_timer.start(QApplication.instance().doubleClickInterval())
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton and self._files_mode:
+            self._single_click_timer.stop()
+            self._skip_release_after_double = True
             self.command.emit('FOLDER_UP')
             event.accept()
         else:
@@ -233,6 +253,7 @@ class LaunchRemote(QWidget):
     more_menu_opening = Signal()
     page_clicked = Signal(str)
     files_exp_folder_selected = Signal(str)
+    files_exp_pc_selected = Signal()
     files_exp_folder_context = Signal(str, QPoint)
     files_exp_folder_renamed = Signal(str, str)
 
@@ -436,6 +457,7 @@ class LaunchRemote(QWidget):
         panel = getattr(self, 'files_exp_panel', None)
         if panel is not None:
             panel.hide()
+        self.up_band._single_click_timer.stop()
         # A pending single-click must not reopen history after Remote closes.
         timer = getattr(self, 'search_history_click_timer', None)
         if timer is not None:
@@ -447,6 +469,9 @@ class LaunchRemote(QWidget):
         if self.files_exp_panel is None:
             self.files_exp_panel = RemoteFilesExplorer(self, self.files_exp_theme)
             self.files_exp_panel.folder_selected.connect(self.files_exp_folder_selected.emit)
+            pc_signal = getattr(self.files_exp_panel, 'pc_selected', None)
+            if pc_signal is not None:
+                pc_signal.connect(self.files_exp_pc_selected.emit)
             self.files_exp_panel.folder_context_requested.connect(self.files_exp_folder_context.emit)
             self.files_exp_panel.folder_renamed.connect(self.files_exp_folder_renamed.emit)
         panel = self.files_exp_panel
@@ -459,15 +484,26 @@ class LaunchRemote(QWidget):
         if launcher is not None and hasattr(launcher, '_remote_files_first_column_rows'):
             panel.set_roots(launcher._remote_files_first_column_rows(),
                             launcher.expander().expand)
+        # Reopen the *previous* Exp tree, not a brand-new tree based solely on
+        # the Launch breadcrumb. Never emit navigation while restoring state.
+        restore_state = getattr(panel, 'restore_previous_tree_state', None)
+        restored = bool(restore_state()) if callable(restore_state) else False
         self.position_files_exp()
         panel.show()
         panel.raise_()
-        # On reopening, the tree should reflect the already-active Files
-        # breadcrumb, not retain an unrelated root selection.
-        if launcher is not None:
+        if launcher is not None and not restored:
+            # First launch, or a selected folder was removed since last use:
+            # use the already valid Launch breadcrumb as a safe fallback.
             view = getattr(launcher, 'expanded_view', None)
             if view is not None and view.current_directory():
                 panel.sync_current_directory(view.current_directory())
+                sync_root = getattr(launcher, 'sync_files_first_column_root', None)
+                if callable(sync_root):
+                    sync_root(view.current_directory())
+        # Scrollbar ranges are established after show(), not while hidden.
+        restore_scroll = getattr(panel, 'finish_restoring_tree_scroll', None)
+        if callable(restore_scroll):
+            QTimer.singleShot(0, restore_scroll)
         # Frameless Tool windows may be placed by Windows on first show.
         # Reassert the Remote-relative anchor after native show processing.
         QTimer.singleShot(0, self.position_files_exp)

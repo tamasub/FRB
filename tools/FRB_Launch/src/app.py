@@ -2038,6 +2038,62 @@ class RemoteFolderActionsMenu(CascadeMenu):
     geometry. Keep the real QMenu submenu to retain its hover behavior.
     """
 
+    def _close_files_preview_on_stable_other_action(self):
+        """Close a Files preview only after hovering a *real* other command.
+
+        The pointer may cross blank pixels or briefly pass over other rows
+        while travelling diagonally from Filesリスト into its right-hand
+        Tool columns. Neither may destroy the already-open preview.
+        """
+        if not self.isVisible() or getattr(self, 'child', None) is None:
+            return
+        local = self.mapFromGlobal(QCursor.pos())
+        if not self.rect().contains(local):
+            return  # Pointer already entered the child popup or passed the gap.
+        action = self.actionAt(local)
+        if (action is None or action is getattr(self, 'folder_list_action', None)
+                or action is not getattr(self, '_non_files_hover_pending_action', None)
+                or not action.isEnabled() or action.isSeparator()):
+            return
+        child = self.child
+        self.child = None
+        if getattr(self.launcher, '_remote_folder_root_menu', None) is child:
+            self.launcher._remote_folder_root_menu = None
+        child.close()
+        child.deleteLater()
+
+    def mouseMoveEvent(self, event):
+        # The Files list is a hover preview. Dismiss it when the pointer
+        # *settles* on a different executable action, not while travelling
+        # across blank padding or other rows toward a right-hand column.
+        action = self.actionAt(event.position().toPoint())
+        timer = getattr(self, '_non_files_hover_timer', None)
+        if (getattr(self, 'child', None) is not None
+                and action is not None
+                and action is not getattr(self, 'folder_list_action', None)
+                and action.isEnabled() and not action.isSeparator()):
+            if timer is None:
+                timer = QTimer(self)
+                timer.setSingleShot(True)
+                timer.timeout.connect(self._close_files_preview_on_stable_other_action)
+                self._non_files_hover_timer = timer
+            if (not timer.isActive() or
+                    action is not getattr(self, '_non_files_hover_pending_action', None)):
+                self._non_files_hover_pending_action = action
+                timer.start(350)
+        else:
+            if timer is not None:
+                timer.stop()
+            self._non_files_hover_pending_action = None
+        super().mouseMoveEvent(event)
+
+    def hideEvent(self, event):
+        timer = getattr(self, '_non_files_hover_timer', None)
+        if timer is not None:
+            timer.stop()
+        self._non_files_hover_pending_action = None
+        super().hideEvent(event)
+
     def paintEvent(self, event):
         super().paintEvent(event)
         actions = (getattr(self, 'folder_list_action', None),
@@ -2261,9 +2317,22 @@ class RemoteFolderCascade(CascadeMenu):
         return None
 
     def _remote_activate_file(self, row):
+        """Open a Filesリスト leaf and dismiss the whole context cascade.
+
+        Both QMenu rows and scroll-tree rows execute files through here.
+        Closing on the NEXT event-loop tick keeps the double-click release
+        intact and avoids destroying its Tool column inside mouse dispatch.
+        Folder clicks are navigation only and must retain their menus.
+        """
         filename = row.get('_browse_file')
-        if filename and Path(filename).is_file():
+        if not filename or not Path(filename).is_file():
+            return
+        try:
             self.launcher.activate(row)
+        finally:
+            closer = getattr(self.launcher, 'close_finished_file_context_menus', None)
+            if callable(closer):
+                QTimer.singleShot(0, closer)
 
     def _remote_commit_folder(self, row, action=None):
         if (getattr(self, '_remote_rename_activation_guard', False) or
@@ -3154,6 +3223,9 @@ class Launcher(QWidget):
         self.mode_button.clicked.connect(self.toggle_expanded_view)
         self.mode_bar.hide()
         self.expanded_view = ExpandedLauncherView(self)
+        # A single clipboard drives cut visuals in the main Files columns,
+        # the Remote cascade, and the companion Files Exp tree.
+        QApplication.clipboard().dataChanged.connect(self.refresh_main_files_cut_visuals)
         # Allow dragging from the workspace-strip whitespace as well.
         # Only background surfaces receive the filter; the actual Files /
         # Browser buttons and authored root buttons keep their clicks.
@@ -3581,6 +3653,44 @@ class Launcher(QWidget):
         self.show_expanded_background_paste_menu(
             QCursor.pos(), remote_folder_list=True)
 
+    def navigate_files_exp_pc(self):
+        """Select the virtual PC ROOT in Launch when Files Exp clicks PC.
+
+        A virtual shell root has no filesystem path, so the normal folder
+        callback cannot resolve it. Use the authored first-column row and
+        the existing browser_rows(PC) drive resolver; never fake C:\\.
+        """
+        view = self.expanded_view
+        if not view.isVisible():
+            return False
+        if view._workspace_mode != 'files':
+            view.show_files_view()
+        tree = view.left.tree
+        pc_item = next((tree.topLevelItem(i)
+                        for i in range(tree.topLevelItemCount())
+                        if (view.row_data(tree.topLevelItem(i)) or {}).get(
+                            '_system_drives_root')), None)
+        if pc_item is None:
+            return False
+        tree.setCurrentItem(pc_item)
+        view.choose_files(pc_item, 0)  # PC breadcrumb + real drive rows.
+        # Files Exp owns focus: only change the *logical* active column,
+        # without stealing keyboard focus back from the tool window.
+        self._remote_area = 'files'
+        self._last_focus_area = 'files'
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_area('files')
+        for name, pane in (('files', view.left), ('directory', view.middle)):
+            active = name == 'files'
+            pane.tree.remote_highlight_mode = True
+            pane.tree.remote_logical_active = active
+            pane.tree.setProperty('remoteInactive', not active)
+            pane.tree.style().unpolish(pane.tree)
+            pane.tree.style().polish(pane.tree)
+            pane.tree.viewport().update()
+        return True
+
     def navigate_files_exp_folder(self, directory):
         """Commit a Files Exp selection through the existing breadcrumb flow.
 
@@ -3615,6 +3725,9 @@ class Launcher(QWidget):
         from folder_sort_preferences import transfer_directory_sort
         from middle_folder_filter import SORT_LABELS
         transfer_directory_sort(self.settings, old_path, new_path, SORT_LABELS)
+        notify = getattr(self, 'notify_folder_mutation', None)
+        if callable(notify):
+            notify(Path(old_path).parent)
         changed = self.navigate_files_exp_folder(new_path)
         if changed:
             self.footer.setText(
@@ -3796,6 +3909,11 @@ class Launcher(QWidget):
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if panel is not None and panel.isVisible():
             panel.sync_current_directory(directory)
+        self.refresh_main_files_cut_visuals()
+        # Exp's current directory also identifies the first-column registered
+        # ROOT. Keep that row as an outline (not a second active green row).
+        if panel is not None and panel.isVisible():
+            self.sync_files_first_column_root(directory)
         if (getattr(self, '_remote_folder_opener', None) is None
                 and getattr(self, '_remote_folder_root_menu', None) is None):
             return
@@ -3806,6 +3924,44 @@ class Launcher(QWidget):
         self._remote_folder_source_path = path
         if not getattr(self, '_remote_folder_navigation', False):
             self.close_remote_folder_menu()
+
+    def sync_files_first_column_root(self, directory):
+        """Remember the deepest registered root containing the breadcrumb.
+
+        Neither select a filesystem operation target nor change Qt focus.
+        The actual active row stays in Files column 2 / Files Exp.
+        """
+        view = getattr(self, 'expanded_view', None)
+        if (view is None or not directory or
+                getattr(view, '_workspace_mode', None) != 'files'):
+            return False
+        from directory_address import row_directory
+        import ntpath
+        target = ntpath.normcase(ntpath.normpath(str(directory).replace('/', '\\')))
+        best = None
+        tree = view.left.tree
+        for i in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(i)
+            row = view.row_data(item)
+            candidate = row_directory(row, self.expander().expand)
+            if not candidate:
+                continue
+            key = ntpath.normcase(ntpath.normpath(candidate))
+            if target == key or target.startswith(key.rstrip('\\') + '\\'):
+                if best is None or len(key) > best[0]:
+                    best = (len(key), item)
+        if best is None:
+            return False
+        if tree.currentItem() is not best[1]:
+            tree.setCurrentItem(best[1])
+        # The first-column marker is contextual memory, never another active
+        # selection after an Exp / second-column navigation.
+        if tree.property('remoteInactive') is not True:
+            tree.setProperty('remoteInactive', True)
+            tree.style().unpolish(tree)
+            tree.style().polish(tree)
+        tree.viewport().update()
+        return True
 
     def close_remote_page_menu(self):
         """Dismiss the Remote Page cascade, not an unrelated Compact menu."""
@@ -3929,6 +4085,7 @@ class Launcher(QWidget):
             self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
             self.remote_window.page_clicked.connect(self.open_remote_page)
             self.remote_window.files_exp_folder_selected.connect(self.navigate_files_exp_folder)
+            self.remote_window.files_exp_pc_selected.connect(self.navigate_files_exp_pc)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
         self.remote_window.set_pages(self.pages)
@@ -4756,6 +4913,15 @@ class Launcher(QWidget):
             if view.isVisible() and view.current_directory():
                 self.show_expanded_background_paste_menu(QCursor.pos())
             return
+        if command == 'REMOTE_FOLDER_DESELECT':
+            view = self.expanded_view
+            if view.isVisible() and view._workspace_mode == 'files':
+                tree = view.middle.tree
+                tree.deliberate_blank_selection = True
+                tree.clearSelection()
+                tree.viewport().update()
+                self.remote_focus_area('directory')
+            return
         if command == 'FOLDER_UP':
             if self.expanded_view.isVisible():
                 self.expanded_view.go_up()
@@ -5452,6 +5618,10 @@ class Launcher(QWidget):
             self.update_header_icons()
 
     def row_icon(self, row):
+        if row.get('_system_drives_root'):
+            # Files Exp's virtual PC uses this exact native computer glyph.
+            # Never confuse PC with physical drives (which keep their OS icons).
+            return QApplication.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
         source, target = icon_lookup(row)
         # SharePoint/Box/OneDrive placeholders may not pass is_file().  Ask the
         # OS for the association of the extension rather than opening the
@@ -7306,6 +7476,68 @@ class Launcher(QWidget):
             timer.timeout.connect(self._clear_previous_paste_feedback)
             self._paste_feedback_timer = timer
         timer.start(2500)
+
+    def notify_folder_mutation(self, *directories):
+        """Notify the companion of filesystem changes from EVERY Launch UI.
+
+        Reload only affected, already-visible branches. Unopened branches
+        remain lazy and all unrelated expansion state remains intact.
+        """
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is None or not panel.isVisible():
+            return
+        seen = set()
+        for directory in directories:
+            if not directory:
+                continue
+            folder = Path(directory)
+            if not folder.is_dir():
+                folder = folder.parent
+            key = path_key(folder)
+            if key in seen or not folder.is_dir():
+                continue
+            seen.add(key)
+            panel.refresh_directory_branch(str(folder))
+
+    def refresh_main_files_cut_visuals(self):
+        """Use the same pending-cut visual in both native Files columns."""
+        view = getattr(self, 'expanded_view', None)
+        if view is None:
+            return
+        mime = QApplication.clipboard().mimeData()
+        cut = {path_key(p) for p in (clipboard_sources(mime)
+                                    if is_cut_clipboard(mime) else ())}
+        for pane in (view.left, view.middle):
+            tree = pane.tree
+            for index in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(index)
+                row = view.row_data(item)
+                if not row or row.get('item_kind') != 'directory':
+                    continue
+                raw_path = row.get('launch_browse_target') or row.get('_file')
+                if not raw_path:
+                    continue
+                try:
+                    resolved = self.expander().expand(str(raw_path))
+                except (OSError, ValueError):
+                    continue
+                base = self.row_icon(row)
+                was_cut = bool(item.data(0, Qt.ItemDataRole.UserRole + 9))
+                is_cut = path_key(resolved) in cut
+                if is_cut:
+                    base = CascadeMenu._subdued_icon(base)
+                    if not was_cut:
+                        item.setForeground(0, QBrush(QColor('#9ca8af')))
+                        item.setData(0, Qt.ItemDataRole.UserRole + 9, True)
+                elif was_cut:
+                    # Restore an explicit readable text color. Some Windows
+                    # Qt styles do not recover drive names after setForeground
+                    # with an empty/default QBrush().
+                    normal_text = theme_palette(self.color_theme)['text']
+                    item.setForeground(0, QBrush(QColor(normal_text)))
+                    item.setData(0, Qt.ItemDataRole.UserRole + 9, False)
+                item.setIcon(0, base)
+        # This is only an icon change; never touch active row/selection.
 
     def refresh_files_exp_directory(self, directory):
         """Rescan a folder in Files Exp, preserving expanded paths and cursor."""
@@ -9216,6 +9448,9 @@ class Launcher(QWidget):
         # Suppress that incidental selection and restore the exact parent.
         if panel is not None:
             panel.reflect_deleted_folder(str(deleted))
+        notify = getattr(self, 'notify_folder_mutation', None)
+        if callable(notify):
+            notify(parent)
         view = self.expanded_view
         if view.isVisible() and affected and Path(parent).is_dir():
             view.go_to_directory(parent)
@@ -9223,6 +9458,11 @@ class Launcher(QWidget):
                 panel.sync_current_directory(parent)
         elif view.isVisible() and current_key == path_key(parent):
             view.refresh_middle()
+
+    def begin_remote_rename_after_menu(self, directory):
+        """Dismiss the popup BEFORE focusing Files Exp's inline editor."""
+        self.close_finished_file_context_menus()
+        QTimer.singleShot(0, lambda: self.rename_remote_folder(directory))
 
     def rename_remote_folder(self, directory):
         """One Rename command for Files Exp and Remote's current-folder menu.
@@ -9249,6 +9489,7 @@ class Launcher(QWidget):
         if panel is not None:
             panel.reflect_external_folder_rename(directory, new_path)
         self.on_files_exp_folder_renamed(directory, new_path)
+        self.notify_folder_mutation(path.parent)
         return True
 
     def rename_remote_cascade_entry(self, target, kind, source_menu=None):
@@ -9361,6 +9602,10 @@ class Launcher(QWidget):
             self.error('操作対象のフォルダーが見つかりません: ' + target_directory)
             return False
         menu = RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
+        # The ordinary Launch Files-background menu and Files Exp's Remote
+        # menu share the same deliberate compact width.
+        menu.setMinimumWidth(218)
+        menu.setMaximumWidth(225)
         if remote_folder_list:
             if explicit_target is None:
                 menu = self._apply_remote_popup_bounds(menu)
@@ -9413,7 +9658,7 @@ class Launcher(QWidget):
                 action = menu.addAction(
                     definition['title'],
                     lambda checked=False, p=target_directory:
-                    QTimer.singleShot(0, lambda: self.rename_remote_folder(p)))
+                    QTimer.singleShot(0, lambda: self.begin_remote_rename_after_menu(p)))
                 action.setEnabled(self.can_rename_remote_folder(target_directory))
             elif action_id == 'delete':
                 if not remote_folder_list:
@@ -9479,6 +9724,9 @@ class Launcher(QWidget):
         if new_menu is not None and action in new_menu.actions():
             return
         if action.text().strip() == '名前の変更':
+            # Queue after begin_folder_rename() so the editor survives the
+            # popup dismissal. Its Enter/Escape still work independently.
+            QTimer.singleShot(0, self.close_finished_file_context_menus)
             return
         QTimer.singleShot(0, self.close_finished_file_context_menus)
 
@@ -9595,6 +9843,9 @@ class Launcher(QWidget):
                 self.pending_menu_item = None
                 self._launch_context_menu = menu
                 menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+                # A mixed file/folder selection uses the same compact width.
+                menu.setMinimumWidth(218)
+                menu.setMaximumWidth(225)
                 if getattr(self, 'color_theme', 'dark') == 'light':
                     menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
                 elif hasattr(menu, 'setStyleSheet'):
@@ -9607,6 +9858,10 @@ class Launcher(QWidget):
                 self.error('コンテキストメニュー定義が不正です: ' + str(exc))
                 return False
             menu = QMenu(context_parent if context_parent is not None else self)
+            if origin == 'folder':
+                # Match the compact 218-225px Remote / Files Exp menu.
+                menu.setMinimumWidth(218)
+                menu.setMaximumWidth(225)
             allowed = {d['action_id'] for d in actions if d.get('action_id')
                        and not (d['action_id'] == 'run_with_pause' and Path(path).suffix.casefold() not in ('.ps1', '.py'))
                        and not (d['action_id'] == 'extract_all' and Path(path).suffix.casefold() != '.zip')}
@@ -9678,6 +9933,10 @@ class Launcher(QWidget):
         self.pending_menu_item = None
         self._launch_context_menu = menu
         if origin in ('folder', 'file'):
+            # One width contract for files and folders, regardless of whether
+            # a menu originates in Files, Remote, or Files Exp.
+            menu.setMinimumWidth(218)
+            menu.setMaximumWidth(225)
             menu.triggered.connect(lambda action, m=menu:
                 self._on_file_context_action_triggered(m, action))
         # Do not keep a stale Python wrapper after a cascade tool-window is
@@ -9800,6 +10059,7 @@ class Launcher(QWidget):
                     self._after_folder_deleted(
                         str(removed),
                         previous_current=locals().get('current_before_delete'))
+                    self.notify_folder_mutation(removed.parent)
                 # Refresh even after a partially successful recycle batch.
                 if locals().get('finished', 0) and self.expanded_view.isVisible():
                     QTimer.singleShot(0, self.expanded_view.refresh_middle)
@@ -10195,7 +10455,12 @@ class Launcher(QWidget):
                         QMessageBox.StandardButton.No)
                     if answer != QMessageBox.StandardButton.Yes:
                         return
-                rename_file_or_folder(path, name)
+                new_path = rename_file_or_folder(path, name)
+                if kind == 'folder':
+                    panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+                    if panel is not None:
+                        panel.reflect_external_folder_rename(str(path), str(new_path))
+                    self.notify_folder_mutation(path.parent)
                 # Source columns may hold the old path; safely close them and
                 # refresh the current page/search result after a successful rename.
                 self.close_cascade_for_main_interaction()
