@@ -9,6 +9,7 @@ from PySide6.QtGui import QPainter, QPen, QColor, QFont, QPixmap, QIcon
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                                 QLabel, QFrame, QApplication, QMenu)
 from remote_navigation import popup_at_hotspot
+from remote_grid_alignment import files_grid_layout, remote_next_to_exp
 from passive_header_drag import PassiveHeaderDrag
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
@@ -350,6 +351,8 @@ class LaunchRemote(QWidget):
         # Promoted Files Exp: a full-width Remote control above Files/Browser.
         # Both mouse buttons toggle the same registered-folder tree.
         self.files_exp_panel = None
+        self._grid_aligned = False
+        self._applying_grid_alignment = False
         self.files_exp_theme = launcher.color_theme
         self.files_exp_button = self._button(
             'Files Exp', '登録フォルダーのツリーを開く（左右クリック対応）',
@@ -523,10 +526,15 @@ class LaunchRemote(QWidget):
         QTimer.singleShot(0, self.position_files_exp)
 
     def position_files_exp(self):
-        """Attach Files Exp top-left to Remote top-right, even during drag."""
+        """Preserve grid alignment, or the legacy Remote-relative placement."""
         panel = getattr(self, 'files_exp_panel', None)
         if panel is None:
             return
+        if getattr(self, '_grid_aligned', False):
+            return  # Resizes/Qt show events must not undo the deliberate layout.
+        if getattr(panel, '_manual_position', False) and getattr(
+                self.parent(), 'files_root_hidden_mode', False):
+            return  # An explicitly moved Exp is independent from Remote drag.
         anchor = self.mapToGlobal(QPoint(self.width(), 0))
         screen = QApplication.screenAt(anchor) or QApplication.primaryScreen()
         x, y = anchor.x(), anchor.y()
@@ -540,10 +548,88 @@ class LaunchRemote(QWidget):
             x = max(area.left(), min(x, area.right() - panel.width() + 1))
             y = max(area.top(), min(y, area.bottom() - panel.height() + 1))
         if panel.pos() != QPoint(x, y):
-            panel.move(x, y)
+            if hasattr(panel, 'place_automatically'):
+                panel.place_automatically(x, y)
+            else:
+                panel.move(x, y)  # Compatible with old Exp test doubles.
+
+    def align_with_files_grid(self):
+        """Desktop summons only: align companion windows to the real Files grid.
+
+        Uses the rendered header's *global* Y and Launch's actual exterior
+        edges.  Manual Exp location and height overrides win over defaults.
+        """
+        launcher = self.parent()
+        panel = getattr(self, 'files_exp_panel', None)
+        view = getattr(launcher, 'expanded_view', None)
+        if (panel is None or view is None or not self.isVisible()
+                or not panel.isVisible()
+                or not getattr(launcher, 'files_root_hidden_mode', False)
+                or not view.isVisible() or view._workspace_mode != 'files'):
+            return False
+        header = view.middle.tree.header()
+        top = header.mapToGlobal(QPoint(0, 0)).y()
+        launch = launcher.frameGeometry()
+        screen = (QApplication.screenAt(header.mapToGlobal(QPoint(0, 0)))
+                  or QApplication.screenAt(launch.center())
+                  or QApplication.primaryScreen())
+        if screen is None:
+            return False
+        area = screen.availableGeometry()
+        rx, ry, ex, ey, h = files_grid_layout(
+            launch.left(), launch.right() + 1, top, launch.bottom() + 1,
+            self.width(), panel.width(), area.left(), area.right() + 1,
+            area.top(), area.bottom() + 1)
+        panel._grid_height_mode = True
+        manual = panel.saved_manual_position()
+        if manual is not None:
+            # Monitor configuration may have changed since last save.  The
+            # eventual auto-fitted height (not the old saved height) determines
+            # the vertical clamp.
+            planned_height = panel.height() if panel._manual_height else h
+            ex = max(area.left(), min(manual.x(), area.right() - panel.width() + 1))
+            ey = max(area.top(), min(manual.y(), area.bottom() - planned_height + 1))
+            if not panel._manual_height:
+                h = max(180, min(launch.bottom() + 1 - ey,
+                                 area.bottom() + 1 - ey))
+            rx, ry = remote_next_to_exp(
+                ex, ey, panel.width(), self.width(), area.left(),
+                area.right() + 1, area.top(), area.bottom() + 1,
+                self.height())
+        self._applying_grid_alignment = True
+        try:
+            panel.place_automatically(ex, ey, h)
+            self.move(rx, ry)
+            self._grid_aligned = True
+        finally:
+            self._applying_grid_alignment = False
+        return True
+
+    def leave_files_grid_alignment(self):
+        """Restore pre-experiment Remote/Exp coupling and user saved height."""
+        self._grid_aligned = False
+        panel = getattr(self, 'files_exp_panel', None)
+        if panel is None:
+            return
+        panel._grid_height_mode = False
+        if panel.isVisible():
+            settings = getattr(self.parent(), 'settings', None)
+            if settings is not None:
+                try:
+                    height = int(settings.value('remote_files_exp/height', panel.height()))
+                    panel.place_automatically(panel.x(), panel.y(),
+                                              max(180, min(height, 1400)))
+                except (TypeError, ValueError):
+                    pass
+            self.position_files_exp()
 
     def moveEvent(self, event):
         super().moveEvent(event)
+        if self._applying_grid_alignment:
+            return
+        # Deliberate Remote drag ends the grid layout for this open session;
+        # next desktop summons re-applies it unless Exp was user-positioned.
+        self._grid_aligned = False
         panel = getattr(self, 'files_exp_panel', None)
         if panel is not None and panel.isVisible():
             self.position_files_exp()
@@ -776,6 +862,7 @@ class LaunchRemote(QWidget):
                                 self.width(), self.height(),
                                 rect.left(), rect.top(), rect.right() + 1, rect.bottom() + 1,
                                 center.x(), center.y())
+        self._grid_aligned = False
         self.move(QPoint(x, y))
         self.show()
         self.raise_()

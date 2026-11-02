@@ -3628,6 +3628,10 @@ class Launcher(QWidget):
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_files_root_hidden_mode(self.files_root_hidden_mode)
+            if self.files_root_hidden_mode:
+                remote.align_with_files_grid()
+            else:
+                remote.leave_files_grid_alignment()
         self.footer.setText(
             'Filesルート非表示：第2列のみを操作します。'
             if self.files_root_hidden_mode else 'Filesルート非表示を解除しました。')
@@ -4158,6 +4162,14 @@ class Launcher(QWidget):
         panel = getattr(self.remote_window, 'files_exp_panel', None)
         if panel is None or not panel.isVisible():
             self.remote_window.toggle_files_exp()
+        if (self.files_root_hidden_mode and not web
+                and self.expanded_view.isVisible()):
+            # Qt.Tool may be repositioned on its initial native show.  Once
+            # the companion exists, anchor to the *rendered* grid, not the
+            # pointer.  Repeat on the next event-loop tick after Windows has
+            # settled the two native tool windows.
+            self.remote_window.align_with_files_grid()
+            QTimer.singleShot(0, self.remote_window.align_with_files_grid)
         # Only verified desktop double clicks enter this path. Do not warp
         # the pointer on manual toggles, menu opens, or ordinary navigation.
         self.remote_window.focus_cursor_on_files_exp()

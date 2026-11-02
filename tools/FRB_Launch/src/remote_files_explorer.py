@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
 from PySide6.QtGui import (QBrush, QColor, QCursor, QIcon, QPainter, QPen,
                            QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
-                               QLabel, QLineEdit, QPushButton, QSizeGrip, QStyle,
+                               QLabel, QLineEdit, QMenu, QPushButton, QSizeGrip, QStyle,
                                QStyledItemDelegate, QTreeView, QVBoxLayout, QWidget)
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
@@ -222,6 +222,21 @@ class RemoteFilesExplorer(QWidget):
         self.setMinimumSize(220, 180)
         launcher = remote.parent()
         self._settings = getattr(launcher, 'settings', None)
+        # User overrides are independent of the existing Exp size settings.
+        # Until explicitly dragged/resized, Files single-column mode may
+        # derive position/height afresh from the Launch grid on every summon.
+        self._automatic_placement = False
+        self._header_move_armed = False
+        self._header_move_origin = None
+        self._grid_height_mode = False
+        self._manual_position = str(self._settings.value(
+            'remote_files_exp/manual_position', 'false')).lower() in ('true', '1', 'yes') if self._settings is not None else False
+        self._manual_height = str(self._settings.value(
+            'remote_files_exp/manual_height', 'false')).lower() in ('true', '1', 'yes') if self._settings is not None else False
+        self._position_save_timer = QTimer(self)
+        self._position_save_timer.setSingleShot(True)
+        self._position_save_timer.setInterval(250)
+        self._position_save_timer.timeout.connect(self._save_manual_position)
         self._restoring_size = True
         width, height = 330, 425
         if self._settings is not None:
@@ -288,7 +303,13 @@ class RemoteFilesExplorer(QWidget):
         close_button.clicked.connect(self.hide)
         header_row.addWidget(close_button)
         layout.addWidget(header)
-        self._header_drag = PassiveHeaderDrag(self)
+        self._header_drag = PassiveHeaderDrag(self, on_header_press=self._arm_manual_move)
+        header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        title.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        header.customContextMenuRequested.connect(
+            lambda point: self._show_layout_menu(header.mapToGlobal(point)))
+        title.customContextMenuRequested.connect(
+            lambda point: self._show_layout_menu(title.mapToGlobal(point)))
         header.installEventFilter(self._header_drag)
         title.installEventFilter(self._header_drag)
 
@@ -1088,35 +1109,112 @@ class RemoteFilesExplorer(QWidget):
         finally:
             self._restoring_tree = False
 
+    def _arm_manual_move(self):
+        # Native startSystemMove may consume the mouse-release event, so the
+        # actual moveEvent (not a press alone) is the evidence of a drag.
+        self._header_move_origin = self.pos()
+        self._header_move_armed = True
+
+    def _save_manual_position(self):
+        if self._settings is not None and self._manual_position:
+            self._settings.setValue('remote_files_exp/manual_position', True)
+            self._settings.setValue('remote_files_exp/manual_x', self.x())
+            self._settings.setValue('remote_files_exp/manual_y', self.y())
+            self._settings.sync()
+
+    def saved_manual_position(self):
+        if not self._manual_position or self._settings is None:
+            return None
+        try:
+            return QPoint(int(self._settings.value('remote_files_exp/manual_x')),
+                          int(self._settings.value('remote_files_exp/manual_y')))
+        except (ValueError, TypeError):
+            return None
+
+    def place_automatically(self, x, y, height=None):
+        """Programmatic placement must never become a user position override."""
+        self._automatic_placement = True
+        try:
+            if height is not None and not self._manual_height:
+                self.resize(self.width(), height)
+            self.move(x, y)
+        finally:
+            self._automatic_placement = False
+
+    def reset_grid_layout(self):
+        """User-requested reset via the Exp header context menu."""
+        self._manual_position = False
+        self._manual_height = False
+        self._header_move_armed = False
+        self._grid_height_mode = True
+        if self._settings is not None:
+            for key in ('remote_files_exp/manual_position',
+                        'remote_files_exp/manual_x', 'remote_files_exp/manual_y',
+                        'remote_files_exp/manual_height'):
+                self._settings.remove(key)
+            self._settings.sync()
+        remote = self.parentWidget()
+        if remote is not None and hasattr(remote, 'align_with_files_grid'):
+            remote.align_with_files_grid()
+
+    def _show_layout_menu(self, position):
+        launcher = self.parentWidget().parent() if self.parentWidget() else None
+        if not getattr(launcher, 'files_root_hidden_mode', False):
+            return
+        menu = QMenu(self)
+        reset = menu.addAction('Launchのグリッド位置・高さに再整列')
+        reset.setEnabled(self._manual_position or self._manual_height)
+        chosen = menu.exec(position)
+        if chosen is reset:
+            self.reset_grid_layout()
+
     def _save_size(self):
         if self._settings is not None and not self._restoring_size:
             self._settings.setValue('remote_files_exp/width', self.width())
-            self._settings.setValue('remote_files_exp/height', self.height())
+            # Auto-fit height is a display result, not a new user preference:
+            # preserve the old saved height for non-experimental mode.
+            if not getattr(self, '_grid_height_mode', False) or getattr(self, '_manual_height', False):
+                self._settings.setValue('remote_files_exp/height', self.height())
             self._settings.sync()
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if (self._header_move_armed and not self._automatic_placement
+                and self.isVisible() and self._header_move_origin != self.pos()):
+            self._manual_position = True
+            self._header_move_origin = self.pos()
+            self._position_save_timer.start()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.isVisible():
+            if (self._grid_height_mode and not self._automatic_placement
+                    and event.oldSize().height() != event.size().height()):
+                self._manual_height = True
+                if self._settings is not None:
+                    self._settings.setValue('remote_files_exp/manual_height', True)
             self._size_save_timer.start()
-            # Resizing changes only user size, never the anchoring rule.
             remote = self.parentWidget()
             if remote is not None and hasattr(remote, 'position_files_exp'):
                 QTimer.singleShot(0, remote.position_files_exp)
 
     def hideEvent(self, event):
         self._size_save_timer.stop()
+        self._position_save_timer.stop()
         self._tree_state_timer.stop()
         self._save_tree_state()
         self._save_size()
-        # Never apply a delayed wheel/keyboard navigation after dismissal.
+        self._save_manual_position()
         self._selection_timer.stop()
         super().hideEvent(event)
 
     def closeEvent(self, event):
         self._size_save_timer.stop()
+        self._position_save_timer.stop()
         self._tree_state_timer.stop()
         self._save_tree_state()
         self._save_size()
+        self._save_manual_position()
         super().closeEvent(event)
 
     def paintEvent(self, event):
