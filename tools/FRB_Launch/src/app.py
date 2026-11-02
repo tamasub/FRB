@@ -1055,7 +1055,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 and not getattr(self, 'remote_folder_navigation', False)):
             self.paste_button = QPushButton('貼り付け', container)
             self.paste_button.setObjectName('directoryPasteButton')
-            self.paste_button.setToolTip('Explorerでコピー／切り取りしたファイル・フォルダーをこの場所へ貼り付け')
+            self.paste_button.setToolTip('コピー／切り取りした項目を選択したフォルダーへ貼り付け')
             self.paste_button.setIcon(self._clipboard_paste_icon())
             self.paste_button.setIconSize(QSize(17, 17))
             self.paste_button.setFixedHeight(29)
@@ -2342,10 +2342,15 @@ class Launcher(QWidget):
         # A retained launcher is a normal taskbar window, NOT an always-on-top Tool.
         # During construction nothing is visible, so changing flags is safe.
         self._apply_window_mode(initial=True)
-        self.bookmark_pointer_follow = str(self.settings.value(
-            'bookmark_pointer_follow', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
-        self.bookmark_wan_enabled = str(self.settings.value(
-            'bookmark_wan_enabled', 'true')).strip().lower() not in ('false', '0', 'no', 'off')
+        # Bookmarks now follows Launch's sole standard wheel behavior:
+        # native Target Flow, then cursor-follow at a real scroll edge.
+        # Obsolete bookmark-only A/B settings must not override that rule.
+        self.bookmark_pointer_follow = True
+        self.bookmark_wan_enabled = True
+        for obsolete_key in ('bookmark_pointer_follow', 'bookmark_wan_enabled'):
+            if self.settings.contains(obsolete_key):
+                self.settings.remove(obsolete_key)
+        self.settings.sync()
         # Citrix/VDI can show a server-side cursor distinct from the real
         # client pointer. Leave normal desktops unchanged unless opted in.
         self.vdi_no_cursor_warp = str(self.settings.value(
@@ -2545,19 +2550,9 @@ class Launcher(QWidget):
             self.theme_actions[theme_id] = action
         self.light_theme_action = self.theme_actions['light']
         self.dark_theme_action = self.theme_actions['dark']
-        self.theme_menu.addSeparator()
-        # Experimental pointer follow is user-switchable and remembered across
-        # launches.  It applies only to the first-level Bookmarks wheel list.
-        self.bookmark_pointer_follow_action = self.theme_menu.addAction(
-            'ブックマーク：ホイールでポインター追従')
-        self.bookmark_pointer_follow_action.setCheckable(True)
-        self.bookmark_pointer_follow_action.setChecked(self.bookmark_pointer_follow)
-        self.bookmark_pointer_follow_action.triggered.connect(self.set_bookmark_pointer_follow)
-        self.bookmark_wan_action = self.theme_menu.addAction(
-            'ブックマーク：WANハイブリッド（実験）')
-        self.bookmark_wan_action.setCheckable(True)
-        self.bookmark_wan_action.setChecked(self.bookmark_wan_enabled)
-        self.bookmark_wan_action.triggered.connect(self.set_bookmark_wan_enabled)
+        # The legacy Bookmarks-only follow/WAN toggles are retired.
+        # A future all-area interaction mode selector can live here, but
+        # Bookmarks is not treated as a special case anymore.
         self.theme_menu.addSeparator()
         self.vdi_no_cursor_warp_action = self.theme_menu.addAction(
             'Citrix / VDI互換：マウスポインター自動移動OFF')
@@ -3091,6 +3086,31 @@ class Launcher(QWidget):
         self.show_expanded_background_paste_menu(
             QCursor.pos(), remote_folder_list=True)
 
+    def navigate_files_exp_folder(self, directory):
+        """Commit a Files Exp selection through the existing breadcrumb flow.
+
+        A folder-tree selection never executes/open-files or writes to disk.
+        Keep Tool windows and popup focus stable during navigation.
+        """
+        view = self.expanded_view
+        if not view.isVisible() or not Path(directory).is_dir():
+            return False
+        if view._workspace_mode != 'files':
+            view.show_files_view()
+        return bool(view.go_to_directory(directory, preserve_remote_popup=True))
+
+    def show_files_exp_folder_menu(self, directory, position):
+        """The existing Remote blank-strip menu, bound to the chosen folder.
+
+        Includes the full 'フォルダー・ファイルリスト ▶' cascade and all
+        shared Paste/New/Explorer/Properties actions; do not duplicate them.
+        """
+        if not self.navigate_files_exp_folder(directory):
+            return False
+        self.close_remote_folder_menu()
+        return self.show_expanded_background_paste_menu(
+            position, remote_folder_list=True)
+
     def _remote_popup_vertical_bounds(self):
         """Remote popup band begins at Files and extends 3x downward."""
         remote = getattr(self, 'remote_window', None)
@@ -3375,6 +3395,8 @@ class Launcher(QWidget):
             self.remote_window.header_pressed.connect(self.bring_launcher_forward_from_remote_header)
             self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
             self.remote_window.page_clicked.connect(self.open_remote_page)
+            self.remote_window.files_exp_folder_selected.connect(self.navigate_files_exp_folder)
+            self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
         self.remote_window.set_pages(self.pages)
         self.remote_window.apply_theme(self.color_theme)
         self.remote_window.set_workspace(self.expanded_view._workspace_mode)
@@ -3405,6 +3427,9 @@ class Launcher(QWidget):
                 self._remote_area = 'directory'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
+        # Only verified desktop double clicks enter this path. Do not warp
+        # the pointer on manual toggles, menu opens, or ordinary navigation.
+        self.remote_window.focus_cursor_on_files_exp()
 
     def _web_tab_count(self):
         web = self.expanded_view.web_view
@@ -4460,24 +4485,6 @@ class Launcher(QWidget):
         self.footer.setText(
             'Citrix / VDI互換：カーソル移動OFF。ホイールで選択しEnterで実行できます。'
             if enabled else '通常モード：マウスポインター追従を有効にしました。')
-
-    def set_bookmark_pointer_follow(self, enabled):
-        # Persist optional wheel-assisted cursor movement; do not edit JSON.
-        self.bookmark_pointer_follow = bool(enabled)
-        self.settings.setValue('bookmark_pointer_follow', self.bookmark_pointer_follow)
-        self.settings.sync()
-        view = getattr(self, 'expanded_view', None)
-        if view is not None:
-            view.cancel_bookmark_pointer_follow()
-
-    def set_bookmark_wan_enabled(self, enabled):
-        """A/B comparison: hybrid flow/follow vs legacy one-row Follow."""
-        self.bookmark_wan_enabled = bool(enabled)
-        self.settings.setValue('bookmark_wan_enabled', self.bookmark_wan_enabled)
-        self.settings.sync()
-        view = getattr(self, 'expanded_view', None)
-        if view is not None:
-            view.set_bookmark_wan(self.bookmark_wan_enabled)
 
     def set_color_theme(self, theme):
         resolved = normalize_theme(theme)
@@ -6671,6 +6678,11 @@ class Launcher(QWidget):
         finally:
             self._filesystem_dialog_depth -= 1
 
+    def _warn_ambiguous_paste_target(self, message):
+        """Tell the user why Paste was blocked; do not touch clipboard/files."""
+        self.error(str(message))
+        QMessageBox.warning(self, '貼り付け先を1つ選択してください', str(message))
+
     def _clear_previous_paste_feedback(self):
         """End the prior operation's visual result, not its clipboard data.
 
@@ -6685,8 +6697,8 @@ class Launcher(QWidget):
                 menu._refresh_transfer_visuals()
             menu = getattr(menu, 'child', None)
 
-    def paste_into_directory(self, menu):
-        """Paste Explorer files and ZIP virtual items into displayed folder."""
+    def paste_into_directory(self, menu, *, destination_override=None):
+        """Paste into the folder displayed by the cascade or right-clicked."""
         context = menu._folder_container_row()
         if context is None:
             return
@@ -6696,7 +6708,10 @@ class Launcher(QWidget):
         if callable(reset):
             reset()
         try:
-            destination = Path(self.expander().expand(context['launch_browse_target']))
+            destination = (Path(destination_override) if destination_override is not None
+                           else Path(self.expander().expand(context['launch_browse_target'])))
+            if not destination.is_dir():
+                raise ValueError('貼り付け先のフォルダーが存在しません: ' + str(destination))
             clipboard = QApplication.clipboard()
             mime = clipboard.mimeData()
             sources = clipboard_sources(mime)
@@ -8426,13 +8441,18 @@ class Launcher(QWidget):
         mime = QApplication.clipboard().mimeData()
         return bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
 
-    def _paste_from_context_menu(self, context_parent=None):
+    def _paste_from_context_menu(self, context_parent=None, *, target_folder=None):
         if not self._context_paste_enabled(context_parent):
             return
         if self._paste_context_destination(context_parent) == 'cascade':
-            self.paste_into_directory(context_parent)
-        else:
+            if target_folder is None:
+                self.paste_into_directory(context_parent)
+            else:
+                self.paste_into_directory(context_parent, destination_override=target_folder)
+        elif target_folder is None:
             self.paste_into_expanded_directory()
+        else:
+            self.paste_into_expanded_directory(destination_override=target_folder)
 
     def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False):
         """Shared Files blank-area menu; Remote adds ONE optional submenu.
@@ -8658,8 +8678,10 @@ class Launcher(QWidget):
                 action_id = definition['action_id']
                 if action_id == 'paste':
                     action = menu.addAction(definition['title'],
-                        lambda checked=False, parent=context_parent:
-                        self._paste_from_context_menu(parent))
+                        lambda checked=False, parent=context_parent,
+                               clicked=path if origin == 'folder' else None:
+                        self._paste_from_context_menu(parent, target_folder=clicked)
+                        if clicked is not None else self._paste_from_context_menu(parent))
                     action.setEnabled(self._context_paste_enabled(context_parent))
                 elif action_id == 'open_with' and origin == 'file':
                     # Native Explorer uses a right-hand menu here, not an
@@ -8802,13 +8824,20 @@ class Launcher(QWidget):
         self._filesystem_dialog_depth = max(
             0, getattr(self, '_filesystem_dialog_depth', 0) - 1)
 
-    def paste_into_expanded_directory(self):
-        """Explorer/Launch clipboard -> current three-column directory."""
-        destination_text = self.expanded_view.current_directory()
+    def paste_into_expanded_directory(self, *, destination_override=None):
+        """Paste to the selected folder (breadcrumb only when none selected)."""
+        # Local import keeps this responsibility independently testable without
+        # loading Windows/PySide6; it runs before any disk-writing operation.
+        from paste_destination import choose_paste_destination, AmbiguousPasteTarget
+        destination_text = (destination_override if destination_override is not None
+                            else self.expanded_view.current_directory())
         if not destination_text:
             return
         try:
-            destination = Path(destination_text)
+            selected = (() if destination_override is not None else
+                        self.expanded_view.middle_selected_paths()
+                        if hasattr(self.expanded_view, 'middle_selected_paths') else ())
+            destination = choose_paste_destination(destination_text, selected)
             clipboard = QApplication.clipboard()
             mime = clipboard.mimeData()
             sources = clipboard_sources(mime)
@@ -8840,7 +8869,11 @@ class Launcher(QWidget):
                 if move:
                     clipboard.clear()
                 self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
+            # A paste into a selected child folder refreshes its parent list;
+            # never navigate away silently from the user's current place.
             self.expanded_view.refresh_middle()
+        except AmbiguousPasteTarget as exc:
+            self._warn_ambiguous_paste_target(exc)
         except (OSError, ValueError) as exc:
             DIAG.exception('EXPANDED_DIRECTORY_PASTE target=%s', destination_text)
             self.error('貼り付けできませんでした: ' + str(exc))

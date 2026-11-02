@@ -1,8 +1,4 @@
-"""Files Exp prototype contracts (no PySide6 needed in CI).
-
-Checks are intentionally limited to the new experimental Remote surface;
-existing Files column navigation / actions must remain untouched.
-"""
+"""Files Exp promoted tree contracts (no PySide6 needed in CI)."""
 import ast
 from pathlib import Path
 from types import SimpleNamespace as NS
@@ -19,18 +15,18 @@ def remote_method(name):
     return next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == name)
 
 
-def test_button_is_at_very_bottom_of_remote_after_status():
-    status_idx = REMOTE_SOURCE.index('root.addWidget(status_frame)')
+def test_button_is_full_width_directly_above_files_browser():
+    files_idx = REMOTE_SOURCE.index('row_workspaces.addWidget(self.files_button)')
     exp_idx = REMOTE_SOURCE.index('root.addWidget(self.files_exp_button)')
-    adjust_idx = REMOTE_SOURCE.index('self.adjustSize()', exp_idx)
-    assert status_idx < exp_idx < adjust_idx
+    assert exp_idx < files_idx
     assert "'FILES_EXP_PREVIEW', width=172, height=27" in REMOTE_SOURCE
     assert "self.files_exp_button.clicked.connect(self.toggle_files_exp)" in REMOTE_SOURCE
+    assert "self.files_exp_button.customContextMenuRequested.connect(" in REMOTE_SOURCE
 
 
 def test_explorer_uses_registered_roots_and_lazy_real_folders():
     # Multiple shortcut roots are presented by a read-only model.
-    for clause in ('QStandardItemModel(self)', 'QTreeView(self)',
+    for clause in ('QStandardItemModel(self)', 'FilesExpWheelTree(self)',
                    'self.tree.setAnimated(True)',
                    'self.tree.setRootIsDecorated(True)',
                    'self.tree.setExpandsOnDoubleClick(True)',
@@ -44,7 +40,9 @@ def test_explorer_uses_registered_roots_and_lazy_real_folders():
 def test_preview_has_no_mutations_or_navigation_actions():
     for clause in ('self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)',
                    'self.tree.setDragEnabled(False)', 'self.tree.setAcceptDrops(False)',
-                   'self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)'):
+                   'self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)',
+                   'self.folder_context_requested.emit(path,',
+                   'self.folder_selected.emit(path)'):
         assert clause in PREVIEW_SOURCE
     for forbidden in ('go_to_directory(', 'set_current_directory(', 'subprocess.',
                       'rename(', 'os.remove(', 'shutil.'):
@@ -61,10 +59,12 @@ def test_remote_hidden_closes_preview_and_theme_follows_remote():
 
 def test_preview_button_toggles_and_is_clamped_to_screen():
     fn = remote_method('toggle_files_exp')
+    position_fn = remote_method('position_files_exp')
     class FakePoint:
         def __init__(self, x, y): self._x, self._y = x, y
         def x(self): return self._x
         def y(self): return self._y
+        def __eq__(self, other): return isinstance(other, FakePoint) and (self._x, self._y) == (other.x(), other.y())
     class Screen:
         def availableGeometry(self): return self
         def left(self): return 0
@@ -72,12 +72,17 @@ def test_preview_button_toggles_and_is_clamped_to_screen():
         def right(self): return 1199
         def bottom(self): return 899
     class Panel:
-        def __init__(self, *a): self.visible = False; self.pos = None; self.shown = 0; self.roots = None
+        def __init__(self, *a):
+            self.visible = False; self.shown = 0; self.roots = None
+            self.folder_selected = NS(connect=lambda callback: None)
+            self.folder_context_requested = NS(connect=lambda callback: None)
         def isVisible(self): return self.visible
         def hide(self): self.visible = False
         def width(self): return 330
         def height(self): return 425
-        def move(self, x, y): self.pos = (x, y)
+        def move(self, x, y): self.position = (x, y)
+        def pos(self):
+            return FakePoint(*self.position) if hasattr(self, 'position') else FakePoint(-1, -1)
         def show(self): self.visible = True; self.shown += 1
         def raise_(self): pass
         def set_roots(self, rows, expand): self.roots = (rows, expand)
@@ -86,18 +91,25 @@ def test_preview_button_toggles_and_is_clamped_to_screen():
         def height(self): return 27
         def mapToGlobal(self, point): return FakePoint(1080 + point.x(), 850 + point.y())
     scope = {'RemoteFilesExplorer': Panel, 'QPoint': FakePoint,
+             'QTimer': NS(singleShot=lambda delay, callback: callback()),
              'QApplication': NS(screenAt=lambda point: Screen(),
                                 primaryScreen=lambda: Screen())}
     exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])),
+                 'launch_remote.py', 'exec'), scope)
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[position_fn], type_ignores=[])),
                  'launch_remote.py', 'exec'), scope)
     toggle = scope['toggle_files_exp']
     launcher = NS(_remote_files_first_column_rows=lambda: [{'item_kind': 'directory', 'title': 'Root'}],
                   expander=lambda: NS(expand=lambda text: text))
     remote = NS(files_exp_panel=None, files_exp_theme='light', files_exp_button=Button(),
+                width=lambda: 184, mapToGlobal=lambda p: FakePoint(1080+p.x(), 850+p.y()),
+                files_exp_folder_selected=NS(emit=lambda path: None),
+                files_exp_folder_context=NS(emit=lambda path, pos: None),
                 parent=lambda: launcher)
+    remote.position_files_exp = lambda: scope['position_files_exp'](remote)
     toggle(remote)
     assert remote.files_exp_panel.visible
-    assert remote.files_exp_panel.pos == (746, 452)  # flip left, clamp vertical
+    assert remote.files_exp_panel.position == (750, 475)  # align Remote top/right; flip, clamp
     assert remote.files_exp_panel.roots[0][0]['title'] == 'Root'
     toggle(remote)
     assert not remote.files_exp_panel.visible

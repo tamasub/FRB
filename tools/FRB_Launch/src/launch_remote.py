@@ -232,6 +232,8 @@ class LaunchRemote(QWidget):
     header_pressed = Signal()
     more_menu_opening = Signal()
     page_clicked = Signal(str)
+    files_exp_folder_selected = Signal(str)
+    files_exp_folder_context = Signal(str, QPoint)
 
     def __init__(self, launcher):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
@@ -323,6 +325,21 @@ class LaunchRemote(QWidget):
         self.page_separator.setFixedHeight(7)
         root.addWidget(self.page_separator)
 
+        # Promoted Files Exp: a full-width Remote control above Files/Browser.
+        # Both mouse buttons toggle the same registered-folder tree.
+        self.files_exp_panel = None
+        self.files_exp_theme = launcher.color_theme
+        self.files_exp_button = self._button(
+            'Files Exp', '登録フォルダーのツリーを開く（左右クリック対応）',
+            'FILES_EXP_PREVIEW', width=172, height=27, role='workspace',
+            wheel_enabled=True)
+        self.files_exp_button.clicked.disconnect()
+        self.files_exp_button.clicked.connect(self.toggle_files_exp)
+        self.files_exp_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.files_exp_button.customContextMenuRequested.connect(
+            lambda _point: self.toggle_files_exp())
+        root.addWidget(self.files_exp_button)
+
         # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
         # on these buttons still go through the shared WheelPad accumulator.
         # Geometry shared by the Page and all control rows:
@@ -398,18 +415,6 @@ class LaunchRemote(QWidget):
         status_layout.addWidget(self.area_label)
         root.addWidget(status_frame)
 
-        # Experimental Explorer-style tree: added ONLY at Remote's very bottom.
-        # A separate preview window keeps the 184px Remote and Files workspace
-        # completely unchanged. It does not navigate or modify anything.
-        self.files_exp_panel = None
-        self.files_exp_theme = launcher.color_theme
-        self.files_exp_button = self._button(
-            'Files Exp', '試作：Files第1列の登録フォルダーを起点にツリー展開（Files画面には反映しません）',
-            'FILES_EXP_PREVIEW', width=172, height=27, role='workspace',
-            wheel_enabled=True)
-        self.files_exp_button.clicked.disconnect()
-        self.files_exp_button.clicked.connect(self.toggle_files_exp)
-        root.addWidget(self.files_exp_button)
         # The old caption and up/down buttons are intentionally omitted.
         # The wheel pad emits UP/DOWN, CLICK and DOUBLE_CLICK without synthetic keys.
         self.adjustSize()
@@ -437,9 +442,11 @@ class LaunchRemote(QWidget):
         super().hideEvent(event)
 
     def toggle_files_exp(self):
-        """Show/hide the independent, read-only directory expansion preview."""
+        """Show/hide the registered-folder tree while retaining the Files view."""
         if self.files_exp_panel is None:
             self.files_exp_panel = RemoteFilesExplorer(self, self.files_exp_theme)
+            self.files_exp_panel.folder_selected.connect(self.files_exp_folder_selected.emit)
+            self.files_exp_panel.folder_context_requested.connect(self.files_exp_folder_context.emit)
         panel = self.files_exp_panel
         if panel.isVisible():
             panel.hide()
@@ -450,22 +457,49 @@ class LaunchRemote(QWidget):
         if launcher is not None and hasattr(launcher, '_remote_files_first_column_rows'):
             panel.set_roots(launcher._remote_files_first_column_rows(),
                             launcher.expander().expand)
-        # Prefer the right of Remote; flip left near the screen edge. Keep
-        # the tool on-screen even when the Remote sits near the bottom.
-        anchor = self.files_exp_button.mapToGlobal(
-            QPoint(self.files_exp_button.width() + 4, self.files_exp_button.height()))
-        screen = QApplication.screenAt(anchor) or QApplication.primaryScreen()
-        x = anchor.x()
-        y = anchor.y() - panel.height()
-        if screen is not None:
-            area = screen.availableGeometry()
-            if x + panel.width() > area.right() + 1:
-                x = self.files_exp_button.mapToGlobal(QPoint(-panel.width() - 4, 0)).x()
-            x = max(area.left(), min(x, area.right() - panel.width() + 1))
-            y = max(area.top(), min(y, area.bottom() - panel.height() + 1))
-        panel.move(x, y)
+        self.position_files_exp()
         panel.show()
         panel.raise_()
+        # Frameless Tool windows may be placed by Windows on first show.
+        # Reassert the Remote-relative anchor after native show processing.
+        QTimer.singleShot(0, self.position_files_exp)
+
+    def position_files_exp(self):
+        """Attach Files Exp top-left to Remote top-right, even during drag."""
+        panel = getattr(self, 'files_exp_panel', None)
+        if panel is None:
+            return
+        anchor = self.mapToGlobal(QPoint(self.width(), 0))
+        screen = QApplication.screenAt(anchor) or QApplication.primaryScreen()
+        x, y = anchor.x(), anchor.y()
+        if screen is not None:
+            area = screen.availableGeometry()
+            # Flip beside the Remote only if there's no room to the right.
+            if x + panel.width() > area.right() + 1:
+                left = self.mapToGlobal(QPoint(-panel.width(), 0)).x()
+                if left >= area.left():
+                    x = left
+            x = max(area.left(), min(x, area.right() - panel.width() + 1))
+            y = max(area.top(), min(y, area.bottom() - panel.height() + 1))
+        if panel.pos() != QPoint(x, y):
+            panel.move(x, y)
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        panel = getattr(self, 'files_exp_panel', None)
+        if panel is not None and panel.isVisible():
+            self.position_files_exp()
+
+    def focus_cursor_on_files_exp(self):
+        """Desktop-double-click only: move pointer to the Files Exp button."""
+        launcher = self.parent()
+        if not getattr(launcher, 'pointer_warp_enabled', True):
+            return
+        if not self.isVisible():
+            return
+        from PySide6.QtGui import QCursor
+        QCursor.setPos(self.files_exp_button.mapToGlobal(
+            self.files_exp_button.rect().center()))
 
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
@@ -556,7 +590,7 @@ class LaunchRemote(QWidget):
             if not page_id:
                 continue
             button = self._button(str(page.get('title', 'Page')),
-                                  'クリック：このPageのメニューを右に表示',
+                                  '左クリック／右クリック：このPageのメニューを右に表示',
                                   'PAGE_BUTTON_UNUSED', width=172, height=27,
                                   role='page')
             # Do not emit the generic command; Page selection has its own signal.
@@ -564,6 +598,9 @@ class LaunchRemote(QWidget):
             button.clicked.connect(lambda checked=False, pid=page_id:
                                    self.page_clicked.emit(pid))
             button.setProperty('remote_page_id', page_id)
+            button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            button.customContextMenuRequested.connect(
+                lambda _point, pid=page_id: self.page_clicked.emit(pid))
             self.page_column.addWidget(button)
             self.page_buttons.append(button)
         self.adjustSize()

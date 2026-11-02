@@ -218,17 +218,14 @@ def test_wan_toggle_preserves_the_old_first_level_follow_handler():
     assert 'self.wheel_bookmarks_first_level(event)' in view
 
 
-def test_gear_setting_persists_ab_toggle():
-    saved = {}
-    obj = SimpleNamespace(bookmark_wan_enabled=False,
-        settings=SimpleNamespace(setValue=lambda k, v: saved.update({k: v}), sync=lambda: saved.update({'sync': True})),
-        expanded_view=SimpleNamespace(set_bookmark_wan=lambda state: saved.update({'view': state})))
-    method_env = {}
-    exec(method('set_bookmark_wan_enabled', cls='Launcher', filename='app.py'), method_env)
-    method_env['set_bookmark_wan_enabled'](obj, True)
-    assert saved == {'bookmark_wan_enabled': True, 'sync': True, 'view': True}
+def test_bookmark_only_ab_toggle_retired_and_wan_is_default():
     code = (SRC / 'app.py').read_text(encoding='utf-8')
-    assert 'self.bookmark_wan_action.triggered.connect(self.set_bookmark_wan_enabled)' in code
+    assert 'ブックマーク：WANハイブリッド（実験）' not in code
+    assert 'self.bookmark_wan_action' not in code
+    assert 'def set_bookmark_wan_enabled' not in code
+    assert 'self.bookmark_wan_enabled = True' in code
+    assert 'self.settings.remove(obsolete_key)' in code
+
 
 
 def test_scope_only_bookmark_and_native_before_fallback():

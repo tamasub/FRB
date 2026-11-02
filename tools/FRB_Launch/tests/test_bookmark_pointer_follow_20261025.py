@@ -151,33 +151,25 @@ def test_no_warp_when_row_is_not_visible_even_after_scroll():
     assert not Cursor.changes
 
 
-def test_settings_menu_and_initialization_safety_are_wired():
+def test_bookmark_pointer_follow_setting_retired_but_safety_is_preserved():
     app = (SRC / 'app.py').read_text(encoding='utf-8')
     view = (SRC / 'expanded_view.py').read_text(encoding='utf-8')
-    assert 'self.bookmark_pointer_follow_action.setCheckable(True)' in app
-    assert "self.settings.setValue('bookmark_pointer_follow', self.bookmark_pointer_follow)" in app
-    assert 'self.bookmark_pointer_follow_action.triggered.connect(self.set_bookmark_pointer_follow)' in app
+    assert 'ブックマーク：ホイールでポインター追従' not in app
+    assert 'self.bookmark_pointer_follow_action' not in app
+    assert 'def set_bookmark_pointer_follow(' not in app
+    assert 'self.bookmark_pointer_follow = True' in app
+    assert 'self.bookmark_wan_enabled = True' in app
+    assert "('bookmark_pointer_follow', 'bookmark_wan_enabled')" in app
+    assert "self.settings.remove(obsolete_key)" in app
     assert "if getattr(self.launcher, 'bookmark_pointer_follow', False):" in view
-    assert "getattr(self, 'right', None) is not None" in view  # before right constructed
+    assert "getattr(self, 'right', None) is not None" in view
     assert 'self.schedule_bookmark_pointer_follow(item)' in view
     assert 'self._bookmark_warp_global = None' in view
 
 
-def test_gear_switch_persists_setting_and_cancels_pending_warp():
-    code = (SRC / 'app.py').read_text(encoding='utf-8')
-    module = ast.parse(code)
-    cls = next(n for n in module.body if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
-    fn = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'set_bookmark_pointer_follow')
-    env = {}
-    exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), '<actual Launcher>', 'exec'), env)
-    class Settings:
-        def __init__(self): self.values = {}; self.synced = False
-        def setValue(self, k, v): self.values[k] = v
-        def sync(self): self.synced = True
-    status = SimpleNamespace(canceled=False)
-    status.cancel_bookmark_pointer_follow = lambda: setattr(status, 'canceled', True)
-    obj = SimpleNamespace(settings=Settings(), expanded_view=status, bookmark_pointer_follow=True)
-    env['set_bookmark_pointer_follow'](obj, False)
-    assert obj.bookmark_pointer_follow is False
-    assert obj.settings.values['bookmark_pointer_follow'] is False
-    assert obj.settings.synced and status.canceled
+def test_global_vdi_override_remains_available():
+    app = (SRC / 'app.py').read_text(encoding='utf-8')
+    view = (SRC / 'expanded_view.py').read_text(encoding='utf-8')
+    assert "'Citrix / VDI互換：マウスポインター自動移動OFF'" in app
+    assert 'self.vdi_no_cursor_warp_action.triggered.connect(self.set_vdi_no_cursor_warp)' in app
+    assert "'pointer_warp_enabled', True" in view

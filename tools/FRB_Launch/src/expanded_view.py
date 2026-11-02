@@ -4145,6 +4145,9 @@ class ExpandedLauncherView(QWidget):
             # With no header Paste button, an empty folder must still be
             # pasteable via right-click on its empty middle pane.
             if pane is self.middle and self.current_directory():
+                # Explicitly right-clicking blank space means paste HERE,
+                # not into a previously selected child folder.
+                pane.tree.clearSelection()
                 # The lower blank area is both Back (double click) and
                 # Paste + New (right click). Keep the existing Paste contract.
                 self.launcher.show_expanded_background_paste_menu(

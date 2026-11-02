@@ -35,7 +35,8 @@ def test_visible_launcher_live_second_column_survives_remote_summon():
     middle = NS(currentItem=lambda:object(), hasFocus=lambda:False, remote_logical_active=False)
     view = NS(isVisible=lambda:True, _workspace_mode='files', middle=NS(tree=middle),
               current_directory=lambda:'/current')
-    remote = NS(set_pages=Mock(), apply_theme=Mock(), set_workspace=Mock(), show_at=Mock())
+    remote = NS(set_pages=Mock(), apply_theme=Mock(), set_workspace=Mock(),
+                show_at=Mock(), focus_cursor_on_files_exp=Mock())
     launcher = NS(remote_on_desktop_double_click=True, isVisible=lambda:True,
                   isMinimized=lambda:False, remote_window=remote, pages=[],
                   color_theme='light', expanded_view=view,
@@ -44,6 +45,7 @@ def test_visible_launcher_live_second_column_survives_remote_summon():
     show(launcher, 'point')
     launcher.remote_focus_area.assert_called_once_with('directory')
     remote.show_at.assert_called_once_with('point')
+    remote.focus_cursor_on_files_exp.assert_called_once_with()
     # If the user has moved back to column 1, stale saved state must not override it.
     launcher._last_focus_area='files'
     launcher._saved_focus_state={'area':'directory','middle_path':'/current'}

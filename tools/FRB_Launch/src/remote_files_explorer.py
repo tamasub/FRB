@@ -1,17 +1,21 @@
-"""Read-only folder-tree preview of the registered Files first-column roots.
+"""Explorer-style tree rooted at the rendered Files first-column shortcuts.
 
-Roots are taken from Launch's *rendered* Files workspace (not a copy of its
-JSON). Child folders are loaded lazily. Selecting/expanding never navigates the
-main Files pane, opens anything, or mutates the filesystem.
+Only navigation and the existing Files context-menu interface are emitted;
+filesystem operations remain owned by Launch.  Children load lazily.
 """
 
 import os
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItem, QStandardItemModel
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QLabel, QStyle,
+from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
+from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QStandardItem, QStandardItemModel
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
+                               QLabel, QPushButton, QSizeGrip, QStyle,
                                QTreeView, QVBoxLayout, QWidget)
-from launch_appearance import theme_palette
+from launch_appearance import theme_palette, theme_family
+from browser_nav_icons import browser_navigation_icon
+from passive_header_drag import PassiveHeaderDrag
+from bookmark_cursor_follow import cursor_target
+from wheel_adaptive import wheel_steps, can_follow_at_edge
 from remote_files_exp_roots import registered_folder_roots, subdirectories
 from system_drives import drive_rows
 
@@ -19,34 +23,236 @@ _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
 
 
+class FilesExpWheelTree(QTreeView):
+    """Launch WAN hybrid: native Target Flow, then Cursor Follow at an edge.
+
+    As long as the native scrollbar can travel, keep the pointer still and
+    select the folder flowing underneath it. Only at a *real* scroll edge
+    select a neighboring visible tree row and optionally warp the pointer.
+    Wheel alone never expands folders or invokes a context action.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.pointer_follow_enabled = lambda: True
+        self._wheel_remainder = 0
+        self._edge_follow_active = False
+        self._wheel_follow_pending = None
+        self._wheel_follow_scheduled = False
+        self._flow_selection_scheduled = False
+        self._flow_pointer = None
+
+    def wheelEvent(self, event):
+        bar = self.verticalScrollBar()
+        before = bar.value()
+        # Always give Qt the first opportunity to scroll its *actual* view.
+        super().wheelEvent(event)
+        after = bar.value()
+        if (event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            self._wheel_remainder = 0
+            self._edge_follow_active = False
+            self._wheel_follow_pending = None
+            return
+        viewport = self.viewport()
+        original = QCursor.pos()
+        local = viewport.mapFromGlobal(original)
+        if not viewport.rect().contains(local):
+            self._wheel_remainder = 0
+            self._edge_follow_active = False
+            self._wheel_follow_pending = None
+            return
+        angle, pixel = event.angleDelta().y(), event.pixelDelta().y()
+        if not angle and not pixel:
+            return
+        if before != after:
+            # Target Flow: scroll content, NEVER move the physical pointer.
+            # Re-sync current row after Qt completes scroll geometry updates.
+            self._wheel_remainder = 0
+            self._edge_follow_active = False
+            self._wheel_follow_pending = None
+            self._flow_pointer = original
+            if not self._flow_selection_scheduled:
+                self._flow_selection_scheduled = True
+                QTimer.singleShot(0, self._select_flow_row)
+            return
+        self._wheel_remainder, movement = wheel_steps(self._wheel_remainder, angle, pixel)
+        if not movement:
+            return
+        if not can_follow_at_edge(before, after, bar.minimum(), bar.maximum(), movement):
+            # A small trackpad delta in mid-scroll is not a scroll edge.
+            self._wheel_remainder = 0
+            self._edge_follow_active = False
+            return
+        # Cursor Follow: choose the row actually under the pointer on the
+        # first edge notch. For subsequent notches, advance from currentIndex
+        # even if pointer warping is disabled (remote-desktop friendliness).
+        hovered = self.indexAt(local)
+        current = self.currentIndex()
+        target = (current if self._edge_follow_active and current.isValid()
+                  else hovered if hovered.isValid() else current)
+        if not target.isValid():
+            target = self.model().index(0, 0) if self.model() is not None else target
+        if not target.isValid():
+            return
+        new_index = target
+        for _ in range(min(abs(movement), 5)):
+            neighbor = (self.indexBelow(new_index) if movement > 0
+                        else self.indexAbove(new_index))
+            if not neighbor.isValid():
+                break
+            new_index = neighbor
+        if new_index == target:
+            return  # Last/first visible row: stop here, never wrap or click.
+        self._edge_follow_active = True
+        self.setCurrentIndex(new_index)
+        self.scrollTo(new_index, QAbstractItemView.ScrollHint.EnsureVisible)
+        if self.pointer_follow_enabled():
+            self._wheel_follow_pending = (original, new_index)
+            if not self._wheel_follow_scheduled:
+                self._wheel_follow_scheduled = True
+                QTimer.singleShot(0, self._follow_wheel_pointer)
+
+    def clear_wheel_pending(self):
+        """Discard scheduled cursor movement when the tree is rebuilt.
+
+        Already queued singleShot callbacks may still fire, but their pending
+        targets are cleared so a HOME reset cannot select an old index or
+        move the user's pointer unexpectedly.
+        """
+        self._wheel_remainder = 0
+        self._edge_follow_active = False
+        self._wheel_follow_pending = None
+        self._flow_pointer = None
+
+    def _select_flow_row(self):
+        """Native scroll moved: highlight the folder now below the cursor."""
+        self._flow_selection_scheduled = False
+        pointer = self._flow_pointer
+        self._flow_pointer = None
+        if pointer is None or not self.isVisible() or QCursor.pos() != pointer:
+            return
+        viewport = self.viewport()
+        local = viewport.mapFromGlobal(pointer)
+        if viewport.rect().contains(local):
+            item = self.indexAt(local)
+            if item.isValid() and item != self.currentIndex():
+                self.setCurrentIndex(item)
+
+    def _follow_wheel_pointer(self):
+        self._wheel_follow_scheduled = False
+        pending = self._wheel_follow_pending
+        self._wheel_follow_pending = None
+        if (pending is None or not self.isVisible() or not self.pointer_follow_enabled()
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        original, index = pending
+        if QCursor.pos() != original or not index.isValid() or index != self.currentIndex():
+            return
+        viewport = self.viewport()
+        local = viewport.mapFromGlobal(original)
+        if not viewport.rect().contains(local):
+            return
+        rect = self.visualRect(index)
+        point = cursor_target((viewport.width(), viewport.height()),
+                              (rect.left(), rect.top(), rect.width(), rect.height()),
+                              local.x())
+        if point is not None:
+            dest = viewport.mapToGlobal(QPoint(*point))
+            if dest != original:
+                QCursor.setPos(dest)
+
+
 class RemoteFilesExplorer(QWidget):
-    """Multiple pinned directory roots, with one-level-at-a-time expansion."""
+    """Independent registered directory roots, with live Files navigation."""
+
+    folder_selected = Signal(str)
+    folder_context_requested = Signal(str, QPoint)
 
     def __init__(self, remote, theme):
-        # Tool window follows the owning Remote but accepts normal tree input.
-        super().__init__(remote, Qt.WindowType.Tool)
+        # The remote owns this independent, resizable frameless tool. Its
+        # geometry is Remote-relative, but its *size* belongs to the user.
+        super().__init__(remote, Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        # Match the Remote's painted 1px / 10px outline, including its
+        # genuinely transparent corners on Windows.
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setObjectName('remoteFilesExplorer')
-        self.setWindowTitle('Files Exp — 登録フォルダーツリー（試作）')
-        self.resize(330, 425)
+        self.setWindowTitle('Files Exp')
+        self.setMinimumSize(220, 180)
+        launcher = remote.parent()
+        self._settings = getattr(launcher, 'settings', None)
+        self._restoring_size = True
+        width, height = 330, 425
+        if self._settings is not None:
+            try:
+                width = int(self._settings.value('remote_files_exp/width', width))
+                height = int(self._settings.value('remote_files_exp/height', height))
+            except (TypeError, ValueError):
+                width, height = 330, 425
+        self.resize(max(220, min(width, 1600)), max(180, min(height, 1400)))
+        self._restoring_size = False
+        # Avoid syncing state.ini for every pixel while the resize grip moves.
+        self._size_save_timer = QTimer(self)
+        self._size_save_timer.setSingleShot(True)
+        self._size_save_timer.setInterval(250)
+        self._size_save_timer.timeout.connect(self._save_size)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(9, 8, 9, 8)
-        layout.setSpacing(5)
-        title = QLabel('Files Exp  |  第1列の登録フォルダー', self)
+        # Match LaunchRemote's title-strip breathing room (5px, 3px).
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(3)
+
+        # Only one header remains: no duplicated 'first column' caption.
+        header = QFrame(self)
+        header.setObjectName('filesExpHeader')
+        # Match the *actual* Remote title strip, including user font scaling.
+        remote_header = remote.findChild(QFrame, 'remoteTitleBar')
+        remote_header_height = (remote_header.height() if remote_header is not None
+                                and remote_header.height() >= 24 else
+                                remote_header.sizeHint().height() if remote_header is not None
+                                else 28)
+        header.setFixedHeight(max(28, remote_header_height))
+        header_row = QHBoxLayout(header)
+        header_row.setContentsMargins(2, 2, 2, 2)
+        header_row.setSpacing(2)
+        # Exactly the Remote title bar's 28x24 HOME control and 18px glyph.
+        self.home_button = QPushButton('', header)
+        self.home_button.setObjectName('filesExpHomeButton')
+        self.home_button.setProperty('role', 'icon')
+        self.home_button.setToolTip('HOME：登録フォルダーを最新化して全て折りたたむ')
+        self.home_button.setFixedSize(28, 24)
+        self.home_button.setIconSize(QSize(18, 18))
+        self.home_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.home_button.clicked.connect(self.reset_to_roots)
+        header_row.addWidget(self.home_button)
+        title = QLabel('Files Exp', header)
         title.setObjectName('filesExpTitle')
-        layout.addWidget(title)
-        description = QLabel('▶ で展開／折りたたみ  ·  選択しても移動しません', self)
-        description.setObjectName('filesExpHint')
-        description.setWordWrap(True)
-        layout.addWidget(description)
+        header_row.addWidget(title, 1)
+        # Match the Remote header's × control (22px square, framed, rounded).
+        close_button = QPushButton('×', header)
+        close_button.setObjectName('filesExpClose')
+        close_button.setProperty('role', 'icon')
+        close_button.setToolTip('閉じる')
+        close_button.setFixedSize(22, 22)
+        close_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        close_button.clicked.connect(self.hide)
+        header_row.addWidget(close_button)
+        layout.addWidget(header)
+        self._header_drag = PassiveHeaderDrag(self)
+        header.installEventFilter(self._header_drag)
+        title.installEventFilter(self._header_drag)
 
         # QFileSystemModel accepts only ONE visual root. For several independent
         # shortcut roots retain QTreeView and use a lazy, read-only item model.
         self.model = QStandardItemModel(self)
-        self.tree = QTreeView(self)
+        self.tree = FilesExpWheelTree(self)
+        self.tree.pointer_follow_enabled = lambda: bool(getattr(
+            remote.parent(), 'pointer_warp_enabled', True))
         self.tree.setObjectName('filesExpTree')
         self.tree.setModel(self.model)
         self.tree.setHeaderHidden(True)
+        # Narrower than the Qt default, but leave room for arrows and icons.
+        self.tree.setIndentation(18)
         self.tree.setAnimated(True)
         self.tree.setUniformRowHeights(True)
         self.tree.setRootIsDecorated(True)
@@ -55,9 +261,31 @@ class RemoteFilesExplorer(QWidget):
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.setDragEnabled(False)
         self.tree.setAcceptDrops(False)
-        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self._show_folder_context)
+        self.tree.clicked.connect(self._activate_index)
+        self._selection_timer = QTimer(self)
+        self._selection_timer.setSingleShot(True)
+        self._selection_timer.setInterval(130)
+        self._selection_timer.timeout.connect(self._commit_current_selection)
+        self.tree.selectionModel().currentChanged.connect(self._selection_changed)
         self.tree.expanded.connect(self._expand_index)
         layout.addWidget(self.tree, 1)
+
+        # Guidance belongs below the tree; keep the resize handle reachable.
+        footer = QFrame(self)
+        footer.setObjectName('filesExpFooter')
+        footer_row = QHBoxLayout(footer)
+        footer_row.setContentsMargins(4, 0, 0, 0)
+        footer_row.setSpacing(2)
+        description = QLabel('▶ 展開・折りたたみ  ·  選択で移動  ·  右クリックで操作', footer)
+        description.setObjectName('filesExpHint')
+        description.setWordWrap(True)
+        footer_row.addWidget(description, 1)
+        self.size_grip = QSizeGrip(footer)
+        self.size_grip.setObjectName('filesExpSizeGrip')
+        footer_row.addWidget(self.size_grip, 0, Qt.AlignmentFlag.AlignBottom)
+        layout.addWidget(footer)
 
         style = QApplication.style()
         self._folder_icon = style.standardIcon(QStyle.StandardPixmap.SP_DirIcon)
@@ -89,6 +317,10 @@ class RemoteFilesExplorer(QWidget):
         registered paths as separately named roots, in their displayed order.
         """
         roots = registered_folder_roots(rows, expand)
+        # The model owns all loaded children and expansion state. Replacing it
+        # here resets both, so the next ▶ fetches directories from disk anew.
+        self._selection_timer.stop()
+        self.tree.clear_wheel_pending()
         self.model.clear()
         self.model.setHorizontalHeaderLabels(['フォルダー'])
         parent = self.model.invisibleRootItem()
@@ -96,7 +328,66 @@ class RemoteFilesExplorer(QWidget):
             path = root['path']
             self._append_folder(parent, root['label'], path, pc=root['pc'],
                                 missing=not root['pc'] and not os.path.isdir(path))
+        # No row remains selected: HOME must not navigate the main Files view.
+        self.tree.clearSelection()
+        self.tree.setCurrentIndex(self.model.index(-1, 0))
+        self.tree.scrollToTop()
+        self.tree.horizontalScrollBar().setValue(
+            self.tree.horizontalScrollBar().minimum())
         return len(roots)
+
+    def reset_to_roots(self):
+        """HOME: reload first-column roots and start with every branch closed.
+
+        This intentionally does *not* emit folder_selected or touch Launch's
+        breadcrumb.  The registered root list comes from the same rendered
+        Files first-column that is used when the Exp panel is opened.
+        """
+        remote = self.parentWidget()
+        launcher = remote.parent() if remote is not None else None
+        if launcher is None or not hasattr(launcher, '_remote_files_first_column_rows'):
+            return
+        self.set_roots(launcher._remote_files_first_column_rows(),
+                       launcher.expander().expand)
+
+    def _index_path(self, index):
+        if not index.isValid():
+            return None
+        item = self.model.itemFromIndex(index)
+        data = item.data(_DATA_ROLE) if item is not None else None
+        if not isinstance(data, dict) or data.get('pc'):
+            return None  # PC is a virtual root, not a real path.
+        path = data.get('path')
+        return str(path) if path and os.path.isdir(path) else None
+
+    def _selection_changed(self, index, _previous):
+        # Wheel/keyboard selection settles before a potentially costly Files
+        # refresh; an explicit mouse click still navigates immediately.
+        self._selection_timer.stop()
+        if self._index_path(index):
+            self._selection_timer.start()
+
+    def _commit_current_selection(self):
+        path = self._index_path(self.tree.currentIndex())
+        if path:
+            self.folder_selected.emit(path)
+
+    def _activate_index(self, index):
+        self._selection_timer.stop()
+        path = self._index_path(index)
+        if path:
+            self.folder_selected.emit(path)
+
+    def _show_folder_context(self, local_pos):
+        # QAbstractScrollArea forwards positions in viewport coordinates.
+        index = self.tree.indexAt(local_pos)
+        path = self._index_path(index)
+        if path is None:
+            return
+        self._selection_timer.stop()
+        self.tree.setCurrentIndex(index)
+        self._selection_timer.stop()
+        self.folder_context_requested.emit(path, self.tree.viewport().mapToGlobal(local_pos))
 
     def _expand_index(self, index):
         """Populate only the opened branch. No filesystem write or navigation."""
@@ -118,18 +409,76 @@ class RemoteFilesExplorer(QWidget):
         # collapse an expanded branch when its last child temporarily vanishes.
         item.removeRow(0)
 
+    def _save_size(self):
+        if self._settings is not None and not self._restoring_size:
+            self._settings.setValue('remote_files_exp/width', self.width())
+            self._settings.setValue('remote_files_exp/height', self.height())
+            self._settings.sync()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.isVisible():
+            self._size_save_timer.start()
+            # Resizing changes only user size, never the anchoring rule.
+            remote = self.parentWidget()
+            if remote is not None and hasattr(remote, 'position_files_exp'):
+                QTimer.singleShot(0, remote.position_files_exp)
+
+    def hideEvent(self, event):
+        self._size_save_timer.stop()
+        self._save_size()
+        # Never apply a delayed wheel/keyboard navigation after dismissal.
+        self._selection_timer.stop()
+        super().hideEvent(event)
+
+    def closeEvent(self, event):
+        self._size_save_timer.stop()
+        self._save_size()
+        super().closeEvent(event)
+
+    def paintEvent(self, event):
+        """Draw exactly the same rounded, hairline window rim as LaunchRemote."""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setBrush(self._exp_background)
+        painter.setPen(QPen(self._exp_outline, 1))
+        painter.drawRoundedRect(QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5),
+                                10, 10)
+        painter.end()
+
     def apply_theme(self, theme):
         colors = theme_palette(theme)
+        # Share the same vector house icon as the Remote HOME, on theme change.
+        self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
+        self._exp_background = QColor(colors['panel'])
+        self._exp_outline = QColor('#ccd3d7')  # identical to LaunchRemote
         self.setStyleSheet(f"""
-            QWidget#remoteFilesExplorer {{background:{colors['panel']};color:{colors['text']};}}
+            QWidget#remoteFilesExplorer {{background:transparent;color:{colors['text']};
+                border:0;}}
+            QFrame#filesExpHeader {{background:{colors['header']};
+                border:1px solid {colors['panel_border']};border-radius:5px;}}
             QLabel#filesExpTitle {{background:transparent;color:{colors['text']};
-                font-size:12px;font-weight:bold;}}
+                font-size:12px;font-weight:bold;border:0;}}
+            /* Identical 28x24 HOME button styling to LaunchRemote. */
+            QPushButton#filesExpHomeButton {{background:{colors['panel_header']};
+                color:{colors['text']};border:1px solid {colors['panel_border']};
+                border-radius:7px;padding:0;}}
+            QPushButton#filesExpHomeButton:hover {{background:{colors['hover']};}}
+            QPushButton#filesExpHomeButton:pressed {{background:{colors['selection']};}}
+            /* Identical visual rules to LaunchRemote's 22x22 icon button. */
+            QPushButton#filesExpClose {{background:{colors['panel_header']};color:{colors['text']};
+                border:1px solid {colors['panel_border']};border-radius:5px;
+                font-size:12px;padding:0;}}
+            QPushButton#filesExpClose:hover {{background:{colors['hover']};}}
+            QPushButton#filesExpClose:pressed {{background:{colors['selection']};}}
+            QFrame#filesExpFooter {{background:{colors['panel']};border:0;}}
             QLabel#filesExpHint {{background:transparent;color:{colors['muted_text']};
-                font-size:10px;}}
+                font-size:10px;border:0;}}
             QTreeView#filesExpTree {{background:{colors['panel']};color:{colors['text']};
-                border:1px solid {colors['panel_border']};outline:0;}}
-            QTreeView#filesExpTree::item {{height:25px;}}
+                border:0;outline:0;}}
+            QTreeView#filesExpTree::item {{height:24px;padding:0;}}
             QTreeView#filesExpTree::item:selected {{background:{colors['selection']};
                 color:{colors['text']};}}
             QTreeView#filesExpTree::item:hover:!selected {{background:{colors['hover']};}}
         """)
+        self.update()
