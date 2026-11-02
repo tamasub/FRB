@@ -64,8 +64,8 @@ def test_background_menu_adds_shared_cascade_remote_before_existing_actions():
     for action in ('open_explorer', 'open_terminal', 'copy_path',
                    'copy_cloud_link', 'properties'):
         assert action in source
-    assert "CascadeMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)" in source
-    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト  ▶')" in source
+    assert "RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)" in source
+    assert "folder_list_action = menu.addAction('Filesリスト')" in source
     assert 'menu.openers[folder_list_action]' in source
     assert source.index("folder_list_action = menu.addAction") < source.index('self.expanded_view.add_lane_new_submenu(menu)')
     assert source.index("folder_list_action = menu.addAction") < source.index('folder_action.setIconVisibleInMenu(True)')

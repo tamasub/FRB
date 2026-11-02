@@ -4,6 +4,7 @@ These headless checks cover routing, state transitions and geometry. Actual
 Windows/Qt repaint, hover, row popup placement still need manual validation.
 """
 import ast
+import os
 from pathlib import Path
 from types import SimpleNamespace as NS
 from unittest.mock import Mock
@@ -50,7 +51,7 @@ def test_regular_remote_folder_popup_keeps_its_current_folder_mode():
     assert 'rows = self.displayed_children(parent)' in fill
     assert "self.fill_cascade(child, self._remote_folder_context(directory))" in source('Launcher', '_open_remote_folder_cascade')
     blank = source('Launcher', 'show_expanded_background_paste_menu')
-    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト  ▶')" in blank
+    assert "folder_list_action = menu.addAction('Filesリスト')" in blank
 
 
 def test_native_root_shortcut_folder_is_a_navigation_entry_without_private_file_marker():
@@ -69,7 +70,7 @@ def test_root_commit_preserves_first_column_while_blank_commit_rebases(tmp_path)
     root = NS(remote_files_roots=True, _remote_rebase=Mock())
     launcher = NS(expanded_view=view, _remote_folder_root_menu=root,
                   _remote_folder_navigation=False, _remote_folder_commit_pending=False)
-    fn = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path})
+    fn = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path, 'os': os})
     fn(NS(launcher=launcher, remote_folder_root=root),
        {'item_kind': 'directory', 'launch_browse_target': str(directory)})
     view.go_to_directory.assert_called_once_with(str(directory), preserve_remote_popup=True)
@@ -79,7 +80,7 @@ def test_root_commit_preserves_first_column_while_blank_commit_rebases(tmp_path)
     root.remote_files_roots = False
     fn(NS(launcher=launcher, remote_folder_root=root),
        {'item_kind': 'directory', 'launch_browse_target': str(directory)})
-    root._remote_rebase.assert_called_once_with(str(directory))
+    root._remote_rebase.assert_not_called()  # Nested navigation opens to the right.
 
 
 def test_click_root_switches_breadcrumb_and_opens_its_child_without_prior_hover(tmp_path):
@@ -93,7 +94,7 @@ def test_click_root_switches_breadcrumb_and_opens_its_child_without_prior_hover(
               current_directory=lambda: folder, go_to_directory=Mock(return_value=True))
     launcher = NS(expanded_view=view, _remote_folder_root_menu=root,
                   _remote_folder_navigation=False, _remote_folder_commit_pending=False)
-    fn = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path})
+    fn = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path, 'os': os})
     # ``self is root`` matters for first-column click handling.
     root.launcher = launcher
     root.remote_folder_root = root

@@ -60,7 +60,7 @@ def test_remote_blank_and_files_exp_share_exact_same_menu_definition():
 def test_folder_list_chevron_is_right_aligned_drawn_icon_not_text_suffix():
     builder = ast.get_source_segment(APP, node(APP, 'Launcher', 'show_expanded_background_paste_menu'))
     painter = ast.get_source_segment(APP, node(APP, 'RemoteFolderActionsMenu', 'paintEvent'))
-    assert "menu.addAction('フォルダー・ファイルリスト')" in builder
+    assert "menu.addAction('Filesリスト')" in builder
     assert 'menu.folder_list_action = folder_list_action' in builder
     assert 'self.contentsRect().right() - 13' in painter
     assert 'painter.fillPath(arrow, color)' in painter

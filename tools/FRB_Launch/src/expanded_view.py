@@ -634,15 +634,12 @@ class _SeparatedFileTree(ExternalFileDragTree):
                                          max(0, label_rect.width())))
                     painter.restore()
                 return
-        # Keep a single pale-green active column. A different pane's current
-        # item remains visible as an outline, with no filled selection behind it.
+        # Keep selection fill stable whether Remote is visible or not.
+        # Pane focus is represented by the current-row outline, not by
+        # erasing a user's selected-row fill on a non-active column.
         focused = (self.remote_logical_active if self.remote_highlight_mode
                    else self._column_is_focused())
-        row_option = option
-        if not focused:
-            row_option = QStyleOptionViewItem(option)
-            row_option.state &= ~QStyle.StateFlag.State_Selected
-        super().drawRow(painter, row_option, index)
+        super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
         painter.save()
@@ -1515,6 +1512,14 @@ class ExpandedLauncherView(QWidget):
         self.middle.back.clicked.connect(self.go_up)
         self.left.tree.itemClicked.connect(self.choose_files)
         self.middle.tree.itemClicked.connect(self.choose_middle)
+        # When Remote is visible it owns the logical active-column highlight.
+        # Real mouse presses in Launch must update that logical column too;
+        # native Qt focus alone is not enough. Defer until the click finishes
+        # selecting/navigating, otherwise focus_panel() selects a stale row.
+        self.left.tree.itemPressed.connect(
+            lambda *_: self._sync_remote_area_after_mouse_press('files'))
+        self.middle.tree.itemPressed.connect(
+            lambda *_: self._sync_remote_area_after_mouse_press('directory'))
         self.right.tree.itemClicked.connect(self.choose_bookmark)
         # A wheel or keyboard selection must not navigate the current Web tab.
         # Explicit click / Right / Enter is handled independently below.
@@ -1728,11 +1733,10 @@ class ExpandedLauncherView(QWidget):
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
             QTreeWidget#expandedTree::item:selected {{background:{active};color:{text};}}
             QTreeWidget#expandedTree::item:selected:!active {{background:{active};color:{text};}}
-            /* Remote controls the logical current pane. Noncurrent panes keep
-               their current selection for navigation, but never paint its fill.
-               A QSS selected background is drawn separately from drawRow. */
-            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected {{background:transparent;color:{text};}}
-            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:transparent;color:{text};}}
+            /* Selection is always the same color with or without Remote.
+               The logical current column is tracked separately from the fill. */
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected {{background:{active};color:{text};}}
+            QTreeWidget#expandedTree[remoteInactive="true"]::item:selected:!active {{background:{active};color:{text};}}
         ''')
         self.address_bar.setStyleSheet(f'''
             /* Align the Files breadcrumb pill with the Browser address bar. */
@@ -1969,6 +1973,9 @@ class ExpandedLauncherView(QWidget):
         current = self.path[-1] if self.path else None
         if current is None:
             self.middle.tree.clear()
+            update_count = getattr(self.launcher, 'update_files_item_count', None)
+            if callable(update_count):
+                update_count(0)
             return
         # Re-rendering while editing can destroy the QLineEdit and discard an
         # unfinished filesystem rename. Never do that.
@@ -2005,6 +2012,9 @@ class ExpandedLauncherView(QWidget):
                 for item in restored:
                     item.setSelected(True)
         self._queue_middle_selection_repair()
+        update_count = getattr(self.launcher, 'update_files_item_count', None)
+        if callable(update_count):
+            update_count(tree.topLevelItemCount())
 
     def refresh_middle(self):
         self._middle_back_hold.reset()
@@ -2667,7 +2677,7 @@ class ExpandedLauncherView(QWidget):
                 self.zone_jump('files', position='last')
         return bool(angle or pixels)
 
-    def add_lane_new_submenu(self, menu):
+    def add_lane_new_submenu(self, menu, *, target_directory=None):
         """Populate a real Explorer-style New submenu on a supplied menu.
 
         Used by both the independent right Back lane and the existing blank
@@ -2688,7 +2698,7 @@ class ExpandedLauncherView(QWidget):
         folder_action = submenu.addAction('フォルダー')
         folder_action.setIcon(self.launcher.file_icons.icon(QFileIconProvider.IconType.Folder))
         folder_action.triggered.connect(lambda checked=False: QTimer.singleShot(
-            0, lambda: self.create_from_lane('folder')))
+            0, lambda p=target_directory: self.create_from_lane('folder', target_directory=p)))
         shortcut = submenu.addAction('ショートカット')
         shortcut.setIcon(self.launcher.file_icons.icon(QFileInfo('sample.lnk')))
         shortcut.setToolTip('Windowsのショートカット作成ウィザードは未対応です')
@@ -2698,7 +2708,7 @@ class ExpandedLauncherView(QWidget):
             action = submenu.addAction(title)
             action.setIcon(self.launcher.file_icons.icon(QFileInfo('sample' + suffix)))
             action.triggered.connect(lambda checked=False, k=kind: QTimer.singleShot(
-                0, lambda: self.create_from_lane(k)))
+                0, lambda p=target_directory: self.create_from_lane(k, target_directory=p)))
         extras = [entry for entry in discover_shellnew() if entry[0] not in ('.txt', '.md')]
         if extras:
             submenu.addSeparator()
@@ -2726,14 +2736,14 @@ class ExpandedLauncherView(QWidget):
     def _clear_lane_new_menu(self):
         self._lane_new_menu = None
 
-    def create_from_lane(self, kind):
+    def create_from_lane(self, kind, *, target_directory=None):
         """Explorer behavior: create FIRST, then edit its filename in the grid.
 
         Escape cancels the rename, NOT the creation.  The freshly created
         folder/file stays on disk (just like Windows Explorer).  Selecting
         another row simply commits/closes the built-in inline editor.
         """
-        current = self.current_directory()
+        current = str(target_directory) if target_directory is not None else self.current_directory()
         if not current or not Path(current).is_dir():
             self.launcher.error('作成先フォルダーが見つかりません')
             return
@@ -2752,6 +2762,11 @@ class ExpandedLauncherView(QWidget):
             created = create_new_item(current, name, kind)
         except (OSError, ValueError) as exc:
             self.launcher.error('新規作成できませんでした: ' + str(exc))
+            return
+        # A right-click target may differ from the middle grid's current folder.
+        # Do not highlight an unrelated file in that case.
+        if self.current_directory() != current:
+            self.launcher.footer.setText(f'新規作成しました: {created}（操作対象フォルダー）')
             return
         self.refresh_middle()
         tree = self.middle.tree
@@ -3605,6 +3620,29 @@ class ExpandedLauncherView(QWidget):
         if destination != position:
             QCursor.setPos(destination)
 
+    def _sync_remote_area_after_mouse_press(self, area):
+        """A genuine Files pane click changes Remote's logical current column.
+
+        Mouse-pressed signals run before QTreeWidget completes its own row
+        selection. A queued update preserves Ctrl/Shift multi-selection and
+        folder-navigation click behavior while making column 2 current on the
+        first click, not only after a double-click.
+        """
+        remote = getattr(self.launcher, 'remote_window', None)
+        if remote is None or not remote.isVisible():
+            return
+
+        def finish():
+            current_remote = getattr(self.launcher, 'remote_window', None)
+            if (current_remote is not remote or not remote.isVisible()
+                    or not self.isVisible()
+                    or self._workspace_mode != 'files'):
+                return
+            if getattr(self.launcher, '_remote_area', None) != area:
+                self.launcher.remote_focus_area(area)
+
+        QTimer.singleShot(0, finish)
+
     def _middle_selection_is_active(self):
         """Logical Remote column wins over stale native Qt focus."""
         if not self.isVisible() or not self.middle.tree.isVisible():
@@ -4002,6 +4040,9 @@ class ExpandedLauncherView(QWidget):
         self.launcher.web_view_activated()
         if hasattr(self.launcher, 'workspace_changed'):
             self.launcher.workspace_changed('browser')
+        update_count = getattr(self.launcher, 'update_files_item_count', None)
+        if callable(update_count):
+            update_count()
 
     def switch_workspace(self, mode):
         """Explicit Files/Browser tabs, initially mouse-driven (Remote later)."""
@@ -4086,6 +4127,9 @@ class ExpandedLauncherView(QWidget):
         if (getattr(getattr(self, 'launcher', None), 'expanded_view', None) is self
                 and hasattr(self.launcher, 'workspace_changed')):
             self.launcher.workspace_changed('files')
+            update_count = getattr(self.launcher, 'update_files_item_count', None)
+            if callable(update_count):
+                update_count()
 
     def web_view_active(self):
         return (self._workspace_mode == 'browser' and self.web_view is not None

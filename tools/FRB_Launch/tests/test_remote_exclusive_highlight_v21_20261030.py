@@ -10,10 +10,10 @@ class RemoteExclusiveHighlightTests(unittest.TestCase):
         self.assertIn("pane.tree.setProperty('remoteInactive', inactive)", app)
         self.assertIn("pane.tree.setProperty('remoteInactive', False)", app)
 
-    def test_stylesheet_disables_selected_fill_on_inactive_panes(self):
+    def test_selection_fill_stays_the_same_with_remote_active(self):
         src = (ROOT / 'src/expanded_view.py').read_text(encoding='utf-8')
         self.assertIn('QTreeWidget#expandedTree[remoteInactive="true"]::item:selected', src)
-        self.assertIn('::item:selected:!active {{background:transparent', src)
+        self.assertIn('::item:selected:!active {{background:{active}', src)
 
 if __name__ == '__main__':
     unittest.main()

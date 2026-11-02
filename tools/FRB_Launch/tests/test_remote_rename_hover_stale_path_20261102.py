@@ -30,7 +30,9 @@ def test_native_new_arrow_reduced_to_same_small_size_as_folder_list():
     assert 'arrow.moveTo(cx - 2, cy - 4)' in painter
     assert 'arrow.lineTo(cx + 2, cy)' in painter
     assert 'arrow.lineTo(cx - 2, cy + 4)' in painter
-    assert 'QMenu::right-arrow { width: 5px; height: 8px; }' in builder
+    assert 'remote_new_arrow_qss(self.color_theme)' in builder
+    assert 'image: url(' in APP
+    assert 'width: 4px; height: 8px;' in APP
     assert 'if remote_folder_list else' in builder
 
 

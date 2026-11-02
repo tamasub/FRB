@@ -53,7 +53,7 @@ def test_remote_and_compact_use_same_tool_column_engine():
     root_menu = ast.get_source_segment(SOURCE, next(n for n in cls('Launcher').body
         if isinstance(n, ast.FunctionDef) and n.name == 'show_expanded_background_paste_menu'))
     assert 'RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)' in root_menu
-    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト')" in root_menu
+    assert "folder_list_action = menu.addAction('Filesリスト')" in root_menu
     assert 'self.expanded_view.add_lane_new_submenu(menu)' in root_menu
     assert "folder_actions.add('rename')" in root_menu
 
@@ -67,10 +67,10 @@ def test_remote_click_folder_commits_once_and_rebases_without_closing(tmp_path):
     launcher = NS(expanded_view=view, _remote_folder_root_menu=root,
                   _remote_folder_navigation=False, _remote_folder_commit_pending=False)
     current = NS(launcher=launcher, remote_folder_root=root)
-    callback = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path})
+    callback = method('RemoteFolderCascade', '_remote_commit_folder', {'Path': Path, 'os': os})
     callback(current, {'launch_browse_target': str(folder)})
     view.go_to_directory.assert_called_once_with(str(folder), preserve_remote_popup=True)
-    root._remote_rebase.assert_called_once_with(str(folder))
+    root._remote_rebase.assert_not_called()  # The clicked parent column remains visible.
     assert not launcher._remote_folder_navigation
     assert not launcher._remote_folder_commit_pending
 

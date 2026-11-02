@@ -6,14 +6,15 @@ import sqlite3
 import logging
 import time
 import threading
+from contextlib import contextmanager
 import subprocess
 from pathlib import Path
 from ctypes import wintypes
 import ctypes
 import math
-from PySide6.QtCore import Qt, QTimer, QSettings, QEvent, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
+from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
@@ -403,10 +404,33 @@ class CascadeMenu(OrderDragMixin,QMenu):
         pixel = event.pixelDelta().y()
         if not angle and not pixel:
             return False
+        # Every cascade column uses the same hybrid rule as Files:
+        # native scrollbar movement first; only at the actual edge does the
+        # current row move and the pointer follow. Never execute a row.
+        scroll_tree = self.scroll_tree or getattr(self, 'tree', None)
+        if scroll_tree is not None:
+            bar = scroll_tree.verticalScrollBar()
+            if (isinstance(bar.maximum(), (int, float)) and
+                    isinstance(bar.minimum(), (int, float)) and
+                    bar.maximum() > bar.minimum()):
+                before = bar.value()
+                distance = int(round(pixel if pixel else angle / 120 * 105))
+                if distance:
+                    bar.setValue(before - distance)
+                if bar.value() != before:
+                    self._column_wheel_remainder = 0
+                    self._column_wheel_follow_pending = None
+                    event.accept()
+                    return True
+                # A precise-wheel partial step away from the edge must not
+                # change row selection or pointer position.
+                row_direction = 1 if (angle or pixel) < 0 else -1
+                if not can_follow_at_edge(before, bar.value(),
+                                          bar.minimum(), bar.maximum(), row_direction):
+                    event.accept()
+                    return True
         self._column_wheel_remainder, steps = wheel_steps(
             self._column_wheel_remainder, angle, pixel)
-        # High-resolution touchpads produce partial notches; consume them
-        # without prematurely changing rows or letting Qt scroll underneath.
         if steps:
             self.hover_timer.stop()
             self.folder_click_timer.stop()
@@ -418,12 +442,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
                     move_tree_selection(tree, direction)
                 else:
                     self._move_filtered_selection(direction)
-            # Unlike the remote pad, direct wheel-over-column navigation
-            # stays in this column, including a hovered second/third column.
             remote_root = getattr(self.launcher, '_remote_page_menu', None)
             if self is remote_root:
                 self.launcher._remote_page_wheel_expand(self)
-            self._schedule_column_wheel_follow(pointer, self.activeAction())
+            selected_action = (self._scroll_item_action(self.scroll_tree.currentItem())
+                               if self.scroll_tree is not None else self.activeAction())
+            self._schedule_column_wheel_follow(pointer, selected_action)
         event.accept()
         return True
 
@@ -444,8 +468,13 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton):
             return
         original_pos, action = pending
-        if (action is None or action is not self.activeAction()
-                or QCursor.pos() != original_pos):
+        if (action is None or QCursor.pos() != original_pos):
+            return
+        if self.scroll_tree is not None:
+            current_item = self.scroll_tree.currentItem()
+            if current_item is None or self._scroll_item_action(current_item) is not action:
+                return
+        elif action is not self.activeAction():
             return  # The user moved the mouse, or the selection changed.
         surface = self._wheel_column_viewport()
         local = surface.mapFromGlobal(original_pos)
@@ -1423,8 +1452,44 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return False
         return super().eventFilter(obj, event)
 
+    def _visible_route_action(self):
+        """The folder row that leads into the currently visible right column.
+
+        QMenu may clear its activeAction when the mouse/focus enters a child
+        Tool window. The open-child relationship, not focus, defines the route.
+        """
+        if not (getattr(self, 'remote_folder_navigation', False)
+                or getattr(self, 'remote_context_root', False)):
+            return None
+        child = getattr(self, 'child', None)
+        return (getattr(child, 'owner_action', None)
+                if child is not None and child.isVisible() else None)
+
+    def _refresh_route_highlight(self):
+        """Pin the route in both ordinary menus and tall scrolling columns."""
+        route = self._visible_route_action()
+        if self.scroll_tree is not None:
+            light = theme_family(getattr(self.launcher, 'color_theme', 'light')) == 'light'
+            shade = QBrush(QColor('#d6e7f8' if light else '#304d70'))
+            for index in range(self.scroll_tree.topLevelItemCount()):
+                item = self.scroll_tree.topLevelItem(index)
+                should_pin = self._scroll_item_action(item) is route
+                # Preserve unrelated item styling; clear only our own marker.
+                was_pinned = bool(item.data(0, Qt.ItemDataRole.UserRole + 2))
+                if should_pin != was_pinned:
+                    item.setBackground(0, shade if should_pin else QBrush())
+                    item.setData(0, Qt.ItemDataRole.UserRole + 2, should_pin)
+            self.scroll_tree.viewport().update()
+        self.update()
+
+    def _refresh_parent_route_highlight(self):
+        parent = self.parentWidget()
+        if isinstance(parent, CascadeMenu):
+            parent._refresh_route_highlight()
+
     def showEvent(self, event):
         super().showEvent(event)
+        self._refresh_parent_route_highlight()
         self.select_first()
         if self.filter_edit is not None:
             # Keep the popup's frame stable as filtered QAction rows disappear.
@@ -1446,6 +1511,7 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self._context_highlight_action = None
         if self.child:self.child.close()
         super().hideEvent(event)
+        self._refresh_parent_route_highlight()
 
     def order_surface(self):return self
     def order_rects(self):return [self.actionGeometry(a) for a in self.actions() if a.data()]
@@ -1471,6 +1537,19 @@ class CascadeMenu(OrderDragMixin,QMenu):
                     painter.fillRect(rect.adjusted(1, 1, -1, -1), QColor(36, 177, 141, 55))
                     painter.fillRect(rect.adjusted(2, 2, -rect.width() + 6, -2), QColor('#16a57d'))
             painter.end()
+        # Preserve the entire navigation route while its right-hand child is
+        # visible. An ordinary QMenu drops :selected on focus transfer, even
+        # though the previous column is deliberately kept on screen.
+        route = self._visible_route_action()
+        if route is not None and self.scroll_tree is None:
+            rect = self.actionGeometry(route)
+            if rect.isValid():
+                light = theme_family(getattr(self.launcher, 'color_theme', 'light')) == 'light'
+                painter = QPainter(self)
+                # Translucent blue keeps Qt's existing icon/text/chevron legible.
+                painter.fillRect(rect.adjusted(1, 1, -1, -1),
+                                 QColor(76, 147, 224, 78 if light else 108))
+                painter.end()
         # QAction selection in a QMenu can go inactive as soon as a second
         # context QMenu is shown.  Draw a light, non-opaque pinned highlight
         # so the user can always tell which row was right-clicked.
@@ -1687,6 +1766,12 @@ class CascadeMenu(OrderDragMixin,QMenu):
             self.launcher.list.setFocus()
 
     def keyPressEvent(self, event):
+        # A rename editor owns Enter (and every other key) until its edit is
+        # fully finished. Never let the QAction behind it open a folder.
+        if (getattr(self, '_inline_rename_editor', None) is not None or
+                getattr(self, '_remote_rename_activation_guard', False)):
+            event.accept()
+            return
         if self.scroll_tree is not None and event.key() in (
                 Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_Home, Qt.Key.Key_End,
                 Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
@@ -1798,6 +1883,115 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
 
 
+class FilesPasteWorker(QThread):
+    """Run filesystem copy/move off the GUI thread; never touch Qt widgets."""
+    step = Signal(int, int, str)
+    succeeded = Signal(int)
+    failed = Signal(object)
+
+    def __init__(self, plan, move, overwrite, parent=None):
+        super().__init__(parent)
+        self.plan = plan
+        self.move = bool(move)
+        self.overwrite = bool(overwrite)
+
+    def run(self):
+        try:
+            count = paste_items(self.plan, move=self.move,
+                                overwrite=self.overwrite,
+                                progress=lambda *args: self.step.emit(*args))
+        except Exception as exc:
+            self.failed.emit(exc)
+        else:
+            self.succeeded.emit(count)
+
+
+class FilesOperationProgress(QDialog):
+    """Reusable, noncancelable progress display for filesystem operations.
+
+    Keep native filesystem APIs on the GUI thread (especially Windows recycle
+    bin); repaint safely only between individual operations. A single large
+    file/dir may still occupy the UI until its filesystem call returns.
+    """
+    def __init__(self, parent, verb, total):
+        super().__init__(parent)
+        self.setWindowTitle('FRB Launch — 処理中')
+        self.setWindowFlag(Qt.WindowType.WindowCloseButtonHint, False)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setMinimumWidth(360)
+        self._total = max(1, int(total))
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(10)
+        self._verb = str(verb)
+        self._spinner_frames = ('◐', '◓', '◑', '◒')
+        self._spinner_index = 0
+        self.heading = QLabel(f'{self._spinner_frames[0]}  {self._verb}しています…', self)
+        self.heading.setStyleSheet('font-size:14px;font-weight:600;')
+        layout.addWidget(self.heading)
+        colors = theme_palette(getattr(parent, 'color_theme', 'light'))
+        self.setStyleSheet(
+            f'QDialog {{ background:{colors["panel"]};color:{colors["text"]}; }}'
+            f'QLabel {{ color:{colors["text"]}; }}'
+            f'QProgressBar {{ border:1px solid {colors["panel_border"]};'
+            'border-radius:6px;height:16px;text-align:center; }}'
+            'QProgressBar::chunk { background:#65b99b;border-radius:5px; }')
+        self._spinner = QTimer(self)
+        self._spinner.setInterval(120)
+        self._spinner.timeout.connect(self._animate)
+        self._spinner.start()
+        self.detail = QLabel('準備中…', self)
+        # A long filename must NEVER widen the dialog or wrap to two lines.
+        # The per-file detail is always elided at the right edge.
+        self.detail.setWordWrap(False)
+        self.detail.setMinimumWidth(0)
+        self.detail.setSizePolicy(QSizePolicy.Policy.Ignored,
+                                  QSizePolicy.Policy.Fixed)
+        self._detail_values = (0, self._total, '')
+        layout.addWidget(self.detail)
+        self.bar = QProgressBar(self)
+        # Indeterminate animation for a single potentially massive directory.
+        self.bar.setRange(0, 0 if self._total == 1 else self._total)
+        self.bar.setValue(0)
+        self.bar.setTextVisible(True)
+        layout.addWidget(self.bar)
+
+    def _update_detail_text(self):
+        completed, total, name = self._detail_values
+        prefix = f'{completed} / {total} 件'
+        if name:
+            prefix += ' — '
+        fm = self.detail.fontMetrics()
+        available = max(1, self.detail.width() - 4)
+        remaining = max(1, available - fm.horizontalAdvance(prefix))
+        shown = fm.elidedText(name, Qt.TextElideMode.ElideRight, remaining) if name else ''
+        self.detail.setText(prefix + shown)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'detail') and hasattr(self, '_detail_values'):
+            # Layout width settles after the initial show, and can change
+            # with Windows DPI or a user resizing the dialog.
+            QTimer.singleShot(0, self._update_detail_text)
+
+    def _animate(self):
+        self._spinner_index = (self._spinner_index + 1) % len(self._spinner_frames)
+        self.heading.setText(f'{self._spinner_frames[self._spinner_index]}  {self._verb}しています…')
+
+    def advance(self, completed, total, name=''):
+        if int(total) == 1:
+            if int(completed) >= 1:
+                self.bar.setRange(0, 1)
+                self.bar.setValue(1)
+        else:
+            self.bar.setMaximum(max(1, int(total)))
+            self.bar.setValue(int(completed))
+        self._detail_values = (completed, total, str(name or ''))
+        self._update_detail_text()
+        # Repaint/timers may run, but exclude new mouse/keyboard operations.
+        QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
+
+
 class TimedStatusFooter(QLabel):
     """Transient Launch footer messages expire; navigation hints stay visible.
 
@@ -1821,33 +2015,67 @@ class TimedStatusFooter(QLabel):
             self._expiry.start()
 
 
+def remote_new_arrow_qss(theme):
+    """Draw native New submenu chevrons at the same 4x8 size as Files list.
+
+    Qt's Windows QStyle draws the submenu primitive at its own size even if
+    QMenu::right-arrow only sets width/height. Give it a real 4x8 bitmap.
+    """
+    resources = Path(getattr(sys, '_MEIPASS', ROOT)) / 'assets'
+    name = ('remote_menu_chevron_light.png' if theme_family(theme) == 'light'
+            else 'remote_menu_chevron_dark.png')
+    path = (resources / name).as_posix()
+    return (f'QMenu::right-arrow {{ image: url("{path}"); '
+            'width: 4px; height: 8px; }}')
+
+
 class RemoteFolderActionsMenu(CascadeMenu):
-    """Remote folder actions: show a trailing submenu chevron with native-like
-    right alignment while retaining the existing tool-window cascade handler.
-    A QAction text suffix would drift as labels/widths change.
+    """Use one compact arrow painter for both Remote folder submenus.
+
+    On Windows QMenu's native ``新規作成`` submenu triangle ignores the CSS
+    right-arrow size, while the virtual Files list uses a custom 4x8 marker.
+    Cover ONLY the native indicator lane and paint both arrows with the same
+    geometry. Keep the real QMenu submenu to retain its hover behavior.
     """
 
     def paintEvent(self, event):
         super().paintEvent(event)
-        action = getattr(self, 'folder_list_action', None)
-        if action is None or action not in self.actions():
-            return
-        rect = self.actionGeometry(action)
-        if not rect.isValid():
-            return
-        # Align with Qt's real "新規作成" submenu indicator: the *outer*
-        # action lane, never the text width or a literal "▶" suffix.
-        cx, cy = self.contentsRect().right() - 13, rect.center().y()
-        arrow = QPainterPath()
-        arrow.moveTo(cx - 2, cy - 4)
-        arrow.lineTo(cx + 2, cy)
-        arrow.lineTo(cx - 2, cy + 4)
-        arrow.closeSubpath()
+        actions = (getattr(self, 'folder_list_action', None),
+                   getattr(self, 'new_submenu_action', None))
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        color = (self.palette().highlightedText().color()
-                 if self.activeAction() is action else self.palette().text().color())
-        painter.fillPath(arrow, color)
+        for action in actions:
+            if action is None or action not in self.actions():
+                continue
+            rect = self.actionGeometry(action)
+            if not rect.isValid():
+                continue
+            cx, cy = self.contentsRect().right() - 13, rect.center().y()
+            selected = self.activeAction() is action
+            if action is getattr(self, 'new_submenu_action', None):
+                # Hide Qt's larger *native* submenu arrow. The whole patch is
+                # inside the submenu indicator lane (not the text/icon area).
+                # Match the row's selection/background theme before painting
+                # this patch, without modifying QMenu's real submenu behavior.
+                from PySide6.QtGui import QPalette
+                background = (QColor('#d6e7f8') if selected and
+                              theme_family(self.launcher.color_theme) == 'light'
+                              else QColor('#ffffff') if
+                              theme_family(self.launcher.color_theme) == 'light'
+                              else self.palette().color(
+                                  QPalette.ColorRole.Highlight if selected
+                                  else QPalette.ColorRole.Window))
+                painter.fillRect(QRect(cx - 9, rect.top() + 2,
+                                       max(0, self.contentsRect().right() - cx + 9),
+                                       max(0, rect.height() - 4)), background)
+            arrow = QPainterPath()
+            arrow.moveTo(cx - 2, cy - 4)
+            arrow.lineTo(cx + 2, cy)
+            arrow.lineTo(cx - 2, cy + 4)
+            arrow.closeSubpath()
+            color = (self.palette().highlightedText().color()
+                     if selected else self.palette().text().color())
+            painter.fillPath(arrow, color)
         painter.end()
 
 
@@ -1937,6 +2165,8 @@ class RemoteFolderCascade(CascadeMenu):
         editor.editingFinished.connect(
             lambda e=editor, a=action, t=tree_item, p=str(path), k=kind:
             self._finish_inline_rename(e, a, t, p, k))
+        editor._launch_finish_rename = lambda e=editor, a=action, t=tree_item, p=str(path), k=kind: (
+            self._finish_inline_rename(e, a, t, p, k))
         editor.show()
         editor.raise_()
         editor.setFocus(Qt.FocusReason.OtherFocusReason)
@@ -1991,6 +2221,18 @@ class RemoteFolderCascade(CascadeMenu):
 
     def eventFilter(self, obj, event):
         if obj is getattr(self, '_inline_rename_editor', None):
+            if (event.type() == QEvent.Type.KeyPress and
+                    event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+                # Consume Enter here: otherwise the parent QMenu activates its
+                # selected folder and opens Explorer after editingFinished.
+                # A 0-ms guard also blocks already-queued folder activation.
+                self._remote_rename_activation_guard = True
+                editor = obj
+                editor._launch_finish_rename()  # handled once; no Qt Enter propagation
+                event.accept()
+                QTimer.singleShot(0, lambda: setattr(
+                    self, '_remote_rename_activation_guard', False))
+                return True
             if (event.type() == QEvent.Type.KeyPress
                     and event.key() == Qt.Key.Key_Escape):
                 self._inline_rename_cancelled = True
@@ -2018,7 +2260,10 @@ class RemoteFolderCascade(CascadeMenu):
         if filename and Path(filename).is_file():
             self.launcher.activate(row)
 
-    def _remote_commit_folder(self, row):
+    def _remote_commit_folder(self, row, action=None):
+        if (getattr(self, '_remote_rename_activation_guard', False) or
+                getattr(self, '_inline_rename_editor', None) is not None):
+            return
         path = row.get('launch_browse_target')
         # Root shortcuts may contain %USERPROFILE%, unlike filesystem rows.
         if path and not Path(path).is_dir():
@@ -2034,21 +2279,26 @@ class RemoteFolderCascade(CascadeMenu):
         try:
             if not view.go_to_directory(path, preserve_remote_popup=True):
                 return
-            if getattr(root, 'remote_files_roots', False):
-                # Clicking a first-column root updates the breadcrumb AND
-                # opens its next column immediately, even without a prior
-                # hover. The initial root choices remain available.
-                if self is root:
-                    selected = root.activeAction() if hasattr(root, 'activeAction') else None
-                    opener = getattr(root, 'openers', {}).get(selected)
-                    if opener is not None and not (root.child is not None
-                            and root.child.owner_action is selected
-                            and root.child.isVisible()):
-                        opener('keyboard')
-            else:
-                # The lower-blank menu follows the current breadcrumb, while
-                # the Files-button menu keeps its first-column roots intact.
-                root._remote_rebase(str(view.current_directory()))
+            # The clicked row MUST stay visible in its original column.
+            # Previously the context-menu branch rebased/cleared that column,
+            # destroying its child and causing the next list to disappear.
+            # Instead open (or preserve) the clicked folder's RIGHT column,
+            # exactly as the Files-button root already does.
+            selected = action if action is not None else (
+                self.activeAction() if hasattr(self, 'activeAction') else None)
+            opener = getattr(self, 'openers', {}).get(selected)
+            if opener is not None and not (self.child is not None
+                    and self.child.owner_action is selected
+                    and self.child.isVisible()):
+                opener('keyboard')
+            # Keep the parent context menu's explicit folder target fresh.
+            # Otherwise clicking Filesリスト again would silently
+            # reopen the originally right-clicked ancestor, not the breadcrumb.
+            context = getattr(self.launcher, '_remote_folder_opener', None)
+            if context is not None and getattr(context, 'remote_context_root', False):
+                context.remote_target_directory = str(view.current_directory())
+            self.launcher._remote_folder_source_path = os.path.normcase(
+                os.path.normpath(str(view.current_directory())))
         finally:
             self.launcher._remote_folder_navigation = False
             self.launcher._remote_folder_commit_pending = False
@@ -2073,7 +2323,8 @@ class RemoteFolderCascade(CascadeMenu):
         self.update()
 
     def mousePressEvent(self, event):
-        if getattr(self, '_inline_rename_editor', None) is not None:
+        if (getattr(self, '_inline_rename_editor', None) is not None
+                or getattr(self, '_remote_rename_activation_guard', False)):
             event.accept()  # The embedded QLineEdit owns clicks during edit.
             return
         if event.button() == Qt.MouseButton.LeftButton:
@@ -2087,7 +2338,8 @@ class RemoteFolderCascade(CascadeMenu):
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if getattr(self, '_inline_rename_editor', None) is not None:
+        if (getattr(self, '_inline_rename_editor', None) is not None
+                or getattr(self, '_remote_rename_activation_guard', False)):
             event.accept()
             return
         if event.button() == Qt.MouseButton.LeftButton:
@@ -2104,7 +2356,7 @@ class RemoteFolderCascade(CascadeMenu):
                 self._remote_pressed_action = None
                 row = self._remote_entry(pressed)
                 if pressed is action and row is not None and row['item_kind'] == 'directory':
-                    QTimer.singleShot(0, lambda r=row: self._remote_commit_folder(r))
+                    QTimer.singleShot(0, lambda r=row, a=pressed: self._remote_commit_folder(r, a))
                 # File single-click is selection only; do not dismiss menu.
                 event.accept()
                 return
@@ -2121,13 +2373,16 @@ class RemoteFolderCascade(CascadeMenu):
 
     def _scroll_activate(self, item):
         # Oversized menus route clicks to their QTreeWidget instead of QMenu.
+        if (getattr(self, '_remote_rename_activation_guard', False) or
+                getattr(self, '_inline_rename_editor', None) is not None):
+            return
         action = self._scroll_item_action(item)
         row = self._remote_entry(action)
         if row is None:
             return super()._scroll_activate(item)
         self.setActiveAction(action)
         if row['item_kind'] == 'directory':
-            QTimer.singleShot(0, lambda r=row: self._remote_commit_folder(r))
+            QTimer.singleShot(0, lambda r=row, a=action: self._remote_commit_folder(r, a))
 
     def _scroll_double_clicked(self, item, column):
         row = self._remote_entry(self._scroll_item_action(item))
@@ -2855,6 +3110,18 @@ class Launcher(QWidget):
         header.sectionResized.connect(self.save_result_column_width)
         self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.footer = TimedStatusFooter('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
+        self.files_item_count = QLabel('')
+        self.files_item_count.setObjectName('filesItemCount')
+        self.files_item_count.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.files_item_count.setToolTip('表示中のフォルダーの項目数')
+        self.files_item_count.hide()
+        self.footer_row = QWidget(self)
+        self.footer_row.setObjectName('launchFooterRow')
+        footer_layout = QHBoxLayout(self.footer_row)
+        footer_layout.setContentsMargins(0, 0, 0, 0)
+        footer_layout.setSpacing(8)
+        footer_layout.addWidget(self.files_item_count, 0)
+        footer_layout.addWidget(self.footer, 1)
         # The title header must reach the frame's inner edges.  Keep the
         # original 12px inset for all content below it, but not the header.
         layout = QVBoxLayout(self); layout.setContentsMargins(6,8,6,12); layout.setSpacing(0)
@@ -2896,7 +3163,7 @@ class Launcher(QWidget):
         self.expanded_view.hide()
         layout.addWidget(self.search_bar)
         for w in (self.selection_tools, self.list,
-                  self.expanded_view, self.footer):
+                  self.expanded_view, self.footer_row):
             body_layout.addWidget(w)
         layout.addWidget(self.main_body, 1)
         self._dark_main_qss = '''QWidget{background:#202b29;color:#e5ebf3;font-family:"Yu Gothic UI";font-size:13px;} QLineEdit{background:#101720;border:1px solid #40536d;border-radius:7px;padding:5px 10px;font-size:15px;} QTreeWidget{border:0;outline:0;background:#202b29;} QTreeWidget::item{height:35px;padding:0 6px;} QTreeWidget::item:selected{background:#304d70;color:white;} QTreeWidget::item:selected:!active{background:#304d70;color:white;} QTreeWidget#mainLaunchList::item:selected{background:transparent;color:#e5ebf3;} QTreeWidget#mainLaunchList::item:hover{background:transparent;} QHeaderView::section{background:#2c3d49;color:#e5ebf3;border:0;border-right:1px solid #526377;border-bottom:1px solid #526377;padding:3px 8px;} QHeaderView::section:hover{background:#385268;} QLabel{color:#8d9caf;font-size:11px;} QMenu{background:#202b39;border:1px solid #435369;padding:5px;} QMenu::item{padding:8px 20px;} QMenu::item:selected{background:#304d70;} QAbstractScrollArea::corner{background:#202b29;border:0;}'''
@@ -3304,7 +3571,7 @@ class Launcher(QWidget):
     def show_files_exp_folder_menu(self, directory, position):
         """The existing Remote blank-strip menu, bound to the chosen folder.
 
-        Includes the full 'フォルダー・ファイルリスト ▶' cascade and all
+        Includes the full 'Filesリスト ▶' cascade and all
         shared Paste/New/Explorer/Properties actions; do not duplicate them.
         """
         if not self.navigate_files_exp_folder(directory):
@@ -3459,8 +3726,10 @@ class Launcher(QWidget):
         constructed.  A folder click can update the breadcrumb while this
         parent menu remains open, so never use that captured value as truth.
         """
-        current = self.expanded_view.current_directory()
+        current = (getattr(opener, 'remote_target_directory', None)
+                   or self.expanded_view.current_directory())
         if not current or not Path(current).is_dir():
+            self.error('操作対象のフォルダーが見つかりません: ' + str(current))
             return
         directory = str(current)
         if opener.child is not None:
@@ -3603,9 +3872,16 @@ class Launcher(QWidget):
         self._remote_page_menu = menu
         self.menu = menu
         self.fill_cascade(menu, root)
-        # Always open to the right of Remote, aligned to the clicked Page.
-        pos = button.mapToGlobal(QPoint(remote.width() - button.x() - 1, 0))
-        menu.popup(pos)
+        # Position the LEFT EDGE beside the actual click, not at the far
+        # right of the entire Remote. Both mouse buttons share this path.
+        # The real screen boundary is handled by CascadeMenu.popup().
+        pointer = QCursor.pos()
+        button_rect = button.rect()
+        local_pointer = button.mapFromGlobal(pointer)
+        if not button_rect.contains(local_pointer):
+            # Programmatic Page activation uses the button center instead.
+            pointer = button.mapToGlobal(button_rect.center())
+        menu.popup(QPoint(pointer.x() + 8, pointer.y() + 4))
 
     def show_remote_at(self, pointer):
         """Open at a verified desktop mouse point; do not steal IME focus."""
@@ -3663,6 +3939,17 @@ class Launcher(QWidget):
         return (f'web_body:{max(0, web.tabs.currentIndex())}' if web else
                 ('bookmarks' if self.expanded_view.browser_bookmarks_visible
                  else 'workspace_browser'))
+
+    def update_files_item_count(self, count=None):
+        """Permanent Files item count; never overwritten by transient notices."""
+        view = getattr(self, 'expanded_view', None)
+        visible = (view is not None and view.isVisible()
+                   and getattr(view, '_workspace_mode', '') == 'files')
+        if visible:
+            if count is None:
+                count = view.middle.tree.topLevelItemCount()
+            self.files_item_count.setText(f'{int(count):,} 個の項目')
+        self.files_item_count.setVisible(bool(visible))
 
     def workspace_changed(self, mode):
         """Refresh Remote without resetting the retained Files/Browser state."""
@@ -6235,6 +6522,7 @@ class Launcher(QWidget):
         if not active:
             self.expanded_view.hide_favorite_popup()
         self.expanded_view.setVisible(active)
+        self.update_files_item_count()
         self._nav_update_buttons()
         showing_classic = self.view_mode == 'expanded'
         self.mode_button.setText('Compact' if showing_classic else 'Three-layer')
@@ -6913,6 +7201,52 @@ class Launcher(QWidget):
         self.error(str(message))
         QMessageBox.warning(self, '貼り付け先を1つ選択してください', str(message))
 
+    @contextmanager
+    def filesystem_progress(self, verb, total):
+        """One shared indicator for bulk paste/delete; always closed on error."""
+        # Single-item operations can be large too; show processing feedback.
+        progress = FilesOperationProgress(self, verb, total)
+        self._filesystem_busy = True
+        try:
+            progress.show()
+            progress.advance(0, total)
+            yield progress.advance
+        finally:
+            progress.close()
+            progress.deleteLater()
+            self._filesystem_busy = False
+
+    def paste_with_progress(self, plan, *, move=False, overwrite=False):
+        """Modal UI, nonblocking worker, no second Paste while running.
+
+        The caller keeps control of clipboard cleanup and view refresh AFTER
+        completion, exactly as before. Exceptions keep their original type.
+        """
+        with self.filesystem_progress('移動' if move else 'コピー', len(plan)) as advance:
+            worker = FilesPasteWorker(plan, move, overwrite, self)
+            loop = QEventLoop(self)
+            outcome = {}
+
+            def success(count):
+                outcome['count'] = count
+                loop.quit()
+
+            def failure(exc):
+                outcome['exception'] = exc
+                loop.quit()
+
+            worker.step.connect(advance)
+            worker.succeeded.connect(success)
+            worker.failed.connect(failure)
+            # Start after the nested event loop begins; a tiny copy can finish
+            # immediately without racing the loop's first exec().
+            QTimer.singleShot(0, worker.start)
+            loop.exec()
+            worker.wait()
+            if 'exception' in outcome:
+                raise outcome['exception']
+            return outcome['count']
+
     def _clear_previous_paste_feedback(self):
         """End the prior operation's visual result, not its clipboard data.
 
@@ -6975,7 +7309,11 @@ class Launcher(QWidget):
                 conflicts = paste_conflicts(plan)
                 if conflicts and not self._ask_overwrite(destination, conflicts):
                     return
-                count = paste_items(plan, move=move, overwrite=bool(conflicts))
+                run_progress = getattr(self, 'paste_with_progress', None)
+                if callable(run_progress):
+                    count = run_progress(plan, move=move, overwrite=bool(conflicts))
+                else:
+                    count = paste_items(plan, move=move, overwrite=bool(conflicts))
                 names_done = [item.target.name for item in plan]
                 if move:
                     clipboard.clear()
@@ -8672,7 +9010,9 @@ class Launcher(QWidget):
         return bool(clipboard_sources(mime)) or is_virtual_file_clipboard(mime)
 
     def _paste_from_context_menu(self, context_parent=None, *, target_folder=None):
-        if not self._context_paste_enabled(context_parent):
+        # Explicit right-click folders bypass the middle grid's selected rows.
+        # Both paste cores validate the final target before writing to disk.
+        if target_folder is None and not self._context_paste_enabled(context_parent):
             return
         if self._paste_context_destination(context_parent) == 'cascade':
             if target_folder is None:
@@ -8835,14 +9175,22 @@ class Launcher(QWidget):
         paste = next((x for x in definitions if x.get('action_id') == 'paste'), None)
         if paste is None:
             return False
+        # A Files Exp right-click target is authoritative for the ENTIRE menu.
+        # Do not let the middle Files grid's selected first row override it.
+        explicit_target = str(files_exp_rename_target) if files_exp_rename_target else None
         menu = RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
         if remote_folder_list:
-            menu = self._apply_remote_popup_bounds(menu)
+            # Files Exp's context menu is anchored to the actual right-click,
+            # which may be ABOVE the Remote's Files button. The Remote-only
+            # vertical popup band must not push this menu downward.
+            if explicit_target is None:
+                menu = self._apply_remote_popup_bounds(menu)
             menu.remote_context_root = True
             menu.open_mode = 'keyboard'
         if remote_folder_list:
-            directory = str(self.expanded_view.current_directory())
-            folder_list_action = menu.addAction('フォルダー・ファイルリスト')
+            directory = explicit_target or str(self.expanded_view.current_directory())
+            menu.remote_target_directory = explicit_target
+            folder_list_action = menu.addAction('Filesリスト')
             menu.folder_list_action = folder_list_action
             menu.setMinimumWidth(max(menu.minimumWidth(), 235))
             folder_list_action.setIcon(self.file_icons.icon(QFileInfo(directory)))
@@ -8862,14 +9210,20 @@ class Launcher(QWidget):
             # Visually separate the Remote navigator from existing Paste/New.
             menu.addSeparator()
         action = menu.addAction(paste['title'],
-                                lambda checked=False: self._paste_from_context_menu(self))
+                                lambda checked=False, p=explicit_target:
+                                self._paste_from_context_menu(self, target_folder=p))
         action.setIcon(context_action_icon('paste'))
         action.setIconVisibleInMenu(True)
         action.setEnabled(self._context_paste_enabled(self))
         # Explorer-like New shares the blank-area context menu with Paste.
         # The separate right-side Back lane uses the same submenu builder.
         menu.addSeparator()
-        self.expanded_view.add_lane_new_submenu(menu)
+        if explicit_target is None:
+            new_submenu = self.expanded_view.add_lane_new_submenu(menu)
+        else:
+            new_submenu = self.expanded_view.add_lane_new_submenu(menu, target_directory=explicit_target)
+        if remote_folder_list and new_submenu is not None:
+            menu.new_submenu_action = new_submenu.menuAction()
         # Both the separate right Back lane and the lower blank area use this
         # SAME menu.  Read existing folder actions from the authoritative JSON
         # so captions, icons and separators match regular folder menus.
@@ -8906,7 +9260,7 @@ class Launcher(QWidget):
                 folder_action.setIconVisibleInMenu(True)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
                            + context_menu_spacing_qss(self.color_theme)
-                           + ('QMenu::right-arrow { width: 5px; height: 8px; }'
+                           + (remote_new_arrow_qss(self.color_theme)
                               if remote_folder_list else ''))
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
@@ -9198,9 +9552,12 @@ class Launcher(QWidget):
                 if answer != QMessageBox.StandardButton.Yes:
                     return
                 finished = 0
-                for path in targets:
-                    move_to_recycle_bin(path)
-                    finished += 1
+                with self.filesystem_progress('ごみ箱へ移動', len(targets)) as advance:
+                    for path in targets:
+                        advance(finished, len(targets), path.name)
+                        move_to_recycle_bin(path)
+                        finished += 1
+                        advance(finished, len(targets), path.name)
                 self.footer.setText(f'{finished}件をごみ箱へ移動しました')
             else:
                 raise ValueError('複数選択で未対応の操作です: ' + action_id)
@@ -9259,7 +9616,11 @@ class Launcher(QWidget):
                 conflicts = paste_conflicts(plan)
                 if conflicts and not self._ask_overwrite(destination, conflicts):
                     return
-                count = paste_items(plan, move=move, overwrite=bool(conflicts))
+                run_progress = getattr(self, 'paste_with_progress', None)
+                if callable(run_progress):
+                    count = run_progress(plan, move=move, overwrite=bool(conflicts))
+                else:
+                    count = paste_items(plan, move=move, overwrite=bool(conflicts))
                 if move:
                     clipboard.clear()
                 self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
@@ -9439,7 +9800,10 @@ class Launcher(QWidget):
                         QMessageBox.StandardButton.No)
                     if answer != QMessageBox.StandardButton.Yes:
                         return
-                    move_to_recycle_bin(path)
+                    with self.filesystem_progress('ごみ箱へ移動', 1) as advance:
+                        advance(0, 1, path.name)
+                        move_to_recycle_bin(path)
+                        advance(1, 1, path.name)
                 finally:
                     # Windows native recycle-bin and Qt.Tool focus events can
                     # arrive AFTER the modal dialog returns. The previous

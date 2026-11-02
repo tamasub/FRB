@@ -150,7 +150,7 @@ def _copy_directory_merged(source, target):
             shutil.copy2(child, dest_child)
 
 
-def paste_items(plan, *, move=False, overwrite=False):
+def paste_items(plan, *, move=False, overwrite=False, progress=None):
     """Copy/move selected items. Overwrite requires separately confirmed opt-in.
 
     Existing directories are *merged* (unrelated destination children remain).
@@ -158,6 +158,8 @@ def paste_items(plan, *, move=False, overwrite=False):
     """
     completed = 0
     for item in plan:
+        if progress is not None:
+            progress(completed, len(plan), item.source.name)
         conflict = item.target.exists() or item.target.is_symlink()
         if conflict and not overwrite:
             raise FileExistsError(f'{completed}件処理後に同名の対象を検出しました: {item.target}')
@@ -190,4 +192,6 @@ def paste_items(plan, *, move=False, overwrite=False):
         except Exception as exc:
             raise OSError(f'{completed}件処理後に失敗: {item.source.name}: {exc}') from exc
         completed += 1
+        if progress is not None:
+            progress(completed, len(plan), item.source.name)
     return completed

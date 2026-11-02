@@ -57,7 +57,7 @@ def test_right_click_routes_into_existing_full_remote_context_menu(tmp_path):
     assert events == [('navigate', str(tmp_path)), 'close-old',
                       ('menu', 'here', {'remote_folder_list': True,
                                        'files_exp_rename_target': str(tmp_path)})]
-    assert "folder_list_action = menu.addAction('フォルダー・ファイルリスト')" in APP
+    assert "folder_list_action = menu.addAction('Filesリスト')" in APP
     assert "self.expanded_view.add_lane_new_submenu(menu)" in APP
     assert "folder_actions.add('rename')" in APP
 

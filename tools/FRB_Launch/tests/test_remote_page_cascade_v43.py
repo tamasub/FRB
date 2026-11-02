@@ -21,7 +21,7 @@ def test_existing_cascade_is_reused_without_switching_main_page():
     block = app[start:end]
     assert 'CascadeMenu(parent=self, launcher=self)' in block
     assert 'self.fill_cascade(menu, root)' in block
-    assert 'menu.popup(pos)' in block
+    assert 'menu.popup(QPoint(pointer.x() + 8, pointer.y() + 4))' in block
     assert 'self.page_id =' not in block
     assert 'self.tabs.setCurrentIndex' not in block
     assert 'remote_page_navigation = True' in block

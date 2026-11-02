@@ -31,7 +31,7 @@ def test_remote_folder_list_is_first_action_and_original_operations_follow():
     init = ast.get_source_segment(APP, next(n for n in next(c for c in ast.parse(APP).body
         if isinstance(c, ast.ClassDef) and c.name == 'Launcher').body
         if isinstance(n, ast.FunctionDef) and n.name == 'show_expanded_background_paste_menu'))
-    folder = init.index("menu.addAction('フォルダー・ファイルリスト  ▶')")
+    folder = init.index("menu.addAction('Filesリスト')")
     assert folder < init.index("menu.addAction(paste['title']")
     assert folder < init.index('self.expanded_view.add_lane_new_submenu(menu)')
     assert folder < init.index('selected = visible_context_entries(definitions, folder_actions)')
