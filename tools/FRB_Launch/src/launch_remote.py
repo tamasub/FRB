@@ -462,6 +462,12 @@ class LaunchRemote(QWidget):
         self.position_files_exp()
         panel.show()
         panel.raise_()
+        # On reopening, the tree should reflect the already-active Files
+        # breadcrumb, not retain an unrelated root selection.
+        if launcher is not None:
+            view = getattr(launcher, 'expanded_view', None)
+            if view is not None and view.current_directory():
+                panel.sync_current_directory(view.current_directory())
         # Frameless Tool windows may be placed by Windows on first show.
         # Reassert the Remote-relative anchor after native show processing.
         QTimer.singleShot(0, self.position_files_exp)

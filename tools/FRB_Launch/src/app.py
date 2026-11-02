@@ -837,6 +837,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
         self._folder_double_click_row = row
 
     def _scroll_hover(self, item):
+        if getattr(self, '_inline_rename_editor', None) is not None:
+            # Moving over the input must not select a different row/open a child.
+            self.hover_timer.stop()
+            return
         if item is None:
             self.hover_timer.stop()
             return
@@ -1596,6 +1600,10 @@ class CascadeMenu(OrderDragMixin,QMenu):
             return
         super().mouseReleaseEvent(event)
     def mouseMoveEvent(self, event):
+        if getattr(self, '_inline_rename_editor', None) is not None:
+            self.hover_timer.stop()
+            event.accept()
+            return
         if self.order_press and event.buttons() & Qt.MouseButton.LeftButton:
             pos, action = self.order_press
             if (event.position().toPoint() - pos).manhattanLength() >= QApplication.startDragDistance():
@@ -1637,6 +1645,8 @@ class CascadeMenu(OrderDragMixin,QMenu):
                 self.hover_timer.start(int(self.launcher.data.get('launch_hover_delay_ms',250)))
 
     def open_current(self, mode="keyboard"):
+        if getattr(self, '_inline_rename_editor', None) is not None:
+            return  # A pending hover timer can fire after the editor appears.
         action = self.activeAction()
         if mode=="hover" and self.actionAt(self.mapFromGlobal(QCursor.pos()))!=action:return
         if (mode == 'hover' and (self._manual_bookmark_mode() or
@@ -1788,6 +1798,29 @@ class CascadeMenu(OrderDragMixin,QMenu):
 
 
 
+class TimedStatusFooter(QLabel):
+    """Transient Launch footer messages expire; navigation hints stay visible.
+
+    All existing footer.setText call sites share this one policy. A newer
+    message resets the timer, so an older expiration cannot erase it.
+    """
+    def __init__(self, text='', parent=None):
+        super().__init__(text, parent)
+        self._expiry = QTimer(self)
+        self._expiry.setSingleShot(True)
+        self._expiry.setInterval(10000)
+        self._expiry.timeout.connect(self.clear)
+
+    def setText(self, text):
+        self._expiry.stop()
+        super().setText(text)
+        # The shortcut/help banner is a standing instruction, not a status.
+        # Error markup, progress and success notices all time out equally.
+        if text and not str(text).startswith(('↑↓', 'Launch外をクリックすると',
+                                              '通常ウィンドウとして')):
+            self._expiry.start()
+
+
 class RemoteFolderActionsMenu(CascadeMenu):
     """Remote folder actions: show a trailing submenu chevron with native-like
     right alignment while retaining the existing tool-window cascade handler.
@@ -1802,11 +1835,13 @@ class RemoteFolderActionsMenu(CascadeMenu):
         rect = self.actionGeometry(action)
         if not rect.isValid():
             return
-        cx, cy = rect.right() - 15, rect.center().y()
+        # Align with Qt's real "新規作成" submenu indicator: the *outer*
+        # action lane, never the text width or a literal "▶" suffix.
+        cx, cy = self.contentsRect().right() - 13, rect.center().y()
         arrow = QPainterPath()
-        arrow.moveTo(cx - 3, cy - 5)
+        arrow.moveTo(cx - 2, cy - 4)
         arrow.lineTo(cx + 2, cy)
-        arrow.lineTo(cx - 3, cy + 5)
+        arrow.lineTo(cx - 2, cy + 4)
         arrow.closeSubpath()
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -1831,6 +1866,139 @@ class RemoteFolderCascade(CascadeMenu):
         self.remote_folder_root = None
         self._remote_pressed_action = None
         self._remote_dbl_file = None
+
+    def begin_inline_rename(self, target, kind):
+        """Show a single-line editor ON the existing cascade item itself.
+
+        Both normal QMenu rows and oversized scroll_tree rows use the same
+        editor and commit policy. The surrounding cascade stays visible.
+        """
+        path = Path(target)
+        if kind == 'folder' and not self.launcher.can_rename_remote_folder(path):
+            return False
+        if not (path.is_dir() if kind == 'folder' else path.is_file()):
+            return False
+        candidates = self._scroll_actions if self.scroll_tree is not None else self.actions()
+        action = next((entry for entry in candidates
+                       if ((row := self._remote_entry(entry)) is not None and
+                           os.path.normcase(str(row.get('launch_browse_target')
+                                               if kind == 'folder' else row.get('_browse_file') or
+                                               row.get('_file', ''))) == os.path.normcase(str(path)))), None)
+        if action is None:
+            return False
+        # Renaming owns this menu until Enter/Escape/focus loss. Freeze any
+        # pending hover / folder-activation callbacks before showing QLineEdit.
+        self.hover_timer.stop()
+        self.folder_click_timer.stop()
+        self._folder_click_action = None
+        self._remote_pressed_action = None
+        if self.child is not None:
+            self.child.close()
+            self.child.deleteLater()
+            self.child = None
+        previous = getattr(self, '_inline_rename_editor', None)
+        if previous is not None:
+            previous.deleteLater()
+        tree_item = None
+        if self.scroll_tree is not None:
+            tree_item = next((self.scroll_tree.topLevelItem(i)
+                              for i in range(self.scroll_tree.topLevelItemCount())
+                              if self._scroll_item_action(self.scroll_tree.topLevelItem(i)) is action), None)
+            if tree_item is None:
+                return False
+            self.scroll_tree.scrollToItem(tree_item)
+            owner = self.scroll_tree.viewport()
+            bounds = self.scroll_tree.visualItemRect(tree_item)
+        else:
+            owner = self
+            bounds = self.actionGeometry(action)
+        editor = QLineEdit(owner)
+        editor.setObjectName('remoteCascadeRenameEditor')
+        # This menu (including the scroll-tree adaptation) renders rows in
+        # Yu Gothic UI 13px.  The app-wide QLineEdit rule is 15px, which was
+        # the cause of the previous oversized rename-field regression.  Set
+        # BOTH QFont and an ID-specific QSS rule to match the displayed row.
+        row_font = QFont(self.font() if tree_item is None else self.scroll_tree.font())
+        row_font.setFamily('Yu Gothic UI')
+        row_font.setPixelSize(13)
+        editor.setFont(row_font)
+        editor.setStyleSheet('QLineEdit#remoteCascadeRenameEditor {'
+                             "font-family:'Yu Gothic UI'; font-size:13px; "
+                             'padding:0px 2px;}')
+        # Keep the input inside the original row, after its folder/file icon.
+        editor.setGeometry(bounds.adjusted(23, 2, -5, -2))
+        editor.setText(path.name)
+        editor.selectAll()
+        editor.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self._inline_rename_editor = editor
+        self._inline_rename_cancelled = False
+        self._inline_rename_committing = False
+        editor.installEventFilter(self)
+        editor.editingFinished.connect(
+            lambda e=editor, a=action, t=tree_item, p=str(path), k=kind:
+            self._finish_inline_rename(e, a, t, p, k))
+        editor.show()
+        editor.raise_()
+        editor.setFocus(Qt.FocusReason.OtherFocusReason)
+        return True
+
+    def _finish_inline_rename(self, editor, action, item, old_path, kind):
+        if (getattr(self, '_inline_rename_editor', None) is not editor
+                or getattr(self, '_inline_rename_committing', False)):
+            return
+        self._inline_rename_committing = True
+        try:
+            new_name = editor.text()
+            cancelled = getattr(self, '_inline_rename_cancelled', False)
+            if not cancelled and new_name != Path(old_path).name:
+                try:
+                    new_path = self.launcher.commit_remote_inline_rename(
+                        old_path, new_name, kind)
+                except (OSError, ValueError) as exc:
+                    self.launcher.error('名前を変更できませんでした: ' + str(exc))
+                else:
+                    if new_path:
+                        # fill_cascade() captures this dict in its folder opener.
+                        # Mutate it IN PLACE: replacing QAction.data alone leaves
+                        # the hover/open callbacks pointing at the deleted path.
+                        row = action.data()
+                        row['title'] = Path(new_path).name
+                        row['description'] = new_path
+                        row['item_id'] = str(new_path)
+                        if kind == 'folder':
+                            row['launch_browse_target'] = new_path
+                        else:
+                            row['_browse_file'] = new_path
+                        if row.get('_file'):
+                            row['_file'] = new_path
+                        for entry in row.get('launch_actions', []):
+                            if isinstance(entry, dict) and entry.get('launch_target') == old_path:
+                                entry['launch_target'] = new_path
+                        action.setData(row)
+                        action.setText(Path(new_path).name)
+                        action.setToolTip(new_path)
+                        if item is not None:
+                            item.setText(0, Path(new_path).name)
+                            item.setToolTip(0, new_path)
+                        if self.child is not None:
+                            self.child.close()
+                            self.child.deleteLater()
+                            self.child = None
+        finally:
+            self._inline_rename_editor = None
+            editor.deleteLater()
+            self._inline_rename_committing = False
+
+    def eventFilter(self, obj, event):
+        if obj is getattr(self, '_inline_rename_editor', None):
+            if (event.type() == QEvent.Type.KeyPress
+                    and event.key() == Qt.Key.Key_Escape):
+                self._inline_rename_cancelled = True
+                self._finish_inline_rename(obj, None, None, '', 'file')
+                event.accept()
+                return True
+            # QLineEdit handles Enter, IME, selection and clipboard natively.
+        return super().eventFilter(obj, event)
 
     def _remote_entry(self, action):
         row = action.data() if action is not None else None
@@ -1905,6 +2073,9 @@ class RemoteFolderCascade(CascadeMenu):
         self.update()
 
     def mousePressEvent(self, event):
+        if getattr(self, '_inline_rename_editor', None) is not None:
+            event.accept()  # The embedded QLineEdit owns clicks during edit.
+            return
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
             if self._remote_entry(action) is not None:
@@ -1916,6 +2087,9 @@ class RemoteFolderCascade(CascadeMenu):
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if getattr(self, '_inline_rename_editor', None) is not None:
+            event.accept()
+            return
         if event.button() == Qt.MouseButton.LeftButton:
             action = self.actionAt(event.position().toPoint())
             dbl = self._remote_dbl_file
@@ -2680,7 +2854,7 @@ class Launcher(QWidget):
         header.sectionClicked.connect(self.sort_search_column)
         header.sectionResized.connect(self.save_result_column_width)
         self.list.setMouseTracking(True); self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.footer = QLabel('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
+        self.footer = TimedStatusFooter('↑↓ 選択   → 展開   ← 戻る   Enter 実行   Esc 閉じる')
         # The title header must reach the frame's inner edges.  Keep the
         # original 12px inset for all content below it, but not the header.
         layout = QVBoxLayout(self); layout.setContentsMargins(6,8,6,12); layout.setSpacing(0)
@@ -3323,7 +3497,10 @@ class Launcher(QWidget):
             self._remote_folder_source_path = None
 
     def on_files_directory_changed(self, directory):
-        """Breadcrumb is authoritative. External changes close all previews."""
+        """Breadcrumb is authoritative for Remote, Files Exp, and Files."""
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is not None and panel.isVisible():
+            panel.sync_current_directory(directory)
         if (getattr(self, '_remote_folder_opener', None) is None
                 and getattr(self, '_remote_folder_root_menu', None) is None):
             return
@@ -6663,6 +6840,13 @@ class Launcher(QWidget):
                 if menu.order_enabled:menu.order_rows.append(row)
                 if folder:
                     def open_child(mode="keyboard", m=menu, r=row, a=action):
+                        # A renamed folder changes QAction.data while this
+                        # open callback remains installed. Resolve the CURRENT
+                        # row when navigating rather than capturing a dead path.
+                        if getattr(m, 'remote_folder_navigation', False):
+                            latest = a.data()
+                            if isinstance(latest, dict):
+                                r = latest
                         if m.child:m.child.close();m.child.deleteLater()
                         m.child=(RemoteFolderCascade if getattr(m, 'remote_folder_navigation', False)
                                  else AppCascadeMenu if r.get('launch_source')=='installed_apps'
@@ -8545,8 +8729,12 @@ class Launcher(QWidget):
         self.on_files_exp_folder_renamed(directory, new_path)
         return True
 
-    def rename_remote_cascade_entry(self, target, kind):
-        """Rename a real directory/file shown in the Remote folder-list cascade."""
+    def rename_remote_cascade_entry(self, target, kind, source_menu=None):
+        """Rename inside its *visible cascade row*, not in a separate dialog."""
+        if source_menu is not None:
+            if not source_menu.isVisible():
+                return False
+            return source_menu.begin_inline_rename(target, kind)
         path = Path(target)
         if kind == 'folder' and not self.can_rename_remote_folder(path):
             return False
@@ -8585,6 +8773,51 @@ class Launcher(QWidget):
             QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
         return True
 
+    def commit_remote_inline_rename(self, old_path, new_name, kind):
+        """One validated filesystem mutation shared by Remote cascade editors."""
+        path = Path(old_path)
+        if kind == 'folder' and not self.can_rename_remote_folder(path):
+            raise ValueError('登録フォルダーやドライブの名前は変更できません')
+        if not (path.is_dir() if kind == 'folder' else path.is_file()):
+            raise ValueError('対象が見つかりません')
+        if kind == 'file' and Path(new_name).suffix.casefold() != path.suffix.casefold():
+            answer = QMessageBox.question(
+                self, '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No)
+            if answer != QMessageBox.StandardButton.Yes:
+                return None
+        new_path = str(rename_file_or_folder(path, new_name))
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if kind == 'folder':
+            if panel is not None:
+                panel.reflect_external_folder_rename(path, new_path)
+            # Renaming a child should not jump the breadcrumb away from its
+            # parent just because the user edited a submenu row.
+            current = self.expanded_view.current_directory()
+            if current and os.path.normcase(current) == os.path.normcase(str(path)):
+                # The current folder itself moved. Keep the editing cascade
+                # alive until its row/editor has finished updating; the normal
+                # breadcrumb observer would otherwise close it mid-commit.
+                previous_navigation = getattr(self, '_remote_folder_navigation', False)
+                self._remote_folder_navigation = True
+                try:
+                    self.on_files_exp_folder_renamed(str(path), new_path)
+                finally:
+                    self._remote_folder_navigation = previous_navigation
+            else:
+                from folder_sort_preferences import transfer_directory_sort
+                from middle_folder_filter import SORT_LABELS
+                transfer_directory_sort(self.settings, str(path), new_path, SORT_LABELS)
+        if (self.expanded_view.isVisible() and
+                os.path.normcase(str(self.expanded_view.current_directory() or '')) ==
+                os.path.normcase(str(path.parent))):
+            self.expanded_view.refresh_middle()
+        self.footer.setText(f'名前を変更しました: {path.name} → {Path(new_path).name}')
+        if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
+            QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
+        return new_path
+
     def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False,
                                             files_exp_rename_target=None):
         """Shared Files blank-area menu; Remote adds ONE optional submenu.
@@ -8611,6 +8844,7 @@ class Launcher(QWidget):
             directory = str(self.expanded_view.current_directory())
             folder_list_action = menu.addAction('フォルダー・ファイルリスト')
             menu.folder_list_action = folder_list_action
+            menu.setMinimumWidth(max(menu.minimumWidth(), 235))
             folder_list_action.setIcon(self.file_icons.icon(QFileInfo(directory)))
             folder_list_action.setData({'item_kind': 'category', 'item_id': 'remote-folder-list'})
             menu.openers[folder_list_action] = (
@@ -8671,7 +8905,9 @@ class Launcher(QWidget):
                 folder_action.setIcon(context_action_icon(action_id))
                 folder_action.setIconVisibleInMenu(True)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
-                           + context_menu_spacing_qss(self.color_theme))
+                           + context_menu_spacing_qss(self.color_theme)
+                           + ('QMenu::right-arrow { width: 5px; height: 8px; }'
+                              if remote_folder_list else ''))
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         menu.popup(global_pos)
@@ -8836,8 +9072,9 @@ class Launcher(QWidget):
                     # Remote's actual folder/file list is NOT a search result.
                     # Keep the same JSON-defined rename position as Files.
                     action = menu.addAction(definition['title'],
-                        lambda checked=False, p=path, k=origin:
-                        QTimer.singleShot(0, lambda: self.rename_remote_cascade_entry(p, k)))
+                        lambda checked=False, p=path, k=origin, source=context_parent:
+                        QTimer.singleShot(0, lambda:
+                            self.rename_remote_cascade_entry(p, k, source)))
                     if origin == 'folder':
                         action.setEnabled(self.can_rename_remote_folder(path))
                 elif action_id == 'open_with' and origin == 'file':

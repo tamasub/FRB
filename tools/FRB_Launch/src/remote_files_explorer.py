@@ -267,6 +267,7 @@ class RemoteFilesExplorer(QWidget):
         # shortcut roots retain QTreeView and use a lazy, read-only item model.
         self.model = QStandardItemModel(self)
         self._rename_in_progress = None
+        self._syncing_directory = False
         self.tree = FilesExpWheelTree(self)
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
             remote.parent(), 'pointer_warp_enabled', True))
@@ -293,6 +294,10 @@ class RemoteFilesExplorer(QWidget):
         self._selection_timer.timeout.connect(self._commit_current_selection)
         self.tree.selectionModel().currentChanged.connect(self._selection_changed)
         self.tree.expanded.connect(self._expand_index)
+        # Clicking the triangle is navigation too: Qt does not guarantee a
+        # 'clicked' signal when the disclosure control consumes the click.
+        self.tree.expanded.connect(self._activate_disclosure)
+        self.tree.collapsed.connect(self._activate_disclosure)
         # Only an explicit Files Exp context Rename can start editing.
         # Normal clicks and double-clicks remain navigation/expansion.
         self.model.itemChanged.connect(self._finish_folder_rename)
@@ -388,6 +393,8 @@ class RemoteFilesExplorer(QWidget):
         return str(path) if path and os.path.isdir(path) else None
 
     def _selection_changed(self, index, _previous):
+        if self._syncing_directory:
+            return
         # Wheel/keyboard selection settles before a potentially costly Files
         # refresh; an explicit mouse click still navigates immediately.
         self._selection_timer.stop()
@@ -400,10 +407,105 @@ class RemoteFilesExplorer(QWidget):
             self.folder_selected.emit(path)
 
     def _activate_index(self, index):
+        if self._syncing_directory:
+            return
         self._selection_timer.stop()
         path = self._index_path(index)
         if path:
             self.folder_selected.emit(path)
+
+    def _activate_disclosure(self, index):
+        """The explicit ▶/▼ control updates the same breadcrumb as a row click."""
+        if self._syncing_directory:
+            return
+        self._selection_timer.stop()
+        self.tree.setCurrentIndex(index)
+        self._activate_index(index)
+
+    def sync_current_directory(self, directory):
+        """Reflect every Files breadcrumb transition in the visible tree.
+
+        A programmatic selection must never emit folder_selected again; that
+        would cause Files -> Exp -> Files recursion, duplicate history, and
+        unexpected focus/cursor movement. Expand ONLY the path to the target.
+        Registered roots retain their display order and duplicate aliases.
+        """
+        if (not directory or not os.path.isdir(directory) or
+                self._rename_in_progress is not None):
+            return False
+        target = os.path.normcase(os.path.normpath(str(directory)))
+        if self._index_path(self.tree.currentIndex()) is not None:
+            existing = os.path.normcase(os.path.normpath(
+                self._index_path(self.tree.currentIndex())))
+            if existing == target:
+                return True
+        self._selection_timer.stop()
+        self.tree.clear_wheel_pending()
+        # Prefer the longest registered root that contains the destination;
+        # PC/drives are a fallback when it is outside the registered roots.
+        candidates = []
+        pc_root = None
+        for row in range(self.model.rowCount()):
+            index = self.model.index(row, 0)
+            data = (self.model.itemFromIndex(index).data(_DATA_ROLE) or {})
+            if data.get('pc'):
+                pc_root = index
+                continue
+            base = data.get('path')
+            if not base:
+                continue
+            base_normal = os.path.normcase(os.path.normpath(str(base)))
+            try:
+                common = os.path.commonpath((base_normal, target))
+            except ValueError:
+                continue
+            if common == base_normal:
+                candidates.append((len(base_normal), index, base_normal))
+        candidate = max(candidates, key=lambda record: record[0]) if candidates else None
+        self._syncing_directory = True
+        try:
+            if candidate:
+                _, node, base = candidate
+            elif pc_root is not None:
+                node = pc_root
+                self._expand_index(node)
+                self.tree.expand(node)
+                base = None
+                for i in range(self.model.itemFromIndex(node).rowCount()):
+                    child = self.model.itemFromIndex(node).child(i)
+                    child_path = self._index_path(child.index())
+                    if child_path:
+                        normalized = os.path.normcase(os.path.normpath(child_path))
+                        try:
+                            if os.path.commonpath((normalized, target)) == normalized:
+                                node, base = child.index(), normalized
+                                break
+                        except ValueError:
+                            continue
+                if base is None:
+                    return False
+            else:
+                return False
+            relative = os.path.relpath(target, base)
+            if relative not in ('.', ''):
+                for part in relative.split(os.sep):
+                    self._expand_index(node)
+                    self.tree.expand(node)
+                    parent_item = self.model.itemFromIndex(node)
+                    next_node = None
+                    for i in range(parent_item.rowCount()):
+                        child = parent_item.child(i)
+                        if child is not None and child.text().casefold() == part.casefold():
+                            next_node = child.index()
+                            break
+                    if next_node is None:
+                        return False
+                    node = next_node
+            self.tree.setCurrentIndex(node)
+            self.tree.scrollTo(node, QAbstractItemView.ScrollHint.EnsureVisible)
+            return True
+        finally:
+            self._syncing_directory = False
 
     def can_rename_folder(self, path):
         """Never invalidate an authored first-column shortcut or drive root."""

@@ -62,7 +62,7 @@ def test_folder_list_chevron_is_right_aligned_drawn_icon_not_text_suffix():
     painter = ast.get_source_segment(APP, node(APP, 'RemoteFolderActionsMenu', 'paintEvent'))
     assert "menu.addAction('フォルダー・ファイルリスト')" in builder
     assert 'menu.folder_list_action = folder_list_action' in builder
-    assert 'rect.right() - 15' in painter
+    assert 'self.contentsRect().right() - 13' in painter
     assert 'painter.fillPath(arrow, color)' in painter
 
 
@@ -71,7 +71,7 @@ def test_remote_cascade_calls_nonsearch_menu_and_dispatches_rename():
     builder = ast.get_source_segment(APP, node(APP, 'Launcher', 'show_launch_context_menu'))
     assert 'force_search_context=False' in source
     assert "action_id == 'rename' and getattr(context_parent, 'remote_folder_navigation', False)" in builder
-    assert 'self.rename_remote_cascade_entry(p, k)' in builder
+    assert 'self.rename_remote_cascade_entry(p, k, source)' in builder
 
 
 def test_rename_file_in_remote_cascade_updates_disk_and_view(tmp_path):
