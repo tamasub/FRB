@@ -415,10 +415,12 @@ class LaunchRemote(QWidget):
         row_top = QHBoxLayout()
         row_top.setContentsMargins(0, 0, 0, 0)
         row_top.setSpacing(2)
-        row_top.addWidget(self._button('BackTab', '前の操作列へ',
-                                       'BACKTAB', width=85, height=37, role='tab', wheel_enabled=True))
-        row_top.addWidget(self._button('Tab', '次の操作列へ',
-                                       'TAB', width=85, height=37, role='tab', wheel_enabled=True))
+        self.backtab_button = self._button('BackTab', '前の操作列へ',
+                                           'BACKTAB', width=85, height=37, role='tab', wheel_enabled=True)
+        self.tab_button = self._button('Tab', '次の操作列へ',
+                                       'TAB', width=85, height=37, role='tab', wheel_enabled=True)
+        row_top.addWidget(self.backtab_button)
+        row_top.addWidget(self.tab_button)
         root.addLayout(row_top)
         root.addLayout(row_mid)
 
@@ -451,6 +453,18 @@ class LaunchRemote(QWidget):
         for widget in self.findChildren(QWidget):
             if widget.window() is self:
                 widget.installEventFilter(self)
+        self.set_files_root_hidden_mode(
+            bool(getattr(launcher, 'files_root_hidden_mode', False)))
+
+    def set_files_root_hidden_mode(self, enabled):
+        """Remove both obsolete column switch controls in single-column mode."""
+        self.backtab_button.setVisible(not enabled)
+        self.tab_button.setVisible(not enabled)
+        # Adjust frameless Remote size to avoid a blank former TAB row.
+        self.setMinimumHeight(0)
+        self.layout().activate()
+        self.adjustSize()
+        self.setMinimumHeight(self.layout().sizeHint().height())
 
     def hideEvent(self, event):
         # The experimental tool window must not outlive a dismissed Remote.

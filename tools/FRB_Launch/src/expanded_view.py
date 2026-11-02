@@ -1631,6 +1631,9 @@ class ExpandedLauncherView(QWidget):
             self.toolbar_scroller.setFixedHeight(required)
 
     def save_splitter_sizes(self, *_):
+        # Never overwrite the original two-column widths with a hidden-pane [0, n].
+        if getattr(self.launcher, 'files_root_hidden_mode', False):
+            return
         if (self._workspace_mode == 'browser' and self._browser_bookmarks_visible
                 and self.right.isVisible()):
             widths = self.splitter.sizes()
@@ -3863,6 +3866,12 @@ class ExpandedLauncherView(QWidget):
             self.focus_panel(self.middle)
             return 'directory'
 
+        if getattr(self.launcher, 'files_root_hidden_mode', False):
+            # Single-column Files: the first usable row is the LEFT boundary.
+            # Never ascend or return to the hidden Files root panel.
+            self.focus_panel(self.middle)
+            return 'directory'
+
         first_tree = self.left.tree
         first_items = [first_tree.topLevelItem(i)
                        for i in range(first_tree.topLevelItemCount())]
@@ -3950,11 +3959,14 @@ class ExpandedLauncherView(QWidget):
                 self.path = [directory_row(parent)]
                 def finish():
                     self.refresh_middle()
-                    self.focus_panel(self.middle if keep_middle_focus else self.left)
+                    self.focus_panel(self.middle if (
+                        keep_middle_focus or getattr(self.launcher, 'files_root_hidden_mode', False)
+                    ) else self.left)
                 QTimer.singleShot(0, finish)
                 return
         # PC / drive roots have no real ancestor in the file list.
-        self.focus_panel(self.left)
+        self.focus_panel(self.middle if getattr(self.launcher, 'files_root_hidden_mode', False)
+                         else self.left)
 
     def enter_row(self, pane, item):
         """Enter runs a filesystem directory; Right instead browses it."""
@@ -4111,6 +4123,9 @@ class ExpandedLauncherView(QWidget):
         The complete WebView gets the released width, and the last useful
         Bookmarks/Web splitter sizes survive both the collapse and HOME.
         """
+        if getattr(self.launcher, 'files_root_hidden_mode', False):
+            visible = False
+            persist = False  # The experiment must not overwrite user preferences.
         visible = bool(visible)
         if not visible and self._workspace_mode == 'browser' and self.right.isVisible():
             widths = self.splitter.sizes()
@@ -4129,7 +4144,10 @@ class ExpandedLauncherView(QWidget):
         if self.web_view is not None:
             self.web_view.set_bookmarks_visible(visible)
         if self._browser_empty_bookmark_button is not None:
-            self._browser_empty_bookmark_button.setEnabled(not visible)
+            self._browser_empty_bookmark_button.setEnabled(not visible and not
+                getattr(self.launcher, 'files_root_hidden_mode', False))
+            self._browser_empty_bookmark_button.setVisible(not
+                getattr(self.launcher, 'files_root_hidden_mode', False))
         # Never let a hidden row remain the Remote's logical target.
         if (not visible and self._workspace_mode == 'browser' and
                 getattr(self.launcher, '_remote_area', None) == 'bookmarks' and
@@ -4143,6 +4161,8 @@ class ExpandedLauncherView(QWidget):
     def _activate_browser_layout(self):
         """Show Browser + Bookmarks without discarding the Files column state."""
         self._workspace_mode = 'browser'
+        if getattr(self.launcher, 'files_root_hidden_mode', False):
+            self.set_browser_bookmarks_visible(False, persist=False)
         visible = getattr(self, '_browser_bookmarks_visible', True)
         if visible:
             self.right.show()
@@ -4241,6 +4261,8 @@ class ExpandedLauncherView(QWidget):
                 hide_url_favorites()
         self._workspace_mode = 'files'
         self.files_content_stack.setCurrentWidget(self.files_group)
+        if getattr(getattr(self, 'launcher', None), 'files_root_hidden_mode', False):
+            self.left.hide()
         self.right.hide()  # Bookmarks belong to Browser, never Files.
         self._update_workspace_tabs()
         # During ExpandedLauncherView.__init__, Launcher.expanded_view has not
@@ -4251,6 +4273,30 @@ class ExpandedLauncherView(QWidget):
             update_count = getattr(self.launcher, 'update_files_item_count', None)
             if callable(update_count):
                 update_count()
+
+    def apply_files_root_hidden_mode(self):
+        """Apply the reversible layout experiment without rebuilding the trees."""
+        enabled = bool(getattr(self.launcher, 'files_root_hidden_mode', False))
+        previous = getattr(self, '_files_root_experiment_applied', False)
+        if enabled and not previous:
+            self._files_root_saved_sizes = self.files_splitter.sizes()
+            self._files_root_saved_bookmarks = self._browser_bookmarks_visible
+        self._files_root_experiment_applied = enabled
+        self.left.setVisible(not enabled)
+        if enabled:
+            self.set_browser_bookmarks_visible(False, persist=False)
+            self.middle.tree.setProperty('remoteInactive', False)
+            if self._workspace_mode == 'files':
+                self.launcher._remote_area = 'directory'
+        elif previous:
+            sizes = getattr(self, '_files_root_saved_sizes', None)
+            if sizes is not None and len(sizes) == 2 and all(v > 0 for v in sizes):
+                self.files_splitter.setSizes(sizes)
+            self.set_browser_bookmarks_visible(
+                getattr(self, '_files_root_saved_bookmarks', True), persist=False)
+        self.middle.tree.style().unpolish(self.middle.tree)
+        self.middle.tree.style().polish(self.middle.tree)
+        self.middle.tree.viewport().update()
 
     def web_view_active(self):
         return (self._workspace_mode == 'browser' and self.web_view is not None

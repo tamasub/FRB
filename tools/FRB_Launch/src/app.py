@@ -2867,6 +2867,10 @@ class Launcher(QWidget):
         # Opt-in experiment: desktop double-click opens a pointer-side remote.
         self.remote_on_desktop_double_click = str(self.settings.value(
             'desktop_remote_enabled', 'false')).lower() in ('true', '1', 'yes', 'on')
+        # UI-only A/B experiment: retain all Files/Bookmarks data and old
+        # splitter widths; only disable their redundant visual/navigation lanes.
+        self.files_root_hidden_mode = str(self.settings.value(
+            'experiment_files_root_hidden', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
         self.remote_window = None
         self._remote_area = None
         self._remote_popup_area = None
@@ -3123,10 +3127,17 @@ class Launcher(QWidget):
             self.folder_mode_actions[value] = action
         self.theme_menu.addSeparator()
         self.remote_mode_action = self.theme_menu.addAction(
-            '実験：デスクトップダブルクリックでリモコンを表示')
+            'デスクトップダブルクリックでリモコンを表示')
         self.remote_mode_action.setCheckable(True)
         self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
+        self.files_root_hidden_action = self.theme_menu.addAction('実験：Files ルート非表示')
+        self.files_root_hidden_action.setCheckable(True)
+        self.files_root_hidden_action.setChecked(self.files_root_hidden_mode)
+        self.files_root_hidden_action.setToolTip(
+            'Files第1列・Browserブックマーク列・リモコンTab/BackTabを隠す。'
+            'Filesは第2列固定。チェック解除で元に戻せます。')
+        self.files_root_hidden_action.triggered.connect(self.set_files_root_hidden_mode)
         self.theme_menu.addSeparator()
         self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')
         self.compact_mode_action.setToolTip('Compact表示とFiles／Browser表示を切り替え')
@@ -3223,6 +3234,8 @@ class Launcher(QWidget):
         self.mode_button.clicked.connect(self.toggle_expanded_view)
         self.mode_bar.hide()
         self.expanded_view = ExpandedLauncherView(self)
+        # The view is now fully attached; apply the restored experiment state.
+        self.expanded_view.apply_files_root_hidden_mode()
         # A single clipboard drives cut visuals in the main Files columns,
         # the Remote cascade, and the companion Files Exp tree.
         QApplication.clipboard().dataChanged.connect(self.refresh_main_files_cut_visuals)
@@ -3598,6 +3611,26 @@ class Launcher(QWidget):
             self.hide_remote()
         self.footer.setText('デスクトップリモコン：' +
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
+
+    def set_files_root_hidden_mode(self, checked):
+        """Enable/disable the reversible single-Files-column experiment."""
+        self.files_root_hidden_mode = bool(checked)
+        self.settings.setValue('experiment_files_root_hidden', self.files_root_hidden_mode)
+        self.settings.sync()
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            view.apply_files_root_hidden_mode()
+            if self.files_root_hidden_mode and view.isVisible():
+                if view._workspace_mode == 'files':
+                    self.remote_focus_area('directory')
+                elif (getattr(self, '_remote_area', None) == 'bookmarks'):
+                    self.remote_focus_area(self._current_web_body_area())
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_files_root_hidden_mode(self.files_root_hidden_mode)
+        self.footer.setText(
+            'Filesルート非表示：第2列のみを操作します。'
+            if self.files_root_hidden_mode else 'Filesルート非表示を解除しました。')
 
     def close_finished_file_context_menus(self):
         """Dismiss filesystem context menus after an operation completes.
@@ -4116,6 +4149,8 @@ class Launcher(QWidget):
                 and middle.currentItem() is not None)
             if live_directory_current or saved_directory_current:
                 self._remote_area = 'directory'
+        if (self.files_root_hidden_mode and not web and self.expanded_view.isVisible()):
+            self._remote_area = 'directory'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
         # Files Exp is a permanent companion to the Remote. Reopen it on
@@ -4166,14 +4201,16 @@ class Launcher(QWidget):
         area = getattr(self, '_remote_area', None)
         if remote is not None and remote.isVisible():
             if mode == 'browser' and area in ('files', 'directory', 'breadcrumb'):
-                self.remote_focus_area('bookmarks')
+                self.remote_focus_area(self._current_web_body_area() if self.files_root_hidden_mode
+                                       else 'bookmarks')
             elif mode == 'files' and (area == 'bookmarks' or
                                       str(area).startswith('web_body:')):
-                self.remote_focus_area('files')
+                self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
 
     def _focus_bookmark_first(self):
         """Entering Bookmarks via Tab begins at the first actionable row."""
-        if not self.expanded_view.browser_bookmarks_visible:
+        if (self.files_root_hidden_mode or
+                not self.expanded_view.browser_bookmarks_visible):
             return
         tree = self.expanded_view.right.tree
         for index in range(tree.topLevelItemCount()):
@@ -4221,6 +4258,11 @@ class Launcher(QWidget):
 
     def remote_focus_area(self, area):
         """Keep the highlighted current row in the main UI, not in the remote."""
+        if (self.files_root_hidden_mode and self.expanded_view.isVisible()):
+            if self.expanded_view._workspace_mode == 'files' and area == 'files':
+                area = 'directory'
+            elif self.expanded_view._workspace_mode == 'browser' and area == 'bookmarks':
+                area = self._current_web_body_area()
         if not self.expanded_view.isVisible():
             if area == 'pages':
                 self.tabs.setFocus(Qt.FocusReason.OtherFocusReason)
@@ -4240,7 +4282,8 @@ class Launcher(QWidget):
                 view.web_view.tabs.currentIndex() if web_active else 0))
             if area not in order:
                 area = (('bookmarks' if view.browser_bookmarks_visible else
-                         self._current_web_body_area()) if browser_mode else 'files')
+                         self._current_web_body_area()) if browser_mode else
+                        ('directory' if self.files_root_hidden_mode else 'files'))
             if area == 'workspace_files':
                 view.files_mode_tab.setFocus(Qt.FocusReason.OtherFocusReason)
             elif area == 'workspace_browser':
@@ -4872,10 +4915,16 @@ class Launcher(QWidget):
                 self.navigate_home()
                 self.remote_focus_area('files')
             elif view.switch_workspace('browser'):
-                # A collapsed Bookmarks list is reopened before selecting row 1.
-                if not view.browser_bookmarks_visible:
-                    view.show_browser_bookmarks()
-                self.remote_focus_area('bookmarks')
+                if self.files_root_hidden_mode:
+                    # Explicitly preserve hidden Bookmarks on Remote Browser.
+                    # Unlike legacy mode, do not call show_browser_bookmarks().
+                    view.set_browser_bookmarks_visible(False, persist=False)
+                    self.remote_focus_area(self._current_web_body_area())
+                else:
+                    # The original Bookmark focus rule remains the default.
+                    if not view.browser_bookmarks_visible:
+                        view.show_browser_bookmarks()
+                    self.remote_focus_area('bookmarks')
             return
         if command == 'REMOTE_FAVORITE_SAVE':
             # Exactly the same QToolButton as the breadcrumb heart.
@@ -4999,7 +5048,8 @@ class Launcher(QWidget):
             self._remote_popup_area = None
             self.navigate_home()
             expanded = self.expanded_view.isVisible()
-            self.remote_focus_area('files' if expanded else 'list')
+            self.remote_focus_area(('directory' if self.files_root_hidden_mode else 'files')
+                                   if expanded else 'list')
             return
         if command == 'SEARCH':
             self.hide_remote()
@@ -5013,6 +5063,8 @@ class Launcher(QWidget):
             self.focus_search()
             QTimer.singleShot(0, self.focus_search)
             return
+        if command in ('TAB', 'BACKTAB') and self.files_root_hidden_mode:
+            return  # No column-switch commands in the experimental mode.
         if command in ('TAB', 'BACKTAB'):
             if getattr(self, '_remote_popup_area', None) == 'search_history':
                 self.hide_history_popup()
@@ -5047,6 +5099,10 @@ class Launcher(QWidget):
         if (remote_page_visible or not (web_active and str(area).startswith('web_body'))):
             if dispatch_cascade is not None and dispatch_cascade(command):
                 return
+        if (self.files_root_hidden_mode and expanded and not browser_mode
+                and area != 'directory'):
+            area = 'directory'
+            self.remote_focus_area(area)
         step = (-1 if command in ('UP', 'LEFT') else 1)
         if web_active and str(area).startswith('web_body'):
             browser = self.expanded_view.web_view
@@ -5132,7 +5188,7 @@ class Launcher(QWidget):
             if pane is view.middle:
                 target = view.navigate_left_from_middle()
                 if target == 'files':
-                    self.remote_focus_area('files')
+                    self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
             elif pane is view.right:
                 self.remote_focus_area('workspace_browser')
             # Files first column is already the leftmost folder column.
@@ -6221,6 +6277,12 @@ class Launcher(QWidget):
         first_files_on_reopen = expanded and area not in ('files', 'directory', 'bookmarks')
         if first_files_on_reopen:
             area = 'files'
+        if self.files_root_hidden_mode and expanded:
+            if view._workspace_mode == 'files' and area in ('files', 'bookmarks'):
+                area = 'directory'
+            elif view._workspace_mode == 'browser' and area == 'bookmarks':
+                area = self._current_web_body_area()
+            first_files_on_reopen = False
         self._restoring_last_focus = True
         try:
             if expanded:
@@ -6727,7 +6789,10 @@ class Launcher(QWidget):
         if active:
             roots, left, right = targets
             self.expanded_view.refresh(roots, left, right, self.expanded_options)
-            self.footer.setText('↑↓ 選択   → 進む   ← 戻る   Enter 実行   Tab エリア切替   Esc 閉じる')
+            self.footer.setText(
+                '↑↓ 選択   → 進む   ← 第2列先頭   Enter 実行   Esc 閉じる'
+                if self.files_root_hidden_mode and self.expanded_view._workspace_mode == 'files'
+                else '↑↓ 選択   → 進む   ← 戻る   Enter 実行   Tab エリア切替   Esc 閉じる')
         self.list.setVisible(not active)
         if not active:
             self.expanded_view.hide_favorite_popup()
@@ -7048,9 +7113,9 @@ class Launcher(QWidget):
             if first is not None:
                 view.left.tree.setCurrentItem(first)
                 view.choose_files(first, 0)
-            view.focus_panel(view.left)
+            view.focus_panel(view.middle if self.files_root_hidden_mode else view.left)
             if self.remote_window is not None and self.remote_window.isVisible():
-                self.remote_focus_area('files')
+                self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
             return
         self._nav_before_change()
         self._nav_restoring = True
@@ -8647,6 +8712,12 @@ class Launcher(QWidget):
         area = normalize_area(area, order, current_tab=(
             view.web_view.tabs.currentIndex() if web_active else 0))
         target = tab_target(area, backward=backward, order=order)
+        if self.files_root_hidden_mode:
+            hidden_areas = {'files', 'bookmarks'}
+            for _ in range(len(order)):
+                if target not in hidden_areas:
+                    break
+                target = tab_target(target, backward=backward, order=order)
         if target == 'search':
             self.search.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'pages':
@@ -8702,9 +8773,12 @@ class Launcher(QWidget):
         elif key == Qt.Key.Key_Down:
             row = view.root_rows[view.root_buttons.index(button)]
             if row.get('item_id') == view.files_root.get('item_id'):
-                view.focus_panel(view.left)
+                view.focus_panel(view.middle if self.files_root_hidden_mode else view.left)
             elif row.get('item_id') == view.bookmarks_root.get('item_id'):
-                view.focus_panel(view.right)
+                if self.files_root_hidden_mode:
+                    self.remote_focus_area(self._current_web_body_area())
+                else:
+                    view.focus_panel(view.right)
             elif row.get('item_kind') in ('category', 'directory'):
                 view.open_cascade(row, button)
             else:
