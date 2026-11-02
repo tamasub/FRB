@@ -69,6 +69,7 @@ def test_actual_paste_prefers_selected_folder_and_blocks_multi(tmp_path):
                            middle_selected_paths=lambda: selection,
                            refresh_middle=lambda: messages.append('refresh'))
     owner = SimpleNamespace(expanded_view=view,
+                            refresh_files_exp_directory=lambda d: messages.append(('exp_refresh',str(d))),
                             footer=SimpleNamespace(setText=messages.append),
                             _warn_ambiguous_paste_target=lambda m: messages.append(('warning', str(m))),
                             error=lambda m: messages.append(('error', str(m))))
@@ -127,6 +128,7 @@ def test_cascade_context_paste_can_target_right_clicked_subfolder(tmp_path):
     popup = SimpleNamespace(_folder_container_row=lambda: {
         'launch_browse_target': str(current)})
     owner = SimpleNamespace(
+        refresh_files_exp_directory=lambda d: events.append(('exp_refresh',str(d))),
         expander=lambda: SimpleNamespace(expand=lambda path: path),
         footer=SimpleNamespace(setText=events.append),
         refresh_pasted_directory=lambda *a, **kw: events.append('refresh'),

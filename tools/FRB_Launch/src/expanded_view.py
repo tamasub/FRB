@@ -26,6 +26,7 @@ from virtual_clipboard_paste import is_virtual_file_clipboard
 from context_menu_resolver import resolve_context_target
 from context_menu_actions import rename_file_or_folder
 from pathlib import Path
+import os
 from middle_folder_filter import (SORT_LABELS, filter_sort_folder_rows,
                                   sort_mode_for_header)
 from folder_sort_preferences import (DEFAULT_SORT, load_directory_sort,
@@ -2447,9 +2448,13 @@ class ExpandedLauncherView(QWidget):
                     self.launcher._filesystem_dialog_depth -= 1
                 if answer != QMessageBox.StandardButton.Yes:
                     raise ValueError('拡張子の変更を取り消しました')
-            rename_file_or_folder(old_path, new_name)
+            renamed_path = rename_file_or_folder(old_path, new_name)
             self.launcher.footer.setText(f'名前を変更しました: {old_path.name} → {new_name}')
-            QTimer.singleShot(0, self.refresh_middle)
+            # Renaming rebuilds the row; keep the newly created folder current.
+            def refresh_and_reselect(p=renamed_path):
+                self.refresh_middle()
+                self.select_created_middle_item(p)
+            QTimer.singleShot(0, refresh_and_reselect)
         except (OSError, ValueError) as exc:
             tree = self.middle.tree
             tree.blockSignals(True)
@@ -2736,6 +2741,28 @@ class ExpandedLauncherView(QWidget):
     def _clear_lane_new_menu(self):
         self._lane_new_menu = None
 
+    def select_created_middle_item(self, created_path):
+        """Select the actual new item instead of a stale first-row fallback."""
+        tree = self.middle.tree
+        wanted = os.path.normcase(os.path.normpath(str(created_path)))
+        for index in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(index)
+            row = self.row_data(item)
+            if row is None:
+                continue
+            origin, path = resolve_context_target(row, self.launcher.authored_items)
+            if not path or os.path.normcase(os.path.normpath(str(path))) != wanted:
+                continue
+            key = row_key(row)
+            if key:
+                self._middle_current_memory = (self.current_directory(), key)
+            tree.clearSelection()
+            tree.setCurrentItem(item)
+            item.setSelected(True)
+            tree.scrollToItem(item)
+            return item
+        return None
+
     def create_from_lane(self, kind, *, target_directory=None):
         """Explorer behavior: create FIRST, then edit its filename in the grid.
 
@@ -2769,15 +2796,8 @@ class ExpandedLauncherView(QWidget):
             self.launcher.footer.setText(f'新規作成しました: {created}（操作対象フォルダー）')
             return
         self.refresh_middle()
-        tree = self.middle.tree
-        for idx in range(tree.topLevelItemCount()):
-            item = tree.topLevelItem(idx)
-            row = self.row_data(item)
-            if row and row.get('title') == created.name:
-                tree.clearSelection()
-                tree.setCurrentItem(item)
-                item.setSelected(True)
-                tree.scrollToItem(item)
+        item = self.select_created_middle_item(created)
+        if item is not None:
                 # Editing is queued until the QMenu is fully dismissed, to
                 # avoid Qt.Tool focus loss closing the editor immediately.
                 self.begin_context_inline_rename(item)

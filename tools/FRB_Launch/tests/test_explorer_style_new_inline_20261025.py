@@ -72,6 +72,12 @@ def demo_for(tmp):
         changes.append(item.name)
     demo.refresh_middle = refresh_middle
     demo.begin_context_inline_rename = rename
+    def select_new(created):
+        item = next((row for row in tree.rows if row.name == Path(created).name), None)
+        if item is not None:
+            tree.clearSelection(); tree.setCurrentItem(item); item.setSelected(True); tree.scrollToItem(item)
+        return item
+    demo.select_created_middle_item = select_new
     demo.row_data = lambda item: {'title': item.name}
     return demo, changes, errors, statuses
 

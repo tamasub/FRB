@@ -98,6 +98,10 @@
         "title": "貼り付け"
       },
       {
+        "action_id": "refresh_directory",
+        "title": "最新の情報に更新"
+      },
+      {
         "type": "separator"
       },
       {

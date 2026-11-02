@@ -32,6 +32,11 @@ def context_action_icon(action_id):
         painter.drawRoundedRect(QRectF(3.5, 9.5, 11, 6), 3, 3)
         painter.drawRoundedRect(QRectF(9.5, 9.5, 11, 6), 3, 3)
         line(9, 12.5, 15, 12.5)
+    elif action_id == 'refresh_directory':
+        # Compact clockwise refresh arrow, in the same stroke as other verbs.
+        painter.drawArc(QRectF(5, 5, 14, 14), 45 * 16, 290 * 16)
+        line(18, 5, 19, 11)
+        line(18, 5, 12, 7)
     elif action_id == 'paste':
         painter.drawRoundedRect(QRectF(6, 6, 13, 15), 2, 2)
         painter.drawRoundedRect(QRectF(9, 3, 7, 5), 1.2, 1.2)

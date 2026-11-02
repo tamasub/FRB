@@ -67,7 +67,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual([x['action_id'] for x in menus['file'] if 'action_id' in x],
                          ['copy', 'cut', 'paste', 'copy_full_path', 'copy_cloud_link', 'copy_file_name', 'open_with', 'extract_all', 'open_parent_folder', 'open_parent_terminal', 'delete', 'rename', 'run_with_pause', 'git_commit_from_zip', 'properties'])
         self.assertEqual([x['action_id'] for x in menus['folder'] if 'action_id' in x],
-                         ['copy', 'cut', 'paste', 'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'delete', 'rename', 'properties'])
+                         ['copy', 'cut', 'paste', 'refresh_directory', 'open_explorer', 'open_terminal', 'copy_path', 'copy_cloud_link', 'delete', 'rename', 'properties'])
 
     def test_actions_are_validated_against_allowlist(self):
         with TemporaryDirectory() as folder:
@@ -261,6 +261,7 @@ class ActualLauncherRoutingTests(unittest.TestCase):
             hover_timer=types.SimpleNamespace(stop=lambda: None), pending_menu_item=None,
             launch_configuration_studio=Mock(), perform_filesystem_context_action=Mock(),
             _context_paste_enabled=Mock(return_value=False), _paste_from_context_menu=Mock(),
+            can_delete_remote_folder=Mock(return_value=True),
             add_open_with_submenu=lambda menu, title, path: menu.addAction(title.replace('…', ' ▶'), lambda: None))
         return scope['show_launch_context_menu'], holder
 
@@ -268,7 +269,7 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         fn, holder = self.setup()
         self.assertTrue(fn(holder, (3, 4), {'item_kind': 'directory', '_file': 'C:/x'}))
         menu = holder._launch_context_menu
-        self.assertEqual(len([a for a in menu.actions if a[0] != 'separator']), 10)
+        self.assertEqual(len([a for a in menu.actions if a[0] != 'separator']), 11)
         next(cb for label, cb in menu.actions if label == '名前の変更')(True)  # Qt QAction.triggered(bool) must not override action ID
         holder.perform_filesystem_context_action.assert_called_once_with('rename', 'C:/x', 'folder')
         holder.launch_configuration_studio.assert_not_called()

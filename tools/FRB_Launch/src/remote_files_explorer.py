@@ -7,7 +7,8 @@ filesystem operations remain owned by Launch.  Children load lazily.
 import os
 
 from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
-from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QStandardItem, QStandardItemModel
+from PySide6.QtGui import (QBrush, QColor, QCursor, QIcon, QPainter, QPen,
+                           QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
                                QLabel, QLineEdit, QPushButton, QSizeGrip, QStyle,
                                QStyledItemDelegate, QTreeView, QVBoxLayout, QWidget)
@@ -18,11 +19,14 @@ from bookmark_cursor_follow import cursor_target
 from wheel_adaptive import wheel_steps, can_follow_at_edge
 from remote_files_exp_roots import registered_folder_roots, subdirectories
 from context_menu_actions import rename_file_or_folder
+from clipboard_paste import clipboard_sources, is_cut_clipboard
+from file_transfer_visual import transfer_state
 from pathlib import Path
 from system_drives import drive_rows
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
+_NORMAL_ICON_ROLE = Qt.ItemDataRole.UserRole + 3
 
 
 class FilesExpWheelTree(QTreeView):
@@ -114,6 +118,20 @@ class FilesExpWheelTree(QTreeView):
             if not self._wheel_follow_scheduled:
                 self._wheel_follow_scheduled = True
                 QTimer.singleShot(0, self._follow_wheel_pointer)
+
+    def keyPressEvent(self, event):
+        """Use Launch's shared filesystem actions for focused Files Exp keys.
+
+        QTreeView has its own focus as an independent Qt.Tool; the main
+        Launch window's Ctrl+C/X/V and F2/F5 shortcuts do not reach it.
+        Inline QLineEdit rename editors continue to own their text keys.
+        """
+        panel = self.parentWidget()
+        handler = getattr(panel, 'handle_tree_shortcut', None)
+        if callable(handler) and handler(event.key(), event.modifiers()):
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def clear_wheel_pending(self):
         """Discard scheduled cursor movement when the tree is rebuilt.
@@ -266,6 +284,9 @@ class RemoteFilesExplorer(QWidget):
         # QFileSystemModel accepts only ONE visual root. For several independent
         # shortcut roots retain QTreeView and use a lazy, read-only item model.
         self.model = QStandardItemModel(self)
+        # Same clipboard as Launch's folder cascade: cut stays subdued until
+        # paste or a new clipboard value. No separate Exp-only transfer state.
+        QApplication.clipboard().dataChanged.connect(self._clipboard_changed)
         self._rename_in_progress = None
         self._syncing_directory = False
         self.tree = FilesExpWheelTree(self)
@@ -330,6 +351,7 @@ class RemoteFilesExplorer(QWidget):
         item.setDragEnabled(False)
         item.setDropEnabled(False)
         item.setData({'path': path, 'pc': pc}, _DATA_ROLE)
+        item.setData(self._pc_icon if pc else self._folder_icon, _NORMAL_ICON_ROLE)
         item.setData(False, _LOADED_ROLE)
         item.setToolTip('ドライブ一覧' if pc else str(path))
         if missing:
@@ -340,7 +362,64 @@ class RemoteFilesExplorer(QWidget):
             # until the user actually expands this particular folder.
             item.appendRow(QStandardItem(''))
         parent.appendRow(item)
+        self._apply_transfer_visual(item)
         return item
+
+    def _transfer_paths(self):
+        launcher = self.parentWidget().parent() if self.parentWidget() is not None else None
+        mime = QApplication.clipboard().mimeData()
+        cut_paths = clipboard_sources(mime) if is_cut_clipboard(mime) else ()
+        pasted_paths = getattr(launcher, '_latest_pasted_paths', ())
+        return cut_paths, pasted_paths
+
+    @staticmethod
+    def _subdued_icon(source):
+        """The same 38% icon opacity used in Launch's CascadeMenu."""
+        image = source.pixmap(22, 22)
+        if image.isNull():
+            return source
+        pix = QPixmap(image.size())
+        pix.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pix)
+        painter.setOpacity(0.38)
+        painter.drawPixmap(0, 0, image)
+        painter.end()
+        return QIcon(pix)
+
+    def _apply_transfer_visual(self, item, cut_paths=None, pasted_paths=None):
+        data = item.data(_DATA_ROLE)
+        if not isinstance(data, dict) or data.get('pc') or not data.get('path'):
+            return
+        if cut_paths is None or pasted_paths is None:
+            cut_paths, pasted_paths = self._transfer_paths()
+        state = transfer_state(data['path'], cut_paths=cut_paths,
+                               pasted_paths=pasted_paths)
+        base = item.data(_NORMAL_ICON_ROLE) or self._folder_icon
+        item.setIcon(self._subdued_icon(base) if state == 'cut' else base)
+        item.setBackground(QBrush(QColor('#d6f1e8')) if state == 'pasted'
+                           else QBrush())
+        item.setForeground(QBrush(QColor('#9ca8af')) if state == 'cut'
+                           else QBrush())
+
+    def refresh_transfer_visuals(self):
+        """Update visible folder icons from Launch's authoritative clipboard."""
+        cut_paths, pasted_paths = self._transfer_paths()
+        def visit(parent):
+            for row in range(parent.rowCount()):
+                item = parent.child(row)
+                if item is None:
+                    continue
+                self._apply_transfer_visual(item, cut_paths, pasted_paths)
+                visit(item)
+        visit(self.model.invisibleRootItem())
+
+    def _clipboard_changed(self):
+        # Explorer can replace the clipboard too. End the former paste marker,
+        # exactly as CascadeMenu._on_clipboard_change does.
+        launcher = self.parentWidget().parent() if self.parentWidget() is not None else None
+        if launcher is not None:
+            launcher._latest_pasted_paths = ()
+        self.refresh_transfer_visuals()
 
     def set_roots(self, rows, expand):
         """Re-sync from currently rendered Files column one on each opening.
@@ -368,6 +447,112 @@ class RemoteFilesExplorer(QWidget):
             self.tree.horizontalScrollBar().minimum())
         return len(roots)
 
+    def refresh_directory_branch(self, directory):
+        """Reload a physical folder WITHOUT losing expanded descendants.
+
+        Refresh each matching alias under the independent registered roots.
+        An expanded child's children are rebuilt only when that child was
+        previously expanded; closed branches remain lazy.  Qt's incidental
+        currentChanged while rebuilding must never navigate Launch.
+        """
+        if not directory or not os.path.isdir(directory):
+            return False
+        target = os.path.normcase(os.path.normpath(str(directory)))
+        self._selection_timer.stop()
+        self.tree.clear_wheel_pending()
+        current_path = self._index_path(self.tree.currentIndex())
+        bar = self.tree.verticalScrollBar()
+        scroll = bar.value()
+        old_sync = self._syncing_directory
+        self._syncing_directory = True
+        changed = False
+        try:
+            def reload_node(item):
+                """Keep expansion state by path, never by old row index."""
+                nonlocal changed
+                data = item.data(_DATA_ROLE) or {}
+                path = data.get('path')
+                if not path or data.get('pc'):
+                    return
+                idx = item.index()
+                opened = self.tree.isExpanded(idx)
+                # A closed target is invalidated, and read on next disclosure.
+                opened_paths = set()
+                def remember(parent):
+                    for n in range(parent.rowCount()):
+                        child = parent.child(n)
+                        if child is None:
+                            continue
+                        info = child.data(_DATA_ROLE) or {}
+                        if info.get('path') and self.tree.isExpanded(child.index()):
+                            opened_paths.add(os.path.normcase(os.path.normpath(str(info['path']))))
+                        remember(child)
+                if opened:
+                    remember(item)
+                item.removeRows(0, item.rowCount())
+                item.setData(False, _LOADED_ROLE)
+                if os.path.isdir(path):
+                    item.appendRow(QStandardItem(''))
+                    if opened:
+                        self._expand_index(item.index())
+                        self.tree.setExpanded(item.index(), True)
+                        def restore(parent):
+                            for n in range(parent.rowCount()):
+                                child = parent.child(n)
+                                if child is None:
+                                    continue
+                                info = child.data(_DATA_ROLE) or {}
+                                key = (os.path.normcase(os.path.normpath(str(info['path'])))
+                                       if info.get('path') else None)
+                                if key in opened_paths and os.path.isdir(info['path']):
+                                    self._expand_index(child.index())
+                                    self.tree.setExpanded(child.index(), True)
+                                    restore(child)
+                        restore(item)
+                changed = True
+            def scan(parent):
+                for n in range(parent.rowCount()):
+                    item = parent.child(n)
+                    if item is None:
+                        continue
+                    info = item.data(_DATA_ROLE) or {}
+                    path = info.get('path')
+                    if path and os.path.normcase(os.path.normpath(str(path))) == target:
+                        reload_node(item)
+                    else:
+                        scan(item)
+            scan(self.model.invisibleRootItem())
+            # Restoring selection by path avoids choosing the adjacent sibling
+            # when the model invalidates an old QModelIndex.
+            if changed and current_path and not os.path.isdir(current_path):
+                # A cut/move may have removed the selected folder itself.
+                # Qt otherwise moves the currentIndex to an arbitrary sibling,
+                # leaving the user looking at a misleading green selection.
+                self.tree.clearSelection()
+                self.tree.setCurrentIndex(self.model.index(-1, 0))
+            if changed and current_path and os.path.isdir(current_path):
+                wanted = os.path.normcase(os.path.normpath(current_path))
+                def restore_current(parent):
+                    for n in range(parent.rowCount()):
+                        item = parent.child(n)
+                        if item is None:
+                            continue
+                        info = item.data(_DATA_ROLE) or {}
+                        path = info.get('path')
+                        if path and os.path.normcase(os.path.normpath(str(path))) == wanted:
+                            self.tree.setCurrentIndex(item.index())
+                            return True
+                        if restore_current(item):
+                            return True
+                    return False
+                restore_current(self.model.invisibleRootItem())
+            bar.setValue(min(scroll, bar.maximum()))
+            self.refresh_transfer_visuals()
+        finally:
+            self._syncing_directory = old_sync
+            self._selection_timer.stop()
+        return changed
+
     def reset_to_roots(self):
         """HOME: reload first-column roots and start with every branch closed.
 
@@ -391,6 +576,45 @@ class RemoteFilesExplorer(QWidget):
             return None  # PC is a virtual root, not a real path.
         path = data.get('path')
         return str(path) if path and os.path.isdir(path) else None
+
+    def handle_tree_shortcut(self, key, modifiers):
+        """Dispatch from the Files Exp CURRENT folder, never a stale Files row.
+
+        Keep rename text editing native, prohibit registered-root mutations,
+        and reuse the same OS action/paste/refresh responsibility as right-click.
+        """
+        if self._rename_in_progress is not None or self.tree.state() == QAbstractItemView.State.EditingState:
+            return False
+        ctrl = modifiers == Qt.KeyboardModifier.ControlModifier
+        plain = modifiers == Qt.KeyboardModifier.NoModifier
+        if not ((ctrl and key in (Qt.Key.Key_C, Qt.Key.Key_X, Qt.Key.Key_V)) or
+                (plain and key in (Qt.Key.Key_Delete, Qt.Key.Key_F2, Qt.Key.Key_F5))):
+            return False
+        path = self._index_path(self.tree.currentIndex())
+        if not path:
+            return False  # PC / no selection is not a physical target.
+        remote = self.parentWidget()
+        launcher = remote.parent() if remote is not None else None
+        if launcher is None:
+            return False
+        self._selection_timer.stop()
+        if ctrl:
+            if key == Qt.Key.Key_V:
+                # Explicit target bypasses the main grid's unrelated selected
+                # row, which caused accidental pastes to a different folder.
+                launcher.paste_into_expanded_directory(destination_override=path)
+            else:
+                launcher.perform_filesystem_context_action(
+                    'cut' if key == Qt.Key.Key_X else 'copy', path, 'folder')
+            return True
+        if key == Qt.Key.Key_Delete:
+            launcher.perform_filesystem_context_action('delete', path, 'folder')
+        elif key == Qt.Key.Key_F2:
+            if not self.begin_folder_rename(path):
+                return False
+        else:  # F5
+            launcher.refresh_folder_information(path)
+        return True
 
     def _selection_changed(self, index, _previous):
         if self._syncing_directory:
@@ -590,6 +814,31 @@ class RemoteFilesExplorer(QWidget):
         self._selection_timer.stop()
         self.folder_renamed.emit(old_path, new_path)
 
+    def reflect_deleted_folder(self, deleted_path):
+        """Remove deleted branches without collapsing unrelated open paths."""
+        target = os.path.normcase(os.path.normpath(str(deleted_path)))
+        self._selection_timer.stop()
+        def prune(parent):
+            for row in range(parent.rowCount() - 1, -1, -1):
+                item = parent.child(row)
+                if item is None:
+                    continue
+                data = item.data(_DATA_ROLE)
+                path = data.get('path') if isinstance(data, dict) else None
+                if path and os.path.normcase(os.path.normpath(str(path))) == target:
+                    parent.removeRow(row)
+                else:
+                    prune(item)
+        # QTreeView may emit currentChanged while removing a selected row;
+        # do not interpret that incidental replacement as a folder click.
+        previous_sync = self._syncing_directory
+        self._syncing_directory = True
+        try:
+            prune(self.model.invisibleRootItem())
+        finally:
+            self._syncing_directory = previous_sync
+            self._selection_timer.stop()
+
     def reflect_external_folder_rename(self, old_path, new_path):
         """Keep loaded tree nodes (and expanded descendants) coherent with a
         rename committed by Remote's OTHER filesystem context menu.
@@ -644,6 +893,7 @@ class RemoteFilesExplorer(QWidget):
         # Add children before removing the placeholder, otherwise Qt can
         # collapse an expanded branch when its last child temporarily vanishes.
         item.removeRow(0)
+        self.refresh_transfer_visuals()
 
     def _save_size(self):
         if self._settings is not None and not self._restoring_size:

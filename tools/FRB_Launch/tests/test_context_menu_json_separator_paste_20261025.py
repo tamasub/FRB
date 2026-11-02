@@ -31,7 +31,10 @@ def test_file_and_folder_separators_and_paste_in_json():
     data = load_context_menus(CONFIG)
     for kind in ('file', 'folder'):
         ids = actions(data[kind])
-        assert ids[:4] == ['copy', 'cut', 'paste', '|']
+        if kind == 'folder':
+            assert ids[:5] == ['copy', 'cut', 'paste', 'refresh_directory', '|']
+        else:
+            assert ids[:4] == ['copy', 'cut', 'paste', '|']
         assert ids.count('|') >= 3
         assert ids[-1] == 'properties'
     # Multiple-selected paths, regardless of which one was right-clicked,

@@ -1281,7 +1281,6 @@ class LaunchWebView(QFrame):
                The rendered website is still owned by QWebEngineView itself. */
             QFrame#launchWebView {{background:{hdr};border:1px solid {border};border-top:0;
                  border-top-left-radius:0;border-top-right-radius:11px;}}
-            QFrame#launchWebView[remoteWebArea="web_body"] {{border:2px solid #58ad82;}}
             QTabWidget#launchWebTabs {{border:0;background:{bg};}}
             QTabWidget#launchWebTabs::pane {{border:0;margin:0;padding:0;background:{bg};}}
             QTabBar#launchWebTabBar {{background:transparent;border:none;}}
@@ -1294,8 +1293,6 @@ class LaunchWebView(QFrame):
                  border-top-right-radius:9px;}}
             QTabBar#launchWebTabBar::tab:selected {{background:{bg};font-weight:400;}}
             QTabBar#launchWebTabBar::tab:hover:!selected {{background:{hover};}}
-            QTabBar#launchWebTabBar[remoteWebActive="true"]::tab:selected
-                {{border:2px solid #58ad82;background:{bg};}}
             QFrame#launchWebAddressShell {{background:{colors['search_bg']};
                  border:1px solid {colors['search_border']};border-radius:12px;}}
             QLineEdit#launchWebAddress {{background:transparent;color:{muted};

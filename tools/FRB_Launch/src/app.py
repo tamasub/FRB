@@ -66,7 +66,7 @@ from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
 from cloud_link_shell import request_native_copy_link, select_in_explorer
 from windows_open_with import discover_open_with_apps, open_file_with_app
-from file_transfer_visual import transfer_state, pasted_paths_for, path_key
+from file_transfer_visual import transfer_state, pasted_paths_for, path_key, moved_source_parent_directories
 from context_menu_resolver import resolve_context_target
 from context_menu_config import load_context_menus, visible_context_entries
 from context_menu_actions import (show_windows_properties, open_file_explorer, open_parent_folder,
@@ -3926,6 +3926,11 @@ class Launcher(QWidget):
                 self._remote_area = 'directory'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
+        # Files Exp is a permanent companion to the Remote. Reopen it on
+        # each desktop activation, but never toggle an existing panel OFF.
+        panel = getattr(self.remote_window, 'files_exp_panel', None)
+        if panel is None or not panel.isVisible():
+            self.remote_window.toggle_files_exp()
         # Only verified desktop double clicks enter this path. Do not warp
         # the pointer on manual toggles, menu opens, or ordinary navigation.
         self.remote_window.focus_cursor_on_files_exp()
@@ -7247,6 +7252,58 @@ class Launcher(QWidget):
                 raise outcome['exception']
             return outcome['count']
 
+    def _record_transfer_result(self, destination, names):
+        """Show a short, confirmed paste highlight shared with Files Exp.
+
+        Paste feedback is *not* a selection or clipboard state. It must end
+        automatically even if the user does nothing after the paste.
+        Restart one timer per successful paste rather than stacking callbacks
+        that might prematurely clear a newer operation's feedback.
+        """
+        self._latest_pasted_paths = tuple(pasted_paths_for(destination, names))
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is not None:
+            panel.refresh_transfer_visuals()
+        timer = getattr(self, '_paste_feedback_timer', None)
+        if timer is None:
+            timer = QTimer(self)
+            timer.setSingleShot(True)
+            timer.timeout.connect(self._clear_previous_paste_feedback)
+            self._paste_feedback_timer = timer
+        timer.start(2500)
+
+    def refresh_files_exp_directory(self, directory):
+        """Rescan a folder in Files Exp, preserving expanded paths and cursor."""
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is not None and hasattr(panel, 'refresh_directory_branch'):
+            panel.refresh_directory_branch(str(directory))
+
+    def refresh_folder_information(self, directory):
+        """One explicit Refresh action shared by Files and Remote menus."""
+        target = Path(directory)
+        if not target.is_dir():
+            self.error('更新するフォルダーが見つかりません: ' + str(target))
+            return False
+        self.refresh_files_exp_directory(target)
+        view = getattr(self, 'expanded_view', None)
+        if view is not None and view.isVisible():
+            current = view.current_directory()
+            if current:
+                try:
+                    belongs = (path_key(current) == path_key(target) or
+                               Path(current).resolve().is_relative_to(target.resolve()))
+                except (OSError, ValueError):
+                    belongs = False
+                if belongs:
+                    view.refresh_middle()
+        # Do not close / rebase the existing Filesリスト cascade: refresh a
+        # matching open column in place, preserving its search and scroll.
+        popup = self._directory_menu_for_path(target)
+        if popup is not None and popup.isVisible():
+            QTimer.singleShot(0, lambda m=popup: self.refresh_pasted_directory(m, reopen=True))
+        self.footer.setText('最新の情報に更新しました: ' + str(target))
+        return True
+
     def _clear_previous_paste_feedback(self):
         """End the prior operation's visual result, not its clipboard data.
 
@@ -7254,6 +7311,13 @@ class Launcher(QWidget):
         to the whole visible cascade chain: a highlighted row may be in a
         nested directory rather than the menu receiving the new action.
         """
+        timer = getattr(self, '_paste_feedback_timer', None)
+        if timer is not None:
+            timer.stop()
+        self._latest_pasted_paths = ()
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is not None:
+            panel.refresh_transfer_visuals()
         menu = getattr(self, 'menu', None)
         while menu is not None:
             if getattr(menu, '_pasted_feedback_paths', ()):
@@ -7319,6 +7383,20 @@ class Launcher(QWidget):
                     clipboard.clear()
                 self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
             menu._pasted_feedback_paths = pasted_paths_for(destination, names_done)
+            # Move changes *both* folder trees. Capture source parents from the
+            # successful plan rather than looking at the clipboard after clear().
+            moved_from = (moved_source_parent_directories(plan, move=True)
+                          if move and not virtual else ())
+            self.refresh_files_exp_directory(destination)
+            # The destination gains the moved entries; each source parent loses
+            # them. Reconcile both visible tree branches after a confirmed MOVE.
+            if move and not virtual:
+                for source_parent in moved_from:
+                    if path_key(source_parent) != path_key(destination):
+                        self.refresh_files_exp_directory(source_parent)
+            report = getattr(self, '_record_transfer_result', None)
+            if callable(report):
+                report(destination, names_done)
             # Refresh only the edited menu. Preserve its parent chain, scroll
             # and search so the newly pasted rows can be visually confirmed.
             QTimer.singleShot(0, lambda m=menu: self.refresh_pasted_directory(m, reopen=True, focus_pasted=True))
@@ -9042,6 +9120,66 @@ class Launcher(QWidget):
         except (OSError, ValueError, TypeError, KeyError):
             return False
 
+    def can_delete_remote_folder(self, directory):
+        """Protect all registered roots, drives and their ancestors.
+
+        A folder *under* a registered root is still a normal folder and can
+        be deleted.  Moving (cutting) a protected root is also prohibited.
+        """
+        if not self.can_rename_remote_folder(directory):
+            return False
+        candidate = Path(directory)
+        try:
+            from remote_files_exp_roots import registered_folder_roots
+            from system_drives import drive_rows
+            roots = registered_folder_roots(self._remote_files_first_column_rows(),
+                                             self.expander().expand)
+            protected = [r['path'] for r in roots if r.get('path')]
+            protected.extend(r['launch_browse_target'] for r in drive_rows())
+            candidate_key = path_key(candidate)
+            for entry in protected:
+                protected_key = path_key(entry)
+                # Compare canonical, case-folded paths: Windows filenames are
+                # case insensitive and a folder name can be supplied in a
+                # different case from the saved JSON shortcut.
+                if (protected_key == candidate_key or
+                        protected_key.startswith(candidate_key.rstrip('/') + '/')):
+                    return False
+            return True
+        except (OSError, ValueError, TypeError, KeyError):
+            return False
+
+    def _after_folder_deleted(self, deleted_path, *, previous_current=None):
+        """Navigate from a removed folder to its *parent*, not a sibling row.
+
+        Capture the breadcrumb BEFORE recycle-bin work: after deleting the
+        directory, rendering/selection repair can already have cleared it.
+        The Files breadcrumb drives Files Exp selection through the existing
+        on_files_directory_changed notification, without a second navigation
+        source or a spurious history entry for a missing folder.
+        """
+        deleted = Path(deleted_path)
+        current = (previous_current if previous_current is not None else
+                   self.expanded_view.current_directory())
+        deleted_key = path_key(deleted)
+        current_key = path_key(current) if current else ''
+        affected = bool(current_key and
+                        (current_key == deleted_key or
+                         current_key.startswith(deleted_key.rstrip('/') + '/')))
+        parent = str(deleted.parent)
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        # Tree pruning may cause Qt to put the current row on the next sibling.
+        # Suppress that incidental selection and restore the exact parent.
+        if panel is not None:
+            panel.reflect_deleted_folder(str(deleted))
+        view = self.expanded_view
+        if view.isVisible() and affected and Path(parent).is_dir():
+            view.go_to_directory(parent)
+            if panel is not None and panel.isVisible():
+                panel.sync_current_directory(parent)
+        elif view.isVisible() and current_key == path_key(parent):
+            view.refresh_middle()
+
     def rename_remote_folder(self, directory):
         """One Rename command for Files Exp and Remote's current-folder menu.
 
@@ -9160,10 +9298,11 @@ class Launcher(QWidget):
 
     def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False,
                                             files_exp_rename_target=None):
-        """Shared Files blank-area menu; Remote adds ONE optional submenu.
+        """One JSON-defined folder menu for the Files background and Remote.
 
-        Keep the existing actions and their callbacks exactly the same for
-        both the Files column and Remote's right-click blank strip.
+        A Files Exp right-click binds EVERY action to its own folder, never
+        to whichever row happens to be highlighted in the main Files grid.
+        The Remote adds only Filesリスト and 新規作成 (not filesystem verbs).
         """
         if not self.expanded_view.current_directory():
             return False
@@ -9172,92 +9311,106 @@ class Launcher(QWidget):
         except (OSError, ValueError, KeyError) as exc:
             self.error('コンテキストメニュー定義が不正です: ' + str(exc))
             return False
-        paste = next((x for x in definitions if x.get('action_id') == 'paste'), None)
-        if paste is None:
-            return False
-        # A Files Exp right-click target is authoritative for the ENTIRE menu.
-        # Do not let the middle Files grid's selected first row override it.
         explicit_target = str(files_exp_rename_target) if files_exp_rename_target else None
+        target_directory = str(explicit_target or self.expanded_view.current_directory())
+        if not Path(target_directory).is_dir():
+            self.error('操作対象のフォルダーが見つかりません: ' + target_directory)
+            return False
         menu = RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
         if remote_folder_list:
-            # Files Exp's context menu is anchored to the actual right-click,
-            # which may be ABOVE the Remote's Files button. The Remote-only
-            # vertical popup band must not push this menu downward.
             if explicit_target is None:
                 menu = self._apply_remote_popup_bounds(menu)
             menu.remote_context_root = True
             menu.open_mode = 'keyboard'
-        if remote_folder_list:
-            directory = explicit_target or str(self.expanded_view.current_directory())
             menu.remote_target_directory = explicit_target
             folder_list_action = menu.addAction('Filesリスト')
             menu.folder_list_action = folder_list_action
-            menu.setMinimumWidth(max(menu.minimumWidth(), 235))
-            folder_list_action.setIcon(self.file_icons.icon(QFileInfo(directory)))
+            # Compact enough for the short caption without squeezing the
+            # longest actual filesystem action ('クラウドリンクのコピー').
+            menu.setMinimumWidth(218)
+            menu.setMaximumWidth(225)
+            folder_list_action.setIcon(self.file_icons.icon(QFileInfo(target_directory)))
             folder_list_action.setData({'item_kind': 'category', 'item_id': 'remote-folder-list'})
             menu.openers[folder_list_action] = (
                 lambda mode='hover', m=menu, a=folder_list_action:
                 self._open_remote_folder_cascade(m, a, None, mode))
             folder_list_action.triggered.connect(
-                lambda checked=False, a=folder_list_action:
-                menu.openers[a]('refresh'))
+                lambda checked=False, a=folder_list_action: menu.openers[a]('refresh'))
             self._remote_folder_opener = menu
             self._remote_folder_root_menu = None
-            self._remote_folder_source_path = os.path.normcase(os.path.normpath(directory))
+            self._remote_folder_source_path = os.path.normcase(os.path.normpath(target_directory))
             self._remote_folder_popup_pos = global_pos
-            menu.aboutToHide.connect(
-                lambda m=menu: self._remote_folder_opener_hidden(m))
-            # Visually separate the Remote navigator from existing Paste/New.
+            menu.aboutToHide.connect(lambda m=menu: self._remote_folder_opener_hidden(m))
             menu.addSeparator()
-        action = menu.addAction(paste['title'],
-                                lambda checked=False, p=explicit_target:
-                                self._paste_from_context_menu(self, target_folder=p))
-        action.setIcon(context_action_icon('paste'))
-        action.setIconVisibleInMenu(True)
-        action.setEnabled(self._context_paste_enabled(self))
-        # Explorer-like New shares the blank-area context menu with Paste.
-        # The separate right-side Back lane uses the same submenu builder.
-        menu.addSeparator()
-        if explicit_target is None:
-            new_submenu = self.expanded_view.add_lane_new_submenu(menu)
-        else:
-            new_submenu = self.expanded_view.add_lane_new_submenu(menu, target_directory=explicit_target)
-        if remote_folder_list and new_submenu is not None:
-            menu.new_submenu_action = new_submenu.menuAction()
-        # Both the separate right Back lane and the lower blank area use this
-        # SAME menu.  Read existing folder actions from the authoritative JSON
-        # so captions, icons and separators match regular folder menus.
-        # One declarative action sequence for BOTH Remote blank-area and Files
-        # Exp. Keep the folder menu order from context_menu_options.json:
-        # Rename follows Delete's position (Delete is not yet exposed here),
-        # and appears before Properties. This must never be appended as a
-        # Files-Exp-only extra action again.
-        folder_actions = {'open_explorer', 'open_terminal', 'copy_path',
-                          'copy_cloud_link', 'properties'}
-        if remote_folder_list:
-            folder_actions.add('rename')  # Only Remote / Files Exp, not Files background.
-        target_directory = str(files_exp_rename_target or self.expanded_view.current_directory())
-        selected = visible_context_entries(definitions, folder_actions)
-        if selected:
-            menu.addSeparator()
-            for definition in selected:
-                if definition.get('type') == 'separator':
-                    menu.addSeparator()
-                    continue
-                action_id = definition['action_id']
-                if action_id == 'rename':
-                    folder_action = menu.addAction(
-                        definition['title'],
-                        lambda checked=False, p=target_directory:
-                        QTimer.singleShot(0, lambda: self.rename_remote_folder(p)))
-                    folder_action.setEnabled(self.can_rename_remote_folder(target_directory))
+
+        # Context definitions determine order, labels and grouping.  The
+        # special New submenu follows Paste, and Filesリスト stays above them.
+        # There must never be an alternate Remote-only copy/delete implementation.
+        for definition in visible_context_entries(definitions):
+            if definition.get('type') == 'separator':
+                menu.addSeparator()
+                continue
+            action_id = definition['action_id']
+            if action_id == 'refresh_directory':
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, p=target_directory:
+                    QTimer.singleShot(0, lambda: self.refresh_folder_information(p)))
+            elif action_id == 'paste':
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, p=(target_directory if remote_folder_list
+                                             else explicit_target):
+                    self._paste_from_context_menu(self, target_folder=p))
+                action.setEnabled(self._context_paste_enabled(self))
+            elif action_id == 'rename':
+                if not remote_folder_list:
+                    continue  # Files background is not a selected folder.
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, p=target_directory:
+                    QTimer.singleShot(0, lambda: self.rename_remote_folder(p)))
+                action.setEnabled(self.can_rename_remote_folder(target_directory))
+            elif action_id == 'delete':
+                if not remote_folder_list:
+                    continue  # No implicit destructive action on a background.
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, p=target_directory:
+                    self.perform_filesystem_context_action('delete', p, 'folder'))
+                action.setEnabled(self.can_delete_remote_folder(target_directory))
+            elif action_id in ('copy', 'cut'):
+                if not remote_folder_list:
+                    continue  # Copy/cut require an explicitly targeted folder.
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, a=action_id, p=target_directory:
+                    self.perform_filesystem_context_action(a, p, 'folder'))
+                if action_id == 'cut':
+                    action.setEnabled(self.can_delete_remote_folder(target_directory))
+            else:
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, a=action_id, p=target_directory:
+                    self.perform_filesystem_context_action(a, p, 'folder'))
+            action.setIcon(context_action_icon(action_id))
+            action.setIconVisibleInMenu(True)
+            if action_id == 'paste':
+                menu.addSeparator()
+                if explicit_target is None:
+                    new_submenu = self.expanded_view.add_lane_new_submenu(menu)
                 else:
-                    folder_action = menu.addAction(
-                        definition['title'],
-                        lambda checked=False, a=action_id, p=target_directory:
-                        self.perform_filesystem_context_action(a, p, 'folder'))
-                folder_action.setIcon(context_action_icon(action_id))
-                folder_action.setIconVisibleInMenu(True)
+                    new_submenu = self.expanded_view.add_lane_new_submenu(
+                        menu, target_directory=explicit_target)
+                if remote_folder_list and new_submenu is not None:
+                    menu.new_submenu_action = new_submenu.menuAction()
+        # Ignore repeated or trailing dividers when a subset is disabled.
+        actions = menu.actions()
+        for current, later in zip(actions, actions[1:]):
+            if current.isSeparator() and later.isSeparator():
+                current.setVisible(False)
+        if actions and actions[-1].isSeparator():
+            actions[-1].setVisible(False)
         menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
                            + context_menu_spacing_qss(self.color_theme)
                            + (remote_new_arrow_qss(self.color_theme)
@@ -9449,6 +9602,8 @@ class Launcher(QWidget):
                         lambda checked=False, a=action_id, p=path, k=origin:
                         self.perform_filesystem_context_action(a, p, k))
                 if action is not None:
+                    if origin == 'folder' and action_id in ('cut', 'delete'):
+                        action.setEnabled(self.can_delete_remote_folder(path))
                     action.setIcon(context_action_icon(action_id))
                     action.setIconVisibleInMenu(True)
             if menu.isEmpty():
@@ -9527,6 +9682,10 @@ class Launcher(QWidget):
                     targets.append(path)
             if not targets:
                 return
+            if action_id in ('cut', 'delete'):
+                forbidden = [p for p in targets if p.is_dir() and not self.can_delete_remote_folder(p)]
+                if forbidden:
+                    raise ValueError('登録フォルダー・保護対象は移動・削除できません: ' + str(forbidden[0]))
             self._clear_previous_paste_feedback()
             if action_id in ('copy_full_path', 'copy_file_name'):
                 lines = (str(path) if action_id == 'copy_full_path' else path.name
@@ -9541,6 +9700,7 @@ class Launcher(QWidget):
                 QApplication.clipboard().setMimeData(mime)
                 self.footer.setText(f'{len(targets)}件を{"切り取り" if action_id == "cut" else "コピー"}しました')
             elif action_id == 'delete':
+                current_before_delete = self.expanded_view.current_directory()
                 listed = '\n'.join('・' + p.name for p in targets[:8])
                 if len(targets) > 8:
                     listed += f'\nほか {len(targets) - 8} 件'
@@ -9552,10 +9712,14 @@ class Launcher(QWidget):
                 if answer != QMessageBox.StandardButton.Yes:
                     return
                 finished = 0
+                removed_directories = []
                 with self.filesystem_progress('ごみ箱へ移動', len(targets)) as advance:
                     for path in targets:
                         advance(finished, len(targets), path.name)
+                        was_directory = path.is_dir()
                         move_to_recycle_bin(path)
+                        if was_directory:
+                            removed_directories.append(path)
                         finished += 1
                         advance(finished, len(targets), path.name)
                 self.footer.setText(f'{finished}件をごみ箱へ移動しました')
@@ -9565,6 +9729,12 @@ class Launcher(QWidget):
             self.error('複数項目を操作できませんでした: ' + str(exc))
         finally:
             if action_id == 'delete':
+                # Also recover navigation on partial failure. Only successfully
+                # recycled folders are removed from the tree.
+                for removed in locals().get('removed_directories', ()):
+                    self._after_folder_deleted(
+                        str(removed),
+                        previous_current=locals().get('current_before_delete'))
                 # Refresh even after a partially successful recycle batch.
                 if locals().get('finished', 0) and self.expanded_view.isVisible():
                     QTimer.singleShot(0, self.expanded_view.refresh_middle)
@@ -9624,8 +9794,26 @@ class Launcher(QWidget):
                 if move:
                     clipboard.clear()
                 self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
-            # A paste into a selected child folder refreshes its parent list;
-            # never navigate away silently from the user's current place.
+            # Only successful transfers count as pasted results. When the
+            # clipboard is changed by Windows/Explorer the pending cut state
+            # is automatically cleared by the common clipboard signal.
+            report = getattr(self, '_record_transfer_result', None)
+            if callable(report):
+                if not virtual:
+                    report(destination, [item.target.name for item in plan])
+                else:
+                    report(destination, names or ())
+            # A move removes entries from the original parents as well as
+            # adding them to the target. Keep all other expanded branches.
+            moved_from = (moved_source_parent_directories(plan, move=True)
+                          if move and not virtual else ())
+            self.refresh_files_exp_directory(destination)
+            # The destination gains the moved entries; each source parent loses
+            # them. Reconcile both visible tree branches after a confirmed MOVE.
+            if move and not virtual:
+                for source_parent in moved_from:
+                    if path_key(source_parent) != path_key(destination):
+                        self.refresh_files_exp_directory(source_parent)
             self.expanded_view.refresh_middle()
         except AmbiguousPasteTarget as exc:
             self._warn_ambiguous_paste_target(exc)
@@ -9771,6 +9959,10 @@ class Launcher(QWidget):
             if (kind == 'file' and not path.is_file()) or (kind == 'folder' and not path.is_dir()):
                 self.error('対象の種類が変更されています: ' + str(path))
                 return
+            if kind == 'folder' and action_id in ('cut', 'delete'):
+                if not self.can_delete_remote_folder(path):
+                    self.error('登録フォルダー・ドライブ・保護対象の親フォルダーは移動・削除できません: ' + str(path))
+                    return
             # Copy/cut/delete/rename (and other file actions) start a new
             # interaction: do not leave the previous paste's teal rows visible.
             # Clipboard cut state is separately controlled by the OS clipboard.
@@ -9786,7 +9978,24 @@ class Launcher(QWidget):
                              (2 if action_id == 'cut' else 1).to_bytes(4, 'little'))
                 QApplication.clipboard().setMimeData(mime)
                 self.footer.setText(f'{path.name} を{"切り取り" if action_id == "cut" else "コピー"}しました')
+                # A Remote/Exp clipboard action is finished. Do not leave the
+                # Filesリスト cascade or parent context window on screen.
+                def close_clipboard_menus():
+                    transient = getattr(self, '_launch_context_menu', None)
+                    if transient is not None:
+                        transient.close()
+                    if (getattr(self, '_remote_folder_opener', None) is not None or
+                            getattr(self, '_remote_folder_root_menu', None) is not None):
+                        self.close_remote_folder_menu()
+                if (getattr(self, '_remote_folder_opener', None) is not None or
+                        getattr(self, '_remote_folder_root_menu', None) is not None):
+                    QTimer.singleShot(0, close_clipboard_menus)
+            elif action_id == 'refresh_directory' and kind == 'folder':
+                self.refresh_folder_information(path)
             elif action_id == 'delete':
+                # A deleted current folder must not be resolved again AFTER
+                # the OS has removed it.  Remember its old breadcrumb now.
+                current_before_delete = self.expanded_view.current_directory()
                 visible_menu = self._directory_menu_for_path(path.parent)
                 self.hover_timer.stop()
                 self.pending_menu_item = None
@@ -9811,8 +10020,23 @@ class Launcher(QWidget):
                     QTimer.singleShot(900, lambda: setattr(
                         self, '_filesystem_dialog_depth',
                         max(0, getattr(self, '_filesystem_dialog_depth', 0) - 1)))
+                # Move the breadcrumb and Files Exp to the real parent BEFORE
+                # refreshing/rebuilding any file views or popup columns.
+                if kind == 'folder':
+                    self._after_folder_deleted(
+                        str(path), previous_current=current_before_delete)
                 # A delete refresh does not carry over old paste highlights.
-                if visible_menu is not None:
+                # Do not reopen a popup for a directory that was just removed.
+                # Keep the refreshed parent as the Files breadcrumb.
+                deleted_current_folder = (kind == 'folder' and
+                    current_before_delete is not None and
+                    (path_key(current_before_delete) == path_key(path) or
+                     path_key(current_before_delete).startswith(path_key(path).rstrip('/') + '/')))
+                if deleted_current_folder:
+                    context_menu = getattr(self, '_launch_context_menu', None)
+                    if context_menu is not None:
+                        context_menu.close()
+                elif visible_menu is not None:
                     # The row context QMenu may still own Qt focus when the
                     # modal confirmation exits. Close it FIRST so the new
                     # folder column is not hidden by its subsequent cleanup.
@@ -9831,7 +10055,7 @@ class Launcher(QWidget):
                             self.expanded_view.isVisible() and
                             self.expanded_view.current_directory() == str(path.parent)):
                         QTimer.singleShot(0, self.expanded_view.refresh_middle)
-                    else:
+                    elif not deleted_current_folder:
                         self.render()
                 if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
                     QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
