@@ -151,18 +151,23 @@ def test_left_arrow_stops_at_column_two_when_already_first_row():
 
 
 def test_files_home_focuses_second_column_in_experiment():
-    calls=[]
-    first=object()
-    left = SimpleNamespace(tree=SimpleNamespace(topLevelItem=lambda index: first, setCurrentItem=lambda item: None))
-    middle = object()
-    view=SimpleNamespace(isVisible=lambda:True, show_files_view=lambda:calls.append('files'),
-                         left=left, middle=middle, choose_files=lambda *_:calls.append('choose'),
-                         focus_panel=lambda panel:calls.append(('focus',panel)))
-    launcher=SimpleNamespace(data=[1], pages=[1], expanded_view=view,
-                             files_root_hidden_mode=True, remote_window=None)
+    # Hidden-first-column mode (without an active Files Exp model) must keep
+    # the original fallback: preview the first authored row in column 2.
+    calls = []
+    first = object()
+    left = SimpleNamespace(tree=SimpleNamespace(
+        topLevelItem=lambda index: first,
+        setCurrentItem=lambda item: calls.append('select-legacy')))
+    view = SimpleNamespace(isVisible=lambda: True,
+                           show_files_view=lambda: calls.append('files'),
+                           left=left,
+                           choose_files=lambda *_: calls.append('choose'))
+    launcher = SimpleNamespace(data=[1], pages=[1], expanded_view=view,
+                               files_exp_embedded_mode=False,
+                               files_root_hidden_mode=True, remote_window=None,
+                               remote_focus_area=lambda area: calls.append(('focus', area)))
     method(APP, 'Launcher', 'navigate_home')(launcher)
-    assert calls[-1] == ('focus', middle)
-    assert calls[:2]==['files','choose']
+    assert calls == ['files', 'select-legacy', 'choose', ('focus', 'directory')]
 
 
 def test_experiment_preserves_original_splitter_sizes_and_bookmark_prefs():

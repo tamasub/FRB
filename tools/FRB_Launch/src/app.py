@@ -3059,7 +3059,7 @@ class Launcher(QWidget):
         for button, name, tip in (
             (self.nav_back_button, 'navBackButton', '前の画面に戻る'),
             (self.nav_forward_button, 'navForwardButton', 'Filesのフォルダー履歴を進む'),
-            (self.nav_home_button, 'navHomeButton', 'ホーム（仕事Pageの先頭）')):
+            (self.nav_home_button, 'navHomeButton', 'HOME：Files Expを全折りたたみ→先頭行を選択→第2列に表示')):
             button.setObjectName(name)
             button.setToolTip(tip)
             button.setFixedSize(40, 40)
@@ -7197,15 +7197,42 @@ class Launcher(QWidget):
         if not self.data or not self.pages:
             return
         if self.expanded_view.isVisible():
+            # HOME contract (both Launch and Remote): close ALL Files Exp
+            # branches, select its first root (usually PC), then show that
+            # root's children in Files column 2. Browser tabs remain intact.
+            # Reset the tree BEFORE selecting the first row so stale expanded
+            # descendants and a previous current folder cannot survive HOME.
             view = self.expanded_view
             view.show_files_view()
-            first = view.left.tree.topLevelItem(0)
-            if first is not None:
-                view.left.tree.setCurrentItem(first)
-                view.choose_files(first, 0)
-            view.focus_panel(view.middle if self.files_root_hidden_mode else view.left)
-            if self.remote_window is not None and self.remote_window.isVisible():
-                self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
+            panel = None
+            if self.files_exp_embedded_mode:
+                panel = view.embedded_files_exp
+                if not view._embedded_files_exp_roots_ready:
+                    view.reload_embedded_files_exp_roots()
+            else:
+                remote = getattr(self, 'remote_window', None)
+                candidate = getattr(remote, 'files_exp_panel', None)
+                panel = candidate if (candidate is not None and candidate.isVisible()) else None
+            if panel is not None:
+                panel.reset_to_roots()  # Rebuild collapsed roots; persist reset.
+            target = (panel.select_first_root_for_home()
+                      if panel is not None else None)
+            navigated = False
+            if target is not None:
+                kind, directory = target
+                if kind == 'pc':
+                    navigated = self.navigate_files_exp_pc()
+                elif kind == 'folder':
+                    navigated = self.navigate_files_exp_folder(directory)
+            if not navigated:
+                # Compatibility fallback for configurations with no Files Exp
+                # model (classic/hidden first column, no Remote open).
+                first = view.left.tree.topLevelItem(0)
+                if first is not None:
+                    view.left.tree.setCurrentItem(first)
+                    view.choose_files(first, 0)
+            self.remote_focus_area('directory' if self.files_root_hidden_mode
+                                   else 'files')
             return
         self._nav_before_change()
         self._nav_restoring = True

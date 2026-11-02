@@ -646,6 +646,41 @@ class RemoteFilesExplorer(QWidget):
             state_timer.stop()
             save_state()
 
+    def select_first_root_for_home(self):
+        """Select the first Files Exp root for Launch/Remote HOME.
+
+        Selection and the column-2 preview are separate responsibilities:
+        return an explicit PC/folder target and let Launcher perform the
+        navigation.  Launcher calls reset_to_roots() first, which folds all
+        branches; this method then selects the fresh first root.
+        Suppress delayed selection callbacks so HOME cannot navigate twice.
+        """
+        index = self.model.index(0, 0)
+        if not index.isValid():
+            return None
+        item = self.model.itemFromIndex(index)
+        data = item.data(_DATA_ROLE) if item is not None else None
+        if not isinstance(data, dict):
+            return None
+        if data.get('pc'):
+            target = ('pc', None)
+        else:
+            path = self._index_path(index)
+            if not path:
+                return None
+            target = ('folder', path)
+        self._selection_timer.stop()
+        self.tree.clear_wheel_pending()
+        previous_sync = self._syncing_directory
+        self._syncing_directory = True
+        try:
+            self.tree.setCurrentIndex(index)
+            self.tree.scrollTo(index)
+        finally:
+            self._syncing_directory = previous_sync
+        self._schedule_tree_state_save()
+        return target
+
     def _index_path(self, index):
         if not index.isValid():
             return None
