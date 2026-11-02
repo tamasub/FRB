@@ -88,13 +88,17 @@ def test_wheel_honors_pointer_follow_vdi_and_moves_visible_tree_rows():
     assert "'pointer_warp_enabled'" in EXPLORER
 
 
-def test_page_right_click_uses_same_page_clicked_signal_as_left():
-    block = ast.get_source_segment(REMOTE, method(REMOTE, 'LaunchRemote', 'set_pages'))
-    assert 'button.clicked.connect(lambda checked=False, pid=page_id:' in block
-    assert 'button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)' in block
-    assert 'button.customContextMenuRequested.connect(' in block
-    assert 'self.page_clicked.emit(pid)' in block
-    assert 'self.remote_window.page_clicked.connect(self.open_remote_page)' in APP
+def test_page_right_click_uses_same_page_cascade_as_left():
+    # The Page buttons moved from Remote to Launch's workspace strip.
+    view = (Path(__file__).resolve().parents[1] / 'src' / 'expanded_view.py').read_text(encoding='utf-8')
+    assert 'button.clicked.connect(lambda checked=False, pid=page_id, b=button:' in view
+    assert 'button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)' in view
+    assert 'button.customContextMenuRequested.connect(' in view
+    assert 'self.launcher.open_remote_page(pid, anchor=b)' in view
+    assert 'def open_remote_page(self, page_id, anchor=None):' in APP
+    remote_pages = ast.get_source_segment(REMOTE, method(REMOTE, 'LaunchRemote', 'set_pages'))
+    assert 'self.page_buttons = []' in remote_pages
+    assert 'button.clicked.connect(' not in remote_pages
 
 
 def test_current_files_window_behaviors_and_no_filesystem_writes_in_tree():

@@ -210,17 +210,29 @@ class RemoteFilesExplorer(QWidget):
     folder_context_requested = Signal(str, QPoint)
     folder_renamed = Signal(str, str)
 
-    def __init__(self, remote, theme):
+    def __init__(self, remote, theme, *, launcher=None, embedded=False):
         # The remote owns this independent, resizable frameless tool. Its
         # geometry is Remote-relative, but its *size* belongs to the user.
-        super().__init__(remote, Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        embedded = bool(embedded)
+        owner = launcher if launcher is not None else remote.parent()
+        parent = owner if embedded else remote
+        if embedded:
+            super().__init__(parent)
+        else:
+            super().__init__(parent, Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        self._embedded = embedded
+        self._remote = remote
+        self._launcher = owner
         # Match the Remote's painted 1px / 10px outline, including its
         # genuinely transparent corners on Windows.
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setObjectName('remoteFilesExplorer')
+        if not self._embedded:
+            self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setObjectName('embeddedFilesExplorer' if self._embedded else 'remoteFilesExplorer')
         self.setWindowTitle('Files Exp')
         self.setMinimumSize(220, 180)
-        launcher = remote.parent()
+        launcher = self._launcher
+        self._tree_state_key = ('files_exp_embedded/tree_state_v1' if self._embedded
+                                else 'remote_files_exp/tree_state_v1')
         self._settings = getattr(launcher, 'settings', None)
         # User overrides are independent of the existing Exp size settings.
         # Until explicitly dragged/resized, Files single-column mode may
@@ -245,7 +257,8 @@ class RemoteFilesExplorer(QWidget):
                 height = int(self._settings.value('remote_files_exp/height', height))
             except (TypeError, ValueError):
                 width, height = 330, 425
-        self.resize(max(220, min(width, 1600)), max(180, min(height, 1400)))
+        if not self._embedded:
+            self.resize(max(220, min(width, 1600)), max(180, min(height, 1400)))
         self._restoring_size = False
         # Tree session is independent of the Launch breadcrumb. Restoring a
         # window must not navigate Launch or collapse another user's branches.
@@ -264,14 +277,17 @@ class RemoteFilesExplorer(QWidget):
 
         layout = QVBoxLayout(self)
         # Match LaunchRemote's title-strip breathing room (5px, 3px).
-        layout.setContentsMargins(5, 5, 5, 5)
+        if self._embedded:
+            layout.setContentsMargins(0, 0, 0, 0)
+        else:
+            layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(3)
 
         # Only one header remains: no duplicated 'first column' caption.
         header = QFrame(self)
         header.setObjectName('filesExpHeader')
         # Match the *actual* Remote title strip, including user font scaling.
-        remote_header = remote.findChild(QFrame, 'remoteTitleBar')
+        remote_header = remote.findChild(QFrame, 'remoteTitleBar') if remote is not None else None
         remote_header_height = (remote_header.height() if remote_header is not None
                                 and remote_header.height() >= 24 else
                                 remote_header.sizeHint().height() if remote_header is not None
@@ -289,29 +305,39 @@ class RemoteFilesExplorer(QWidget):
         self.home_button.setIconSize(QSize(18, 18))
         self.home_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.home_button.clicked.connect(self.reset_to_roots)
-        header_row.addWidget(self.home_button)
+        if not self._embedded:
+            header_row.addWidget(self.home_button)
+        else:
+            # Inline first column has no close/remove button; its own HOME
+            # control is also redundant beside Launch's permanent HOME.
+            self.home_button.hide()
         title = QLabel('Files Exp', header)
         title.setObjectName('filesExpTitle')
         header_row.addWidget(title, 1)
         # Match the Remote header's × control (22px square, framed, rounded).
-        close_button = QPushButton('×', header)
-        close_button.setObjectName('filesExpClose')
-        close_button.setProperty('role', 'icon')
-        close_button.setToolTip('閉じる')
-        close_button.setFixedSize(22, 22)
-        close_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        close_button.clicked.connect(self.hide)
-        header_row.addWidget(close_button)
+        if not self._embedded:
+            # The inline first column cannot be closed: Files Exp is the
+            # navigation area, not a dismissible floating tool window.
+            close_button = QPushButton('×', header)
+            close_button.setObjectName('filesExpClose')
+            close_button.setProperty('role', 'icon')
+            close_button.setToolTip('閉じる')
+            close_button.setFixedSize(22, 22)
+            close_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            close_button.clicked.connect(self.hide)
+            header_row.addWidget(close_button)
         layout.addWidget(header)
-        self._header_drag = PassiveHeaderDrag(self, on_header_press=self._arm_manual_move)
+        self._header_drag = (None if self._embedded else
+                             PassiveHeaderDrag(self, on_header_press=self._arm_manual_move))
         header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         title.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         header.customContextMenuRequested.connect(
             lambda point: self._show_layout_menu(header.mapToGlobal(point)))
         title.customContextMenuRequested.connect(
             lambda point: self._show_layout_menu(title.mapToGlobal(point)))
-        header.installEventFilter(self._header_drag)
-        title.installEventFilter(self._header_drag)
+        if self._header_drag is not None:
+            header.installEventFilter(self._header_drag)
+            title.installEventFilter(self._header_drag)
 
         # QFileSystemModel accepts only ONE visual root. For several independent
         # shortcut roots retain QTreeView and use a lazy, read-only item model.
@@ -322,7 +348,7 @@ class RemoteFilesExplorer(QWidget):
         self._rename_in_progress = None
         self.tree = FilesExpWheelTree(self)
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
-            remote.parent(), 'pointer_warp_enabled', True))
+            launcher, 'pointer_warp_enabled', True))
         self.tree.setObjectName('filesExpTree')
         self.tree.setModel(self.model)
         self.tree.setItemDelegate(FilesExpRenameDelegate(self.tree))
@@ -373,7 +399,10 @@ class RemoteFilesExplorer(QWidget):
         self.size_grip = QSizeGrip(footer)
         self.size_grip.setObjectName('filesExpSizeGrip')
         footer_row.addWidget(self.size_grip, 0, Qt.AlignmentFlag.AlignBottom)
-        layout.addWidget(footer)
+        if not self._embedded:
+            layout.addWidget(footer)
+        else:
+            footer.hide()
 
         style = QApplication.style()
         # Use the SAME glyph as Launch's ordinary directory rows; virtual PC
@@ -405,7 +434,7 @@ class RemoteFilesExplorer(QWidget):
         return item
 
     def _transfer_paths(self):
-        launcher = self.parentWidget().parent() if self.parentWidget() is not None else None
+        launcher = self._launcher
         mime = QApplication.clipboard().mimeData()
         cut_paths = clipboard_sources(mime) if is_cut_clipboard(mime) else ()
         pasted_paths = getattr(launcher, '_latest_pasted_paths', ())
@@ -455,7 +484,7 @@ class RemoteFilesExplorer(QWidget):
     def _clipboard_changed(self):
         # Explorer can replace the clipboard too. End the former paste marker,
         # exactly as CascadeMenu._on_clipboard_change does.
-        launcher = self.parentWidget().parent() if self.parentWidget() is not None else None
+        launcher = self._launcher
         if launcher is not None:
             launcher._latest_pasted_paths = ()
         self.refresh_transfer_visuals()
@@ -601,8 +630,10 @@ class RemoteFilesExplorer(QWidget):
         breadcrumb.  The registered root list comes from the same rendered
         Files first-column that is used when the Exp panel is opened.
         """
-        remote = self.parentWidget()
-        launcher = remote.parent() if remote is not None else None
+        launcher = getattr(self, '_launcher', None)
+        if launcher is None:
+            remote = self.parentWidget()
+            launcher = remote.parent() if remote is not None else None
         if launcher is None or not hasattr(launcher, '_remote_files_first_column_rows'):
             return
         self.set_roots(launcher._remote_files_first_column_rows(),
@@ -641,8 +672,10 @@ class RemoteFilesExplorer(QWidget):
         path = self._index_path(self.tree.currentIndex())
         if not path:
             return False  # PC / no selection is not a physical target.
-        remote = self.parentWidget()
-        launcher = remote.parent() if remote is not None else None
+        launcher = getattr(self, '_launcher', None)
+        if launcher is None:
+            remote = self.parentWidget()
+            launcher = remote.parent() if remote is not None else None
         if launcher is None:
             return False
         self._selection_timer.stop()
@@ -869,7 +902,10 @@ class RemoteFilesExplorer(QWidget):
             new_path = str(rename_file_or_folder(old_path, new_name))
         except (OSError, ValueError) as exc:
             item.setText(Path(old_path).name)
-            launcher = self.parentWidget().parent()
+            launcher = getattr(self, '_launcher', None)
+            if launcher is None:
+                remote = self.parentWidget()
+                launcher = remote.parent() if remote is not None else None
             launcher.error('名前を変更できませんでした: ' + str(exc))
             return
         item.setData({'path': new_path, 'pc': False}, _DATA_ROLE)
@@ -1016,8 +1052,12 @@ class RemoteFilesExplorer(QWidget):
         if self._settings is None or self._restoring_tree or self._syncing_directory:
             return
         state = self._capture_tree_state()
-        self._settings.setValue('remote_files_exp/tree_state_v1',
-                                json.dumps(state, ensure_ascii=False))
+        if getattr(self, '_embedded', False):
+            self._settings.setValue('files_exp_embedded/tree_state_v1',
+                                    json.dumps(state, ensure_ascii=False))
+        else:
+            self._settings.setValue('remote_files_exp/tree_state_v1',
+                                    json.dumps(state, ensure_ascii=False))
         self._settings.sync()
 
     def restore_previous_tree_state(self):
@@ -1028,7 +1068,9 @@ class RemoteFilesExplorer(QWidget):
         """
         if self._settings is None:
             return False
-        raw = self._settings.value('remote_files_exp/tree_state_v1', '')
+        key = ('files_exp_embedded/tree_state_v1' if getattr(self, '_embedded', False)
+               else 'remote_files_exp/tree_state_v1')
+        raw = self._settings.value(key, '')
         try:
             state = json.loads(raw) if isinstance(raw, str) else None
         except (ValueError, TypeError):
@@ -1158,8 +1200,8 @@ class RemoteFilesExplorer(QWidget):
             remote.align_with_files_grid()
 
     def _show_layout_menu(self, position):
-        launcher = self.parentWidget().parent() if self.parentWidget() else None
-        if not getattr(launcher, 'files_root_hidden_mode', False):
+        launcher = self._launcher
+        if self._embedded or not getattr(launcher, 'files_root_hidden_mode', False):
             return
         menu = QMenu(self)
         reset = menu.addAction('Launchのグリッド位置・高さに再整列')
@@ -1169,7 +1211,8 @@ class RemoteFilesExplorer(QWidget):
             self.reset_grid_layout()
 
     def _save_size(self):
-        if self._settings is not None and not self._restoring_size:
+        if (self._settings is not None and not self._restoring_size
+                and not getattr(self, '_embedded', False)):
             self._settings.setValue('remote_files_exp/width', self.width())
             # Auto-fit height is a display result, not a new user preference:
             # preserve the old saved height for non-experimental mode.
@@ -1187,7 +1230,7 @@ class RemoteFilesExplorer(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        if self.isVisible():
+        if self.isVisible() and not getattr(self, '_embedded', False):
             if (self._grid_height_mode and not self._automatic_placement
                     and event.oldSize().height() != event.size().height()):
                 self._manual_height = True
@@ -1203,8 +1246,9 @@ class RemoteFilesExplorer(QWidget):
         self._position_save_timer.stop()
         self._tree_state_timer.stop()
         self._save_tree_state()
-        self._save_size()
-        self._save_manual_position()
+        if not self._embedded:
+            self._save_size()
+            self._save_manual_position()
         self._selection_timer.stop()
         super().hideEvent(event)
 
@@ -1213,12 +1257,15 @@ class RemoteFilesExplorer(QWidget):
         self._position_save_timer.stop()
         self._tree_state_timer.stop()
         self._save_tree_state()
-        self._save_size()
-        self._save_manual_position()
+        if not self._embedded:
+            self._save_size()
+            self._save_manual_position()
         super().closeEvent(event)
 
     def paintEvent(self, event):
         """Draw exactly the same rounded, hairline window rim as LaunchRemote."""
+        if self._embedded:
+            return super().paintEvent(event)
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setBrush(self._exp_background)
@@ -1234,7 +1281,7 @@ class RemoteFilesExplorer(QWidget):
         self._exp_background = QColor(colors['panel'])
         self._exp_outline = QColor('#ccd3d7')  # identical to LaunchRemote
         self.setStyleSheet(f"""
-            QWidget#remoteFilesExplorer {{background:transparent;color:{colors['text']};
+            QWidget#remoteFilesExplorer, QWidget#embeddedFilesExplorer {{background:transparent;color:{colors['text']};
                 border:0;}}
             QFrame#filesExpHeader {{background:{colors['header']};
                 border:1px solid {colors['panel_border']};border-radius:5px;}}

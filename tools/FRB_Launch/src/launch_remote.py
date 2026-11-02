@@ -198,7 +198,7 @@ class UpDoubleClickBand(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('remoteUpDoubleClickBand')
-        self.setFixedHeight(23)
+        self.setFixedHeight(46)
         self.setToolTip('ダブルクリック：上位フォルダーへ / 右クリック：カレントフォルダー操作')
         self._files_mode = True
         self._skip_release_after_double = False
@@ -339,31 +339,25 @@ class LaunchRemote(QWidget):
         self.page_column = QVBoxLayout()
         self.page_column.setContentsMargins(0, 0, 0, 0)
         self.page_column.setSpacing(3)
-        root.addLayout(self.page_column)
+        # Page controls now live beside Launch's Files/Browser tabs.
+        # Keep the empty layout as an API-compatible placeholder only.
         self.set_pages(getattr(launcher, 'pages', ()))
 
         # Separate the three Page launchers from the Files/Browser controls.
         self.page_separator = QFrame(self)
         self.page_separator.setObjectName('remotePageSeparator')
         self.page_separator.setFixedHeight(7)
-        root.addWidget(self.page_separator)
+        self.page_separator.hide()
 
-        # Promoted Files Exp: a full-width Remote control above Files/Browser.
-        # Both mouse buttons toggle the same registered-folder tree.
+        # Files Exp is the left workspace button, not a separate popup toggle.
         self.files_exp_panel = None
         self._grid_aligned = False
         self._applying_grid_alignment = False
         self.files_exp_theme = launcher.color_theme
         self.files_exp_button = self._button(
-            'Files Exp', '登録フォルダーのツリーを開く（左右クリック対応）',
-            'FILES_EXP_PREVIEW', width=172, height=27, role='workspace',
+            'Files Exp', 'LaunchのFiles画面へ切り替え',
+            'WORKSPACE_FILES', width=85, height=27, role='workspace',
             wheel_enabled=True)
-        self.files_exp_button.clicked.disconnect()
-        self.files_exp_button.clicked.connect(self.toggle_files_exp)
-        self.files_exp_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.files_exp_button.customContextMenuRequested.connect(
-            lambda _point: self.toggle_files_exp())
-        root.addWidget(self.files_exp_button)
 
         # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
         # on these buttons still go through the shared WheelPad accumulator.
@@ -374,12 +368,9 @@ class LaunchRemote(QWidget):
         row_workspaces = QHBoxLayout()
         row_workspaces.setContentsMargins(0, 0, 0, 0)
         row_workspaces.setSpacing(2)
-        self.files_button = self._button('Files', 'Files画面へ切り替え / 右クリック：第1列から開く',
-                                         'WORKSPACE_FILES', width=85, height=27,
-                                         role='workspace', wheel_enabled=True)
-        self.files_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.files_button.customContextMenuRequested.connect(
-            lambda _point: self.command.emit('REMOTE_FILES_FIRST_COLUMN_MENU'))
+        # Preserve the old attribute for internal active-workspace logic,
+        # without constructing the obsolete Files button.
+        self.files_button = self.files_exp_button
         self.browser_button = self._button('Browser', 'Browser画面へ切り替え / 右クリック：ブックマークを展開',
                                            'WORKSPACE_BROWSER', width=85, height=27,
                                            role='workspace', wheel_enabled=True)
@@ -388,7 +379,7 @@ class LaunchRemote(QWidget):
         self.browser_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.browser_button.customContextMenuRequested.connect(
             lambda _point: self.command.emit('REMOTE_BROWSER_BOOKMARK_MENU'))
-        row_workspaces.addWidget(self.files_button)
+        row_workspaces.addWidget(self.files_exp_button)
         row_workspaces.addWidget(self.browser_button)
         root.addLayout(row_workspaces)
         # History -> TAB controls -> wheel pad: keep Tab/BackTab next to the
@@ -459,6 +450,22 @@ class LaunchRemote(QWidget):
         self.set_files_root_hidden_mode(
             bool(getattr(launcher, 'files_root_hidden_mode', False)))
 
+    def sync_window_mode(self):
+        """Use the same outside-click policy as the main Launch window."""
+        launcher = self.parent()
+        auto_dismiss = bool(getattr(launcher, 'dismiss_on_outside_click', True))
+        flags = (Qt.WindowType.FramelessWindowHint |
+                 Qt.WindowType.WindowDoesNotAcceptFocus |
+                 (Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
+                  if auto_dismiss else Qt.WindowType.Window))
+        if self.windowFlags() == flags:
+            return
+        visible, pos = self.isVisible(), self.pos()
+        self.setWindowFlags(flags)
+        self.move(pos)
+        if visible:
+            self.show()
+
     def set_files_root_hidden_mode(self, enabled):
         """Remove both obsolete column switch controls in single-column mode."""
         self.backtab_button.setVisible(not enabled)
@@ -470,6 +477,11 @@ class LaunchRemote(QWidget):
         self.setMinimumHeight(self.layout().sizeHint().height())
 
     def hideEvent(self, event):
+        # Preserve the last actual position even when CLOSE is pressed.
+        settings = getattr(self.parent(), 'settings', None)
+        if settings is not None and self.pos().x() >= -32000:
+            settings.setValue('remote_last_position', self.pos())
+            settings.sync()
         # The experimental tool window must not outlive a dismissed Remote.
         panel = getattr(self, 'files_exp_panel', None)
         if panel is not None:
@@ -482,6 +494,15 @@ class LaunchRemote(QWidget):
         super().hideEvent(event)
 
     def toggle_files_exp(self):
+        launcher = self.parent()
+        if getattr(launcher, 'files_exp_embedded_mode', False):
+            # The same tree lives in Launch column 1; no duplicate Tool window.
+            view = launcher.expanded_view
+            if view.isVisible():
+                view.show_files_view()
+                view.embedded_files_exp.tree.setFocus(Qt.FocusReason.OtherFocusReason)
+            return
+
         """Show/hide the registered-folder tree while retaining the Files view."""
         if self.files_exp_panel is None:
             self.files_exp_panel = RemoteFilesExplorer(self, self.files_exp_theme)
@@ -716,7 +737,8 @@ class LaunchRemote(QWidget):
             QLabel#remotePadCaption {{color:{c['muted_text']};font-size:10px;}}
             QLabel#remotePadLabel {{font-size:9px;font-weight:bold;}}
             QLabel#remotePadGlyph {{font-family:'Segoe UI Emoji';font-size:11px;}}
-            QFrame#remoteUpDoubleClickBand {{border:0;background:transparent;}}
+            QFrame#remoteUpDoubleClickBand {{background:transparent;
+                border:1px solid #a5adb0;border-radius:4px;}}
             QFrame#remoteUpDoubleClickBand QLabel {{color:{c['muted_text']};font-size:10px;}}
             QFrame#remoteWheelPad {{background:{c['selection']};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
@@ -724,29 +746,11 @@ class LaunchRemote(QWidget):
         self.update()
 
     def set_pages(self, pages):
-        """Mirror the current configured Page order; no separate menu data."""
+        """Page buttons moved to Launch's workspace strip; keep no copies."""
         for button in self.page_buttons:
             self.page_column.removeWidget(button)
             button.deleteLater()
         self.page_buttons = []
-        for page in list(pages)[:3]:
-            page_id = str(page.get('page_id', ''))
-            if not page_id:
-                continue
-            button = self._button(str(page.get('title', 'Page')),
-                                  '左クリック／右クリック：このPageのメニューを右に表示',
-                                  'PAGE_BUTTON_UNUSED', width=172, height=27,
-                                  role='page')
-            # Do not emit the generic command; Page selection has its own signal.
-            button.clicked.disconnect()
-            button.clicked.connect(lambda checked=False, pid=page_id:
-                                   self.page_clicked.emit(pid))
-            button.setProperty('remote_page_id', page_id)
-            button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-            button.customContextMenuRequested.connect(
-                lambda _point, pid=page_id: self.page_clicked.emit(pid))
-            self.page_column.addWidget(button)
-            self.page_buttons.append(button)
         self.adjustSize()
 
     def set_workspace(self, mode):
@@ -848,20 +852,34 @@ class LaunchRemote(QWidget):
         self.area_label.setText('操作先：' + label)
 
     def show_at(self, global_point):
-        screen = QApplication.screenAt(global_point)
+        # An already-visible Remote may have been dragged since its last
+        # close; never snap it back to the previous session's saved point.
+        if self.isVisible():
+            self.raise_()
+            return
+        # A genuine first run uses the desktop click; all later activations
+        # recover the user's last Remote position, independent of Files mode.
+        settings = getattr(self.parent(), 'settings', None)
+        saved = settings.value('remote_last_position') if settings is not None else None
+        point = saved if isinstance(saved, QPoint) else None
+        screen = QApplication.screenAt(point) if point is not None else None
+        if screen is None:
+            screen = QApplication.screenAt(global_point)
         if screen is None:
             screen = QApplication.primaryScreen()
         if screen is None:
             return
         rect = screen.availableGeometry()
-        # The wheel pad (not the remote's title!) should appear right under
-        # the desktop click. Start scrolling without chasing another widget.
         self.layout().activate()
-        center = self.pad.geometry().center()
-        x, y = popup_at_hotspot(global_point.x(), global_point.y(),
-                                self.width(), self.height(),
-                                rect.left(), rect.top(), rect.right() + 1, rect.bottom() + 1,
-                                center.x(), center.y())
+        if point is not None:
+            x = max(rect.left(), min(point.x(), rect.right() - self.width() + 1))
+            y = max(rect.top(), min(point.y(), rect.bottom() - self.height() + 1))
+        else:
+            center = self.pad.geometry().center()
+            x, y = popup_at_hotspot(global_point.x(), global_point.y(),
+                                    self.width(), self.height(),
+                                    rect.left(), rect.top(), rect.right() + 1, rect.bottom() + 1,
+                                    center.x(), center.y())
         self._grid_aligned = False
         self.move(QPoint(x, y))
         self.show()

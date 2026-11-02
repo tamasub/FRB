@@ -23,7 +23,8 @@ def test_popup_is_a_tree_with_folder_headers_and_preserved_original_keyword_text
 
 
 def test_new_category_and_expand_controls_are_in_history_ui_and_search_field():
-    for marker in ("self.history_category_action = self.search.addAction(",
+    for marker in ("self.history_category_action = QAction(",
+                   "self.history_category_button.setDefaultAction(self.history_category_action)",
                    "self.history_add_button.clicked.connect(self.add_history_category)",
                    "self.history_expand_button.clicked.connect(",
                    "self.history_collapse_button.clicked.connect(",

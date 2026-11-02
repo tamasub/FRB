@@ -2871,6 +2871,10 @@ class Launcher(QWidget):
         # splitter widths; only disable their redundant visual/navigation lanes.
         self.files_root_hidden_mode = str(self.settings.value(
             'experiment_files_root_hidden', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
+        self.files_exp_embedded_mode = str(self.settings.value(
+            'experiment_files_exp_embedded', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
+        if self.files_exp_embedded_mode:
+            self.files_root_hidden_mode = True  # Remote operates column 2 only.
         self.remote_window = None
         self._remote_area = None
         self._remote_popup_area = None
@@ -2949,17 +2953,27 @@ class Launcher(QWidget):
         self.history_action = self.search.addAction(QIcon(chevron), QLineEdit.ActionPosition.TrailingPosition)
         self.history_action.setToolTip('検索履歴を表示 (/)')
         self.history_action.triggered.connect(self.toggle_history_popup)
-        # Category creation is available directly at the right edge of search.
+        # Put category creation next to the magnifier, not at the far-right
+        # edge of a wide search field. Keep the QAction for Remote/context
+        # menus, which call its trigger() and read its icon().
         plus_icon = QPixmap(16, 16); plus_icon.fill(Qt.GlobalColor.transparent)
         plus_painter = QPainter(plus_icon)
         plus_painter.setPen(QPen(QColor('#608a76'), 2))
         plus_painter.drawLine(8, 3, 8, 13)
         plus_painter.drawLine(3, 8, 13, 8)
         plus_painter.end()
-        self.history_category_action = self.search.addAction(
-            QIcon(plus_icon), QLineEdit.ActionPosition.TrailingPosition)
+        self.history_category_action = QAction(
+            QIcon(plus_icon), '検索履歴カテゴリーを追加', self.search)
         self.history_category_action.setToolTip('検索履歴カテゴリーを追加')
         self.history_category_action.triggered.connect(self.add_history_category)
+        self.history_category_button = QToolButton(self.search)
+        self.history_category_button.setObjectName('searchHistoryCategoryButton')
+        self.history_category_button.setDefaultAction(self.history_category_action)
+        self.history_category_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.history_category_button.setFixedSize(24, 28)
+        self.history_category_button.setIconSize(QSize(16, 16))
+        self.history_category_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.history_category_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         # Unified, one-row header: brand / navigation / search / Page tabs /
         # settings / window controls. The old second toolbar row is removed.
         self.search_bar = QWidget(self)
@@ -3059,6 +3073,9 @@ class Launcher(QWidget):
         # Reuse the original navigation widget directly in the header.
         # Moving a widget between layouts preserves its signals and behavior.
         search_row.insertWidget(search_row.indexOf(self.search), self.nav_toolbar, 0)
+        # Move settings next to HOME (left-side operation cluster).
+        search_row.removeWidget(self.theme_button)
+        nav_layout.addWidget(self.theme_button)
         # Inline overlay: left of QLineEdit's native clear (x) and history
         # chevron actions.  Never add it to search_row, which puts it OUTSIDE.
         self.save_history_button = QPushButton('履歴登録', self.search)
@@ -3138,6 +3155,16 @@ class Launcher(QWidget):
             'Files第1列・Browserブックマーク列・リモコンTab/BackTabを隠す。'
             'Filesは第2列固定。チェック解除で元に戻せます。')
         self.files_root_hidden_action.triggered.connect(self.set_files_root_hidden_mode)
+        self.files_exp_embedded_action = self.theme_menu.addAction(
+            '実験：Files Expを第1列に表示')
+        self.files_exp_embedded_action.setCheckable(True)
+        self.files_exp_embedded_action.setChecked(self.files_exp_embedded_mode)
+        self.files_exp_embedded_action.setToolTip(
+            '従来の第1列は残したままFiles Expのツリーを組み込む。'
+            'Remoteは第2列操作を維持し、単独のFiles Expウィンドウを表示しません。')
+        self.files_exp_embedded_action.triggered.connect(self.set_files_exp_embedded_mode)
+        self.files_root_hidden_action.setChecked(
+            self.files_root_hidden_mode and not self.files_exp_embedded_mode)
         self.theme_menu.addSeparator()
         self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')
         self.compact_mode_action.setToolTip('Compact表示とFiles／Browser表示を切り替え')
@@ -3156,7 +3183,7 @@ class Launcher(QWidget):
         self.tabs.setUsesScrollButtons(True)
         # To the RIGHT of search, BEFORE settings. Tabs remain the same
         # FocusPageTabBar (keyboard, wheel, and Page events are preserved).
-        search_row.insertWidget(search_row.indexOf(self.theme_button), self.tabs, 0)
+        search_row.insertWidget(search_row.indexOf(self.header_divider), self.tabs, 0)
         # A narrow Compact window cannot physically contain three Page tabs,
         # the search field and all controls on ONE row. Show a small Page menu
         # in that situation, retaining the three real tabs when space permits.
@@ -3167,7 +3194,7 @@ class Launcher(QWidget):
         self.page_overflow_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.page_overflow_button.clicked.connect(self.open_header_page_menu)
         self.page_overflow_button.hide()
-        search_row.insertWidget(search_row.indexOf(self.theme_button), self.page_overflow_button, 0)
+        search_row.insertWidget(search_row.indexOf(self.header_divider), self.page_overflow_button, 0)
         self.list = ReorderTree(self); self.list.setObjectName('mainLaunchList'); self.list.setColumnCount(2); self.list.setHeaderHidden(True); self.list.setRootIsDecorated(False)
         self.list.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.list.setHeaderLabels(['タイトル', '説明・場所'])
@@ -3500,26 +3527,29 @@ class Launcher(QWidget):
     def layout_search_inner_controls(self):
         """Keep icon/button inside the pill across DPI, resize and query state.
 
-        Native QLineEdit trailing actions are on the far right.  The history
-        register button sits 70px to their LEFT, inside the border.  Reserving
-        text margins prevents a long search query from appearing behind it.
+        The category button sits beside the magnifier; native QLineEdit
+        history/clear actions remain on the far right. Reserve text margins
+        so even a long query cannot be drawn underneath either control.
         """
         if not hasattr(self, 'search_glyph') or not hasattr(self, 'save_history_button'):
             return
         height, width = self.search.height(), self.search.width()
         self.search_glyph.move(11, max(0, (height - self.search_glyph.height()) // 2 + 2))
+        # The plus is always adjacent to the magnifier, independent of width.
+        self.history_category_button.move(
+            44, max(0, (height - self.history_category_button.height()) // 2))
         is_visible = bool(self.search.text().strip())
-        right_space = 99  # native ×, history ▼, category +, breathing room
+        right_space = 75  # native ×, history ▼, breathing room (plus moved left)
         self.save_history_button.move(
             max(48, width - right_space - self.save_history_button.width()),
             max(0, (height - self.save_history_button.height()) // 2))
-        # The text caret starts just to the right of the 32px magnifier.
-        # The visible search glyph has ~14px of space on its left;
-        # match that gap on the right (36px left text margin was ~4px wide).
-        self.search.setTextMargins(32, 0, 165 if is_visible else 0, 0)
+        # Reserve a clear text start beyond the magnifier AND the plus.
+        # QLineEdit's 14px style padding is additional to this margin.
+        self.search.setTextMargins(60, 0, 145 if is_visible else 0, 0)
         if is_visible:
             self.save_history_button.raise_()
         self.search_glyph.raise_()
+        self.history_category_button.raise_()
 
     def update_header_icons(self):
         self.search_glyph.setIcon(toolbar_outline_icon('search', theme_family(self.color_theme)))
@@ -3591,11 +3621,13 @@ class Launcher(QWidget):
             self.update_header_icons()
 
     def set_dismiss_on_outside_click(self, enabled):
-        self.hide_remote()
         previous = self.dismiss_on_outside_click
         self.dismiss_on_outside_click = bool(enabled)
         if previous != self.dismiss_on_outside_click:
             self._apply_window_mode()
+            remote = getattr(self, 'remote_window', None)
+            if remote is not None:
+                remote.sync_window_mode()
         self.settings.setValue('dismiss_on_outside_click', self.dismiss_on_outside_click)
         self.settings.sync()
         self.footer.setText(
@@ -3613,28 +3645,56 @@ class Launcher(QWidget):
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
 
     def set_files_root_hidden_mode(self, checked):
-        """Enable/disable the reversible single-Files-column experiment."""
+        """Old single-column mode stays reversible; uncheck restores legacy."""
+        self.files_exp_embedded_mode = False
         self.files_root_hidden_mode = bool(checked)
-        self.settings.setValue('experiment_files_root_hidden', self.files_root_hidden_mode)
+        self._apply_files_first_column_mode()
+        if not checked:
+            remote = getattr(self, 'remote_window', None)
+            if remote is not None:
+                remote.leave_files_grid_alignment()
+
+    def set_files_exp_embedded_mode(self, checked):
+        """Swap the visible old first-column content for the live Exp tree."""
+        self.files_exp_embedded_mode = bool(checked)
+        self.files_root_hidden_mode = bool(checked)
+        self._apply_files_first_column_mode()
+
+    def _apply_files_first_column_mode(self):
+        self.settings.setValue('experiment_files_root_hidden',
+                               self.files_root_hidden_mode)
+        self.settings.setValue('experiment_files_exp_embedded',
+                               self.files_exp_embedded_mode)
         self.settings.sync()
+        self.files_root_hidden_action.setChecked(
+            self.files_root_hidden_mode and not self.files_exp_embedded_mode)
+        self.files_exp_embedded_action.setChecked(self.files_exp_embedded_mode)
         view = getattr(self, 'expanded_view', None)
         if view is not None:
             view.apply_files_root_hidden_mode()
             if self.files_root_hidden_mode and view.isVisible():
                 if view._workspace_mode == 'files':
                     self.remote_focus_area('directory')
-                elif (getattr(self, '_remote_area', None) == 'bookmarks'):
+                elif getattr(self, '_remote_area', None) == 'bookmarks':
                     self.remote_focus_area(self._current_web_body_area())
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_files_root_hidden_mode(self.files_root_hidden_mode)
-            if self.files_root_hidden_mode:
-                remote.align_with_files_grid()
+            if self.files_exp_embedded_mode:
+                # One Exp tree is enough: the standalone companion stays
+                # available for instant rollback, but not visible in this mode.
+                if remote.files_exp_panel is not None:
+                    remote.files_exp_panel.hide()
+                remote.leave_files_grid_alignment()
             else:
+                # Position always belongs to the Remote user preference,
+                # not the grid alignment experiment, in either legacy mode.
                 remote.leave_files_grid_alignment()
         self.footer.setText(
+            'Files Expを第1列に表示します（Remoteは第2列を操作）。'
+            if self.files_exp_embedded_mode else
             'Filesルート非表示：第2列のみを操作します。'
-            if self.files_root_hidden_mode else 'Filesルート非表示を解除しました。')
+            if self.files_root_hidden_mode else '従来のFiles第1列を復元しました。')
 
     def close_finished_file_context_menus(self):
         """Dismiss filesystem context menus after an operation completes.
@@ -3713,11 +3773,12 @@ class Launcher(QWidget):
         view.choose_files(pc_item, 0)  # PC breadcrumb + real drive rows.
         # Files Exp owns focus: only change the *logical* active column,
         # without stealing keyboard focus back from the tool window.
-        self._remote_area = 'files'
-        self._last_focus_area = 'files'
+        area = 'directory' if self.files_root_hidden_mode else 'files'
+        self._remote_area = area
+        self._last_focus_area = area
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
-            remote.set_area('files')
+            remote.set_area(area)
         for name, pane in (('files', view.left), ('directory', view.middle)):
             active = name == 'files'
             pane.tree.remote_highlight_mode = True
@@ -3946,6 +4007,10 @@ class Launcher(QWidget):
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if panel is not None and panel.isVisible():
             panel.sync_current_directory(directory)
+        embedded = getattr(getattr(self, 'expanded_view', None),
+                           'embedded_files_exp', None)
+        if embedded is not None and embedded.isVisible():
+            embedded.sync_current_directory(directory)
         self.refresh_main_files_cut_visuals()
         # Exp's current directory also identifies the first-column registered
         # ROOT. Keep that row as an outline (not a second active green row).
@@ -4069,18 +4134,19 @@ class Launcher(QWidget):
         if remote is not None and remote.isVisible():
             remote.raise_()
 
-    def open_remote_page(self, page_id):
-        """Click a Remote Page to open the existing searchable compact cascade.
+    def open_remote_page(self, page_id, anchor=None):
+        """Open the shared Page cascade beside its Launch/Remote button.
 
         Page selection is isolated from the main window's selected Page and
         workspace; nested columns and their hover logic are shared unchanged.
         """
         remote = getattr(self, 'remote_window', None)
-        if remote is None or not remote.isVisible() or not self.data:
+        if not self.data:
             return
         page = next((p for p in self.pages if str(p.get('page_id')) == str(page_id)), None)
-        button = next((b for b in remote.page_buttons
-                       if b.property('remote_page_id') == str(page_id)), None)
+        button = (anchor if anchor is not None else next((b for b in
+                       (remote.page_buttons if remote is not None else ())
+                       if b.property('remote_page_id') == str(page_id)), None))
         if page is None or button is None:
             return
         existing = getattr(self, '_remote_page_menu', None)
@@ -4125,6 +4191,7 @@ class Launcher(QWidget):
             self.remote_window.files_exp_pc_selected.connect(self.navigate_files_exp_pc)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
+        self.remote_window.sync_window_mode()
         self.remote_window.set_pages(self.pages)
         self.remote_window.apply_theme(self.color_theme)
         self.remote_window.set_workspace(self.expanded_view._workspace_mode)
@@ -4160,16 +4227,11 @@ class Launcher(QWidget):
         # Files Exp is a permanent companion to the Remote. Reopen it on
         # each desktop activation, but never toggle an existing panel OFF.
         panel = getattr(self.remote_window, 'files_exp_panel', None)
-        if panel is None or not panel.isVisible():
-            self.remote_window.toggle_files_exp()
-        if (self.files_root_hidden_mode and not web
-                and self.expanded_view.isVisible()):
-            # Qt.Tool may be repositioned on its initial native show.  Once
-            # the companion exists, anchor to the *rendered* grid, not the
-            # pointer.  Repeat on the next event-loop tick after Windows has
-            # settled the two native tool windows.
-            self.remote_window.align_with_files_grid()
-            QTimer.singleShot(0, self.remote_window.align_with_files_grid)
+        if not self.files_exp_embedded_mode:
+            if panel is None or not panel.isVisible():
+                self.remote_window.toggle_files_exp()
+        # Remote position is the saved user position in every mode. Standalone
+        # Exp still follows Remote when that legacy option is selected.
         # Only verified desktop double clicks enter this path. Do not warp
         # the pointer on manual toggles, menu opens, or ordinary navigation.
         self.remote_window.focus_cursor_on_files_exp()
@@ -5358,6 +5420,10 @@ class Launcher(QWidget):
             f'border-color:{colors["search_focus"]}; }}')
         self.search_glyph.setStyleSheet(
             'QToolButton#searchGlyph { background:transparent; border:0; padding:0; }')
+        self.history_category_button.setStyleSheet(
+            'QToolButton#searchHistoryCategoryButton { background:transparent; border:0; '
+            'border-radius:7px; padding:0; } '
+            f'QToolButton#searchHistoryCategoryButton:hover {{ background:{colors["hover"]}; }}')
         header_hover = '#e4eee8' if light else '#334744'
         header_pressed = '#d7e7df' if light else '#415953'
         frame_border = '#d0dfd7' if light else '#47605a'
@@ -5641,6 +5707,15 @@ class Launcher(QWidget):
         self.minimize_button.setVisible(
             not self.dismiss_on_outside_click and width >= 720)
         self.maximize_button.setVisible(width >= 720)
+        # In expanded Files/Browser view the Page controls are in the
+        # workspace strip. Retain the header tabs only for Compact/search.
+        expanded_workspace = (self.view_mode == 'expanded' and
+                              not self.search.text().strip() and
+                              self.expanded_view.isVisible())
+        if expanded_workspace:
+            self.tabs.hide()
+            self.page_overflow_button.hide()
+            return
         if narrow:
             self.tabs.hide()
             self.page_overflow_button.show()
@@ -6528,8 +6603,10 @@ class Launcher(QWidget):
                 or (context is not None and context.isVisible())):
             return
         if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
-            self.hide_remote()
             if getattr(self, 'dismiss_on_outside_click', True):
+                hide_remote = getattr(self, 'hide_remote', None)
+                if callable(hide_remote):
+                    hide_remote()
                 self.dismiss()
             else:
                 # Keep the main window, but do not strand independent tool
@@ -6809,6 +6886,7 @@ class Launcher(QWidget):
         if not active:
             self.expanded_view.hide_favorite_popup()
         self.expanded_view.setVisible(active)
+        self.update_header_tab_width()
         self.update_files_item_count()
         self._nav_update_buttons()
         showing_classic = self.view_mode == 'expanded'
@@ -7546,6 +7624,9 @@ class Launcher(QWidget):
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if panel is not None:
             panel.refresh_transfer_visuals()
+        embedded = getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None)
+        if embedded is not None:
+            embedded.refresh_transfer_visuals()
         timer = getattr(self, '_paste_feedback_timer', None)
         if timer is None:
             timer = QTimer(self)
@@ -7554,14 +7635,32 @@ class Launcher(QWidget):
             self._paste_feedback_timer = timer
         timer.start(2500)
 
+    def files_exp_panels(self):
+        """Companion and in-window tree share filesystem events, not state.
+
+        The embedded tree may be present even when Remote is never created.
+        Avoid treating either panel's transient selection as the write target.
+        """
+        remote_panel = getattr(getattr(self, 'remote_window', None),
+                               'files_exp_panel', None)
+        embedded_panel = getattr(getattr(self, 'expanded_view', None),
+                                 'embedded_files_exp', None)
+        return tuple(panel for panel in (remote_panel, embedded_panel)
+                     if panel is not None)
+
     def notify_folder_mutation(self, *directories):
         """Notify the companion of filesystem changes from EVERY Launch UI.
 
         Reload only affected, already-visible branches. Unopened branches
         remain lazy and all unrelated expansion state remains intact.
         """
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
-        if panel is None or not panel.isVisible():
+        panels = tuple(panel for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))()
+                       if panel.isVisible())
+        if not panels:
             return
         seen = set()
         for directory in directories:
@@ -7574,7 +7673,8 @@ class Launcher(QWidget):
             if key in seen or not folder.is_dir():
                 continue
             seen.add(key)
-            panel.refresh_directory_branch(str(folder))
+            for panel in panels:
+                panel.refresh_directory_branch(str(folder))
 
     def refresh_main_files_cut_visuals(self):
         """Use the same pending-cut visual in both native Files columns."""
@@ -7618,8 +7718,11 @@ class Launcher(QWidget):
 
     def refresh_files_exp_directory(self, directory):
         """Rescan a folder in Files Exp, preserving expanded paths and cursor."""
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
-        if panel is not None and hasattr(panel, 'refresh_directory_branch'):
+        for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))():
             panel.refresh_directory_branch(str(directory))
 
     def refresh_folder_information(self, directory):
@@ -7659,6 +7762,9 @@ class Launcher(QWidget):
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if panel is not None:
             panel.refresh_transfer_visuals()
+        embedded = getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None)
+        if embedded is not None:
+            embedded.refresh_transfer_visuals()
         menu = getattr(self, 'menu', None)
         while menu is not None:
             if getattr(menu, '_pasted_feedback_paths', ()):
@@ -7898,6 +8004,11 @@ class Launcher(QWidget):
         if not row:return
         self.record_session_search()
         self._session_edit_draft = None
+        # Global URL search hits open inside Launch's Browser, not Chrome.
+        # Only a sole URL Open action qualifies; local files and scripts keep
+        # their original launch behavior. External Web mode remains external.
+        if self.open_search_url_in_browser(row):
+            return
         file_path = row.get('_indexed_file') or row.get('_browse_file')
         if file_path:
             self.run_file_path(row, file_path)
@@ -7936,6 +8047,28 @@ class Launcher(QWidget):
             self._nav_after_change()
             return
         self.execute(row)
+
+    def open_search_url_in_browser(self, row):
+        """Route a global-search URL hit to the embedded workspace safely."""
+        if (not self.search.text().strip() or self.selection is not None or
+                self.webview_settings.get('mode') != 'embedded' or
+                row.get('_indexed_file') or row.get('_browse_file')):
+            return False
+        # Reuse the established URL resolver: it only accepts an Open URL.
+        url = bookmark_web_url(row)
+        if not url:
+            return False
+        # Clear the search to recover the Files/Browser workspace before
+        # activating WebView. Never discard the search if Browser is absent.
+        prior_query = self.search.text()
+        if self.view_mode != 'expanded':
+            self.set_view_mode('expanded')
+        self.search.clear()
+        if self.expanded_view.isVisible() and self.expanded_view.show_web_url(
+                url, new_tab=getattr(self.expanded_view, 'bookmark_new_tab', True)):
+            return True
+        self.search.setText(prior_query)
+        return False
 
     def confirm_selection(self):
         if not self.selection or not self.checked:return
@@ -8761,7 +8894,8 @@ class Launcher(QWidget):
                 or index >= len(view.root_buttons)):
             return
         button = view.root_buttons[index]
-        view.toolbar_scroller.ensureWidgetVisible(button)
+        if button.isVisible():
+            view.toolbar_scroller.ensureWidgetVisible(button)
         view.root_action(view.root_rows[index], button)
 
     def expanded_root_key(self, button, event):
@@ -9529,10 +9663,14 @@ class Launcher(QWidget):
                         (current_key == deleted_key or
                          current_key.startswith(deleted_key.rstrip('/') + '/')))
         parent = str(deleted.parent)
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        panels = getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))()
         # Tree pruning may cause Qt to put the current row on the next sibling.
         # Suppress that incidental selection and restore the exact parent.
-        if panel is not None:
+        for panel in panels:
             panel.reflect_deleted_folder(str(deleted))
         notify = getattr(self, 'notify_folder_mutation', None)
         if callable(notify):
@@ -9540,8 +9678,9 @@ class Launcher(QWidget):
         view = self.expanded_view
         if view.isVisible() and affected and Path(parent).is_dir():
             view.go_to_directory(parent)
-            if panel is not None and panel.isVisible():
-                panel.sync_current_directory(parent)
+            for panel in panels:
+                if panel.isVisible():
+                    panel.sync_current_directory(parent)
         elif view.isVisible() and current_key == path_key(parent):
             view.refresh_middle()
 
@@ -9558,10 +9697,13 @@ class Launcher(QWidget):
         """
         if not self.can_rename_remote_folder(directory):
             return False
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
-        if (panel is not None and panel.isVisible()
-                and panel.can_rename_folder(directory)):
-            return panel.begin_folder_rename(directory)
+        for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))():
+            if panel.isVisible() and panel.can_rename_folder(directory):
+                return panel.begin_folder_rename(directory)
         path = Path(directory)
         name, accepted = QInputDialog.getText(
             self, '名前の変更', '新しい名前:', text=path.name)
@@ -9572,7 +9714,12 @@ class Launcher(QWidget):
         except (OSError, ValueError) as exc:
             self.error('名前を変更できませんでした: ' + str(exc))
             return False
-        if panel is not None:
+        panels = getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))()
+        for panel in panels:
             panel.reflect_external_folder_rename(directory, new_path)
         self.on_files_exp_folder_renamed(directory, new_path)
         self.notify_folder_mutation(path.parent)
@@ -9609,9 +9756,12 @@ class Launcher(QWidget):
         # A cached cascade row still refers to the old name. Reopen the folder
         # list on demand using fresh disk entries, without rewriting DataJSON.
         self.close_remote_folder_menu()
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if kind == 'folder':
-            if panel is not None:
+            for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))():
                 panel.reflect_external_folder_rename(path, new_path)
             self.on_files_exp_folder_renamed(str(path), new_path)
         else:
@@ -9637,9 +9787,12 @@ class Launcher(QWidget):
             if answer != QMessageBox.StandardButton.Yes:
                 return None
         new_path = str(rename_file_or_folder(path, new_name))
-        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if kind == 'folder':
-            if panel is not None:
+            for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))():
                 panel.reflect_external_folder_rename(path, new_path)
             # Renaming a child should not jump the breadcrumb away from its
             # parent just because the user edited a submenu row.
@@ -10543,8 +10696,11 @@ class Launcher(QWidget):
                         return
                 new_path = rename_file_or_folder(path, name)
                 if kind == 'folder':
-                    panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
-                    if panel is not None:
+                    for panel in getattr(self, 'files_exp_panels', lambda: tuple(
+            panel for panel in (
+                getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None),
+                getattr(getattr(self, 'expanded_view', None), 'embedded_files_exp', None))
+            if panel is not None))():
                         panel.reflect_external_folder_rename(str(path), str(new_path))
                     self.notify_folder_mutation(path.parent)
                 # Source columns may hold the old path; safely close them and
@@ -10920,17 +11076,18 @@ def main():
     def dismiss_from_outside_click():
         # The native hook sees desktop/other-app clicks even when a no-focus
         # Remote Tool window generates no Qt activation change.  One rule:
-        # outside click ALWAYS hides Remote and ALL its cascades; the Launcher
-        # itself follows its separate, persisted dismiss_on_outside_click mode.
+        # Remote and Launcher now share ONE persisted outside-click policy.
+        # Keep-visible retains both surfaces when another app is clicked.
         if (getattr(window, '_filesystem_dialog_depth', 0)
                 or getattr(window, '_cloud_link_handoff', False)
                 or QApplication.activeModalWidget() is not None):
             return
         if remote_visible():
-            DIAG.info('REMOTE_OUTSIDE_CLICK_HIDE')
-            window.hide_remote()
-            if launcher_surface_visible() and window.dismiss_on_outside_click:
-                window.dismiss()
+            if window.dismiss_on_outside_click:
+                DIAG.info('REMOTE_OUTSIDE_CLICK_HIDE')
+                window.hide_remote()
+                if launcher_surface_visible():
+                    window.dismiss()
             return
         if remote_folder_popup_visible() or remote_page_popup_visible():
             DIAG.info('REMOTE_POPUP_OUTSIDE_CLICK_CLOSE')

@@ -494,14 +494,15 @@ class LaunchWebView(QFrame):
         self.favorite_save.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.favorite_save.setCursor(Qt.CursorShape.PointingHandCursor)
         self.favorite_save.clicked.connect(self.register_url_favorite)
-        address_row.addWidget(self.favorite_save)
+        address_row.insertWidget(0, self.favorite_save)
         self.favorite_dropdown = QToolButton(self.address_shell)
         self.favorite_dropdown.setObjectName('launchWebFavoriteDropdown')
         self.favorite_dropdown.setFixedSize(24, 25)
         self.favorite_dropdown.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.favorite_dropdown.setCursor(Qt.CursorShape.PointingHandCursor)
         self.favorite_dropdown.clicked.connect(self.toggle_url_favorites)
-        address_row.addWidget(self.favorite_dropdown)
+        # URL controls cluster at the left edge: ▼ / heart / address text.
+        address_row.insertWidget(0, self.favorite_dropdown)
         nav.addWidget(self.address_shell, 1)
         # Same two-column delete / scroll / reorder popup as Files favorites.
         self.favorite_popup = QFrame(self.window())
@@ -535,6 +536,12 @@ class LaunchWebView(QFrame):
                                                 lambda: self.show_downloads_menu(), nav)
         self.downloads_button.setObjectName('launchWebDownloads')
         layout.addLayout(nav)
+        # The same bookmarks bar is used by the external Browser placeholder.
+        from browser_bookmark_bar import HorizontalBookmarkBar
+        self.bookmark_strip = HorizontalBookmarkBar(self)
+        layout.addWidget(self.bookmark_strip)
+        # Obsolete left-column toggle must not steal space or confuse users.
+        self.show_bookmarks_button.hide()
         self.tabs = _WebTabs(self)
         self.tabs.setTabBar(_WebTabBar(self.tabs))
         self.tabs.tabBar().setDrawBase(False)  # Also after QTabWidget takes ownership.
@@ -568,17 +575,17 @@ class LaunchWebView(QFrame):
         self._resize_preview_finish_timer = QTimer(self)
         self._resize_preview_finish_timer.setSingleShot(True)
         self._resize_preview_finish_timer.timeout.connect(self._finish_live_resize)
-        self.hint = QLabel('HOMEでFilesに戻る', self)
-        self.hint.setObjectName('launchWebHint')
-        layout.addWidget(self.hint)
+        # No bottom hint row: the WebEngine tab/view receives all the space.
+        # HOME remains available from Launch's header; failed navigations
+        # are reported through the address field tooltip instead.
         self.apply_theme('dark')
         self.update_url_favorite_button()
 
     def set_bookmarks_visible(self, visible):
         """Keep show control visible but unclickable while Bookmarks is open."""
         self.show_bookmarks_button.setEnabled(not visible)
-        self.show_bookmarks_button.setToolTip(
-            'ブックマークは表示中' if visible else 'ブックマークを表示')
+        self.show_bookmarks_button.setToolTip('ブックマークは上部バーに表示されます')
+        self.show_bookmarks_button.hide()
 
     def _create_profile(self):
         """Separate local WebEngine profile; never use or modify Chrome data."""
@@ -1049,8 +1056,8 @@ class LaunchWebView(QFrame):
     def load_finished(self, view, ok):
         if view is self.current_view():
             self.update_navigation()
-            self.hint.setText('HOMEでFilesに戻る' if ok else
-                              'ページを表示できません（サイト側の制限や通信状態を確認）')
+            self.address.setToolTip('URLを入力してEnterで開く' if ok else
+                                    'ページを表示できません（サイト側の制限や通信状態を確認）')
 
     def current_changed(self, _index):
         view = self.current_view()
@@ -1248,8 +1255,6 @@ class LaunchWebView(QFrame):
             return
         self.tabs.removeTab(index)
         view.deleteLater()
-        if self.tabs.count() == 0:
-            self.hint.setText('ブックマークのURLを選ぶと表示されます。HOMEでFilesに戻る')
         self.address.setText(self.current_view().url().toString() if self.current_view() else '')
         self.update_url_favorite_button()
         self.update_navigation()
@@ -1303,7 +1308,6 @@ class LaunchWebView(QFrame):
                  padding:0;margin:0;}}
             QToolButton#launchWebFavoriteSave:hover,
             QToolButton#launchWebFavoriteDropdown:hover {{background:{hover};border-radius:7px;}}
-            QLabel#launchWebHint {{color:{colors['text']};font-size:10px;}}
             QToolButton {{background:{bg};color:{text};border:1px solid {border};border-radius:7px;}}
             QToolButton:hover {{background:{hover};}}
             QToolButton#launchWebDownloads[activeDownloads="true"]

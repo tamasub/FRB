@@ -753,7 +753,7 @@ class DirectoryAddressBar(QStackedWidget):
         self._scheduled = False
         self.surface = _BreadcrumbSurface(self)
         self.crumb_layout = QHBoxLayout(self.surface)
-        self.crumb_layout.setContentsMargins(4, 1, 64, 1)
+        self.crumb_layout.setContentsMargins(64, 1, 4, 1)
         self.crumb_layout.setSpacing(1)
         self.addWidget(self.surface)
         self.editor = QLineEdit(self)
@@ -779,7 +779,7 @@ class DirectoryAddressBar(QStackedWidget):
         button.setFixedSize(24, 26)
         button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         button.setIconSize(QSize(14, 14))
-        self.editor.setTextMargins(0, 0, 60, 0)
+        self.editor.setTextMargins(64, 0, 0, 0)
         self._position_dropdown()
         button.show()
         button.raise_()
@@ -813,31 +813,23 @@ class DirectoryAddressBar(QStackedWidget):
             self._overlay_apply.setVisible(pending)
             self._overlay_apply.setToolTip(
                 f'このフォルダーを表示: {candidate}' if pending else 'このフォルダーを表示')
-        # Leave path text unobscured by the arrow / heart / dropdown overlays.
-        self.editor.setTextMargins(0, 0, 91 if pending else 60, 0)
+        # Left-aligned controls must not cover editable paths or breadcrumbs.
+        left_margin = 91 if pending else 64
+        self.editor.setTextMargins(left_margin, 0, 0, 0)
+        self.crumb_layout.setContentsMargins(left_margin, 1, 4, 1)
 
     def _position_dropdown(self):
         combo = self._overlay_dropdown
         favorite = self._overlay_favorite
         apply = self._overlay_apply
-        right_inset = 10
-        overlay_gap = 4
-        if combo is not None:
-            combo.move(max(0, self.width() - combo.width() - right_inset),
-                       max(0, (self.height() - combo.height()) // 2))
-        if favorite is not None:
-            combo_start = combo.x() if combo is not None else self.width() - (28 + right_inset)
-            favorite.move(max(0, combo_start - favorite.width() - overlay_gap),
-                          max(0, (self.height() - favorite.height()) // 2))
-            favorite.raise_()
-        if apply is not None:
-            left_edge = (favorite.x() if favorite is not None else
-                         combo.x() if combo is not None else self.width() - (30 + right_inset))
-            apply.move(max(0, left_edge - apply.width() - overlay_gap),
-                       max(0, (self.height() - apply.height()) // 2))
-            apply.raise_()
-        if combo is not None:
-            combo.raise_()
+        # All navigation actions start at the LEFT of the breadcrumb bar.
+        x = 7
+        for button in (combo, favorite, apply):
+            if button is None:
+                continue
+            button.move(x, max(0, (self.height() - button.height()) // 2))
+            button.raise_()
+            x += button.width() + 3
 
     def sizeHint(self):
         # A long path must never expand the whole splitter beyond its width.
@@ -923,7 +915,7 @@ class DirectoryAddressBar(QStackedWidget):
         fm = self.fontMetrics()
         def measure(label):
             return fm.horizontalAdvance(label) + (12 if label != ' › ' else 6)
-        # Reserve space for the inside heart + dropdown (also in edit mode).
+        # Reserve the left edge for ▼ / heart / optional path confirmation.
         segments = compact_segments(self._segments, self.width() - 18 - 64, measure)
         for index, (label, path) in enumerate(segments):
             if index:
@@ -1372,6 +1364,7 @@ class ExpandedLauncherView(QWidget):
         # Preserve a fixed separate Back operation lane to the far right.
         tree = self.middle.tree
         self.middle.details_columns = True
+        tree.setProperty('detailsColumns', True)
         tree.setColumnCount(5)
         tree.setHeaderLabels(['名前', '更新日', 'サイズ', '種類', ''])
         tree.setHeaderHidden(False)
@@ -1465,7 +1458,8 @@ class ExpandedLauncherView(QWidget):
         # Reuse the old Back button/signal, but position it in the shared header.
         self.middle.header.layout().removeWidget(self.middle.back)
         self.middle.back.setParent(self.shared_header)
-        shared_layout.addWidget(self.middle.back)
+        # The parent-directory button belongs immediately LEFT of the path.
+        shared_layout.insertWidget(shared_layout.indexOf(self.address_bar), self.middle.back)
         self.middle.back.show()
         # Unlike mouse-only Back, Wheel Tab must visibly LAND with keyboard
         # focus on this button. The other pane Back buttons stay unchanged.
@@ -1475,6 +1469,22 @@ class ExpandedLauncherView(QWidget):
         self.files_splitter.setObjectName('expandedFilesSplitter')
         self.files_splitter.addWidget(self.left)
         self.files_splitter.addWidget(self.middle)
+        # Files Exp replaces only the old first-column CONTENT. The splitter,
+        # old authored root tree and all of its data/selection logic survive.
+        from remote_files_explorer import RemoteFilesExplorer
+        self.embedded_files_exp = RemoteFilesExplorer(
+            None, launcher.color_theme, launcher=launcher, embedded=True)
+        self.left.layout_box.addWidget(self.embedded_files_exp, 1)
+        self.embedded_files_exp.folder_selected.connect(
+            launcher.navigate_files_exp_folder)
+        self.embedded_files_exp.pc_selected.connect(
+            launcher.navigate_files_exp_pc)
+        self.embedded_files_exp.folder_context_requested.connect(
+            launcher.show_files_exp_folder_menu)
+        self.embedded_files_exp.folder_renamed.connect(
+            launcher.on_files_exp_folder_renamed)
+        self.embedded_files_exp.hide()
+        self._embedded_files_exp_roots_ready = False
         self.files_splitter.setChildrenCollapsible(False)
         group_layout.addWidget(self.files_splitter, 1)
         self.right = ExpandedPanel('ブックマーク', 'bookmark')
@@ -1631,6 +1641,15 @@ class ExpandedLauncherView(QWidget):
             self.toolbar_scroller.setFixedHeight(required)
 
     def save_splitter_sizes(self, *_):
+        # Embedded and original Files layouts have independent user widths.
+        if getattr(self.launcher, 'files_exp_embedded_mode', False):
+            widths = self.files_splitter.sizes()
+            if (self._workspace_mode == 'files' and len(widths) == 2
+                    and all(value >= 100 for value in widths)):
+                self.launcher.settings.setValue(
+                    'workspace_files_exp_embedded_splitter_sizes',
+                    '|'.join(map(str, widths)))
+            return
         # Never overwrite the original two-column widths with a hidden-pane [0, n].
         if getattr(self.launcher, 'files_root_hidden_mode', False):
             return
@@ -1659,6 +1678,7 @@ class ExpandedLauncherView(QWidget):
         self.apply_theme(self.launcher.color_theme)
 
     def apply_theme(self, theme):
+        self.embedded_files_exp.apply_theme(theme)
         if self.web_view is not None:
             self.web_view.apply_theme(theme)
         colors = theme_palette(theme)
@@ -1723,6 +1743,10 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedRootButton {{ background:{hdr};color:{text};border:1px solid {root_border};
                 border-radius:9px;padding:4px 10px;text-align:left;font-size:12px; }}
             QPushButton#expandedRootButton:hover {{background:{hover};}}
+            QPushButton#expandedPageButton {{background:{hdr};color:{text};
+                border:1px solid {root_border};border-radius:8px;
+                padding:3px 11px;font-size:12px;}}
+            QPushButton#expandedPageButton:hover {{background:{hover};}}
             QPushButton#expandedRootButton:checked {{background:{active};border:1px solid #81bca4;font-weight:600;}}
             QPushButton#expandedRootButton:focus {{border:2px solid #56a88c;background:{active};}}
             /* Workspace tabs join the mint header beneath them.  The strip
@@ -1803,6 +1827,7 @@ class ExpandedLauncherView(QWidget):
                 border-right:1px solid {border};border-bottom:1px solid {border};
                 padding:1px 8px;font-size:12px;font-weight:400;}}
             QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{hover};}}
+            QTreeWidget#expandedTree[detailsColumns="true"] {{font-size:12px;}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
             QWidget#expandedBackLane {{background:{bg};border:0;}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
@@ -1899,7 +1924,10 @@ class ExpandedLauncherView(QWidget):
         self._refreshing = True
         try:
             self.options = options
+            for old_button in getattr(self, 'root_buttons', ()):
+                old_button.deleteLater()
             self.root_buttons = []
+            self.workspace_page_buttons = []
             # Cancel a pending warp targeting a button about to be replaced.
             self._wheel_root_follow_pending = None
             # Do not alter Launch DataJSON: the two permanent panel roots are
@@ -1934,6 +1962,26 @@ class ExpandedLauncherView(QWidget):
             self.files_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('files'))
             self.browser_mode_tab.clicked.connect(lambda _checked=False: self.switch_workspace('browser'))
             self._update_workspace_tabs()
+            # Launch Page buttons live alongside the two workspaces rather
+            # than up in the title header or on the remote control. Unlike
+            # QTabBar selection, they open the same Page cascade as Remote.
+            for page in list(getattr(self.launcher, 'pages', ()))[:3]:
+                page_id = str(page.get('page_id') or '')
+                if not page_id:
+                    continue
+                button = QPushButton(str(page.get('title') or 'Page'), self.root_widget)
+                button.setObjectName('expandedPageButton')
+                button.setFixedHeight(30)
+                button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+                button.setToolTip('このPageのメニューを開く')
+                button.clicked.connect(lambda checked=False, pid=page_id, b=button:
+                                       self.launcher.open_remote_page(pid, anchor=b))
+                button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+                button.customContextMenuRequested.connect(
+                    lambda _point, pid=page_id, b=button:
+                    self.launcher.open_remote_page(pid, anchor=b))
+                self.root_layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignVCenter)
+                self.workspace_page_buttons.append(button)
             # Use a real mouse-receiving widget for the wide blank band.
             # QLayout.addStretch() has no QWidget hit target: clicks used to
             # fall through to the root's 'select first shortcut' handler.
@@ -1969,7 +2017,9 @@ class ExpandedLauncherView(QWidget):
                 hint = f'Ctrl+Shift+F{index+1}' if index < 12 else ''
                 button.setToolTip((' / '.join(v for v in (row.get('description', ''), hint) if v)))
                 button.clicked.connect(lambda checked=False, r=row, b=button: self.root_action(r, b))
-                self.root_layout.addWidget(button)
+                # Root shortcuts remain in memory/search/keyboard routes, but
+                # their old second-layer button strip is no longer displayed.
+                button.hide()
                 self.root_buttons.append(button)
             self.left.label.setText(left['title'])
             self.shared_title.setText(left['title'])
@@ -1977,6 +2027,7 @@ class ExpandedLauncherView(QWidget):
             files_rows = self.browser_rows(left)
             self.left.fill(files_rows, self.launcher.row_icon)
             self.right.fill(expanded_bookmark_rows(right, self.launcher.children), self.launcher.row_icon)
+            self.refresh_horizontal_bookmarks()
             # Start with one real folder in the middle, never invented PC data.
             if not self.path:
                 initial = next((row for row in files_rows
@@ -2006,6 +2057,8 @@ class ExpandedLauncherView(QWidget):
                 updated.append(matching)
             self.path = updated
             self.refresh_middle()
+            if getattr(self.launcher, 'files_exp_embedded_mode', False):
+                self.reload_embedded_files_exp_roots(preserve_state=True)
         finally:
             self._refreshing = False
 
@@ -2659,18 +2712,26 @@ class ExpandedLauncherView(QWidget):
         source = QCursor.pos()
         last = position == 'last'
         # Reject an unavailable destination *before* dismissing the opener.
-        if target == 'roots' and (not self.isVisible() or not self.root_buttons):
-            return
+        if target == 'roots':
+            # The authored root button strip was retired. The Page selectors
+            # at the left of the workspace bar are the new reachable zone.
+            target = 'pages'
         if target == 'back' and (not self.isVisible() or not self.middle.back.isEnabled()):
             return
         if target == 'pages' and not self.launcher.tabs.count():
             return
         self.close_transients_for_zone_jump()
         if target == 'pages':
-            tabs = self.launcher.tabs
-            if position != 'current':
-                tabs.setCurrentIndex(tabs.count() - 1 if last else 0)
-            tabs.setFocus(Qt.FocusReason.TabFocusReason)
+            buttons = getattr(self, 'workspace_page_buttons', ())
+            if buttons and self.isVisible():
+                # Hidden header tabs are not a keyboard landing zone anymore.
+                (buttons[-1] if last else buttons[0]).setFocus(
+                    Qt.FocusReason.TabFocusReason)
+            else:
+                tabs = self.launcher.tabs
+                if position != 'current':
+                    tabs.setCurrentIndex(tabs.count() - 1 if last else 0)
+                tabs.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return
@@ -3021,7 +3082,7 @@ class ExpandedLauncherView(QWidget):
             if self.wheel_bookmarks_first_level(event):
                 event.accept()
                 return True
-        if (self.isVisible() and self.root_buttons
+        if (self.isVisible() and any(b.isVisible() for b in self.root_buttons)
                 and obj in (self.root_widget, self.toolbar_scroller.viewport(),
                             self.toolbar_scroller)
                 and event.type() == QEvent.Type.MouseButtonPress
@@ -3038,6 +3099,7 @@ class ExpandedLauncherView(QWidget):
             event.accept()
             return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible()
+                and any(b.isVisible() for b in self.root_buttons)
                 and (obj in self.root_buttons or
                      obj in (self.root_widget, self.toolbar_scroller,
                              self.toolbar_scroller.viewport()))):
@@ -3837,6 +3899,11 @@ class ExpandedLauncherView(QWidget):
     def focus_root(self, item_id=None, index=None):
         if not self.root_buttons:
             return
+        if not any(b.isVisible() for b in self.root_buttons):
+            targets = getattr(self, 'workspace_page_buttons', [])
+            if targets:
+                targets[0].setFocus(Qt.FocusReason.TabFocusReason)
+            return
         if item_id is not None:
             index = next((i for i, row in enumerate(self.root_rows)
                           if row.get('item_id') == item_id), None)
@@ -3997,7 +4064,10 @@ class ExpandedLauncherView(QWidget):
         elif row.get('item_id') == self.bookmarks_root.get('item_id'):
             self.right.tree.setFocus()
         elif row.get('item_kind') in ('category', 'directory'):
-            self.open_cascade(row, button)
+            # Shortcuts still work via keyboard after removing their visible
+            # second-layer buttons; anchor the menu to the visible workspace.
+            anchor = button if button.isVisible() else self.files_mode_tab
+            self.open_cascade(row, anchor)
         else:
             self.launcher.execute(row)
 
@@ -4099,8 +4169,9 @@ class ExpandedLauncherView(QWidget):
                 self.launcher.web_keyboard_tab)
             self.web_view.surface_selected.connect(self.launcher.web_surface_selected)
             self.web_view.bookmarks_show_requested.connect(self.show_browser_bookmarks)
-            self.web_view.set_bookmarks_visible(self._browser_bookmarks_visible)
+            self.web_view.set_bookmarks_visible(False)
             self.files_content_stack.addWidget(self.web_view)
+            self.refresh_horizontal_bookmarks()
             self.web_view.apply_theme(self.launcher.color_theme)
         except (ImportError, RuntimeError) as exc:
             self.launcher.error('WebViewを起動できません。PySide6 WebEngineを確認してください: ' + str(exc))
@@ -4110,6 +4181,36 @@ class ExpandedLauncherView(QWidget):
     @property
     def browser_bookmarks_visible(self):
         return self._browser_bookmarks_visible
+
+    def refresh_horizontal_bookmarks(self):
+        """Show authored Browser roots as a horizontal bar, in all Files modes."""
+        web = getattr(self, 'web_view', None)
+        root = getattr(self, 'bookmarks_root', None)
+        if root is None:
+            return
+        from bookmark_menu import visible_bookmark_children
+        rows = visible_bookmark_children(root, self.launcher.children)
+        if web is not None:
+            web.bookmark_strip.update_bookmark_bar(
+                rows, self.launcher.children, self.open_horizontal_bookmark)
+        external_bar = getattr(self, '_external_bookmark_strip', None)
+        if external_bar is not None:
+            external_bar.update_bookmark_bar(
+                rows, self.launcher.children, self.open_horizontal_bookmark)
+
+    def open_horizontal_bookmark(self, row):
+        """Reuse existing Browser URL routing and tab-target policy."""
+        from webview_routes import bookmark_web_url
+        url = bookmark_web_url(row)
+        if not url or not self.is_bookmark_row(row):
+            return
+        if self.show_web_url(url, new_tab=self.bookmark_new_tab):
+            return
+        actions = row.get('launch_actions') or []
+        step = actions[0] if actions else {}
+        self.launcher.open_target(
+            url, step.get('launch_browser', ''),
+            step.get('launch_browser_profile', ''))
 
     def show_browser_bookmarks(self):
         self.set_browser_bookmarks_visible(True)
@@ -4123,9 +4224,10 @@ class ExpandedLauncherView(QWidget):
         The complete WebView gets the released width, and the last useful
         Bookmarks/Web splitter sizes survive both the collapse and HOME.
         """
-        if getattr(self.launcher, 'files_root_hidden_mode', False):
-            visible = False
-            persist = False  # The experiment must not overwrite user preferences.
+        # Browser's navigation bar has replaced the left Bookmarks pane in
+        # EVERY Files first-column mode. Keep the legacy model for menus.
+        visible = False
+        persist = False
         visible = bool(visible)
         if not visible and self._workspace_mode == 'browser' and self.right.isVisible():
             widths = self.splitter.sizes()
@@ -4144,10 +4246,8 @@ class ExpandedLauncherView(QWidget):
         if self.web_view is not None:
             self.web_view.set_bookmarks_visible(visible)
         if self._browser_empty_bookmark_button is not None:
-            self._browser_empty_bookmark_button.setEnabled(not visible and not
-                getattr(self.launcher, 'files_root_hidden_mode', False))
-            self._browser_empty_bookmark_button.setVisible(not
-                getattr(self.launcher, 'files_root_hidden_mode', False))
+            self._browser_empty_bookmark_button.setEnabled(False)
+            self._browser_empty_bookmark_button.setVisible(False)
         # Never let a hidden row remain the Remote's logical target.
         if (not visible and self._workspace_mode == 'browser' and
                 getattr(self.launcher, '_remote_area', None) == 'bookmarks' and
@@ -4161,9 +4261,8 @@ class ExpandedLauncherView(QWidget):
     def _activate_browser_layout(self):
         """Show Browser + Bookmarks without discarding the Files column state."""
         self._workspace_mode = 'browser'
-        if getattr(self.launcher, 'files_root_hidden_mode', False):
-            self.set_browser_bookmarks_visible(False, persist=False)
-        visible = getattr(self, '_browser_bookmarks_visible', True)
+        self.set_browser_bookmarks_visible(False, persist=False)
+        visible = False  # A horizontal bookmark bar now owns navigation.
         if visible:
             self.right.show()
             widths = self._browser_splitter_sizes
@@ -4178,6 +4277,7 @@ class ExpandedLauncherView(QWidget):
         # Repaint after the Browser/Bookmarks splitter has been restored,
         # so the underline ends at the actual bookmark-pane boundary.
         self._update_workspace_tabs()
+        self.refresh_horizontal_bookmarks()
         self.launcher.web_view_activated()
         if hasattr(self.launcher, 'workspace_changed'):
             self.launcher.workspace_changed('browser')
@@ -4200,6 +4300,9 @@ class ExpandedLauncherView(QWidget):
                 # panel would become impossible to reopen on company PCs.
                 self._browser_empty_page = QWidget(self.files_content_stack)
                 empty_layout = QVBoxLayout(self._browser_empty_page)
+                from browser_bookmark_bar import HorizontalBookmarkBar
+                self._external_bookmark_strip = HorizontalBookmarkBar(self._browser_empty_page)
+                empty_layout.addWidget(self._external_bookmark_strip)
                 self._browser_empty_bookmark_button = QToolButton(self._browser_empty_page)
                 self._browser_empty_bookmark_button.setObjectName('expandedExternalShowBookmarks')
                 self._browser_empty_bookmark_button.setFixedSize(30, 29)
@@ -4211,8 +4314,9 @@ class ExpandedLauncherView(QWidget):
                 self._browser_empty_bookmark_button.clicked.connect(self.show_browser_bookmarks)
                 self._browser_empty_bookmark_button.setEnabled(
                     not self._browser_bookmarks_visible)
-                empty_layout.addWidget(self._browser_empty_bookmark_button,
-                                       alignment=Qt.AlignmentFlag.AlignLeft)
+                # The horizontal bar is permanently visible; the old
+                # left-column opener is obsolete in external Browser mode.
+                self._browser_empty_bookmark_button.hide()
                 placeholder = QLabel(
                     'Browser は外部ブラウザモードです。\n'
                     'ブックマークをクリックすると外部ブラウザで開きます。',
@@ -4222,6 +4326,7 @@ class ExpandedLauncherView(QWidget):
                 self.files_content_stack.addWidget(self._browser_empty_page)
             self.files_content_stack.setCurrentWidget(self._browser_empty_page)
             self._activate_browser_layout()
+            self.refresh_horizontal_bookmarks()
             return True
         if not self._ensure_web_view():
             self._update_workspace_tabs()
@@ -4261,7 +4366,10 @@ class ExpandedLauncherView(QWidget):
                 hide_url_favorites()
         self._workspace_mode = 'files'
         self.files_content_stack.setCurrentWidget(self.files_group)
-        if getattr(getattr(self, 'launcher', None), 'files_root_hidden_mode', False):
+        if getattr(self.launcher, 'files_exp_embedded_mode', False):
+            self.left.show()
+            self.embedded_files_exp.show()
+        elif getattr(self.launcher, 'files_root_hidden_mode', False):
             self.left.hide()
         self.right.hide()  # Bookmarks belong to Browser, never Files.
         self._update_workspace_tabs()
@@ -4274,15 +4382,59 @@ class ExpandedLauncherView(QWidget):
             if callable(update_count):
                 update_count()
 
+    def reload_embedded_files_exp_roots(self, *, preserve_state=False):
+        """Rebase the inline tree on authored roots, not the current folder.
+
+        Exp selection and branch expansion are separate from the breadcrumb;
+        rebuilding a changed data model cannot silently navigate Files.
+        """
+        panel = self.embedded_files_exp
+        if preserve_state and self._embedded_files_exp_roots_ready:
+            panel._tree_state_timer.stop()
+            panel._save_tree_state()
+        rows = [self.row_data(self.left.tree.topLevelItem(i))
+                for i in range(self.left.tree.topLevelItemCount())]
+        rows = [row for row in rows if isinstance(row, dict)]
+        if not rows:
+            return False
+        panel.set_roots(rows, self.launcher.expander().expand)
+        self._embedded_files_exp_roots_ready = True
+        if not panel.restore_previous_tree_state():
+            panel.sync_current_directory(self.current_directory())
+        return True
+
     def apply_files_root_hidden_mode(self):
-        """Apply the reversible layout experiment without rebuilding the trees."""
+        """Three reversible modes: legacy tree, hidden, or embedded Files Exp.
+
+        Keep two physical splitter columns: the legacy first-column widget
+        stays alive, and only its *contents* are replaced by the Exp tree.
+        """
         enabled = bool(getattr(self.launcher, 'files_root_hidden_mode', False))
+        embedded = bool(getattr(self.launcher, 'files_exp_embedded_mode', False))
         previous = getattr(self, '_files_root_experiment_applied', False)
+        previously_embedded = getattr(self, '_files_root_embedded_applied', False)
         if enabled and not previous:
             self._files_root_saved_sizes = self.files_splitter.sizes()
             self._files_root_saved_bookmarks = self._browser_bookmarks_visible
         self._files_root_experiment_applied = enabled
-        self.left.setVisible(not enabled)
+        self._files_root_embedded_applied = embedded
+        self.left.tree.setVisible(not embedded)
+        self.left.header.setVisible(not embedded)
+        self.embedded_files_exp.setVisible(embedded and self._workspace_mode == 'files')
+        self.left.setVisible(not enabled or embedded)
+        if embedded and not self._embedded_files_exp_roots_ready:
+            self.reload_embedded_files_exp_roots()
+        if embedded and not previously_embedded:
+            stored = str(self.launcher.settings.value(
+                'workspace_files_exp_embedded_splitter_sizes', '') or '')
+            try:
+                widths = [int(part) for part in stored.split('|')]
+                if len(widths) != 2 or min(widths) < 100:
+                    raise ValueError('invalid embedded splitter widths')
+            except (ValueError, TypeError):
+                # This is an initial *ratio*, not a fixed window pixel size.
+                widths = [275, 725]
+            self.files_splitter.setSizes(widths)
         if enabled:
             self.set_browser_bookmarks_visible(False, persist=False)
             self.middle.tree.setProperty('remoteInactive', False)
