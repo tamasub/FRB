@@ -184,6 +184,11 @@ This repository contains the following core documents:
 * **FRB Tools** — origin and background
   → [FRB Tools](./tools/README.md)
 
+* **FRB Blog**
+  → [FRB Qiita](https://qiita.com/tamasub364/items/2b6649748e1772b7eec1))
+  → [FRB Zenn](https://zenn.dev/frb_tamasub)
+  → [FRB Hatena](https://tamasub364.hatenablog.com/))
+  → [FRB Note](https://note.com/juicy_roses3305)
 
 ---
 
