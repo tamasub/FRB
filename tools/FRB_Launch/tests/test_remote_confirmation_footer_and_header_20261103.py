@@ -36,7 +36,7 @@ def fake_confirmation_module():
     qt_core.QEvent = NS(Type=NS(**events))
     qt_core.QEventLoop = type('QEventLoop', (), {})
     qt_core.QTimer = type('QTimer', (), {})
-    qt_core.Qt = NS(FocusReason=NS(OtherFocusReason=1), WindowModality=NS(NonModal=0))
+    qt_core.Qt = NS(FocusReason=NS(OtherFocusReason=1, TabFocusReason=2), WindowModality=NS(NonModal=0))
     qt_widgets = ModuleType('PySide6.QtWidgets')
     qt_widgets.QApplication = type('QApplication', (), {})
     qt_widgets.QWidget = type('QWidget', (), {'window': lambda self: self._window})
@@ -54,26 +54,33 @@ def test_wheel_no_default_yes_on_step_and_center_click_confirms_only_selected():
     mod, _ = fake_confirmation_module()
     controller = mod.RemoteConfirmation.__new__(mod.RemoteConfirmation)
     class FakeButton:
-        def setFocus(self, reason): self.reason = reason
+        def __init__(self):
+            self.setStyleSheet = Mock()
+            self.setFocus = Mock()
+            self.update = Mock()
+            self.click = Mock()
     buttons = {16384: FakeButton(), 65536: FakeButton()}
     controller.dialog = NS(button=lambda answer: buttons[answer], setDefaultButton=Mock(), done=Mock())
     controller.selected = controller.NO
     controller.launcher = NS(remote_window=None)
     controller.remote_command('DOWN')
     assert controller.selected == controller.YES
-    controller.dialog.done.assert_not_called()
+    buttons[controller.YES].click.assert_not_called()
     controller.remote_command('CLICK')
-    controller.dialog.done.assert_called_once_with(int(controller.YES))
+    buttons[controller.YES].click.assert_called_once_with()
     controller.remote_command('UP')
     assert controller.selected == controller.NO
     controller.remote_command('ENTER')
-    controller.dialog.done.assert_called_with(int(controller.NO))
+    buttons[controller.NO].click.assert_called_once_with()
+    controller.dialog.done.assert_not_called()  # Use actual button.clicked, not done().
 
 
 def test_remote_confirmation_left_right_and_close_are_safe():
     mod, _ = fake_confirmation_module()
     ctrl = mod.RemoteConfirmation.__new__(mod.RemoteConfirmation)
-    ctrl.dialog = NS(button=lambda _: NS(setFocus=lambda _: None),
+    buttons = {answer: NS(setFocus=Mock(), setStyleSheet=Mock(), update=Mock(), click=Mock())
+               for answer in (ctrl.YES, ctrl.NO)}
+    ctrl.dialog = NS(button=lambda answer: buttons[answer],
                      setDefaultButton=Mock(), done=Mock())
     ctrl.selected = ctrl.NO
     ctrl.launcher = NS(remote_window=None)
@@ -83,7 +90,8 @@ def test_remote_confirmation_left_right_and_close_are_safe():
     assert ctrl.selected == ctrl.NO
     ctrl.remote_command('RIGHT')
     ctrl.remote_command('CLOSE')
-    ctrl.dialog.done.assert_called_with(int(ctrl.NO))
+    buttons[ctrl.NO].click.assert_called_once_with()
+    ctrl.dialog.done.assert_not_called()
 
 
 def test_dialog_guard_blocks_background_widgets_but_allows_remote_and_question():
@@ -168,7 +176,7 @@ def test_remote_caption_shows_confirmation_choice_without_changing_file_target()
     remote = NS(area_label=label, isVisible=lambda: True)
     ctrl = mod.RemoteConfirmation.__new__(mod.RemoteConfirmation)
     ctrl.launcher = NS(remote_window=remote, _files_operating_target='files_exp')
-    ctrl.dialog = NS(button=lambda _: NS(setFocus=lambda _: None), setDefaultButton=Mock())
+    ctrl.dialog = NS(button=lambda _: NS(setFocus=Mock(), setStyleSheet=Mock(), update=Mock()), setDefaultButton=Mock())
     ctrl.selected = ctrl.NO
     ctrl.choose(ctrl.NO)
     label.setText.assert_called_with('確認応答：No')

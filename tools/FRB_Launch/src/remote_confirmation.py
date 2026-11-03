@@ -55,12 +55,37 @@ class RemoteConfirmation:
         self.dialog.setModal(False)
         self.selected = self.NO
 
+    # Do not rely on the Windows "hide focus indicators until keyboard input"
+    # setting. The Remote is a separate non-activating Tool window: Qt may
+    # update focusWidget() correctly without painting a native focus rectangle.
+    # Draw the active button's focus border *on the actual QMessageBox button*.
+    # The other button retains its normal platform appearance.
+    FOCUS_BUTTON_STYLE = (
+        'QPushButton {'
+        ' border: 2px solid #27865D;'
+        ' border-radius: 5px;'
+        ' padding: 5px 14px;'
+        ' background-color: #EAF7EF;'
+        ' color: #17472F;'
+        ' font-weight: 600;'
+        '}'
+        'QPushButton:pressed { background-color: #D1EAD9; }'
+    )
+
     def choose(self, answer):
+        """Move both Qt keyboard focus and a visible border on the dialog itself."""
+        if answer not in (self.YES, self.NO):
+            return
         self.selected = answer
-        button = self.dialog.button(answer)
-        if button is not None:
-            self.dialog.setDefaultButton(button)
-            button.setFocus(Qt.FocusReason.OtherFocusReason)
+        for candidate in (self.NO, self.YES):
+            button = self.dialog.button(candidate)
+            if button is None:
+                continue
+            button.setStyleSheet(self.FOCUS_BUTTON_STYLE if candidate == answer else '')
+            if candidate == answer:
+                self.dialog.setDefaultButton(button)
+                button.setFocus(Qt.FocusReason.TabFocusReason)
+                button.update()
         # A translucent Remote needs a clear, local indication that its wheel
         # currently controls an answer rather than the Files list.
         remote = getattr(self.launcher, 'remote_window', None)
@@ -76,9 +101,16 @@ class RemoteConfirmation:
         elif command == 'RIGHT':
             self.choose(self.YES)
         elif command in ('CLICK', 'ENTER'):
-            self.dialog.done(int(self.selected))
+            # Use the real QMessageBox button. Its clicked() path owns the
+            # result, exactly like the user pressing it with the mouse.
+            button = self.dialog.button(self.selected)
+            if button is not None:
+                button.click()
         elif command == 'CLOSE':
-            self.dialog.done(int(self.NO))
+            # Closing the Remote while a question is active is always No.
+            button = self.dialog.button(self.NO)
+            if button is not None:
+                button.click()
         # Never let any Remote action reach the background while confirmation
         # is visible, even if it is not one of the navigation commands.
         return True
@@ -94,7 +126,14 @@ class RemoteConfirmation:
         application.installEventFilter(guard)
         try:
             self.dialog.show()
+            self.dialog.raise_()
+            self.dialog.activateWindow()  # Give the question real keyboard focus.
             self.choose(self.NO)
+            # Reassert after the native show/layout passes, which can reset
+            # QMessageBox's initially focused default button on Windows.
+            QTimer.singleShot(0, lambda: self.choose(self.NO)
+                              if self.dialog.isVisible() and self.selected == self.NO
+                              else None)
             # Non-activating Remote remains clickable in front of the question.
             if remote is not None and remote.isVisible():
                 QTimer.singleShot(0, remote.raise_)

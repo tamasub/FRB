@@ -433,13 +433,15 @@ class LaunchRemote(QWidget):
         row_mid = QHBoxLayout()
         row_mid.setContentsMargins(0, 0, 0, 0)
         row_mid.setSpacing(2)
-        row_mid.addWidget(self._button('←', '戻る / 左へ',
-                                       'LEFT', width=50, height=46))
+        self.left_button = self._button('←', '戻る / 左へ',
+                                        'LEFT', width=50, height=46)
+        row_mid.addWidget(self.left_button)
         self.pad = WheelPad(self, compact=True)
         self.pad.command.connect(self.command.emit)
         row_mid.addWidget(self.pad)
-        row_mid.addWidget(self._button('→', 'フォルダーへ / 右へ',
-                                       'RIGHT', width=50, height=46))
+        self.right_button = self._button('→', 'フォルダーへ / 右へ',
+                                         'RIGHT', width=50, height=46)
+        row_mid.addWidget(self.right_button)
         # The wheel row is added after the Tab/BackTab row below.
 
         row_top = QHBoxLayout()

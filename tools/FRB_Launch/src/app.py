@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QT
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
+from remote_context_wheel import RemoteContextWheel
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
@@ -5141,10 +5142,25 @@ class Launcher(QWidget):
         if item is None:
             if pane is view.middle and view.current_directory():
                 self.show_expanded_background_paste_menu(pos)
+                self._enable_remote_context_wheel()
             return
         rect = pane.tree.visualItemRect(item)
         if rect.isValid():
             view.context_menu(pane, rect.center(), global_pos=pos)
+            # This is deliberately opt-in: only a menu opened from the Remote
+            # while targeting Files List gets wheel/arrow/● navigation.
+            if pane is view.middle:
+                self._enable_remote_context_wheel()
+
+    def _enable_remote_context_wheel(self):
+        menu = getattr(self, '_launch_context_menu', None)
+        if menu is None or not menu.isVisible():
+            return False
+        previous = getattr(self, '_remote_context_wheel', None)
+        if previous is not None:
+            previous.stop()
+        self._remote_context_wheel = RemoteContextWheel(self, menu)
+        return True
 
     def update_remote_more_menu(self):
         """Reflect the same enabled state as the breadcrumb heart control."""
@@ -5296,6 +5312,11 @@ class Launcher(QWidget):
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        # Files List's Remote-opened context menu owns the wheel/pad while
+        # visible. Its own QAction is the cursor; never navigate the List below.
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if menu_wheel is not None and menu_wheel.command(command):
+            return
         confirmation = getattr(self, '_remote_confirmation', None)
         if confirmation is not None:
             confirmation.remote_command(command)
