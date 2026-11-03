@@ -211,7 +211,7 @@ class UpDoubleClickBand(QFrame):
         self._single_click_timer = QTimer(self)
         self._single_click_timer.setSingleShot(True)
         self._single_click_timer.timeout.connect(
-            lambda: self.command.emit('REMOTE_FOLDER_DESELECT') if self._files_mode else None)
+            lambda: self.command.emit('REMOTE_FOLDER_DESELECT') if self._list_is_active() else None)
         self._caption = QLabel('（List カレントフォルダー操作）', self)
         self._caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
@@ -220,6 +220,12 @@ class UpDoubleClickBand(QFrame):
         layout.addWidget(self._caption)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
+    def _list_is_active(self):
+        """The lower blank band belongs exclusively to Files List."""
+        remote = self.parentWidget()
+        return (self._files_mode and remote is not None and
+                getattr(remote, '_files_operating_target', None) == 'directory')
+
     def set_files_mode(self, enabled):
         self._files_mode = bool(enabled)
         if not enabled:
@@ -227,6 +233,9 @@ class UpDoubleClickBand(QFrame):
         self._caption.setVisible(self._files_mode)
 
     def mouseReleaseEvent(self, event):
+        if not self._list_is_active():
+            event.accept()
+            return
         if event.button() == Qt.MouseButton.LeftButton and self._files_mode:
             if self._skip_release_after_double:
                 self._skip_release_after_double = False
@@ -238,6 +247,9 @@ class UpDoubleClickBand(QFrame):
         super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
+        if not self._list_is_active():
+            event.accept()
+            return
         if event.button() == Qt.MouseButton.LeftButton and self._files_mode:
             self._single_click_timer.stop()
             self._skip_release_after_double = True
@@ -249,7 +261,7 @@ class UpDoubleClickBand(QFrame):
     def contextMenuEvent(self, event):
         # Use Qt's native context-menu event (on Windows it arrives on mouse
         # release). Do not synthesize a click or select a row in Launch.
-        if self._files_mode:
+        if self._list_is_active():
             self.command.emit('REMOTE_CURRENT_FOLDER_MENU')
         event.accept()
 
@@ -694,6 +706,10 @@ class LaunchRemote(QWidget):
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
                 and (obj is self or (isinstance(obj, QWidget) and obj.window() is self))):
+            if (getattr(self, '_files_operating_target', None) == 'files_exp'
+                    and (obj is self.up_band or obj is self.up_band._caption)):
+                event.accept()  # List-only blank band's wheel is also inert in Exp.
+                return True
             if self.adjust_background_opacity_from_wheel(event):
                 return True
             if hasattr(self, 'pad'):
@@ -838,6 +854,8 @@ class LaunchRemote(QWidget):
     def set_operating_target(self, target):
         """Only move the Remote's logical target; never navigate a folder."""
         self._files_operating_target = 'files_exp' if target == 'files_exp' else 'directory'
+        if self._files_operating_target != 'directory':
+            self.up_band._single_click_timer.stop()
         self.set_workspace('files')
 
     def set_workspace(self, mode):

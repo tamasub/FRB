@@ -50,7 +50,7 @@ def test_exp_and_list_switch_only_operating_target_not_breadcrumb():
     assert called == ['files_exp', 'directory']
 
 
-def test_exp_wheel_changes_selection_without_committing_folder():
+def test_exp_wheel_moves_candidate_and_debounces_content_preview():
     class Index:
         def __init__(self, i): self.i=i
         def isValid(self): return self.i >= 0
@@ -68,8 +68,8 @@ def test_exp_wheel_changes_selection_without_committing_folder():
               {'QAbstractItemView':NS(ScrollHint=NS(EnsureVisible=0))})
     assert fn(panel,1)
     assert tree.selected == [1]
-    panel._selection_timer.stop.assert_called_once()
-    assert not hasattr(panel, 'folder_selected')  # Can't navigate the filesystem.
+    panel._selection_timer.stop.assert_not_called()
+    assert not hasattr(panel, 'folder_selected')  # currentChanged/timer owns preview.
 
 
 def test_exp_central_button_expands_and_navigates_only_on_activation():

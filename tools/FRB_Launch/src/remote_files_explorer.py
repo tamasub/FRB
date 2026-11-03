@@ -70,7 +70,8 @@ class FilesExpWheelTree(QTreeView):
         view = getattr(launcher, 'expanded_view', None)
         if (launcher is not None and view is not None
                 and getattr(view, '_workspace_mode', None) == 'files'):
-            panel._selection_timer.stop()  # No stale delayed folder commit.
+            # Exp claims the controller first; a wheel-selected folder may
+            # later update the breadcrumb without transferring control.
             launcher.set_files_operating_target('files_exp')
 
     def mousePressEvent(self, event):
@@ -774,7 +775,11 @@ class RemoteFilesExplorer(QWidget):
                     (item.data(_DATA_ROLE) or {}).get('pc'))
 
     def remote_step(self, direction):
-        """Move one visible tree row without navigating Files or opening it."""
+        """Select a visible folder; debounce its breadcrumb/List preview.
+
+        The same currentChanged timer is used by direct Exp wheel scrolling.
+        Never hand the logical operating target to List just to refresh it.
+        """
         tree = self.tree
         index = tree.currentIndex()
         if not index.isValid():
@@ -784,11 +789,8 @@ class RemoteFilesExplorer(QWidget):
                      else tree.indexAbove(index))
         if not index.isValid():
             return False
-        tree.setCurrentIndex(index)
+        tree.setCurrentIndex(index)  # currentChanged arms the delayed preview.
         tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
-        # setCurrentIndex emits currentChanged, whose delayed mouse-wheel
-        # commit would otherwise navigate on every Remote notch.
-        self._selection_timer.stop()
         self._schedule_tree_state_save()
         return True
 
@@ -857,29 +859,49 @@ class RemoteFilesExplorer(QWidget):
         return False
 
     def _selection_changed(self, index, _previous):
+        """Debounce Exp's selection into a breadcrumb/List *content* update.
+
+        A real wheel (direct or Remote) selects first, then previews the folder
+        after 130 ms without any further movement. It does NOT select List as
+        the operating column. Programmatic sync/restore is not navigation.
+        """
         self._schedule_tree_state_save()
-        if self._syncing_directory:
+        if self._syncing_directory or getattr(self, '_restoring_tree', False):
             return
+        self._selection_timer.stop()
         launcher = getattr(self, '_launcher', None)
         if launcher is not None:
-            # In BOTH Remote placements, wheel/remote-step only previews an
-            # Exp candidate. Click/●/→ explicitly commits navigation; delayed
-            # wheel commits would silently override the human's target.
-            self._selection_timer.stop()
-            return
-        # Wheel/keyboard selection settles before a potentially costly Files
-        # refresh; an explicit mouse click still navigates immediately.
-        self._selection_timer.stop()
+            view = getattr(launcher, 'expanded_view', None)
+            if (view is None or not view.isVisible()
+                    or view._workspace_mode != 'files'
+                    or getattr(launcher, '_files_operating_target', None) != 'files_exp'):
+                return
         if self._index_path(index) or self._is_pc_index(index):
             self._selection_timer.start()
 
     def _commit_current_selection(self):
+        """Refresh Files List and breadcrumb, preserving Exp as controller."""
+        if self._syncing_directory or getattr(self, '_restoring_tree', False):
+            return
+        launcher = getattr(self, '_launcher', None)
+        if launcher is not None:
+            view = getattr(launcher, 'expanded_view', None)
+            # A queued timer must not navigate after Browser/List takes over.
+            if (view is None or not view.isVisible()
+                    or view._workspace_mode != 'files'
+                    or getattr(launcher, '_files_operating_target', None) != 'files_exp'):
+                return
         index = self.tree.currentIndex()
         if self._is_pc_index(index):
             self.pc_selected.emit()
             return
         path = self._index_path(index)
         if path:
+            if launcher is not None:
+                directory = view.current_directory()
+                if (directory and os.path.normcase(os.path.normpath(str(directory)))
+                        == os.path.normcase(os.path.normpath(str(path)))):
+                    return  # No costly reload for an already-shown folder.
             self.folder_selected.emit(path)
 
     def _activate_index(self, index):

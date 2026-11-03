@@ -17,6 +17,7 @@ from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
+from remote_confirmation import RemoteConfirmation
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
@@ -4494,6 +4495,13 @@ class Launcher(QWidget):
             return False
         if target == 'files' and self.files_exp_embedded_mode:
             target = 'files_exp'
+        # Cancel an in-flight Exp wheel preview when the human chooses List.
+        # Merely updating List content while Exp is active must NOT cancel it.
+        if target != 'files_exp':
+            panels = getattr(self, 'files_exp_panels', None)
+            if callable(panels):
+                for exp_panel in panels():
+                    exp_panel._selection_timer.stop()
         self._files_operating_target = target
         self._remote_area = target
         self._last_focus_area = target
@@ -5232,9 +5240,20 @@ class Launcher(QWidget):
         panel = self._current_remote_files_exp()
         if panel is None:
             return False
+        # The explicit RIGHT command wins over a pending wheel debounce.
+        timer = getattr(panel, '_selection_timer', None)
+        if timer is not None:
+            timer.stop()
         directory = panel.remote_current_folder_path()
         if directory:
-            changed = self.navigate_files_exp_folder(directory)
+            # Wheel preview may have already shown this exact folder in List.
+            # RIGHT then hands over control without a second costly refresh.
+            import os
+            current_folder = getattr(view, 'current_directory', lambda: None)()
+            already_open = bool(current_folder and
+                os.path.normcase(os.path.normpath(str(current_folder))) ==
+                os.path.normcase(os.path.normpath(str(directory))))
+            changed = already_open or self.navigate_files_exp_folder(directory)
         else:
             # PCは実フォルダーパスを持たない仮想ルート。
             changed = (panel._is_pc_index(panel.tree.currentIndex())
@@ -5277,6 +5296,10 @@ class Launcher(QWidget):
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        confirmation = getattr(self, '_remote_confirmation', None)
+        if confirmation is not None:
+            confirmation.remote_command(command)
+            return
         if command == 'CLOSE':
             self.hide_remote()
             return
@@ -5411,6 +5434,9 @@ class Launcher(QWidget):
                 self.show_expanded_background_paste_menu(QCursor.pos())
             return
         if command == 'REMOTE_FOLDER_DESELECT':
+            # This blank band is a List-only control, NOT a target switch.
+            if getattr(self, '_files_operating_target', None) != 'directory':
+                return
             view = self.expanded_view
             if view.isVisible() and view._workspace_mode == 'files':
                 tree = view.middle.tree
@@ -5550,16 +5576,21 @@ class Launcher(QWidget):
         if (expanded and not browser_mode and area == 'files_exp'):
             panel = self._current_remote_files_exp()
             if panel is not None:
-                if command in ('UP', 'DOWN'):
-                    panel.remote_step(-1 if command == 'UP' else 1)
-                elif command == 'RIGHT':
-                    # Exp → List is a Remote-wide navigation contract.
+                if command == 'RIGHT':
+                    # Explicit Exp → List handoff still switches the controller.
                     if self.remote_exp_right_to_list():
                         return
-                elif command == 'LEFT':
-                    panel.remote_branch(-1)
-                elif command == 'ENTER':
-                    panel.remote_activate_current()
+                else:
+                    # remote_focus_area stops stale previews: call it BEFORE
+                    # remote_step so the last wheel notch can arm its timer.
+                    self.remote_focus_area('files_exp')
+                    if command in ('UP', 'DOWN'):
+                        panel.remote_step(-1 if command == 'UP' else 1)
+                    elif command == 'LEFT':
+                        panel.remote_branch(-1)
+                    elif command == 'ENTER':
+                        panel.remote_activate_current()
+                    return
                 self.remote_focus_area('files_exp')
             return
         if (self.files_root_hidden_mode and expanded and not browser_mode
@@ -6444,13 +6475,11 @@ class Launcher(QWidget):
         if self.file_index_busy:
             QMessageBox.warning(self, 'ファイル索引', '索引を更新中です。終了後に再実行してください。')
             return
-        answer = QMessageBox.question(
-            self, 'ファイル索引SQLite DBをクリア',
+        answer = self.ask_remote_confirmation(
+            'ファイル索引SQLite DBをクリア',
             'ファイル索引DB内の索引データをすべてクリアしますか？\n\n'
             'DBファイル自体は残します。元のファイルや設定JSONは削除しません。\n'
-            '必要な場合は「ファイル索引を今すぐ更新」で再作成できます。',
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)
+            '必要な場合は「ファイル索引を今すぐ更新」で再作成できます。')
         if answer != QMessageBox.StandardButton.Yes:
             return
         try:
@@ -6458,8 +6487,8 @@ class Launcher(QWidget):
             DIAG.info('FILE_INDEX cleared database=%s removed=%s', self.file_index_db, removed)
             if self.isVisible() and self.search.text().strip() and not self.selection:
                 self.render()
-            QMessageBox.information(self, 'ファイル索引',
-                                    '索引データをクリアしました（登録0件）。' if removed else '索引DBは既にありません。')
+            self.info_notice('索引データをクリアしました（登録0件）。' if removed
+                             else '索引DBは既にありません。')
         except (OSError, sqlite3.Error) as exc:
             DIAG.exception('FILE_INDEX clear failed')
             self.error('ファイル索引DBをクリアできませんでした: ' + str(exc))
@@ -6562,6 +6591,28 @@ class Launcher(QWidget):
             self._recover_apps(e)
         finally:
             self.apps_output.unlink(missing_ok=True)
+
+    def info_notice(self, message):
+        """Nonblocking completion / important notice in the timed footer."""
+        self.footer.setText('ℹ️ ' + str(message).replace('\n', ' / '))
+
+    def ask_remote_confirmation(self, title, message, *, informative=''):
+        """Safety-first Yes/No used by all Launch-owned simple confirmations.
+
+        The question stays mouse/keyboard accessible, while Remote wheel and
+        ● work even though Remote is a separate non-activating Tool window.
+        """
+        if getattr(self, '_remote_confirmation', None) is not None:
+            return QMessageBox.StandardButton.No  # Never nest approvals.
+        confirmation = RemoteConfirmation(self, title, message, informative)
+        self._remote_confirmation = confirmation
+        self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
+        try:
+            return confirmation.ask()
+        finally:
+            self._remote_confirmation = None
+            self._filesystem_dialog_depth = max(
+                0, getattr(self, '_filesystem_dialog_depth', 0) - 1)
 
     def error(self, message):
         logging.warning('%s', message)
@@ -7980,14 +8031,12 @@ class Launcher(QWidget):
             shown += f'\nほか {len(conflicts) - 8} 件'
         self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
         try:
-            return QMessageBox.question(
-                self, '同名の項目があります',
+            return self.ask_remote_confirmation(
+                '同名の項目があります',
                 f'貼り付け先: {destination}\n\n'
                 f'次の {len(conflicts)} 件は既に存在します。\n{shown}\n\n'
                 '同名ファイルは上書きし、同名フォルダーは中身を統合しますか？\n'
-                '（フォルダー内の無関係なファイルは削除しません）',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
+                '（フォルダー内の無関係なファイルは削除しません）') == QMessageBox.StandardButton.Yes
         finally:
             self._filesystem_dialog_depth -= 1
 
@@ -8258,7 +8307,7 @@ class Launcher(QWidget):
                 names_done = [item.target.name for item in plan]
                 if move:
                     clipboard.clear()
-                self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
+                self.info_notice(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
             menu._pasted_feedback_paths = pasted_paths_for(destination, names_done)
             # Move changes *both* folder trees. Capture source parents from the
             # successful plan rather than looking at the clipboard after clear().
@@ -8873,10 +8922,8 @@ class Launcher(QWidget):
                 elif accepted:
                     self.populate_history_popup()
             elif chosen == delete_action:
-                answer = QMessageBox.question(self, 'カテゴリー削除',
-                    f'「{group["name"]}」を削除しますか？\n中の検索履歴は未分類へ移動します。',
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No)
+                answer = self.ask_remote_confirmation('カテゴリー削除',
+                    f'「{group["name"]}」を削除しますか？\n中の検索履歴は未分類へ移動します。')
                 if answer == QMessageBox.StandardButton.Yes:
                     self.search_categories.delete(identifier)
                     self.populate_history_popup()
@@ -10193,10 +10240,8 @@ class Launcher(QWidget):
         if not accepted or name == path.name:
             return False
         if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
-            answer = QMessageBox.question(
-                self, '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No)
+            answer = self.ask_remote_confirmation(
+                '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？')
             if answer != QMessageBox.StandardButton.Yes:
                 return False
         try:
@@ -10231,10 +10276,8 @@ class Launcher(QWidget):
         if not (path.is_dir() if kind == 'folder' else path.is_file()):
             raise ValueError('対象が見つかりません')
         if kind == 'file' and Path(new_name).suffix.casefold() != path.suffix.casefold():
-            answer = QMessageBox.question(
-                self, '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？',
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No)
+            answer = self.ask_remote_confirmation(
+                '拡張子の変更', 'ファイルの拡張子が変わります。名前を変更しますか？')
             if answer != QMessageBox.StandardButton.Yes:
                 return None
         new_path = str(rename_file_or_folder(path, new_name))
@@ -10729,11 +10772,9 @@ class Launcher(QWidget):
                 listed = '\n'.join('・' + p.name for p in targets[:8])
                 if len(targets) > 8:
                     listed += f'\nほか {len(targets) - 8} 件'
-                answer = QMessageBox.question(
-                    self, '複数項目をごみ箱へ移動',
-                    f'{len(targets)}件をごみ箱へ移動しますか？\n\n{listed}',
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No)
+                answer = self.ask_remote_confirmation(
+                    '複数項目をごみ箱へ移動',
+                    f'{len(targets)}件をごみ箱へ移動しますか？\n\n{listed}')
                 if answer != QMessageBox.StandardButton.Yes:
                     return
                 finished = 0
@@ -10747,7 +10788,7 @@ class Launcher(QWidget):
                             removed_directories.append(path)
                         finished += 1
                         advance(finished, len(targets), path.name)
-                self.footer.setText(f'{finished}件をごみ箱へ移動しました')
+                self.info_notice(f'{finished}件をごみ箱へ移動しました')
             else:
                 raise ValueError('複数選択で未対応の操作です: ' + action_id)
         except (OSError, ValueError) as exc:
@@ -10803,7 +10844,7 @@ class Launcher(QWidget):
                 paste_virtual_shell_items(destination, overwrite_confirmed=bool(conflicts))
                 count = len(names) if names else sum(
                     p.name.casefold() not in before for p in destination.iterdir())
-                self.footer.setText(f'{count}件をZIPから貼り付けました → {destination}')
+                self.info_notice(f'{count}件をZIPから貼り付けました → {destination}')
             else:
                 plan = (make_paste_plan(destination, sources, allow_existing=True)
                         if move else make_paste_plan(destination, sources,
@@ -10819,7 +10860,7 @@ class Launcher(QWidget):
                     count = paste_items(plan, move=move, overwrite=bool(conflicts))
                 if move:
                     clipboard.clear()
-                self.footer.setText(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
+                self.info_notice(f'{count}件を{"移動" if move else "コピー"}しました → {destination}')
             # Only successful transfers count as pasted results. When the
             # clipboard is changed by Windows/Explorer the pending cut state
             # is automatically cleared by the common clipboard signal.
@@ -11027,12 +11068,10 @@ class Launcher(QWidget):
                 self.pending_menu_item = None
                 self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
                 try:
-                    answer = QMessageBox.question(
-                        self, 'ごみ箱へ移動',
+                    answer = self.ask_remote_confirmation(
+                        'ごみ箱へ移動',
                         f'次の{"フォルダー" if kind == "folder" else "ファイル"}を削除しますか？\n\n{path}\n\n'
-                        'Windowsのごみ箱へ移動します。ごみ箱に対応しない場所ではOSの警告を確認してください。',
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                        QMessageBox.StandardButton.No)
+                        'Windowsのごみ箱へ移動します。ごみ箱に対応しない場所ではOSの警告を確認してください。')
                     if answer != QMessageBox.StandardButton.Yes:
                         return
                     with self.filesystem_progress('ごみ箱へ移動', 1) as advance:
@@ -11085,7 +11124,7 @@ class Launcher(QWidget):
                         self.render()
                 if self.file_index_settings.get('enabled', True) and not self.file_index_busy:
                     QTimer.singleShot(0, lambda: self.refresh_file_index(manual=False))
-                self.footer.setText(f'削除を完了しました: {path.name}')
+                self.info_notice(f'削除を完了しました: {path.name}')
             elif action_id in ('copy_full_path', 'copy_path'):
                 QApplication.clipboard().setText(str(path))
             elif action_id == 'copy_file_name':
@@ -11149,11 +11188,9 @@ class Launcher(QWidget):
                 if not accepted or name == path.name:
                     return
                 if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
-                    answer = QMessageBox.question(
-                        self, '拡張子の変更',
-                        'ファイルの拡張子が変わります。名前を変更しますか？',
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                        QMessageBox.StandardButton.No)
+                    answer = self.ask_remote_confirmation(
+                        '拡張子の変更',
+                        'ファイルの拡張子が変わります。名前を変更しますか？')
                     if answer != QMessageBox.StandardButton.Yes:
                         return
                 new_path = rename_file_or_folder(path, name)
@@ -11221,26 +11258,21 @@ class Launcher(QWidget):
             visible_changes = '\n'.join(preview['changes'][:12])
             if len(preview['changes']) > 12:
                 visible_changes += f'\n...ほか {len(preview["changes"])-12} 件'
-            question = QMessageBox(self)
-            question.setIcon(QMessageBox.Icon.Question)
-            question.setWindowTitle('Gitコミットの確認')
-            question.setText('現在のGit作業ツリーの変更をコミットしますか？')
-            question.setInformativeText(
-                f'リポジトリ: {preview["repository"]}\n'
-                f'コミットメッセージ: {message}\n'
-                f'変更候補: {len(preview["changes"])} 件\n\n'
-                f'{visible_changes}\n\n'
-                '※ 選択ファイルはメッセージの元になるだけで、コミット対象の限定・追加はしません。\n'
-                + ('未追跡ファイルも対象です。' if preview['include_untracked']
-                   else '未追跡ファイルは追加しません。'))
-            question.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-            question.setDefaultButton(QMessageBox.StandardButton.No)
-            if question.exec() != QMessageBox.StandardButton.Yes:
+            answer = self.ask_remote_confirmation(
+                'Gitコミットの確認',
+                '現在のGit作業ツリーの変更をコミットしますか？',
+                informative=(f'リポジトリ: {preview["repository"]}\n'
+                             f'コミットメッセージ: {message}\n'
+                             f'変更候補: {len(preview["changes"])} 件\n\n'
+                             f'{visible_changes}\n\n'
+                             '※ 選択ファイルはメッセージの元になるだけで、コミット対象の限定・追加はしません。\n'
+                             + ('未追跡ファイルも対象です。' if preview['include_untracked']
+                                else '未追跡ファイルは追加しません。')))
+            if answer != QMessageBox.StandardButton.Yes:
                 return
             committed = commit_tracked_changes(preview['repository'], message,
                                                include_untracked=preview['include_untracked'])
-            QMessageBox.information(self, 'Gitコミット完了',
-                                    'コミットしました。\n' + committed)
+            self.info_notice('Gitコミット完了：' + committed)
         except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
             DIAG.exception('GIT_COMMIT_FROM_FILENAME path=%s', selected_path)
             self.error('Gitコミットできませんでした: ' + str(exc))

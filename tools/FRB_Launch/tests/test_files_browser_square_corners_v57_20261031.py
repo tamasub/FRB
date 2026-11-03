@@ -27,7 +27,9 @@ def test_middle_columns_heading_is_shorter_quieter():
     assert theme_palette('dark')['column_header'] == '#394d43'
     meta = qss_rule('QHeaderView#expandedMiddleColumnsHeader::section')
     assert "color:{colors['muted_text']}" in meta
-    assert "background:{colors['column_header']}" in meta
+    # Files List heading is now a shade lighter than the title in both modes.
+    assert "background:{list_grid_header}" in meta
+    assert "background:{operating_grid_header}" in SRC
     assert 'padding:1px 8px' in meta
     assert 'header.setSectionsMovable(True)' in SRC
     assert 'header.sectionClicked.connect(self._middle_header_clicked)' in SRC

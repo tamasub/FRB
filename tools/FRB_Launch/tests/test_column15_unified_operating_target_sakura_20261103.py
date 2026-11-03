@@ -83,38 +83,43 @@ def test_direct_mouse_press_changes_the_canonical_target_immediately():
     assert remote.set_area.call_args.args == ('files_exp',)
 
 
-def test_mouse_wheel_exp_claims_target_but_no_delayed_breadcrumb_navigation():
+def test_mouse_wheel_exp_claims_target_and_arms_delayed_folder_preview():
     app, view, remote, modes = launcher_stub()
     app.remote_15_mode = True
+    view.isVisible = lambda: True
     setter = method(APP,'Launcher','set_files_operating_target')
     app.set_files_operating_target = lambda target: setter(app,target)
-    panel = NS(_embedded=True, _launcher=app, _selection_timer=NS(stop=Mock(), start=Mock()))
-    tree = NS(parentWidget=lambda:panel)
+    panel = NS(_embedded=True, _launcher=app, _syncing_directory=False,
+               _selection_timer=NS(stop=Mock(), start=Mock()),
+               _index_path=lambda index: 'F:/FRB/' + index,
+               _is_pc_index=lambda index: False,
+               _schedule_tree_state_save=Mock())
+    tree = NS(parentWidget=lambda: panel)
     claim = method(EXP,'FilesExpWheelTree','_claim_operating_target')
     claim(tree)
-    panel._selection_timer.stop.assert_called_once()
     assert app._files_operating_target == 'files_exp'
     assert modes == ['files_exp']
     assert app.breadcrumb == 'F:/FRB/unchanged'
-    # Guard against user scroll generating the legacy delayed commit.
     selection = method(EXP,'RemoteFilesExplorer','_selection_changed')
-    panel._syncing_directory = False
-    panel._schedule_tree_state_save = Mock()
     selection(panel, 'row-b', 'row-a')
-    assert panel._selection_timer.stop.call_count == 2
-    panel._selection_timer.start.assert_not_called()
+    panel._selection_timer.stop.assert_called_once_with()
+    panel._selection_timer.start.assert_called_once_with()
+    # The path changes only after the timer actually expires.
     assert app.breadcrumb == 'F:/FRB/unchanged'
 
 
-def test_standalone_exp_wheel_does_not_silently_navigate():
+def test_standalone_exp_uses_the_same_delayed_preview_in_normal_mode():
     selection = method(EXP,'RemoteFilesExplorer','_selection_changed')
-    panel = NS(_embedded=False, _launcher=NS(remote_15_mode=True),
+    launcher = NS(_files_operating_target='files_exp',
+                  expanded_view=NS(isVisible=lambda:True, _workspace_mode='files'),
+                  remote_15_mode=False)
+    panel = NS(_embedded=False, _launcher=launcher,
                _syncing_directory=False,_schedule_tree_state_save=Mock(),
                _selection_timer=NS(stop=Mock(),start=Mock()),
                _index_path=lambda index:'F:/Folder',_is_pc_index=lambda index:False)
     selection(panel,'row-b','row-a')
     panel._selection_timer.stop.assert_called_once_with()
-    panel._selection_timer.start.assert_not_called()
+    panel._selection_timer.start.assert_called_once_with()
 
 
 def test_direct_list_wheel_hook_and_exp_mouse_and_wheel_hooks_are_present():

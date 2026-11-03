@@ -1814,6 +1814,10 @@ class ExpandedLauncherView(QWidget):
         # Sakura Editor-inspired warm white, lightened from #FFFBF0.
         operating_bg = '#FFFEF9' if light else '#463a32'
         operating_title = '#FFF9EF' if light else '#624936'
+        # The grid header is one shade lighter than the Files List title,
+        # whether its column is active or remembered.
+        list_grid_header = '#FCFEFD' if light else '#425a50'
+        operating_grid_header = '#FFFCF6' if light else '#6b5141'
         operating_outline = '#d9b991' if light else '#ad8258'
         root_border = colors['root_button_border']
         # The workspace strip is deliberately a shade lighter than the tabs.
@@ -1964,12 +1968,14 @@ class ExpandedLauncherView(QWidget):
                 border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
             QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
             QHeaderView#expandedMiddleColumnsHeader::section {{
-                color:{colors['muted_text']};background:{colors['column_header']};border:0;
+                color:{colors['muted_text']};background:{list_grid_header};border:0;
                 border-right:1px solid {border};border-bottom:1px solid {border};
                 padding:1px 8px;font-size:12px;font-weight:400;}}
             QHeaderView#expandedMiddleColumnsHeader[operatingActive="true"]::section {{
-                background:{operating_title};}}
-            QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{hover};}}
+                background:{operating_grid_header};}}
+            QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{list_grid_header};}}
+            QHeaderView#expandedMiddleColumnsHeader[operatingActive="true"]::section:hover {{
+                background:{operating_grid_header};}}
             QTreeWidget#expandedTree[detailsColumns="true"] {{font-size:12px;}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
             QWidget#expandedMiddleTreeContainer[operatingActive="true"] {{background:{operating_bg};}}
@@ -2767,11 +2773,9 @@ class ExpandedLauncherView(QWidget):
                 self.launcher._filesystem_dialog_depth = getattr(
                     self.launcher, '_filesystem_dialog_depth', 0) + 1
                 try:
-                    answer = QMessageBox.question(
-                        self.launcher, '拡張子の変更',
-                        '拡張子が変わります。名前を変更しますか？',
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                        QMessageBox.StandardButton.No)
+                    answer = self.launcher.ask_remote_confirmation(
+                        '拡張子の変更',
+                        '拡張子が変わります。名前を変更しますか？')
                 finally:
                     self.launcher._filesystem_dialog_depth -= 1
                 if answer != QMessageBox.StandardButton.Yes:
