@@ -48,6 +48,20 @@ class FilesExpWheelTree(QTreeView):
         self._wheel_follow_scheduled = False
         self._flow_selection_scheduled = False
         self._flow_pointer = None
+        # An operating row always owns BOTH its green fill and green outline.
+        # The same QModelIndex is an outline-only memory when List is active.
+        self.current_outline_color = QColor('#8fc7ab')
+
+    def drawRow(self, painter, option, index):
+        super().drawRow(painter, option, index)
+        if not option.rect.isValid() or index != self.currentIndex():
+            return
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(self.current_outline_color, 1.15))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRoundedRect(QRectF(option.rect.adjusted(5, 3, -5, -3)), 6.5, 6.5)
+        painter.restore()
 
     def wheelEvent(self, event):
         bar = self.verticalScrollBar()
@@ -295,7 +309,7 @@ class RemoteFilesExplorer(QWidget):
                                 else 28)
         header.setFixedHeight(max(28, remote_header_height))
         header_row = QHBoxLayout(header)
-        header_row.setContentsMargins(2, 2, 2, 2)
+        header_row.setContentsMargins(8 if self._embedded else 2, 2, 2, 2)
         header_row.setSpacing(2)
         # Exactly the Remote title bar's 28x24 HOME control and 18px glyph.
         self.home_button = QPushButton('', header)
@@ -351,6 +365,10 @@ class RemoteFilesExplorer(QWidget):
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
             launcher, 'pointer_warp_enabled', True))
         self.tree.setObjectName('filesExpTree')
+        # Standalone Exp keeps its original selected background; the embedded
+        # Exp follows Remote's logical operating target, not native Qt focus.
+        self.tree.setProperty('operatingActive', not self._embedded)
+        self.exp_header.setProperty('operatingActive', False)
         self.tree.setModel(self.model)
         self.tree.setItemDelegate(FilesExpRenameDelegate(self.tree))
         self.tree.setHeaderHidden(True)
@@ -739,6 +757,89 @@ class RemoteFilesExplorer(QWidget):
         item = self.model.itemFromIndex(index)
         return bool(item is not None and
                     (item.data(_DATA_ROLE) or {}).get('pc'))
+
+    def remote_step(self, direction):
+        """Move one visible tree row without navigating Files or opening it."""
+        tree = self.tree
+        index = tree.currentIndex()
+        if not index.isValid():
+            index = self.model.index(0, 0)
+        else:
+            index = (tree.indexBelow(index) if direction > 0
+                     else tree.indexAbove(index))
+        if not index.isValid():
+            return False
+        tree.setCurrentIndex(index)
+        tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
+        # setCurrentIndex emits currentChanged, whose delayed mouse-wheel
+        # commit would otherwise navigate on every Remote notch.
+        self._selection_timer.stop()
+        self._schedule_tree_state_save()
+        return True
+
+    def remote_activate_current(self):
+        """Central Remote click: expand the selected folder AND navigate it."""
+        index = self.tree.currentIndex()
+        if not index.isValid():
+            return False
+        self._selection_timer.stop()
+        if not self.tree.isExpanded(index):
+            # expanded -> _activate_disclosure -> existing breadcrumb callback.
+            self.tree.expand(index)
+            # Folders with no children cannot expand: still navigate them.
+            if self.tree.isExpanded(index):
+                return True
+        self._activate_index(index)
+        return True
+
+    def remote_branch(self, direction):
+        """Right expands, left collapses or selects the visible parent."""
+        tree = self.tree
+        index = tree.currentIndex()
+        if not index.isValid():
+            return False
+        self._selection_timer.stop()
+        if direction > 0:
+            if not tree.isExpanded(index):
+                tree.expand(index)
+            else:
+                child = self.model.index(0, 0, index)
+                if child.isValid() and self._index_path(child):
+                    tree.setCurrentIndex(child)
+                    self._selection_timer.stop()
+                    tree.scrollTo(child)
+        elif tree.isExpanded(index):
+            tree.collapse(index)
+        else:
+            parent = index.parent()
+            if parent.isValid():
+                tree.setCurrentIndex(parent)
+                self._selection_timer.stop()
+                tree.scrollTo(parent)
+        self._schedule_tree_state_save()
+        return True
+
+    def remote_current_folder_path(self):
+        """Context actions must use the actual selected Exp row, not a guess."""
+        return self._index_path(self.tree.currentIndex())
+
+    def remote_select_pc_root(self):
+        """パンくずPCからExpへ戻る。ツリーの展開・現在地は変更しない。"""
+        for row in range(self.model.rowCount()):
+            index = self.model.index(row, 0)
+            if not self._is_pc_index(index):
+                continue
+            self._selection_timer.stop()
+            old_sync = self._syncing_directory
+            self._syncing_directory = True
+            try:
+                self.tree.setCurrentIndex(index)
+                self.tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
+            finally:
+                self._syncing_directory = old_sync
+            self._schedule_tree_state_save()
+            return True
+        return False
 
     def _selection_changed(self, index, _previous):
         self._schedule_tree_state_save()
@@ -1310,8 +1411,22 @@ class RemoteFilesExplorer(QWidget):
                                 10, 10)
         painter.end()
 
+    def set_operating_active(self, active):
+        """An inactive embedded Exp remembers its row with an outline ONLY."""
+        if not self._embedded:
+            return
+        active = bool(active)
+        for widget in (self.exp_header, self.tree):
+            if widget.property('operatingActive') != active:
+                widget.setProperty('operatingActive', active)
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
+                widget.update()
+        self.tree.viewport().update()
+
     def apply_theme(self, theme):
         colors = theme_palette(theme)
+        self.tree.current_outline_color = QColor(colors['focus_outline'])
         # Share the same vector house icon as the Remote HOME, on theme change.
         self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
         self._exp_background = QColor(colors['panel'])
@@ -1322,8 +1437,11 @@ class RemoteFilesExplorer(QWidget):
             QWidget#remoteFilesExplorer, QWidget#embeddedFilesExplorer {{background:transparent;color:{colors['text']};
                 border:0;}}
             QFrame#filesExpHeader {{background:{exp_header};
-                border:0;border-bottom:1px solid {colors['panel_border']};
+                border:1px solid transparent;border-bottom:1px solid {colors['panel_border']};
                 border-radius:0px;}}
+            QFrame#filesExpHeader[operatingActive="true"] {{
+                background:{colors['selection']};border:1px solid {'#56a88c' if theme_family(theme) == 'light' else '#76cda9'};
+                border-radius:3px;}}
             QLabel#filesExpTitle {{background:transparent;color:{colors['text']};
                 font-size:12px;font-weight:bold;border:0;}}
             /* Identical 28x24 HOME button styling to LaunchRemote. */
@@ -1344,8 +1462,15 @@ class RemoteFilesExplorer(QWidget):
             QTreeView#filesExpTree {{background:{colors['panel']};color:{colors['text']};
                 border:0;outline:0;}}
             QTreeView#filesExpTree::item {{height:24px;padding:0;}}
-            QTreeView#filesExpTree::item:selected {{background:{colors['selection']};
-                color:{colors['text']};}}
+            /* Passive memory = outlined current row, NO green fill. */
+            QTreeView#filesExpTree::item:selected,
+            QTreeView#filesExpTree::item:selected:!active {{
+                background:transparent;color:{colors['text']};}}
+            /* True current = green fill AND the outline painted in drawRow.
+               The standalone Files Exp retains the original active selection. */
+            QTreeView#filesExpTree[operatingActive="true"]::item:selected,
+            QTreeView#filesExpTree[operatingActive="true"]::item:selected:!active {{
+                background:{colors['selection']};color:{colors['text']};}}
             QTreeView#filesExpTree::item:hover:!selected {{background:{colors['hover']};}}
         """)
         self.update()

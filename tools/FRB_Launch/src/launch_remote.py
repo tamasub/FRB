@@ -205,14 +205,14 @@ class UpDoubleClickBand(QFrame):
         super().__init__(parent)
         self.setObjectName('remoteUpDoubleClickBand')
         self.setFixedHeight(46)
-        self.setToolTip('ダブルクリック：上位フォルダーへ / 右クリック：カレントフォルダー操作')
+        self.setToolTip('ダブルクリック：上位フォルダーへ / 右クリック：List カレントフォルダー操作')
         self._files_mode = True
         self._skip_release_after_double = False
         self._single_click_timer = QTimer(self)
         self._single_click_timer.setSingleShot(True)
         self._single_click_timer.timeout.connect(
             lambda: self.command.emit('REMOTE_FOLDER_DESELECT') if self._files_mode else None)
-        self._caption = QLabel('（カレントフォルダー操作）', self)
+        self._caption = QLabel('（List カレントフォルダー操作）', self)
         self._caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         layout = QHBoxLayout(self)
@@ -365,14 +365,21 @@ class LaunchRemote(QWidget):
         self.page_separator.setFixedHeight(7)
         self.page_separator.hide()
 
+        # Files Exp and Files List select the operating target, not the
+        # working directory. Browser remains a separate full-width action.
+        self._files_operating_target = 'directory'
         # Files Exp is the left workspace button, not a separate popup toggle.
         self.files_exp_panel = None
         self._grid_aligned = False
         self._applying_grid_alignment = False
         self.files_exp_theme = launcher.color_theme
         self.files_exp_button = self._button(
-            'Files Exp', '作業フォルダーと選択状態を維持してFiles画面へ切り替え',
-            'WORKSPACE_FILES', width=85, height=27, role='workspace',
+            'Files Exp', 'Files Expツリーをぐりぐり操作（場所は変えずに切替）',
+            'REMOTE_TARGET_EXP', width=85, height=27, role='workspace',
+            wheel_enabled=True)
+        self.files_list_button = self._button(
+            'Files List', '第2列をぐりぐり操作（場所は変えずに切替）',
+            'REMOTE_TARGET_LIST', width=85, height=27, role='workspace',
             wheel_enabled=True)
 
         # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
@@ -384,11 +391,10 @@ class LaunchRemote(QWidget):
         row_workspaces = QHBoxLayout()
         row_workspaces.setContentsMargins(0, 0, 0, 0)
         row_workspaces.setSpacing(2)
-        # Preserve the old attribute for internal active-workspace logic,
-        # without constructing the obsolete Files button.
+        # Keep the historical attribute for older tests/integrations.
         self.files_button = self.files_exp_button
         self.browser_button = self._button('Browser', 'Browser画面へ切り替え / 右クリック：ブックマークを展開',
-                                           'WORKSPACE_BROWSER', width=85, height=27,
+                                           'WORKSPACE_BROWSER', width=172, height=27,
                                            role='workspace', wheel_enabled=True)
         # Mirror Files: right-click opens a non-modal, searchable cascade.
         # Native left-click remains WORKSPACE_BROWSER, never a context action.
@@ -396,8 +402,10 @@ class LaunchRemote(QWidget):
         self.browser_button.customContextMenuRequested.connect(
             lambda _point: self.command.emit('REMOTE_BROWSER_BOOKMARK_MENU'))
         row_workspaces.addWidget(self.files_exp_button)
-        row_workspaces.addWidget(self.browser_button)
+        row_workspaces.addWidget(self.files_list_button)
         root.addLayout(row_workspaces)
+        # Browser gets its own full-width row. It is not a Files target.
+        root.addWidget(self.browser_button)
         # History -> TAB controls -> wheel pad: keep Tab/BackTab next to the
         # history operations and immediately above the three-way wheel row.
         row_bottom = QHBoxLayout()
@@ -827,6 +835,11 @@ class LaunchRemote(QWidget):
         self.page_buttons = []
         self.adjustSize()
 
+    def set_operating_target(self, target):
+        """Only move the Remote's logical target; never navigate a folder."""
+        self._files_operating_target = 'files_exp' if target == 'files_exp' else 'directory'
+        self.set_workspace('files')
+
     def set_workspace(self, mode):
         self.up_band.set_files_mode(mode == 'files')
         self.folder_history_button.setToolTip(
@@ -834,9 +847,10 @@ class LaunchRemote(QWidget):
             if mode == 'browser' else
             '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動')
         """Active mode is visible even though Remote never takes focus."""
-        for button, value in ((self.files_button, 'files'),
-                              (self.browser_button, 'browser')):
-            active = mode == value
+        for button, active in (
+                (self.files_exp_button, mode == 'files' and self._files_operating_target == 'files_exp'),
+                (self.files_list_button, mode == 'files' and self._files_operating_target == 'directory'),
+                (self.browser_button, mode == 'browser')):
             if button.property('active') != active:
                 button.setProperty('active', active)
                 button.style().unpolish(button)
@@ -913,7 +927,8 @@ class LaunchRemote(QWidget):
 
     def set_area(self, name):
         labels = {'search': '検索', 'pages': 'Page', 'roots': '第1列メニュー',
-                  'files': 'Files第1列', 'directory': 'Files第2列',
+                  'files_exp': 'Files Exp',
+                   'files': 'Files第1列', 'directory': 'Files List',
                   'sort': '第2列 並び替え', 'bookmarks': 'ブックマーク', 'list': '検索結果・メニュー',
                   'search_history': '検索履歴', 'folder_history': 'フォルダー履歴',
                   'browser_history': 'URLお気に入り',

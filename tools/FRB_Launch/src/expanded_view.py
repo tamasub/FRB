@@ -706,6 +706,7 @@ class _SeparatedFileTree(ExternalFileDragTree):
         # Draw the native selected-row fill only for the active pane; the
         # inactive pane's stylesheet suppresses it. Current rows in either
         # pane retain a thin outline as a passive keyboard-position memory.
+        # In multi-select, every green filled row ALSO receives a green outline.
         super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
@@ -739,8 +740,12 @@ class _SeparatedFileTree(ExternalFileDragTree):
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         current = self.currentItem()
-        if (current is not None and
-                self.indexOfTopLevelItem(current) == index.row()):
+        item = self.topLevelItem(index.row()) if not index.parent().isValid() else None
+        is_current = (current is not None and
+                      self.indexOfTopLevelItem(current) == index.row())
+        active_selected = (item is not None and item.isSelected() and
+                           self.property('remoteInactive') is not True)
+        if is_current or active_selected:
             rect = QRectF(option.rect.adjusted(5, 3, -5, -3))
             painter.setPen(QPen(self.inactive_current_border, 1.15))
             painter.setBrush(Qt.BrushStyle.NoBrush)
@@ -1402,10 +1407,20 @@ class ExpandedLauncherView(QWidget):
         self.middle_search_bar = QWidget(self.middle)
         self.middle_search_bar.setObjectName('expandedMiddleSearchBar')
         middle_search_layout = QHBoxLayout(self.middle_search_bar)
-        middle_search_layout.setContentsMargins(6, 4, 5, 4)
+        middle_search_layout.setContentsMargins(0, 0, 5, 0)
         middle_search_layout.setSpacing(4)
+        self.files_list_title_box = QFrame(self.middle_search_bar)
+        self.files_list_title_box.setObjectName('filesListTitleBox')
+        self.files_list_title_box.setProperty('operatingActive', False)
+        files_list_title_layout = QHBoxLayout(self.files_list_title_box)
+        files_list_title_layout.setContentsMargins(8, 0, 5, 0)
+        self.files_list_title_label = QLabel('Files List', self.files_list_title_box)
+        self.files_list_title_label.setObjectName('filesListTitle')
+        files_list_title_layout.addWidget(self.files_list_title_label)
+        middle_search_layout.addWidget(self.files_list_title_box, 0)
         self.middle_search = QLineEdit(self.middle_search_bar)
         self.middle_search.setObjectName('expandedMiddleSearch')
+        self.middle_search.setMinimumHeight(29)
         self.middle_search.setPlaceholderText('このフォルダーを検索 (AND / OR)')
         self.middle_search.setClearButtonEnabled(True)
         self.middle_search.setToolTip('このフォルダー内の名前を絞り込み。メイン検索と同じAND/OR構文。')
@@ -1550,10 +1565,17 @@ class ExpandedLauncherView(QWidget):
         self.embedded_files_exp = RemoteFilesExplorer(
             None, launcher.color_theme, launcher=launcher, embedded=True)
         self.left.layout_box.addWidget(self.embedded_files_exp, 1)
+        # The two headers form a matching pair. Their widths follow the
+        # *actual* Files Exp column (never the combined Exp+Remote host).
+        self.left.installEventFilter(self)
+        self.files_splitter.splitterMoved.connect(
+            lambda *_: self._align_files_list_title_width())
+        QTimer.singleShot(0, self._align_files_list_title_width)
         # Match the Files Exp title's bottom border to the adjacent folder
         # search row's bottom border, regardless of font metrics or DPI.
         self.middle_search_bar.installEventFilter(self)
         self._align_embedded_exp_header()
+        self._align_files_list_title_width()
         self.embedded_files_exp.folder_selected.connect(
             launcher.navigate_files_exp_folder)
         self.embedded_files_exp.pc_selected.connect(
@@ -1693,6 +1715,10 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.setProperty('remoteInactive', True)
         self.middle.tree.style().unpolish(self.middle.tree)
         self.middle.tree.style().polish(self.middle.tree)
+        # Embedded Files starts on its actionable List, just like Remote's
+        # initial Files List button; the old first-column mode keeps its root.
+        self.set_files_operating_area(
+            'directory' if launcher.files_exp_embedded_mode else 'files')
 
     def select_bookmark_tab(self, new_tab):
         """Select the destination for direct and nested bookmark clicks.
@@ -1913,6 +1939,13 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedBack:hover {{background:{hover};border-radius:7px;}}
             QPushButton#expandedBack:pressed {{background:{hover};border-radius:7px;}}
             QWidget#expandedMiddleSearchBar {{background:{bg};border:0;border-bottom:1px solid {border};}}
+            QFrame#filesListTitleBox {{background:{'#f8fcf9' if light else '#395247'};
+                border:1px solid transparent;border-bottom:1px solid {border};border-radius:0px;}}
+            QFrame#filesListTitleBox[operatingActive="true"] {{
+                background:{active};border:1px solid {'#56a88c' if light else '#76cda9'};
+                border-radius:3px;}}
+            QLabel#filesListTitle {{color:{text};font-size:12px;font-weight:bold;
+                background:transparent;border:0;}}
             QLineEdit#expandedMiddleSearch {{background:{bg};color:{text};border:1px solid {border};
                 border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
             QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
@@ -3079,6 +3112,47 @@ class ExpandedLauncherView(QWidget):
             return True
         return False
 
+    def set_files_operating_area(self, area):
+        """Show the controller's true target on BOTH column titles and rows.
+
+        Updating a logical target is presentation-only: it must never change
+        the breadcrumb, folder, currentIndex, or multi-selection.
+        """
+        if area not in ('files_exp', 'directory', 'files'):
+            return
+        exp_active = area in ('files_exp', 'files')
+        exp = getattr(self, 'embedded_files_exp', None)
+        if exp is not None:
+            exp.set_operating_active(exp_active)
+        title = getattr(self, 'files_list_title_box', None)
+        if title is not None and title.property('operatingActive') != (not exp_active):
+            title.setProperty('operatingActive', not exp_active)
+            title.style().unpolish(title)
+            title.style().polish(title)
+            title.update()
+        # The source of truth for the list row is the same logical target.
+        # This does not select a new file or move native keyboard focus.
+        middle = getattr(self, 'middle', None)
+        if middle is not None:
+            tree = middle.tree
+            inactive = exp_active
+            if tree.property('remoteInactive') != inactive:
+                tree.setProperty('remoteInactive', inactive)
+                tree.style().unpolish(tree)
+                tree.style().polish(tree)
+            tree.viewport().update()
+
+    def _align_files_list_title_width(self):
+        title = getattr(self, 'files_list_title_box', None)
+        exp = getattr(self, 'embedded_files_exp', None)
+        if title is None or exp is None:
+            return
+        # Exact peer width: do not tie this to the combined Exp + Remote host,
+        # and do not silently shrink it when Launch is temporarily narrow.
+        width = max(85, exp.width())
+        if title.width() != width:
+            title.setFixedWidth(width)
+
     def _align_embedded_exp_header(self):
         """Keep Exp title strip and Files search bar on one horizontal line."""
         search = getattr(self, 'middle_search_bar', None)
@@ -3162,6 +3236,10 @@ class ExpandedLauncherView(QWidget):
         if (obj is getattr(self, 'middle_search_bar', None) and
                 event.type() == QEvent.Type.Resize):
             self._align_embedded_exp_header()
+            self._align_files_list_title_width()
+        if (obj is getattr(self, 'left', None) and
+                event.type() == QEvent.Type.Resize):
+            self._align_files_list_title_width()
         if (event.type() == QEvent.Type.Wheel and self.isVisible() and
                 self.wheel_workspace_page_buttons(obj, event)):
             event.accept()
@@ -3994,6 +4072,7 @@ class ExpandedLauncherView(QWidget):
                 tree.style().unpolish(tree)
                 tree.style().polish(tree)
             tree.viewport().update()
+        self.set_files_operating_area(area)
         remote = getattr(self.launcher, 'remote_window', None)
         if remote is None or not remote.isVisible():
             return
