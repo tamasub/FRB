@@ -1492,6 +1492,14 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.model().rowsInserted.connect(lambda *args: self.middle_back_lane.update())
         self.middle.tree.model().rowsRemoved.connect(lambda *args: self.middle_back_lane.update())
         self.middle.layout_box.addWidget(self.middle_tree_container, 1)
+        # Explorer-like empty view: draw in the blank list viewport without
+        # intercepting blank-space right-click, Paste, or wheel navigation.
+        self.middle_empty_label = QLabel('このフォルダーは空です。', self.middle.tree.viewport())
+        self.middle_empty_label.setObjectName('filesListEmptyLabel')
+        self.middle_empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.middle_empty_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.middle_empty_label.hide()
+        self.middle.tree.viewport().installEventFilter(self)
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -1802,6 +1810,11 @@ class ExpandedLauncherView(QWidget):
         bg, border, hdr, text, hover, active, stripe = (
             colors[key] for key in ('panel', 'panel_border', 'panel_header',
                                    'text', 'hover', 'selection', 'stripe'))
+        # Warm operating surface is independent of GREEN current-row status.
+        # Sakura Editor-inspired warm white, lightened from #FFFBF0.
+        operating_bg = '#FFFEF9' if light else '#463a32'
+        operating_title = '#FFF9EF' if light else '#624936'
+        operating_outline = '#d9b991' if light else '#ad8258'
         root_border = colors['root_button_border']
         # The workspace strip is deliberately a shade lighter than the tabs.
         # Keep the active Files/Browser tab's existing {hdr} fill unchanged:
@@ -1939,10 +1952,11 @@ class ExpandedLauncherView(QWidget):
             QPushButton#expandedBack:hover {{background:{hover};border-radius:7px;}}
             QPushButton#expandedBack:pressed {{background:{hover};border-radius:7px;}}
             QWidget#expandedMiddleSearchBar {{background:{bg};border:0;border-bottom:1px solid {border};}}
+            QWidget#expandedMiddleSearchBar[operatingActive="true"] {{background:{operating_bg};}}
             QFrame#filesListTitleBox {{background:{'#f8fcf9' if light else '#395247'};
                 border:1px solid transparent;border-bottom:1px solid {border};border-radius:0px;}}
             QFrame#filesListTitleBox[operatingActive="true"] {{
-                background:{active};border:1px solid {'#56a88c' if light else '#76cda9'};
+                background:{operating_title};border:1px solid {operating_outline};
                 border-radius:3px;}}
             QLabel#filesListTitle {{color:{text};font-size:12px;font-weight:bold;
                 background:transparent;border:0;}}
@@ -1953,11 +1967,17 @@ class ExpandedLauncherView(QWidget):
                 color:{colors['muted_text']};background:{colors['column_header']};border:0;
                 border-right:1px solid {border};border-bottom:1px solid {border};
                 padding:1px 8px;font-size:12px;font-weight:400;}}
+            QHeaderView#expandedMiddleColumnsHeader[operatingActive="true"]::section {{
+                background:{operating_title};}}
             QHeaderView#expandedMiddleColumnsHeader::section:hover {{background:{hover};}}
             QTreeWidget#expandedTree[detailsColumns="true"] {{font-size:12px;}}
             QWidget#expandedMiddleTreeContainer {{background:{bg};border:0;}}
+            QWidget#expandedMiddleTreeContainer[operatingActive="true"] {{background:{operating_bg};}}
             QWidget#expandedBackLane {{background:{bg};border:0;}}
+            QWidget#expandedBackLane[operatingActive="true"] {{background:{operating_bg};}}
             QTreeWidget#expandedTree {{background:{bg};color:{text};border:0;outline:0;}}
+            QTreeWidget#expandedTree[detailsColumns="true"][remoteInactive="false"] {{
+                background:{operating_bg};}}
             QTreeWidget#expandedTree::item {{min-height:{height}px;padding:{pad}px 7px;border:0;}}
             QTreeWidget#expandedTree::item:hover {{background:{hover};}}
             QTreeWidget#expandedTree::item:selected {{background:{active};color:{text};}}
@@ -2005,6 +2025,9 @@ class ExpandedLauncherView(QWidget):
             for col in (1, 2, 3):
                 row.setForeground(col, QBrush(QColor(
                     '#81928a' if light else '#a1afa8')))
+        self.middle_empty_label.setStyleSheet(
+            f'QLabel#filesListEmptyLabel {{ background:transparent;'
+            f' color:{"#8e918d" if light else "#abb0aa"};font-size:12px; }}')
         self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
@@ -2231,10 +2254,38 @@ class ExpandedLauncherView(QWidget):
         # Keep the local search separate from Launcher-global search.
         self._fill_middle_from_current()
 
+    def _position_middle_empty_label(self):
+        label = getattr(self, 'middle_empty_label', None)
+        if label is None:
+            return
+        viewport = self.middle.tree.viewport()
+        # Explorer-like guidance in the second visible row, not screen centre.
+        height = 28
+        label.setGeometry(0, min(28, max(0, viewport.height() - height)),
+                          viewport.width(), height)
+
+    def _update_middle_empty_label(self):
+        label = getattr(self, 'middle_empty_label', None)
+        if label is None:
+            return
+        directory = self.current_directory()
+        empty = (bool(directory) and os.path.isdir(directory)
+                 and self.middle.tree.topLevelItemCount() == 0)
+        if empty:
+            # A filtered-out folder is not actually empty.
+            label.setText('一致する項目はありません。' if self.middle_search.text().strip()
+                          else 'このフォルダーは空です。')
+            self._position_middle_empty_label()
+            label.show()
+            label.raise_()
+        else:
+            label.hide()
+
     def _fill_middle_from_current(self):
         current = self.path[-1] if self.path else None
         if current is None:
             self.middle.tree.clear()
+            self._update_middle_empty_label()
             update_count = getattr(self.launcher, 'update_files_item_count', None)
             if callable(update_count):
                 update_count(0)
@@ -2274,6 +2325,7 @@ class ExpandedLauncherView(QWidget):
                 for item in restored:
                     item.setSelected(True)
         self._queue_middle_selection_repair()
+        self._update_middle_empty_label()
         update_count = getattr(self.launcher, 'update_files_item_count', None)
         if callable(update_count):
             update_count(tree.topLevelItemCount())
@@ -2306,6 +2358,7 @@ class ExpandedLauncherView(QWidget):
             self._fill_middle_from_current()
         else:
             self.middle.tree.clear()
+            self._update_middle_empty_label()
         self.update_directory_favorite_button()
         # Record only completed folder transitions, regardless of origin:
         # Files first column, folder contents, breadcrumbs, favorites, Up.
@@ -2391,10 +2444,18 @@ class ExpandedLauncherView(QWidget):
             self.position_directory_favorites()
 
     def position_directory_favorites(self):
-        # Same left edge and width as the breadcrumb input, not the ▼ button.
+        # 1.5-column mode: both history overlays begin at Files List's left
+        # edge, keeping the separate Remote fully reachable beneath them.
         anchor = self.address_bar.mapTo(self.launcher, QPoint(0, self.address_bar.height() + 4))
         width = min(self.address_bar.width(), max(1, self.launcher.width() - 12))
-        x = max(6, min(anchor.x(), self.launcher.width() - width - 6))
+        x = anchor.x()
+        if (getattr(self.launcher, 'remote_15_mode', False)
+                and self._workspace_mode == 'files'):
+            title = getattr(self, 'files_list_title_box', None)
+            if title is not None and title.isVisible():
+                x = title.mapTo(self.launcher, QPoint(0, 0)).x()
+        width = min(width, max(1, self.launcher.width() - x - 12))
+        x = max(6, min(x, self.launcher.width() - width - 6))
         y = anchor.y()
         footer_top = self.launcher.footer.mapTo(self.launcher, QPoint(0, 0)).y()
         available = popup_available_height(self.launcher.height(), y, footer_top)
@@ -2758,8 +2819,11 @@ class ExpandedLauncherView(QWidget):
         remote = getattr(self.launcher, 'remote_window', None)
         if remote is not None and remote.isVisible():
             if preserve_remote_popup:
-                self.launcher._remote_area = 'directory'
-                remote.set_area('directory')
+                # Explicit Exp row/disclosure navigation is not a RIGHT-arrow
+                # handoff. In every Remote placement, retain the human's
+                # current logical operating column (Exp or List).
+                self.launcher.set_files_operating_target(
+                    getattr(self.launcher, '_files_operating_target', 'directory'))
             else:
                 self.launcher.remote_focus_area('directory')
         return True
@@ -3130,6 +3194,18 @@ class ExpandedLauncherView(QWidget):
             title.style().unpolish(title)
             title.style().polish(title)
             title.update()
+        # Warm operating surface covers the List's complete title, header,
+        # back lane and viewport, not its green current/remembered row state.
+        middle_tree = getattr(getattr(self, 'middle', None), 'tree', None)
+        for widget in (getattr(self, 'middle_search_bar', None),
+                       getattr(self, 'middle_tree_container', None),
+                       getattr(self, 'middle_back_lane', None),
+                       middle_tree.header() if hasattr(middle_tree, 'header') else None):
+            if widget is not None and widget.property('operatingActive') != (not exp_active):
+                widget.setProperty('operatingActive', not exp_active)
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
+                widget.update()
         # The source of truth for the list row is the same logical target.
         # This does not select a new file or move native keyboard focus.
         middle = getattr(self, 'middle', None)
@@ -3227,6 +3303,10 @@ class ExpandedLauncherView(QWidget):
             QCursor.setPos(destination)
 
     def eventFilter(self, obj, event):
+        if (getattr(self, 'middle', None) is not None
+                and obj is self.middle.tree.viewport()
+                and event.type() == QEvent.Type.Resize):
+            self._position_middle_empty_label()
         if (obj is getattr(self, 'remote_15_lane', None) and
                 event.type() in (QEvent.Type.Resize, QEvent.Type.Move,
                                  QEvent.Type.Show)):
@@ -3240,6 +3320,11 @@ class ExpandedLauncherView(QWidget):
         if (obj is getattr(self, 'left', None) and
                 event.type() == QEvent.Type.Resize):
             self._align_files_list_title_width()
+        if (self.isVisible() and self._workspace_mode == 'files'
+                and event.type() == QEvent.Type.Wheel
+                and obj in (self.middle.tree.viewport(),
+                            self.middle.tree.verticalScrollBar())):
+            self._sync_remote_area_after_mouse_press('directory')
         if (event.type() == QEvent.Type.Wheel and self.isVisible() and
                 self.wheel_workspace_page_buttons(obj, event)):
             event.accept()
@@ -4058,35 +4143,30 @@ class ExpandedLauncherView(QWidget):
         """A genuine Files pane click changes Remote's logical current column.
 
         Mouse-pressed signals run before QTreeWidget completes its own row
-        selection. A queued update preserves Ctrl/Shift multi-selection and
-        folder-navigation click behavior while making column 2 current on the
-        first click, not only after a double-click.
+        selection. Update only the logical target immediately, without moving
+        native focus, changing the breadcrumb, or selecting a different row.
         """
-        # The first and second panes share ONE active row; remember the other
-        # column's current item as an outline only. This is not a selection.
-        for name, pane in (('files', self.left), ('directory', self.middle)):
-            tree = pane.tree
-            inactive = name != area
-            if tree.property('remoteInactive') != inactive:
-                tree.setProperty('remoteInactive', inactive)
-                tree.style().unpolish(tree)
-                tree.style().polish(tree)
-            tree.viewport().update()
-        self.set_files_operating_area(area)
-        remote = getattr(self.launcher, 'remote_window', None)
-        if remote is None or not remote.isVisible():
-            return
-
-        def finish():
-            current_remote = getattr(self.launcher, 'remote_window', None)
-            if (current_remote is not remote or not remote.isVisible()
-                    or not self.isVisible()
-                    or self._workspace_mode != 'files'):
+        # One source of truth. Never set QSS properties independently here:
+        # old direct-mouse code could light Exp while the Remote still said List.
+        setter = getattr(self.launcher, 'set_files_operating_target', None)
+        if callable(setter) and self._workspace_mode == 'files':
+            setter(area)
+        else:  # Standalone/non-1.5 compatibility: preserve deferred Qt click.
+            display = getattr(self, 'set_files_operating_area', None)
+            if callable(display):
+                display(area)
+            remote = getattr(self.launcher, 'remote_window', None)
+            if remote is None or not remote.isVisible():
                 return
-            if getattr(self.launcher, '_remote_area', None) != area:
-                self.launcher.remote_focus_area(area)
 
-        QTimer.singleShot(0, finish)
+            def finish():
+                if (not remote.isVisible() or not self.isVisible()
+                        or self._workspace_mode != 'files'):
+                    return
+                if getattr(self.launcher, '_remote_area', None) != area:
+                    self.launcher.remote_focus_area(area)
+
+            QTimer.singleShot(0, finish)
 
     def _middle_selection_is_active(self):
         """Logical Remote column wins over stale native Qt focus."""

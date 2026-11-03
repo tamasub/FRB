@@ -26,9 +26,10 @@ def test_exp_right_commits_folder_and_moves_to_list():
     fn = method(APP, 'Launcher', 'remote_exp_right_to_list')
     panel = NS(remote_current_folder_path=Mock(return_value='F:/FRB'),
                tree=NS(currentIndex=Mock()))
-    view = NS(_workspace_mode='files', embedded_files_exp=panel)
+    view = NS(_workspace_mode='files', isVisible=lambda: True, embedded_files_exp=panel)
     launcher = NS(remote_15_mode=True, files_exp_embedded_mode=True,
-                  expanded_view=view, navigate_files_exp_folder=Mock(return_value=True),
+                  expanded_view=view, _current_remote_files_exp=lambda: panel,
+                  navigate_files_exp_folder=Mock(return_value=True),
                   navigate_files_exp_pc=Mock(), remote_focus_area=Mock())
     assert fn(launcher) is True
     launcher.navigate_files_exp_folder.assert_called_once_with('F:/FRB')
@@ -42,8 +43,8 @@ def test_exp_right_pc_uses_pc_navigation_not_fake_filesystem_path():
                tree=NS(currentIndex=lambda: 'pc-index'),
                _is_pc_index=Mock(return_value=True))
     launcher = NS(remote_15_mode=True, files_exp_embedded_mode=True,
-                  expanded_view=NS(_workspace_mode='files', embedded_files_exp=panel),
-                  navigate_files_exp_folder=Mock(), navigate_files_exp_pc=Mock(return_value=True),
+                  expanded_view=NS(_workspace_mode='files', isVisible=lambda: True, embedded_files_exp=panel),
+                  _current_remote_files_exp=lambda: panel, navigate_files_exp_folder=Mock(), navigate_files_exp_pc=Mock(return_value=True),
                   remote_focus_area=Mock())
     assert fn(launcher) is True
     panel._is_pc_index.assert_called_once_with('pc-index')
@@ -56,8 +57,8 @@ def test_exp_right_bad_folder_keeps_exp_target():
     fn = method(APP, 'Launcher', 'remote_exp_right_to_list')
     panel = NS(remote_current_folder_path=lambda:'not-a-folder')
     launcher = NS(remote_15_mode=True, files_exp_embedded_mode=True,
-                  expanded_view=NS(_workspace_mode='files',embedded_files_exp=panel),
-                  navigate_files_exp_folder=Mock(return_value=False),
+                  expanded_view=NS(_workspace_mode='files',isVisible=lambda: True,embedded_files_exp=panel),
+                  _current_remote_files_exp=lambda: panel, navigate_files_exp_folder=Mock(return_value=False),
                   remote_focus_area=Mock())
     assert fn(launcher) is False
     launcher.remote_focus_area.assert_not_called()
@@ -70,11 +71,11 @@ def make_list_launcher(*, at_first=True, path='F:/FRB', rows=2):
             currentItem=lambda:selected)
     panel=NS(sync_current_directory=Mock(return_value=True),
              remote_select_pc_root=Mock(return_value=True))
-    view=NS(_workspace_mode='files', embedded_files_exp=panel,
+    view=NS(_workspace_mode='files', isVisible=lambda: True, embedded_files_exp=panel,
             middle=NS(tree=tree), row_data=lambda item: {'kind':'folder'},
             current_directory=lambda:path)
     launcher=NS(remote_15_mode=True, files_exp_embedded_mode=True,
-                expanded_view=view, remote_focus_area=Mock())
+                expanded_view=view, _current_remote_files_exp=lambda: panel, remote_focus_area=Mock())
     return launcher,panel
 
 
@@ -104,14 +105,15 @@ def test_list_left_pc_uses_virtual_pc_root_and_does_not_collapse():
     launcher.remote_focus_area.assert_called_once_with('files_exp')
 
 
-def test_list_left_empty_stays_in_list():
+def test_list_left_empty_returns_to_exp_at_breadcrumb():
     fn = method(APP, 'Launcher', 'remote_list_left_to_exp')
     launcher,panel=make_list_launcher(rows=0)
-    assert fn(launcher) is False
-    panel.sync_current_directory.assert_not_called()
+    assert fn(launcher) is True
+    panel.sync_current_directory.assert_called_once_with('F:/FRB')
+    launcher.remote_focus_area.assert_called_once_with('files_exp')
 
 
-def test_arrow_routing_only_in_15_mode_and_fallback_unchanged():
+def test_arrow_routing_works_in_both_remote_placements():
     fn = method(APP, 'Launcher', 'remote_command')
     panel=NS(remote_step=Mock(),remote_branch=Mock(),remote_activate_current=Mock())
     view=NS(isVisible=lambda:True,web_view_active=lambda:False,
@@ -120,16 +122,16 @@ def test_arrow_routing_only_in_15_mode_and_fallback_unchanged():
                 _remote_popup_area=None,_remote_area='files_exp',
                 _remote_page_menu=None,remote_cascade_command=lambda c:False,
                 remote_focus_area=Mock(),remote_exp_right_to_list=Mock(return_value=True),
-                remote_15_mode=True)
+                _current_remote_files_exp=lambda: panel, remote_15_mode=True)
     fn(launcher,'RIGHT')
     launcher.remote_exp_right_to_list.assert_called_once()
     panel.remote_branch.assert_not_called()
     launcher.remote_focus_area.assert_not_called()
     launcher.remote_15_mode=False
     fn(launcher,'RIGHT')
-    panel.remote_branch.assert_called_once_with(1)
-    launcher.remote_exp_right_to_list.assert_called_once()
-    launcher.remote_focus_area.assert_called_once_with('files_exp')
+    panel.remote_branch.assert_not_called()
+    assert launcher.remote_exp_right_to_list.call_count == 2
+    launcher.remote_focus_area.assert_not_called()
 
 
 def test_remote_pc_root_selection_suppresses_automatic_breadcrumb_changes():
@@ -188,13 +190,18 @@ def test_actual_list_left_routing_hands_off_only_at_first_row():
     view.navigate_left_from_middle.assert_called_once()
 
 
-def test_arrow_helpers_do_not_run_in_normal_or_browser_mode():
+def test_arrow_helpers_run_in_normal_mode_but_not_browser_mode():
     exp_fn=method(APP,'Launcher','remote_exp_right_to_list')
     list_fn=method(APP,'Launcher','remote_list_left_to_exp')
     app,panel=make_list_launcher()
     app.remote_15_mode=False
-    assert exp_fn(app) is False
-    assert list_fn(app) is False
+    app.navigate_files_exp_folder=Mock(return_value=True)
+    app.remote_focus_area=Mock()
+    # Both helpers operate even with no 1.5-column placement.
+    panel.remote_current_folder_path=Mock(return_value='F:/FRB')
+    assert exp_fn(app) is True
+    assert list_fn(app) is True
+    panel.sync_current_directory.reset_mock()
     app.remote_15_mode=True
     app.expanded_view._workspace_mode='browser'
     assert exp_fn(app) is False

@@ -2889,6 +2889,9 @@ class Launcher(QWidget):
         self._remote_15_alignment_pending = False
         self.remote_window = None
         self._remote_area = None
+        # Sole operating target for the two Files columns. Search popups and
+        # filesystem refreshes must NOT silently change this value.
+        self._files_operating_target = 'directory'
         self._remote_popup_area = None
         # A retained launcher is a normal taskbar window, NOT an always-on-top Tool.
         # During construction nothing is visible, so changing flags is safe.
@@ -3793,22 +3796,8 @@ class Launcher(QWidget):
         view.choose_files(pc_item, 0)  # PC breadcrumb + real drive rows.
         # Files Exp owns focus: only change the *logical* active column,
         # without stealing keyboard focus back from the tool window.
-        area = ('files_exp' if self._remote_area == 'files_exp' else
-                'directory' if self.files_root_hidden_mode else 'files')
-        self._remote_area = area
-        self._last_focus_area = area
-        view.set_files_operating_area(area)
-        remote = getattr(self, 'remote_window', None)
-        if remote is not None:
-            remote.set_area(area)
-        for name, pane in (('files', view.left), ('directory', view.middle)):
-            active = name == 'files'
-            pane.tree.remote_highlight_mode = True
-            pane.tree.remote_logical_active = active
-            pane.tree.setProperty('remoteInactive', not active)
-            pane.tree.style().unpolish(pane.tree)
-            pane.tree.style().polish(pane.tree)
-            pane.tree.viewport().update()
+        self.set_files_operating_target(
+            getattr(self, '_files_operating_target', 'directory'))
         return True
 
     def navigate_files_exp_folder(self, directory):
@@ -4026,6 +4015,19 @@ class Launcher(QWidget):
 
     def on_files_directory_changed(self, directory):
         """Breadcrumb is authoritative for Remote, Files Exp, and Files."""
+        # Store the former breadcrumb, not Exp's candidate row: a List-side
+        # parent navigation must collapse the *departed* child folder in Exp.
+        # This also covers the Remote's (List カレントフォルダー操作) and Go Up.
+        import ntpath
+        previous = getattr(self, '_last_files_breadcrumb_directory', None)
+        current = str(directory) if directory else None
+        self._last_files_breadcrumb_directory = current
+        ascending_one_level = bool(
+            previous and current
+            and ntpath.normcase(ntpath.normpath(ntpath.dirname(previous)))
+            == ntpath.normcase(ntpath.normpath(current))
+            and ntpath.normcase(ntpath.normpath(previous))
+            != ntpath.normcase(ntpath.normpath(current)))
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
         if panel is not None and panel.isVisible():
             panel.sync_current_directory(directory)
@@ -4033,6 +4035,10 @@ class Launcher(QWidget):
                            'embedded_files_exp', None)
         if embedded is not None and embedded.isVisible():
             embedded.sync_current_directory(directory)
+        if ascending_one_level:
+            for exp_panel in (panel, embedded):
+                if exp_panel is not None and exp_panel.isVisible():
+                    exp_panel.collapse_departed_child(previous, current)
         self.refresh_main_files_cut_visuals()
         # Exp's current directory also identifies the first-column registered
         # ROOT. Keep that row as an outline (not a second active green row).
@@ -4283,15 +4289,19 @@ class Launcher(QWidget):
             # Keep previous logical selection, particularly search results.
             if self._remote_area is None:
                 self._remote_area = 'directory'
-            # A fresh/reopened 1.5-column Remote must agree with the two
-            # actual title highlights, not just its own internal button state.
-            if self._remote_area in ('files_exp', 'directory'):
-                set_target = getattr(remote, 'set_operating_target', None)
-                if callable(set_target):
-                    set_target(self._remote_area)
-                update_titles = getattr(view, 'set_files_operating_area', None)
-                if callable(update_titles):
-                    update_titles(self._remote_area)
+            # The Files target survives transient search/history areas.
+            target = getattr(self, '_files_operating_target', 'directory')
+            target_button = getattr(remote, 'set_operating_target', None)
+            if callable(target_button):
+                target_button(target)
+            title_sync = getattr(view, 'set_files_operating_area', None)
+            if callable(title_sync):
+                title_sync(target)
+            # When re-entering Files from Browser, don't leave a Web/search
+            # caption on a Files controller.
+            if self._remote_area not in ('files_exp', 'directory', 'list',
+                                         'search_history', 'folder_history'):
+                self._remote_area = target
             remote.set_area(self._remote_area)
         remote._remote_15_placement = True
         if anchor_visible:
@@ -4325,7 +4335,8 @@ class Launcher(QWidget):
         self._remote_mouse_last_click = None
         self._remote_mouse_menu_click = None
         web = self.expanded_view._workspace_mode == 'browser'
-        self._remote_area = ('bookmarks' if web else 'files') if self.expanded_view.isVisible() else 'list'
+        self._remote_area = ('bookmarks' if web else
+                             getattr(self, '_files_operating_target', 'directory')) if self.expanded_view.isVisible() else 'list'
         # When the previous session deliberately left Files column 2 current,
         # keep that selection visible when the Remote is summoned again.
         # A fresh session still begins at Files column 1 as before.
@@ -4346,8 +4357,9 @@ class Launcher(QWidget):
                 and middle.currentItem() is not None)
             if live_directory_current or saved_directory_current:
                 self._remote_area = 'directory'
-        if (self.files_root_hidden_mode and not web and self.expanded_view.isVisible()):
-            self._remote_area = 'directory'
+        if (self.files_root_hidden_mode and not web and self.expanded_view.isVisible()
+                and self._remote_area == 'files'):
+            self._remote_area = 'files_exp' if self.files_exp_embedded_mode else 'directory'
         self.remote_focus_area(self._remote_area)
         self.remote_window.show_at(pointer)
         # Files Exp is a permanent companion to the Remote. Reopen it on
@@ -4420,7 +4432,7 @@ class Launcher(QWidget):
                                        else 'bookmarks')
             elif (mode == 'files' and not getattr(self, '_remote_preserve_files_selection', False)
                   and (area == 'bookmarks' or str(area).startswith('web_body:'))):
-                self.remote_focus_area('directory' if self.files_root_hidden_mode else 'files')
+                self.remote_focus_area(getattr(self, '_files_operating_target', 'directory'))
 
     def _focus_bookmark_first(self):
         """Entering Bookmarks via Tab begins at the first actionable row."""
@@ -4471,6 +4483,48 @@ class Launcher(QWidget):
         if str(target).startswith('web_body:'):
             self.expanded_view.web_view.focus_page()
 
+    def set_files_operating_target(self, target):
+        """One authoritative Files target for direct mouse AND Remote gestures.
+
+        This is intentionally *presentation only*: the breadcrumb, file-row
+        selection, tree cursor and native keyboard focus must never change.
+        Navigation commands remain separate (Exp ●/→, List ←, etc.).
+        """
+        if target not in ('files_exp', 'directory', 'files'):
+            return False
+        if target == 'files' and self.files_exp_embedded_mode:
+            target = 'files_exp'
+        self._files_operating_target = target
+        self._remote_area = target
+        self._last_focus_area = target
+        view = getattr(self, 'expanded_view', None)
+        if view is not None and view._workspace_mode == 'files':
+            view.set_files_operating_area(target)
+            # A normal Remote may use a SEPARATE Exp tool window, rather
+            # than the embedded Exp in Launch. It uses the same canonical
+            # active/remembered colors, and follows the same target setter.
+            remote = getattr(self, 'remote_window', None)
+            standalone_exp = getattr(remote, 'files_exp_panel', None) if remote else None
+            if standalone_exp is not None:
+                standalone_exp.set_operating_active(target == 'files_exp')
+            # Direct Exp wheel/click may leave native Qt focus in List. The
+            # current row must therefore follow the logical target, not focus.
+            for name, pane in (('files', view.left), ('directory', view.middle)):
+                tree = pane.tree
+                active = (name == target)
+                tree.remote_highlight_mode = True
+                tree.remote_logical_active = active
+                if tree.property('remoteInactive') != (not active):
+                    tree.setProperty('remoteInactive', not active)
+                    tree.style().unpolish(tree)
+                    tree.style().polish(tree)
+                tree.viewport().update()
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None and view is not None and view._workspace_mode == 'files':
+            remote.set_operating_target(target)
+            remote.set_area(target)
+        return True
+
     def remote_focus_area(self, area):
         """Keep the highlighted current row in the main UI, not in the remote."""
         if (self.files_root_hidden_mode and self.expanded_view.isVisible()):
@@ -4495,11 +4549,13 @@ class Launcher(QWidget):
                                      bookmarks_visible=view.browser_bookmarks_visible)
             area = normalize_area(area, order, current_tab=(
                 view.web_view.tabs.currentIndex() if web_active else 0))
-            if area == 'files_exp' and view._workspace_mode == 'files' and getattr(view, 'embedded_files_exp', None):
-                # Files Exp is a QTreeView, not the old first-column QTreeWidget.
-                # Retain its current row, branch expansion and breadcrumb.
-                panel = view.embedded_files_exp
-                panel._selection_timer.stop()
+            if area == 'files_exp' and view._workspace_mode == 'files':
+                # Exp is a logical controller even before a standalone Exp
+                # panel has been shown; don't normalize it to legacy 'files'.
+                # Retain any live tree cursor without stealing native focus.
+                panel = self._current_remote_files_exp()
+                if panel is not None:
+                    panel._selection_timer.stop()
             elif area not in order:
                 area = (('bookmarks' if view.browser_bookmarks_visible else
                          self._current_web_body_area()) if browser_mode else
@@ -4542,34 +4598,39 @@ class Launcher(QWidget):
             self.expanded_view.web_view.set_remote_area(
                 ('web_body' if str(area).startswith('web_body:') else area)
                 if getattr(self.expanded_view, 'web_view_active', lambda: False)() else None)
-        # A non-activating remote can leave QApplication.focusWidget() outside
-        # Launch. Keep the remote's logical current pane highlighted regardless.
-        if self.expanded_view.isVisible():
-            for name, pane in (('files', self.expanded_view.left),
-                               ('directory', self.expanded_view.middle),
-                               ('bookmarks', self.expanded_view.right)):
-                pane.tree.remote_highlight_mode = True
-                pane.tree.remote_logical_active = (area == name)
-                inactive = area != name
-                if pane.tree.property('remoteInactive') != inactive:
-                    pane.tree.setProperty('remoteInactive', inactive)
-                    pane.tree.style().unpolish(pane.tree)
-                    pane.tree.style().polish(pane.tree)
-                pane.tree.viewport().update()
-        self._remote_area = area
-        if (self.expanded_view.isVisible() and
-                self.expanded_view._workspace_mode == 'files'):
-            self.expanded_view.set_files_operating_area(area)
-        if (self.remote_window is not None and
-                area in ('files_exp', 'directory') and
-                self.expanded_view._workspace_mode == 'files'):
-            set_target = getattr(self.remote_window, 'set_operating_target', None)
-            if callable(set_target):
-                set_target(area)
+        # In Files, all three displays (Remote button/caption, column titles,
+        # actual/remembered rows) read from one operating-target setter.
+        # Browser/search focus labels are transient and leave that Files target
+        # untouched so returning to Files restores the previous controller.
+        files_target = (self.expanded_view._workspace_mode == 'files'
+                        and area in ('files_exp', 'directory'))
+        if files_target:
+            setter = getattr(self, 'set_files_operating_target', None)
+            if callable(setter):
+                setter(area)
+            else:  # Lightweight non-Qt test doubles.
+                self._remote_area = area
+        else:
+            if self.expanded_view.isVisible():
+                for name, pane in (('files', self.expanded_view.left),
+                                   ('directory', self.expanded_view.middle),
+                                   ('bookmarks', self.expanded_view.right)):
+                    pane.tree.remote_highlight_mode = True
+                    pane.tree.remote_logical_active = (area == name)
+                    inactive = area != name
+                    if pane.tree.property('remoteInactive') != inactive:
+                        pane.tree.setProperty('remoteInactive', inactive)
+                        pane.tree.style().unpolish(pane.tree)
+                        pane.tree.style().polish(pane.tree)
+                    pane.tree.viewport().update()
+            self._remote_area = area
+            if (self.expanded_view.isVisible() and
+                    self.expanded_view._workspace_mode == 'files'):
+                self.expanded_view.set_files_operating_area(area)
+            if self.remote_window is not None:
+                self.remote_window.set_area(area)
         if area == 'directory' and self.expanded_view.isVisible():
             self.expanded_view.ensure_middle_current_selection()
-        if self.remote_window is not None:
-            self.remote_window.set_area(area)
 
     def remote_history_command(self, command):
         """Navigate existing history trees directly; no synthetic key events.
@@ -4935,7 +4996,7 @@ class Launcher(QWidget):
 
         if expanded and area == 'files_exp':
             self._remote_mouse_last_click = None
-            panel = getattr(view, 'embedded_files_exp', None)
+            panel = self._current_remote_files_exp()
             if panel is not None and not double:
                 panel.remote_activate_current()
                 self.remote_focus_area('files_exp')
@@ -5056,7 +5117,7 @@ class Launcher(QWidget):
             self.remote_web_context_menu('web_body' if str(area).startswith('web_body:') else area)
             return
         if area == 'files_exp':
-            panel = getattr(view, 'embedded_files_exp', None)
+            panel = self._current_remote_files_exp()
             path = panel.remote_current_folder_path() if panel is not None else None
             if path:
                 self.show_files_exp_folder_menu(path, pos)
@@ -5145,18 +5206,30 @@ class Launcher(QWidget):
         # Use the same result activation path as Enter / native double-click.
         self.activate(row)
 
-    def remote_exp_right_to_list(self):
-        """1.5列: Expの現在行を確定し、Listを操作対象にする。
+    def _current_remote_files_exp(self):
+        """Select the existing Exp tree independently of Remote placement.
 
-        候補行のぐりぐりだけではパンくずを変えない。右矢印で明示的に
-        フォルダーを確定した場合に限り、既存のFilesナビゲーションを使う。
+        Embedded Exp is in Launch's first column; standard Remote can also
+        own a separate Exp tool window. Never create/rebuild a tree just to
+        move the operating target.
         """
         view = self.expanded_view
-        if (not getattr(self, 'remote_15_mode', False) or
-                not getattr(self, 'files_exp_embedded_mode', False) or
-                view._workspace_mode != 'files'):
+        if getattr(self, 'files_exp_embedded_mode', False):
+            return getattr(view, 'embedded_files_exp', None)
+        remote = getattr(self, 'remote_window', None)
+        return getattr(remote, 'files_exp_panel', None) if remote is not None else None
+
+    def remote_exp_right_to_list(self):
+        """Exp → List: explicitly commit Exp and hand off the controller.
+
+        Works in both the floating 1.5-column experiment and the ordinary
+        Remote placement (embedded or separate Files Exp). Wheel only previews
+        a candidate; → commits its folder to the breadcrumb.
+        """
+        view = self.expanded_view
+        if not view.isVisible() or view._workspace_mode != 'files':
             return False
-        panel = getattr(view, 'embedded_files_exp', None)
+        panel = self._current_remote_files_exp()
         if panel is None:
             return False
         directory = panel.remote_current_folder_path()
@@ -5172,24 +5245,24 @@ class Launcher(QWidget):
         return True
 
     def remote_list_left_to_exp(self):
-        """1.5列: List先頭行で左を押したときパンくず位置のExpへ戻す。
+        """List → Exp: first/empty row hands control back to breadcrumb Exp.
 
-        Listが空、先頭以外、またはExpで対象パスを選べないときは
-        操作対象を変更しない。Expツリーの開閉状態は保護する。
+        The identical boundary rule applies to all Remote placements. Keep
+        the List cursor/breadcrumb intact and select the matching Exp row.
         """
         view = self.expanded_view
-        if (not getattr(self, 'remote_15_mode', False) or
-                not getattr(self, 'files_exp_embedded_mode', False) or
-                view._workspace_mode != 'files'):
+        if not view.isVisible() or view._workspace_mode != 'files':
             return False
-        panel = getattr(view, 'embedded_files_exp', None)
+        panel = self._current_remote_files_exp()
         if panel is None:
             return False
         tree = view.middle.tree
         first = next((item for i in range(tree.topLevelItemCount())
                       if (item := tree.topLevelItem(i)) is not None
                       and view.row_data(item) is not None), None)
-        if first is None or tree.currentItem() is not first:
+        # No items == already at the List's left boundary. A zero-row
+        # folder must not trap the Remote in Files List.
+        if first is not None and tree.currentItem() is not first:
             return False
         directory = view.current_directory()
         if directory:
@@ -5235,11 +5308,25 @@ class Launcher(QWidget):
             return
         if command in ('REMOTE_TARGET_EXP', 'REMOTE_TARGET_LIST'):
             view = self.expanded_view
-            if not view.isVisible() or view._workspace_mode != 'files':
+            if not view.isVisible():
                 return
-            # Switching the controller is *not* a breadcrumb or selection commit.
-            self.remote_focus_area('files_exp' if command == 'REMOTE_TARGET_EXP'
-                                   else 'directory')
+            target = 'files_exp' if command == 'REMOTE_TARGET_EXP' else 'directory'
+            if view._workspace_mode != 'files':
+                # A Remote Files-target click also returns from Browser.
+                # Keep the breadcrumb, tree expansion and List selection;
+                # the workspace callback must not reset the Files cursor.
+                self._remote_preserve_files_selection = True
+                try:
+                    view.show_files_view()
+                finally:
+                    self._remote_preserve_files_selection = False
+            # Selecting the controller is not a folder navigation/row commit.
+            # All Remote placements use the one authoritative operating target.
+            setter = getattr(self, 'set_files_operating_target', None)
+            if callable(setter):
+                setter(target)
+            else:  # Lightweight legacy/test-double compatibility.
+                self.remote_focus_area(target)
             return
         if command in ('WORKSPACE_FILES', 'WORKSPACE_BROWSER'):
             view = self.expanded_view
@@ -5255,11 +5342,15 @@ class Launcher(QWidget):
                     view.show_files_view()
                 finally:
                     self._remote_preserve_files_selection = False
-                if self._remote_area not in ('files', 'directory', 'files_exp'):
-                    # Visual current column only: avoid focus_panel(), which
-                    # would potentially select the first file on an empty row.
+                # Restore the previous Files target without changing the
+                # breadcrumb or forcing a List item selection.
+                setter = getattr(self, 'set_files_operating_target', None)
+                if callable(setter):
+                    setter(getattr(self, '_files_operating_target', 'directory'))
+                else:  # Legacy launcher/test-double fallback.
+                    changed = self._remote_area != 'directory'
                     self._remote_area = 'directory'
-                    if self.remote_window is not None:
+                    if changed and self.remote_window is not None:
                         self.remote_window.set_area('directory')
                     for name, pane in (('files', view.left), ('directory', view.middle)):
                         tree = pane.tree
@@ -5271,7 +5362,6 @@ class Launcher(QWidget):
                             tree.style().unpolish(tree)
                             tree.style().polish(tree)
                         tree.viewport().update()
-                    view.set_files_operating_area('directory')
             elif view.switch_workspace('browser'):
                 if self.files_root_hidden_mode:
                     # Explicitly preserve hidden Bookmarks on Remote Browser.
@@ -5458,17 +5548,14 @@ class Launcher(QWidget):
             if dispatch_cascade is not None and dispatch_cascade(command):
                 return
         if (expanded and not browser_mode and area == 'files_exp'):
-            panel = getattr(self.expanded_view, 'embedded_files_exp', None)
+            panel = self._current_remote_files_exp()
             if panel is not None:
                 if command in ('UP', 'DOWN'):
                     panel.remote_step(-1 if command == 'UP' else 1)
                 elif command == 'RIGHT':
-                    # 1.5列では「→」＝Expの行を確定してListへ渡す。
-                    if getattr(self, 'remote_15_mode', False):
-                        if self.remote_exp_right_to_list():
-                            return
-                    else:
-                        panel.remote_branch(1)
+                    # Exp → List is a Remote-wide navigation contract.
+                    if self.remote_exp_right_to_list():
+                        return
                 elif command == 'LEFT':
                     panel.remote_branch(-1)
                 elif command == 'ENTER':
@@ -5562,9 +5649,8 @@ class Launcher(QWidget):
             return
         if command == 'LEFT':
             if pane is view.middle:
-                # 先頭行だけがExpへの入口。通常モードの従来左移動は維持。
-                if (getattr(self, 'remote_15_mode', False)
-                        and self.remote_list_left_to_exp()):
+                # The first List row (or 0 items) is the shared Exp boundary.
+                if self.remote_list_left_to_exp():
                     return
                 target = view.navigate_left_from_middle()
                 if target == 'files':
@@ -8543,6 +8629,17 @@ class Launcher(QWidget):
             anchor = self.search.mapTo(self, QPoint(0, self.search.height() + 4))
             x, y = anchor.x(), anchor.y()
             width = self.search.width()
+        # In 1.5-column Files mode, keep the history clear of the floating
+        # Remote: anchor its LEFT EDGE to the Files List column, not the
+        # magnifier, search edit, breadcrumb, or Remote window.
+        files_view = getattr(self, 'expanded_view', None)
+        if (getattr(self, 'remote_15_mode', False) and files_view is not None
+                and files_view.isVisible()
+                and getattr(files_view, '_workspace_mode', '') == 'files'):
+            list_title = getattr(files_view, 'files_list_title_box', None)
+            if list_title is not None and list_title.isVisible():
+                x = list_title.mapTo(self, QPoint(0, 0)).x()
+                width = min(width, max(1, self.width() - x - 12))
         footer_top = self.footer.mapTo(self, QPoint(0, 0)).y()
         available = popup_available_height(self.height(), y, footer_top)
         # 31px CSS row + vertical padding; header buttons and frame margins.

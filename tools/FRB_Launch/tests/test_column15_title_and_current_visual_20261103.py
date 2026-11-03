@@ -76,10 +76,17 @@ def test_files_exp_active_passive_state_only_without_navigation():
     assert len(tree._style.changes) == before
 
 
-def test_independent_files_exp_window_does_not_change_with_controller():
+def test_independent_files_exp_window_shares_current_and_memory_colors():
     f = method(EXP, 'RemoteFilesExplorer', 'set_operating_active')
-    panel = SimpleNamespace(_embedded=False)
-    assert f(panel, False) is None
+    header = FakeWidget(operatingActive=False)
+    tree = FakeWidget(operatingActive=False)
+    panel = SimpleNamespace(_embedded=False, exp_header=header, tree=tree)
+    f(panel, True)
+    assert tree.property('operatingActive') is True
+    assert header.property('operatingActive') is True
+    f(panel, False)
+    assert tree.property('operatingActive') is False
+    assert header.property('operatingActive') is False
 
 
 def test_titles_and_list_track_exp_list_mode_without_touching_breadcrumb():
@@ -103,11 +110,12 @@ def test_titles_and_list_track_exp_list_mode_without_touching_breadcrumb():
     assert title.property('operatingActive') is True
 
 
-def test_titles_have_green_border_and_fill_in_active_state():
+def test_titles_have_warm_operating_background_independent_of_green_row_selection():
     assert 'QFrame#filesExpHeader[operatingActive="true"]' in EXP
     assert 'QFrame#filesListTitleBox[operatingActive="true"]' in VIEW
-    assert 'background:{colors[\'selection\']};border:1px' in EXP
-    assert 'background:{active};border:1px' in VIEW
+    assert 'background:{operating_title};border:1px solid {operating_outline}' in EXP
+    assert 'background:{operating_title};border:1px solid {operating_outline}' in VIEW
+    assert '#FFFEF9' in EXP and '#FFFEF9' in VIEW
     assert "self.files_list_title_box.setProperty('operatingActive', False)" in VIEW
 
 
@@ -142,7 +150,7 @@ def test_remote_target_and_mouse_click_both_update_titles():
     click_sync = ast.get_source_segment(VIEW, next(
         n for n in ast.walk(ast.parse(VIEW))
         if isinstance(n, ast.FunctionDef) and n.name == '_sync_remote_area_after_mouse_press'))
-    assert 'self.set_files_operating_area(area)' in click_sync
+    assert 'set_files_operating_target' in click_sync
 
 
 def test_panel_width_sync_and_remote_floating_window_retained():

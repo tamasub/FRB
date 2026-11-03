@@ -100,6 +100,7 @@ def test_remote_exp_click_calls_real_folder_tree():
     app=NS(expanded_view=view, _remote_page_menu=None, _remote_area='files_exp',
            _last_focus_area='directory', _remote_popup_area=None,
            remote_cascade_command=lambda command: False,
+           _current_remote_files_exp=lambda: panel,
            remote_focus_area=Mock())
     fn(app, double=False)
     panel.remote_activate_current.assert_called_once()

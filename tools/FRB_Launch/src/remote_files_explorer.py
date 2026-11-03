@@ -63,7 +63,22 @@ class FilesExpWheelTree(QTreeView):
         painter.drawRoundedRect(QRectF(option.rect.adjusted(5, 3, -5, -3)), 6.5, 6.5)
         painter.restore()
 
+    def _claim_operating_target(self):
+        """Only a *real user gesture* in Exp claims the operating column."""
+        panel = self.parentWidget()
+        launcher = getattr(panel, '_launcher', None)
+        view = getattr(launcher, 'expanded_view', None)
+        if (launcher is not None and view is not None
+                and getattr(view, '_workspace_mode', None) == 'files'):
+            panel._selection_timer.stop()  # No stale delayed folder commit.
+            launcher.set_files_operating_target('files_exp')
+
+    def mousePressEvent(self, event):
+        self._claim_operating_target()
+        super().mousePressEvent(event)
+
     def wheelEvent(self, event):
+        self._claim_operating_target()
         bar = self.verticalScrollBar()
         before = bar.value()
         # Always give Qt the first opportunity to scroll its *actual* view.
@@ -365,9 +380,9 @@ class RemoteFilesExplorer(QWidget):
         self.tree.pointer_follow_enabled = lambda: bool(getattr(
             launcher, 'pointer_warp_enabled', True))
         self.tree.setObjectName('filesExpTree')
-        # Standalone Exp keeps its original selected background; the embedded
-        # Exp follows Remote's logical operating target, not native Qt focus.
-        self.tree.setProperty('operatingActive', not self._embedded)
+        # Both embedded and standalone Exp follow the shared Remote target.
+        # Until the Launcher assigns one, remember the row as outline-only.
+        self.tree.setProperty('operatingActive', False)
         self.exp_header.setProperty('operatingActive', False)
         self.tree.setModel(self.model)
         self.tree.setItemDelegate(FilesExpRenameDelegate(self.tree))
@@ -845,6 +860,13 @@ class RemoteFilesExplorer(QWidget):
         self._schedule_tree_state_save()
         if self._syncing_directory:
             return
+        launcher = getattr(self, '_launcher', None)
+        if launcher is not None:
+            # In BOTH Remote placements, wheel/remote-step only previews an
+            # Exp candidate. Click/●/→ explicitly commits navigation; delayed
+            # wheel commits would silently override the human's target.
+            self._selection_timer.stop()
+            return
         # Wheel/keyboard selection settles before a potentially costly Files
         # refresh; an explicit mouse click still navigates immediately.
         self._selection_timer.stop()
@@ -964,6 +986,47 @@ class RemoteFilesExplorer(QWidget):
         finally:
             self._syncing_directory = False
             self._schedule_tree_state_save()
+
+    def collapse_departed_child(self, previous_directory, parent_directory):
+        """Close the child just exited by a List-side parent navigation.
+
+        The new breadcrumb was already synchronized by the caller. Suppress
+        QFileSystemModel disclosure callbacks so collapsing a branch NEVER
+        navigates back into that child or steals Remote's logical focus.
+        """
+        if not previous_directory or not parent_directory:
+            return False
+        import ntpath
+        old = ntpath.normcase(ntpath.normpath(str(previous_directory)))
+        parent_path = ntpath.normcase(ntpath.normpath(str(parent_directory)))
+        if ntpath.normcase(ntpath.normpath(ntpath.dirname(old))) != parent_path:
+            return False
+        parent_index = self.tree.currentIndex()
+        if (not parent_index.isValid() or
+                ntpath.normcase(ntpath.normpath(
+                    str(self._index_path(parent_index) or ''))) != parent_path):
+            return False
+        item = self.model.itemFromIndex(parent_index)
+        if item is None:
+            return False
+        for row in range(item.rowCount()):
+            child = item.child(row)
+            if child is None:
+                continue
+            index = child.index()
+            child_path = self._index_path(index)
+            if (child_path and
+                    ntpath.normcase(ntpath.normpath(str(child_path))) == old):
+                if self.tree.isExpanded(index):
+                    old_sync = self._syncing_directory
+                    self._syncing_directory = True
+                    try:
+                        self.tree.collapse(index)
+                    finally:
+                        self._syncing_directory = old_sync
+                    self._schedule_tree_state_save()
+                return True
+        return False
 
     def can_rename_folder(self, path):
         """Never invalidate an authored first-column shortcut or drive root."""
@@ -1412,9 +1475,7 @@ class RemoteFilesExplorer(QWidget):
         painter.end()
 
     def set_operating_active(self, active):
-        """An inactive embedded Exp remembers its row with an outline ONLY."""
-        if not self._embedded:
-            return
+        """Embedded AND standalone Exp share the same actual/memory colors."""
         active = bool(active)
         for widget in (self.exp_header, self.tree):
             if widget.property('operatingActive') != active:
@@ -1433,6 +1494,10 @@ class RemoteFilesExplorer(QWidget):
         self._exp_outline = QColor('#ccd3d7')  # identical to LaunchRemote
         # Slightly lighter than the toolbar immediately above the embedded Exp.
         exp_header = '#f8fcf9' if theme_family(theme) == 'light' else '#395247'
+        # Sakura Editor-inspired warm white, lightened to #FFFEF9.
+        operating_bg = '#FFFEF9' if theme_family(theme) == 'light' else '#463a32'
+        operating_title = '#FFF9EF' if theme_family(theme) == 'light' else '#624936'
+        operating_outline = '#d9b991' if theme_family(theme) == 'light' else '#ad8258'
         self.setStyleSheet(f"""
             QWidget#remoteFilesExplorer, QWidget#embeddedFilesExplorer {{background:transparent;color:{colors['text']};
                 border:0;}}
@@ -1440,7 +1505,7 @@ class RemoteFilesExplorer(QWidget):
                 border:1px solid transparent;border-bottom:1px solid {colors['panel_border']};
                 border-radius:0px;}}
             QFrame#filesExpHeader[operatingActive="true"] {{
-                background:{colors['selection']};border:1px solid {'#56a88c' if theme_family(theme) == 'light' else '#76cda9'};
+                background:{operating_title};border:1px solid {operating_outline};
                 border-radius:3px;}}
             QLabel#filesExpTitle {{background:transparent;color:{colors['text']};
                 font-size:12px;font-weight:bold;border:0;}}
@@ -1461,13 +1526,14 @@ class RemoteFilesExplorer(QWidget):
                 font-size:10px;border:0;}}
             QTreeView#filesExpTree {{background:{colors['panel']};color:{colors['text']};
                 border:0;outline:0;}}
+            QTreeView#filesExpTree[operatingActive="true"] {{background:{operating_bg};}}
             QTreeView#filesExpTree::item {{height:24px;padding:0;}}
             /* Passive memory = outlined current row, NO green fill. */
             QTreeView#filesExpTree::item:selected,
             QTreeView#filesExpTree::item:selected:!active {{
                 background:transparent;color:{colors['text']};}}
             /* True current = green fill AND the outline painted in drawRow.
-               The standalone Files Exp retains the original active selection. */
+               Both standalone and embedded Exp use the shared operating target. */
             QTreeView#filesExpTree[operatingActive="true"]::item:selected,
             QTreeView#filesExpTree[operatingActive="true"]::item:selected:!active {{
                 background:{colors['selection']};color:{colors['text']};}}
