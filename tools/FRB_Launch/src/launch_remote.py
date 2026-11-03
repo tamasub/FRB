@@ -276,6 +276,7 @@ class LaunchRemote(QWidget):
     files_exp_folder_context = Signal(str, QPoint)
     files_exp_folder_renamed = Signal(str, str)
     virtual_item_activated = Signal(object)
+    virtual_folder_selected = Signal(object)
     virtual_context_requested = Signal(object, QPoint)
 
     def __init__(self, launcher):
@@ -555,6 +556,7 @@ class LaunchRemote(QWidget):
             self.files_exp_panel.folder_renamed.connect(self.files_exp_folder_renamed.emit)
             if hasattr(self.files_exp_panel, 'virtual_item_activated'):
                 self.files_exp_panel.virtual_item_activated.connect(self.virtual_item_activated.emit)
+            self.files_exp_panel.virtual_folder_selected.connect(self.virtual_folder_selected.emit)
             if hasattr(self.files_exp_panel, 'virtual_context_requested'):
                 self.files_exp_panel.virtual_context_requested.connect(self.virtual_context_requested.emit)
         panel = self.files_exp_panel

@@ -87,22 +87,22 @@ def test_exp_root_append_precedes_registered_pc_and_home_selects_pc():
     assert '_is_pc_index' in home
 
 
-def test_virtual_wheel_never_automatically_executes_or_navigates_list():
+def test_virtual_wheel_previews_in_list_without_executing_a_command():
     source = (SRC / 'remote_files_explorer.py').read_text(encoding='utf-8')
     preview = source.split('    def _commit_current_selection(',1)[1].split('    def _activate_index(',1)[0]
-    assert 'remote_current_virtual_node() is not None' in preview
-    assert '_activate_virtual(' not in preview
+    assert 'self.virtual_folder_selected.emit(virtual)' in preview
+    assert 'virtual_item_activated.emit' not in preview
     activation = source.split('    def _activate_virtual(',1)[1].split('    def _transfer_paths(',1)[0]
-    assert "node['kind'] == 'file'" in activation
-    assert 'virtual_item_activated.emit' in activation
+    assert 'self.virtual_folder_selected.emit(node)' in activation
+    assert 'virtual_item_activated.emit' not in activation
 
 
-def test_remote_right_keeps_virtual_folders_in_exp():
+def test_remote_right_transfers_virtual_folder_to_files_list():
     source = (SRC / 'app.py').read_text(encoding='utf-8')
     method = source.split('    def remote_exp_right_to_list(',1)[1].split('    def remote_list_left_to_exp(',1)[0]
-    assert "virtual.get('kind') != 'file'" in method
-    assert 'panel.remote_branch(1)' in method
-    assert method.index('panel.remote_branch(1)') < method.index("self.remote_focus_area('directory')")
+    assert 'self.navigate_virtual_launch_folder(virtual)' in method
+    assert "self.remote_focus_area('directory')" in method
+    assert 'panel.remote_branch(1)' not in method
 
 
 def test_git_dialog_uses_remote_adapter_and_retains_editable_text():

@@ -42,6 +42,7 @@ from wheel_zone_navigation import WheelZoneNavigation
 from workspace_tab_geometry import workspace_tab_line_segments
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from bookmark_menu import expanded_bookmark_rows
+from launch_virtual_tree import virtual_list_rows, virtual_lookup_node
 from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
                                history_popup_qss, bookmark_section_colors)
 
@@ -1065,6 +1066,9 @@ class ExpandedPanel(QFrame):
 
     def file_type_label(self, row):
         """Match the Windows Explorer-style type column and type sorting."""
+        virtual = row.get('_launch_virtual_node')
+        if virtual is not None:
+            return '仮想フォルダー' if virtual['kind'] != 'file' else 'Launch メニュー'
         if row.get('item_kind') in ('category', 'directory'):
             return 'ファイル フォルダー'
         fallback = row.get('_middle_type', 'ファイル')
@@ -1399,6 +1403,10 @@ class ExpandedLauncherView(QWidget):
         # Local, immediate filter; separate from global search and its file index.
         # Preserve the 3-column navigation and right-side chevrons unchanged.
         self._middle_query_directory = None
+        # Launch JSON projection is a *virtual* current directory. Its files
+        # are shown in the same List widget, never passed to OS path actions.
+        self._virtual_directory_node = None
+        self._virtual_sort_custom = False
         # Each visited filesystem directory owns an optional sort override.
         # The old global setting is intentionally ignored: uncustomized
         # directories always start with the Explorer-style standard sort.
@@ -1594,6 +1602,8 @@ class ExpandedLauncherView(QWidget):
             launcher.on_files_exp_folder_renamed)
         self.embedded_files_exp.virtual_item_activated.connect(
             launcher.activate_virtual_launch_item)
+        self.embedded_files_exp.virtual_folder_selected.connect(
+            launcher.navigate_virtual_launch_folder)
         self.embedded_files_exp.virtual_context_requested.connect(
             launcher.show_virtual_launch_context)
         self.embedded_files_exp.hide()
@@ -2247,6 +2257,9 @@ class ExpandedLauncherView(QWidget):
     def _middle_header_clicked(self, logical_column):
         mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
         if mode is not None:
+            if getattr(self, '_virtual_directory_node', None) is not None:
+                self._virtual_sort_custom = True
+                self.middle.tree.header().setSortIndicatorShown(True)
             self.set_middle_sort(mode)
 
     def set_middle_sort(self, mode):
@@ -2279,7 +2292,8 @@ class ExpandedLauncherView(QWidget):
         if label is None:
             return
         directory = self.current_directory()
-        empty = (bool(directory) and os.path.isdir(directory)
+        empty = ((bool(directory) and os.path.isdir(directory)
+                  or getattr(self, '_virtual_directory_node', None) is not None)
                  and self.middle.tree.topLevelItemCount() == 0)
         if empty:
             # A filtered-out folder is not actually empty.
@@ -2292,6 +2306,25 @@ class ExpandedLauncherView(QWidget):
             label.hide()
 
     def _fill_middle_from_current(self):
+        virtual = getattr(self, '_virtual_directory_node', None)
+        if virtual is not None:
+            rows = virtual_list_rows(virtual)
+            # The first view keeps the user's Studio/Launch JSON menu order.
+            # A click on a List column heading explicitly overrides that order.
+            source_order = {row['_launch_virtual_node']['node_id']: i
+                            for i, row in enumerate(rows)}
+            rows = filter_sort_folder_rows(
+                rows, self.middle_search.text(), self._middle_sort_mode)
+            if not getattr(self, '_virtual_sort_custom', False):
+                rows.sort(key=lambda r: source_order[
+                    r['_launch_virtual_node']['node_id']])
+            self.middle.fill(rows, self.launcher.row_icon)
+            self._queue_middle_selection_repair()
+            self._update_middle_empty_label()
+            update_count = getattr(self.launcher, 'update_files_item_count', None)
+            if callable(update_count):
+                update_count(self.middle.tree.topLevelItemCount())
+            return
         current = self.path[-1] if self.path else None
         if current is None:
             self.middle.tree.clear()
@@ -2343,6 +2376,33 @@ class ExpandedLauncherView(QWidget):
     def refresh_middle(self):
         self._middle_back_hold.reset()
         self._middle_back_warp_pending = None
+        virtual = getattr(self, '_virtual_directory_node', None)
+        if virtual is not None:
+            # This is a *display* breadcrumb, not an editable OS pathname.
+            self.middle.tree.header().setSortIndicatorShown(
+                getattr(self, '_virtual_sort_custom', False))
+            self.middle.label.setText(virtual['title'])
+            self.address_bar.set_directory(None, ' › '.join(
+                virtual.get('breadcrumbs') or (virtual['title'],)))
+            self.middle.back.setEnabled(True)
+            location = virtual['node_id']
+            if location != self._middle_query_directory:
+                self._middle_query_directory = location
+                blocked = self.middle_search.blockSignals(True)
+                try:
+                    self.middle_search.clear()
+                finally:
+                    self.middle_search.blockSignals(blocked)
+                self._middle_sort_mode = DEFAULT_SORT
+                self._middle_sort_directory = location
+                self._update_middle_header_sort()
+            self._fill_middle_from_current()
+            self.update_directory_favorite_button()
+            self.launcher._nav_update_buttons()
+            return
+        header_getter = getattr(self.middle.tree, 'header', None)
+        if callable(header_getter):
+            header_getter().setSortIndicatorShown(True)
         current = self.path[-1] if self.path else None
         self.middle.label.setText(current['title'] if current else 'フォルダーを選択')
         self.address_bar.set_directory(
@@ -2599,9 +2659,44 @@ class ExpandedLauncherView(QWidget):
             self.populate_directory_favorites()
 
     def current_directory(self):
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            return None  # A Launch JSON menu has no physical filesystem path.
         return row_directory(self.path[-1], self.launcher.expander().expand) if self.path else None
 
+    def show_virtual_launch_directory(self, node):
+        """Read-only virtual folder: Exp is navigation, List is its contents."""
+        if (not isinstance(node, dict) or node.get('source') != 'launch_json'
+                or node.get('kind') == 'file'):
+            return False
+        if (getattr(self, '_virtual_directory_node', None) is None or
+                self._virtual_directory_node.get('node_id') != node['node_id']):
+            self._virtual_sort_custom = False
+        self._virtual_directory_node = node
+        self.refresh_middle()
+        # Keep the Exp row selected even when navigating a virtual subfolder
+        # via the List (without stealing the user's logical List focus).
+        for panel in (getattr(self, 'embedded_files_exp', None),
+                      getattr(getattr(self.launcher, 'remote_window', None),
+                              'files_exp_panel', None)):
+            if panel is not None and panel.isVisible():
+                panel.remote_select_virtual_node(node)
+        return True
+
+    def _clear_virtual_directory(self):
+        self._virtual_directory_node = None
+
+    def _parent_virtual_directory(self):
+        current = getattr(self, '_virtual_directory_node', None)
+        if current is None:
+            return None
+        return virtual_lookup_node(self.launcher.pages, self.launcher.authored_items,
+                                   current['page_id'],
+                                   current.get('parent_item_id') or '',
+                                   (self.launcher.data or {}).get('items', ()))
+
     def middle_selected_paths(self):
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            return []  # Launch JSON objects are NEVER filesystem deletion targets.
         rows = [self.row_data(item) for item in self.middle.tree.selectedItems()]
         return physical_paths(rows, self.launcher.authored_items)
 
@@ -2817,6 +2912,7 @@ class ExpandedLauncherView(QWidget):
         target = normalized_directory(path)
         if not target or not os.path.isdir(target):
             return False
+        self._virtual_directory_node = None
         self.path = [directory_row(target)]
         self.refresh_middle()
         if not preserve_remote_popup:
@@ -4286,6 +4382,16 @@ class ExpandedLauncherView(QWidget):
         first-column shortcut, continue to the filesystem root, then focus the
         first row of the first column. Never get stuck in the second column.
         """
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            # The first List row (or an empty List) is the virtual Exp boundary.
+            tree = self.middle.tree
+            first = next((tree.topLevelItem(i) for i in range(tree.topLevelItemCount())
+                          if self.row_data(tree.topLevelItem(i)) is not None), None)
+            if first is not None and tree.currentItem() is not first:
+                tree.setCurrentItem(first)
+                return 'directory'
+            self.launcher.remote_list_left_to_exp()
+            return 'directory'
         middle_tree = self.middle.tree
         first_middle = next((middle_tree.topLevelItem(i)
                              for i in range(middle_tree.topLevelItemCount())
@@ -4360,6 +4466,11 @@ class ExpandedLauncherView(QWidget):
 
     def navigate_middle(self, row):
         """Descend without destroying a Qt row during the current key event."""
+        virtual = row.get('_launch_virtual_node')
+        if virtual is not None:
+            if virtual['kind'] != 'file':
+                QTimer.singleShot(0, lambda n=virtual: self.show_virtual_launch_directory(n))
+            return
         if row.get('item_kind') not in ('category', 'directory'):
             return
         if self.path and self.path[-1].get('item_id') == row.get('item_id'):
@@ -4377,6 +4488,14 @@ class ExpandedLauncherView(QWidget):
         A breadcrumb or favorite can set self.path to a *single* row. History
         popping in that case wrongly did nothing; Back means parent directory.
         """
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            if self._virtual_directory_node.get('kind') == 'page':
+                self.launcher.remote_focus_area('files_exp')
+                return
+            parent = self._parent_virtual_directory()
+            if parent is not None:
+                self.show_virtual_launch_directory(parent)
+            return
         import ntpath
         import os
         current = self.current_directory()
@@ -4406,6 +4525,14 @@ class ExpandedLauncherView(QWidget):
             return
         row = self.row_data(item)
         if not row:
+            return
+        virtual = row.get('_launch_virtual_node')
+        if virtual is not None:
+            if virtual['kind'] == 'file':
+                self.launcher.activate_virtual_launch_item(virtual.get('row'))
+            else:
+                # Keep the Qt item alive until its Enter/double-click event ends.
+                QTimer.singleShot(0, lambda n=virtual: self.show_virtual_launch_directory(n))
             return
         if row.get('item_kind') == 'directory':
             self.launcher.execute(row)
@@ -4440,6 +4567,7 @@ class ExpandedLauncherView(QWidget):
         row = self.row_data(item)
         if not row:
             return
+        self._virtual_directory_node = None
         if row.get('item_kind') in ('category', 'directory'):
             self.path = [row]
             self.refresh_middle()
@@ -4459,6 +4587,12 @@ class ExpandedLauncherView(QWidget):
         if modifiers & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier):
             return
         row = self.row_data(item)
+        virtual = (row or {}).get('_launch_virtual_node')
+        if virtual is not None:
+            if (virtual['kind'] != 'file' and
+                    (force or getattr(self.launcher, 'folder_open_mode', 'single') != 'double')):
+                QTimer.singleShot(0, lambda n=virtual: self.show_virtual_launch_directory(n))
+            return
         if row and row.get('item_kind') in ('category', 'directory'):
             if not force and getattr(self.launcher, 'folder_open_mode', 'single') == 'double':
                 return  # A single click selects; double-click or Enter opens.
@@ -4908,6 +5042,14 @@ class ExpandedLauncherView(QWidget):
         row = self.row_data(item)
         if not row:
             return
+        virtual = row.get('_launch_virtual_node')
+        if virtual is not None:
+            if virtual['kind'] == 'file':
+                self.launcher.activate_virtual_launch_item(virtual.get('row'))
+            else:
+                # Keep the Qt item alive until its Enter/double-click event ends.
+                QTimer.singleShot(0, lambda n=virtual: self.show_virtual_launch_directory(n))
+            return
         if row.get('item_kind') in ('category', 'directory'):
             if pane is self.left:
                 self.choose_files(item, 0)
@@ -4941,6 +5083,11 @@ class ExpandedLauncherView(QWidget):
             return
         row = self.row_data(item)
         if row is None:  # Non-actionable bookmark section heading.
+            return
+        if pane is self.middle and row.get('_launch_virtual_node') is not None:
+            self.launcher.show_virtual_launch_context(
+                row['_launch_virtual_node'],
+                global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point))
             return
         if pane is self.middle:
             tree = pane.tree

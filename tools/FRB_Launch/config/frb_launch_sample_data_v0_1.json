@@ -2533,6 +2533,11 @@
       "kind": "aumid",
       "target": "Microsoft.VisualStudioCode",
       "alias": "vscode"
+    },
+    {
+      "kind": "aumid",
+      "target": "Chrome",
+      "alias": "クローム"
     }
   ]
 }

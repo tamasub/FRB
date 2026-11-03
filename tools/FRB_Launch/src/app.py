@@ -64,6 +64,7 @@ from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
+from launch_virtual_tree import virtual_execution_row, virtual_lookup_node
 from context_menu_icons import context_action_icon
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
@@ -4221,6 +4222,7 @@ class Launcher(QWidget):
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
             self.remote_window.virtual_item_activated.connect(self.activate_virtual_launch_item)
+            self.remote_window.virtual_folder_selected.connect(self.navigate_virtual_launch_folder)
             self.remote_window.virtual_context_requested.connect(self.show_virtual_launch_context)
         return self.remote_window
 
@@ -5130,6 +5132,11 @@ class Launcher(QWidget):
             return
         if area == 'files_exp':
             panel = self._current_remote_files_exp()
+            virtual = (panel.remote_current_virtual_node()
+                       if panel is not None else None)
+            if virtual is not None:
+                self.show_virtual_launch_context(virtual, pos)
+                return
             path = panel.remote_current_folder_path() if panel is not None else None
             if path:
                 self.show_files_exp_folder_menu(path, pos)
@@ -5246,6 +5253,18 @@ class Launcher(QWidget):
         remote = getattr(self, 'remote_window', None)
         return getattr(remote, 'files_exp_panel', None) if remote is not None else None
 
+    def navigate_virtual_launch_folder(self, node):
+        """Files Exp's virtual folder previews its immediate children in List."""
+        if (not isinstance(node, dict) or node.get('source') != 'launch_json'
+                or node.get('kind') == 'file'):
+            return False
+        view = self.expanded_view
+        if not view.isVisible():
+            return False
+        if view._workspace_mode != 'files':
+            view.show_files_view()
+        return bool(view.show_virtual_launch_directory(node))
+
     def activate_virtual_launch_item(self, row):
         """Run an authored Launch JSON leaf via the ordinary Launch executor.
 
@@ -5255,12 +5274,12 @@ class Launcher(QWidget):
         if not isinstance(row, dict):
             return False
         page_id, item_id = str(row.get('page_id') or ''), str(row.get('item_id') or '')
-        authoritative = next((entry for entry in getattr(self, 'authored_items', ())
-                              if str(entry.get('page_id') or '') == page_id
-                              and str(entry.get('item_id') or '') == item_id
-                              and entry.get('enabled', True)), None)
+        authoritative = virtual_execution_row(
+            getattr(self, 'authored_items', ()),
+            (getattr(self, 'data', None) or {}).get('items', ()),
+            page_id, item_id)
         if authoritative is None:
-            return False  # Deleted/disabled between projection and activation.
+            return False  # Deleted/disabled app or authored item since rendering.
         self.activate(authoritative)
         return True
 
@@ -5300,10 +5319,11 @@ class Launcher(QWidget):
             return False
         virtual = getattr(panel, 'remote_current_virtual_node', lambda: None)()
         if virtual is not None:
-            # A Launch JSON folder is NOT a physical Files List directory.
-            # → expands its virtual branch; ● executes a terminal item.
-            if virtual.get('kind') != 'file':
-                panel.remote_branch(1)
+            # → hands off from virtual Exp to virtual Files List, exactly
+            # like a physical directory; no filesystem path is invented.
+            if not self.navigate_virtual_launch_folder(virtual):
+                return False
+            self.remote_focus_area('directory')
             return True
         # The explicit RIGHT command wins over a pending wheel debounce.
         timer = getattr(panel, '_selection_timer', None)
@@ -5348,12 +5368,16 @@ class Launcher(QWidget):
         # folder must not trap the Remote in Files List.
         if first is not None and tree.currentItem() is not first:
             return False
-        directory = view.current_directory()
-        if directory:
-            aligned = panel.sync_current_directory(directory)
+        virtual_folder = getattr(view, '_virtual_directory_node', None)
+        if virtual_folder is not None:
+            aligned = panel.remote_select_virtual_node(virtual_folder)
         else:
-            # パンくずが「PC」の場合は、枝を閉じずにPC行だけを選択する。
-            aligned = panel.remote_select_pc_root()
+            directory = view.current_directory()
+            if directory:
+                aligned = panel.sync_current_directory(directory)
+            else:
+                # パンくずが「PC」の場合は、枝を閉じずにPC行だけを選択する。
+                aligned = panel.remote_select_pc_root()
         if not aligned:
             return False
         self.remote_focus_area('files_exp')
@@ -6608,6 +6632,31 @@ class Launcher(QWidget):
             self.apps_proc=None
             self._recover_apps(e)
 
+    def _refresh_virtual_app_catalog(self):
+        """Refresh cached apps in Exp and visible List without touching JSON.
+
+        The installed-app scanner updates the runtime catalog independently
+        of the authored Launch file. Preserve the virtual folder breadcrumb
+        and wheel target while replacing the current app List rows.
+        """
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            if getattr(view, '_embedded_files_exp_roots_ready', False):
+                view.reload_embedded_files_exp_roots(preserve_state=True)
+            current = getattr(view, '_virtual_directory_node', None)
+            if current is not None:
+                updated = virtual_lookup_node(
+                    self.pages, self.authored_items,
+                    current.get('page_id'), current.get('item_id') or '',
+                    (self.data or {}).get('items', ()))
+                if updated is not None:
+                    view.show_virtual_launch_directory(updated)
+        panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+        if panel is not None:
+            panel._save_tree_state()
+            panel.set_roots(self._remote_files_first_column_rows(), self.expander().expand)
+            panel.restore_previous_tree_state()
+
     def _apply_apps_scan(self, records, partial=False):
         # Never destroy a valid catalog when a managed PC gives us zero results.
         records=merge_catalog(self.app_records,records,partial)
@@ -6615,6 +6664,7 @@ class Launcher(QWidget):
         installed_apps.write_cache(STATE/'apps_cache.json',records)
         self.app_records=records;self.icon_cache.clear()
         self.data=installed_apps.attach(self.data,records)
+        self._refresh_virtual_app_catalog()
         if self.menu:self.menu.close()
         self.render()
         if partial:
@@ -6754,6 +6804,14 @@ class Launcher(QWidget):
             view = getattr(self, 'expanded_view', None)
             if view is not None and getattr(view, '_embedded_files_exp_roots_ready', False):
                 view.reload_embedded_files_exp_roots(preserve_state=True)
+            if view is not None and getattr(view, '_virtual_directory_node', None) is not None:
+                current = view._virtual_directory_node
+                updated = virtual_lookup_node(
+                    self.pages, self.authored_items,
+                    current.get('page_id'), current.get('item_id') or '',
+                    (self.data or {}).get('items', ()))
+                if updated is not None:
+                    view.show_virtual_launch_directory(updated)
             exp_panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
             if exp_panel is not None:
                 save_state = getattr(exp_panel, '_save_tree_state', None)

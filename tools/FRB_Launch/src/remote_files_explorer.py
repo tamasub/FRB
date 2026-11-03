@@ -7,7 +7,7 @@ filesystem operations remain owned by Launch.  Children load lazily.
 import json
 import os
 
-from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal
+from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal, QModelIndex
 from PySide6.QtGui import (QBrush, QColor, QCursor, QIcon, QPainter, QPen,
                            QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
@@ -24,7 +24,8 @@ from clipboard_paste import clipboard_sources, is_cut_clipboard
 from file_transfer_visual import transfer_state
 from pathlib import Path
 from system_drives import drive_rows
-from launch_virtual_tree import virtual_launch_pages, virtual_item_identity
+from launch_virtual_tree import (virtual_launch_pages, virtual_item_identity,
+                                 virtual_exp_folders)
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
@@ -241,6 +242,7 @@ class RemoteFilesExplorer(QWidget):
     folder_context_requested = Signal(str, QPoint)
     folder_renamed = Signal(str, str)
     virtual_item_activated = Signal(object)
+    virtual_folder_selected = Signal(object)
     virtual_context_requested = Signal(object, QPoint)
 
     def __init__(self, remote, theme, *, launcher=None, embedded=False):
@@ -473,9 +475,10 @@ class RemoteFilesExplorer(QWidget):
         return item
 
     def _append_virtual(self, parent, node):
-        """A Launch JSON menu row, never a filesystem path."""
-        is_folder = node['kind'] != 'file'
-        icon = self._folder_icon if is_folder else self._virtual_file_icon
+        """Exp projects *folders only*: executable leaves belong to List."""
+        if node['kind'] == 'file':
+            return None
+        icon = self._folder_icon
         item = QStandardItem(icon, node['title'])
         item.setEditable(False)
         item.setDragEnabled(False)
@@ -486,7 +489,7 @@ class RemoteFilesExplorer(QWidget):
         identity = virtual_item_identity(node)
         item.setToolTip('Launch JSON / ' + node['title'] + '\n' +
                         '参照: ' + str(identity['node_id']))
-        if node['children']:
+        if virtual_exp_folders(node):
             item.appendRow(QStandardItem(''))
         parent.appendRow(item)
         return item
@@ -502,6 +505,50 @@ class RemoteFilesExplorer(QWidget):
         data = item.data(_DATA_ROLE) if item is not None else None
         return data.get('virtual') if isinstance(data, dict) else None
 
+    def remote_select_virtual_node(self, node):
+        """Find a virtual folder in Exp without firing a new navigation.
+
+        Used when the user goes List -> Exp, including after entering a
+        virtual subfolder from List. Only the matching ancestors are expanded.
+        """
+        if not isinstance(node, dict) or node.get('source') != 'launch_json':
+            return False
+        # Traverse only the selected node's ancestors; do NOT expand every
+        # other JSON branch just to locate an item in a lazy tree.
+        lineage = tuple(node.get('lineage') or (node.get('node_id'),))
+        def visit():
+            parent = QModelIndex()
+            found = None
+            for pos, node_id in enumerate(lineage):
+                found = None
+                for row in range(self.model.rowCount(parent)):
+                    candidate = self.model.index(row, 0, parent)
+                    item = self.model.itemFromIndex(candidate)
+                    data = item.data(_DATA_ROLE) if item is not None else None
+                    entry = data.get('virtual') if isinstance(data, dict) else None
+                    if entry is not None and entry.get('node_id') == node_id:
+                        found = candidate
+                        break
+                if found is None:
+                    return None
+                if pos < len(lineage) - 1 and not self.tree.isExpanded(found):
+                    self.tree.expand(found)
+                parent = found
+            return found
+        old_sync = self._syncing_directory
+        self._syncing_directory = True
+        try:
+            index = visit()
+            if index is None:
+                return False
+            self._selection_timer.stop()
+            self.tree.setCurrentIndex(index)
+            self.tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
+            self._schedule_tree_state_save()
+            return True
+        finally:
+            self._syncing_directory = old_sync
+
     def _activate_virtual(self, index):
         item = self.model.itemFromIndex(index)
         data = item.data(_DATA_ROLE) if item is not None else None
@@ -509,9 +556,10 @@ class RemoteFilesExplorer(QWidget):
         if not node:
             return False
         self._selection_timer.stop()
-        if node['kind'] == 'file':
-            self.virtual_item_activated.emit(node['row'])
-        elif node['children']:
+        # The selected virtual folder supplies Files List's content, while
+        # the actual operating column remains Files Exp. Never run a leaf here.
+        self.virtual_folder_selected.emit(node)
+        if virtual_exp_folders(node):
             self.tree.setExpanded(index, not self.tree.isExpanded(index))
         self._schedule_tree_state_save()
         return True
@@ -591,7 +639,8 @@ class RemoteFilesExplorer(QWidget):
             if launcher is not None:
                 for page in virtual_launch_pages(
                         getattr(launcher, 'pages', ()),
-                        getattr(launcher, 'authored_items', ())):
+                        getattr(launcher, 'authored_items', ()),
+                        (getattr(launcher, 'data', None) or {}).get('items', ())):
                     self._append_virtual(parent, page)
             for root in roots:
                 path = root['path']
@@ -939,7 +988,8 @@ class RemoteFilesExplorer(QWidget):
                     or view._workspace_mode != 'files'
                     or getattr(launcher, '_files_operating_target', None) != 'files_exp'):
                 return
-        if self._index_path(index) or self._is_pc_index(index):
+        if (self._index_path(index) or self._is_pc_index(index)
+                or self._virtual_index(index)):
             self._selection_timer.start()
 
     def _commit_current_selection(self):
@@ -955,9 +1005,11 @@ class RemoteFilesExplorer(QWidget):
                     or getattr(launcher, '_files_operating_target', None) != 'files_exp'):
                 return
         index = self.tree.currentIndex()
-        # A virtual JSON item is never automatically executed by a delayed
-        # wheel preview. Only explicit row activation/Remote centre may run it.
-        if self.remote_current_virtual_node() is not None:
+        # Virtual menu folders preview exactly like physical directories:
+        # update breadcrumb/List, but never execute an item or change target.
+        virtual = getattr(self, 'remote_current_virtual_node', lambda: None)()
+        if virtual is not None:
+            self.virtual_folder_selected.emit(virtual)
             return
         if self._is_pc_index(index):
             self.pc_selected.emit()
@@ -975,7 +1027,7 @@ class RemoteFilesExplorer(QWidget):
         if self._syncing_directory:
             return
         self._selection_timer.stop()
-        if self._activate_virtual(index):
+        if getattr(self, '_activate_virtual', lambda *_: False)(index):
             return
         if self._is_pc_index(index):
             self.pc_selected.emit()
@@ -992,7 +1044,9 @@ class RemoteFilesExplorer(QWidget):
         self.tree.setCurrentIndex(index)
         # The disclosure triangle already performed this expansion. Do not
         # toggle the virtual branch again via _activate_virtual().
-        if self.remote_current_virtual_node() is not None:
+        virtual = getattr(self, 'remote_current_virtual_node', lambda: None)()
+        if virtual is not None:
+            self.virtual_folder_selected.emit(virtual)
             self._schedule_tree_state_save()
             return
         self._activate_index(index)
@@ -1290,7 +1344,7 @@ class RemoteFilesExplorer(QWidget):
             return
         virtual = data.get('virtual')
         if virtual is not None:
-            for child in virtual.get('children', ()):
+            for child in virtual_exp_folders(virtual):
                 self._append_virtual(item, child)
             item.removeRow(0)
             return

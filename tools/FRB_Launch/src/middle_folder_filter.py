@@ -70,6 +70,24 @@ def sort_mode_for_header(column, previous='name'):
     return pair[1] if previous == pair[0] else pair[0]
 
 
+def _row_search_content(row):
+    """Virtual Launch rows match their names AND configured aliases.
+
+    Physical file searching intentionally remains filename-only. Dynamic app
+    keywords contain both built-in Japanese aliases and user-authored
+    ``app_aliases`` from Launch JSON, prepared by installed_apps.attach().
+    """
+    name = str(row.get('title', ''))
+    if row.get('_launch_virtual_node') is None:
+        return name
+    keywords = row.get('keywords') or ()
+    if isinstance(keywords, str):
+        keywords = (keywords,)
+    if not isinstance(keywords, (list, tuple, set)):
+        return name
+    return ' '.join((name, *(str(word) for word in keywords if word)))
+
+
 def filter_sort_folder_rows(rows, query='', mode='name'):
     """Search one directory, populate all visible metadata and sort safely.
 
@@ -81,7 +99,7 @@ def filter_sort_folder_rows(rows, query='', mode='name'):
     result = []
     for original in rows:
         name = str(original.get('title', ''))
-        if query.strip() and not matches_search_text(name, query):
+        if query.strip() and not matches_search_text(_row_search_content(original), query):
             continue
         row = dict(original)
         is_folder = row.get('item_kind') in ('category', 'directory')
