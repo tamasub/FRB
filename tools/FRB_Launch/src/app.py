@@ -91,6 +91,7 @@ from launch_remote import LaunchRemote
 from passive_header_drag import PassiveHeaderDrag
 from remote_navigation import next_area, previous_area, starting_area
 from remote_page_items import visible_remote_page_roots
+from files_selection_status import files_selected_summary
 
 # Limit cascade-column width; never let a long description/URL stretch across the screen.
 CASCADE_MAX_WIDTH = 560
@@ -3010,7 +3011,7 @@ class Launcher(QWidget):
         self.theme_button = QPushButton('', self.search_bar)
         self.theme_button.setObjectName('headerSettingsButton')
         self.theme_button.setFixedSize(36, 36)
-        self.theme_button.setIconSize(QSize(26, 26))
+        self.theme_button.setIconSize(QSize(22, 22))
         self.theme_button.setToolTip('表示テーマを切り替え／Studioくんで設定')
         self.theme_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.theme_button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -3232,7 +3233,7 @@ class Launcher(QWidget):
         self.files_item_count = QLabel('')
         self.files_item_count.setObjectName('filesItemCount')
         self.files_item_count.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.files_item_count.setToolTip('表示中のフォルダーの項目数')
+        self.files_item_count.setToolTip('表示中の項目数と選択項目のサイズ合計。フォルダー内のサイズは含みません')
         self.files_item_count.hide()
         self.footer_row = QWidget(self)
         self.footer_row.setObjectName('launchFooterRow')
@@ -4262,6 +4263,13 @@ class Launcher(QWidget):
             if count is None:
                 count = view.middle.tree.topLevelItemCount()
             self.files_item_count.setText(f'{int(count):,} 個の項目')
+            # Qt's selectedItems() reflects *actual* multi-selection, not a
+            # remembered current-row outline. Metadata was collected while
+            # building the displayed rows; never rescan files on selection.
+            rows = [view.row_data(item) for item in view.middle.tree.selectedItems()]
+            summary = files_selected_summary(rows)
+            if summary:
+                self.files_item_count.setText(self.files_item_count.text() + '  |  ' + summary)
         self.files_item_count.setVisible(bool(visible))
 
     def workspace_changed(self, mode):
@@ -5758,9 +5766,11 @@ class Launcher(QWidget):
         self.maximize_button.setVisible(width >= 720)
         # In expanded Files/Browser view the Page controls are in the
         # workspace strip. Retain the header tabs only for Compact/search.
-        expanded_workspace = (self.view_mode == 'expanded' and
-                              not self.search.text().strip() and
-                              self.expanded_view.isVisible())
+        # Do not inspect isVisible() here: startup invokes this before
+        # the Files/Browser workspace is first shown.  That used to make
+        # the legacy header Page controls appear temporarily or persist.
+        # Expanded mode owns its Page buttons solely in the workspace strip.
+        expanded_workspace = self.view_mode == 'expanded'
         if expanded_workspace:
             self.tabs.hide()
             self.page_overflow_button.hide()
@@ -9978,30 +9988,29 @@ class Launcher(QWidget):
                     self._paste_from_context_menu(self, target_folder=p))
                 action.setEnabled(self._context_paste_enabled(self))
             elif action_id == 'rename':
-                if not remote_folder_list:
-                    continue  # Files background is not a selected folder.
                 action = menu.addAction(
                     definition['title'],
                     lambda checked=False, p=target_directory:
                     QTimer.singleShot(0, lambda: self.begin_remote_rename_after_menu(p)))
-                action.setEnabled(self.can_rename_remote_folder(target_directory))
+                # Keep the same menu rows as a selected folder; an empty
+                # background never implicitly renames the current directory.
+                action.setEnabled(bool(remote_folder_list) and
+                                  self.can_rename_remote_folder(target_directory))
             elif action_id == 'delete':
-                if not remote_folder_list:
-                    continue  # No implicit destructive action on a background.
                 action = menu.addAction(
                     definition['title'],
                     lambda checked=False, p=target_directory:
                     self.perform_filesystem_context_action('delete', p, 'folder'))
-                action.setEnabled(self.can_delete_remote_folder(target_directory))
+                action.setEnabled(bool(remote_folder_list) and
+                                  self.can_delete_remote_folder(target_directory))
             elif action_id in ('copy', 'cut'):
-                if not remote_folder_list:
-                    continue  # Copy/cut require an explicitly targeted folder.
                 action = menu.addAction(
                     definition['title'],
                     lambda checked=False, a=action_id, p=target_directory:
                     self.perform_filesystem_context_action(a, p, 'folder'))
-                if action_id == 'cut':
-                    action.setEnabled(self.can_delete_remote_folder(target_directory))
+                action.setEnabled(bool(remote_folder_list) and
+                                  (action_id != 'cut' or
+                                   self.can_delete_remote_folder(target_directory)))
             else:
                 action = menu.addAction(
                     definition['title'],
@@ -10016,7 +10025,9 @@ class Launcher(QWidget):
                 else:
                     new_submenu = self.expanded_view.add_lane_new_submenu(
                         menu, target_directory=explicit_target)
-                if remote_folder_list and new_submenu is not None:
+                if new_submenu is not None:
+                    # New-file submenu actions must not dismiss the inline
+                    # filename editor, including in the ordinary blank menu.
                     menu.new_submenu_action = new_submenu.menuAction()
         # Ignore repeated or trailing dividers when a subset is disabled.
         actions = menu.actions()
@@ -10217,6 +10228,16 @@ class Launcher(QWidget):
                         self._paste_from_context_menu(parent, target_folder=clicked)
                         if clicked is not None else self._paste_from_context_menu(parent))
                     action.setEnabled(self._context_paste_enabled(context_parent))
+                    if (origin == 'folder' and not search_result
+                            and selected_paths is not None):
+                        # The Files list and its blank background present
+                        # one consistent folder menu (including New).  Here
+                        # the explicit clicked folder owns the creation.
+                        menu.addSeparator()
+                        new_submenu = self.expanded_view.add_lane_new_submenu(
+                            menu, target_directory=str(path))
+                        if new_submenu is not None:
+                            menu.new_submenu_action = new_submenu.menuAction()
                 elif action_id == 'rename' and getattr(context_parent, 'remote_folder_navigation', False):
                     # Remote's actual folder/file list is NOT a search result.
                     # Keep the same JSON-defined rename position as Files.

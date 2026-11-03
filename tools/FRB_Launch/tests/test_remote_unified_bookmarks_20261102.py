@@ -77,41 +77,15 @@ def test_bookmark_bar_is_shared_by_embedded_and_external_modes():
     assert 'visible = False' in method_body('expanded_view.py', 'ExpandedLauncherView', 'set_browser_bookmarks_visible')
 
 
-def test_nested_bookmark_menu_has_cycle_guard_and_executes_original_row():
-    # Extract a real method so no PySide6 is required for behavioral tests.
-    tree = ast.parse(source('browser_bookmark_bar.py'))
-    cls = next(x for x in tree.body if isinstance(x, ast.ClassDef) and x.name == 'HorizontalBookmarkBar')
-    func = next(x for x in cls.body if isinstance(x, ast.FunctionDef) and x.name == '_fill_bookmark_menu')
-    fn = ast.fix_missing_locations(ast.Module(body=[func], type_ignores=[]))
-    namespace = {}
-    exec(compile(fn, '<bookmark-menu-test>', 'exec'), namespace)
-
-    class Menu:
-        def __init__(self):
-            self.items = []
-            self.aboutToShow = Mock()
-            self.aboutToShow.connect = Mock()
-        def clear(self):
-            self.items.clear()
-        def addMenu(self, title):
-            sub = Menu()
-            self.items.append((title, sub))
-            return sub
-        def addAction(self, title):
-            action = Mock()
-            action.title = title
-            self.items.append((title, action))
-            return action
-
+def test_nested_bookmark_folders_are_flattened_without_popups():
+    # Updated contract: the horizontal strip is leaf-only and folder-menu-free.
+    import sys
+    sys.path.insert(0, str(SRC))
+    from bookmark_bar_flatten import flatten_bookmark_rows
     root = {'item_id': 'r', 'title': 'root', 'item_kind': 'category'}
     folder = {'item_id': 'folder', 'title': 'Folder', 'item_kind': 'category'}
     url = {'item_id': 'url', 'title': 'Hello', 'item_kind': 'command'}
     child_map = {'r': [folder], 'folder': [root, url]}
-    instance = Mock(_bookmark_bar_children=lambda parent: child_map.get(parent['item_id'], []))
-    menu = Menu()
-    namespace['_fill_bookmark_menu'](instance, menu, root, {'r'}, 0)
-    assert len(menu.items) == 1
-    assert menu.items[0][0] == '📁 Folder'
-    submenu = Menu()
-    namespace['_fill_bookmark_menu'](instance, submenu, folder, {'r', 'folder'}, 1)
-    assert [title for title, _ in submenu.items] == ['Hello']
+    result = flatten_bookmark_rows([root], lambda row: child_map.get(row['item_id'], []))
+    assert [row['title'] for row, _ in result] == ['Hello']
+    assert result[0][1] == ('root', 'Folder')

@@ -40,7 +40,9 @@ def test_remote_matching_close_button():
                   "QPushButton#filesExpClose:hover {{background:{colors['hover']};}}",
                   "QPushButton#filesExpClose:pressed {{background:{colors['selection']};}}"):
         assert token in TREE
-    assert "QFrame#filesExpHeader {{background:{colors['header']}" in TREE
+    # 2026-11-03: square, lighter Exp titlebar (both embedded and floating).
+    assert 'QFrame#filesExpHeader {{background:{exp_header};' in TREE
+    assert 'border-radius:0px;' in TREE
 
 
 def test_remote_anchor_top_and_tracks_remote_movement():

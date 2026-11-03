@@ -8,7 +8,7 @@
   "remember_login": true,
   "download_directory": "",
   "new_tab_url": "https://www.google.com/",
-  "default_zoom_percent": 90,
+  "default_zoom_percent": 80,
   "bookmark_preview_delay_ms": 650,
   "keep_tabs_on_home": true
 }

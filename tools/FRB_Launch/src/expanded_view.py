@@ -1222,6 +1222,8 @@ class ExpandedLauncherView(QWidget):
             '0', 'false', 'no', 'off')
         self.files_mode_tab = None
         self.browser_mode_tab = None
+        self._toolbar_wheel_current = None
+        self._toolbar_wheel_remainder = 0
         # Normal Bookmarks has its OWN tab destination; Remote's compact
         # Browser popup keeps its existing independent selector.
         self.bookmark_new_tab = True
@@ -1485,6 +1487,11 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.currentItemChanged.connect(
             lambda *_: self._queue_middle_selection_repair())
         self.middle.tree.itemSelectionChanged.connect(self._queue_middle_selection_repair)
+        # Coalesce Ctrl/Shift clicks and the intermediate selections produced
+        # by a folder refresh into one status-bar update after Qt settles.
+        self._files_selection_status_queued = False
+        self.middle.tree.itemSelectionChanged.connect(self._queue_files_selection_status)
+        self.middle.tree.currentItemChanged.connect(self._queue_files_selection_status)
         self.middle.tree.blank_clicked = lambda: self._sync_remote_area_after_mouse_press('directory')
         self.middle.tree.model().modelReset.connect(self._queue_middle_selection_repair)
         self._middle_selection_watchdog = QTimer(self)
@@ -1525,6 +1532,10 @@ class ExpandedLauncherView(QWidget):
         self.embedded_files_exp = RemoteFilesExplorer(
             None, launcher.color_theme, launcher=launcher, embedded=True)
         self.left.layout_box.addWidget(self.embedded_files_exp, 1)
+        # Match the Files Exp title's bottom border to the adjacent folder
+        # search row's bottom border, regardless of font metrics or DPI.
+        self.middle_search_bar.installEventFilter(self)
+        self._align_embedded_exp_header()
         self.embedded_files_exp.folder_selected.connect(
             launcher.navigate_files_exp_folder)
         self.embedded_files_exp.pc_selected.connect(
@@ -1982,6 +1993,8 @@ class ExpandedLauncherView(QWidget):
                 old_button.deleteLater()
             self.root_buttons = []
             self.workspace_page_buttons = []
+            self._toolbar_wheel_current = None
+            self._toolbar_wheel_remainder = 0
             # Cancel a pending warp targeting a button about to be replaced.
             self._wheel_root_follow_pending = None
             # Do not alter Launch DataJSON: the two permanent panel roots are
@@ -2010,6 +2023,7 @@ class ExpandedLauncherView(QWidget):
                 button.setMinimumWidth(84)
                 button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # Keyboard/Remote target
                 button.installEventFilter(self.launcher)
+                button.installEventFilter(self)
                 self.root_layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignBottom)
             self.files_mode_tab.setToolTip('ファイル・フォルダーを表示（状態は保持）')
             self.browser_mode_tab.setToolTip('Webタブとブックマークを表示（状態は保持）')
@@ -2027,7 +2041,8 @@ class ExpandedLauncherView(QWidget):
                 button.setObjectName('expandedPageButton')
                 button.setFixedHeight(30)
                 button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-                button.setToolTip('このPageのメニューを開く')
+                button.setToolTip('このPageのメニューを開く（ホイール：5ボタンを選択）')
+                button.installEventFilter(self)
                 button.clicked.connect(lambda checked=False, pid=page_id, b=button:
                                        self.launcher.open_remote_page(pid, anchor=b))
                 button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -3035,7 +3050,87 @@ class ExpandedLauncherView(QWidget):
             return True
         return False
 
+    def _align_embedded_exp_header(self):
+        """Keep Exp title strip and Files search bar on one horizontal line."""
+        search = getattr(self, 'middle_search_bar', None)
+        exp = getattr(self, 'embedded_files_exp', None)
+        header = getattr(exp, 'exp_header', None)
+        if search is None or header is None:
+            return
+        height = max(28, search.sizeHint().height())
+        if search.isVisible() and search.height() >= height:
+            height = search.height()
+        if header.height() != height or header.minimumHeight() != height:
+            header.setFixedHeight(height)
+
+    def _toolbar_wheel_buttons(self):
+        """Left-to-right: Files, Browser, Page1..Page3; no hidden roots."""
+        return [button for button in
+                (self.files_mode_tab, self.browser_mode_tab,
+                 *self.workspace_page_buttons)
+                if button is not None and button.isVisible()]
+
+    def wheel_workspace_page_buttons(self, obj, event):
+        """Wheel selects one of five; a real click performs the action.
+
+        Selection is separate from activation so wheel cannot unexpectedly
+        launch a Page command or change the active Files/Browser workspace.
+        """
+        buttons = self._toolbar_wheel_buttons()
+        if (obj not in buttons or
+                event.modifiers() != Qt.KeyboardModifier.NoModifier):
+            return False
+        angle = event.angleDelta().y()
+        pixel = event.pixelDelta().y()
+        delta = angle if angle else pixel * 3
+        if not delta:
+            return False
+        self._toolbar_wheel_remainder += delta
+        steps = abs(self._toolbar_wheel_remainder) // 120
+        if not steps:
+            return True
+        direction = -1 if self._toolbar_wheel_remainder > 0 else 1
+        self._toolbar_wheel_remainder -= (1 if self._toolbar_wheel_remainder > 0
+                                          else -1) * steps * 120
+        current = self._toolbar_wheel_current
+        index = buttons.index(current) if current in buttons else buttons.index(obj)
+        target = max(0, min(len(buttons) - 1, index + direction * steps))
+        selected = buttons[target]
+        self._toolbar_wheel_current = selected
+        selected.setFocus(Qt.FocusReason.OtherFocusReason)
+        # Queue cursor-follow until the tab geometry settles. Do not simulate
+        # a click or move the cursor if pointer warp has been disabled.
+        if getattr(self.launcher, 'pointer_warp_enabled', True):
+            QTimer.singleShot(0, lambda b=selected: self._follow_toolbar_wheel(b))
+        return True
+
+    def _follow_toolbar_wheel(self, button):
+        if (button is not self._toolbar_wheel_current or
+                not button.isVisible() or not self.isVisible() or
+                not getattr(self.launcher, 'pointer_warp_enabled', True) or
+                QApplication.mouseButtons() != Qt.MouseButton.NoButton):
+            return
+        buttons = self._toolbar_wheel_buttons()
+        if button not in buttons:
+            return
+        pointer = QCursor.pos()
+        # Only warp if the pointer is still in the five-button toolbar.
+        rect = self.root_widget.rect()
+        if not rect.contains(self.root_widget.mapFromGlobal(pointer)):
+            return
+        destination = button.mapToGlobal(QPoint(button.width() // 2,
+                                                button.height() // 2))
+        if destination != pointer:
+            QCursor.setPos(destination)
+
     def eventFilter(self, obj, event):
+        if (obj is getattr(self, 'middle_search_bar', None) and
+                event.type() == QEvent.Type.Resize):
+            self._align_embedded_exp_header()
+        if (event.type() == QEvent.Type.Wheel and self.isVisible() and
+                self.wheel_workspace_page_buttons(obj, event)):
+            event.accept()
+            return True
         if (event.type() == QEvent.Type.Wheel and self.isVisible() and
                 self._zone_wheel_source(obj) and
                 self.wheel_zone_navigation.wheel_is_locked()):
@@ -3896,6 +3991,17 @@ class ExpandedLauncherView(QWidget):
         if key:
             self._middle_current_memory = (self.current_directory(), key)
 
+    def _queue_files_selection_status(self, *_):
+        if self._files_selection_status_queued:
+            return
+        self._files_selection_status_queued = True
+        QTimer.singleShot(0, self._flush_files_selection_status)
+
+    def _flush_files_selection_status(self):
+        self._files_selection_status_queued = False
+        if getattr(self.launcher, 'expanded_view', None) is self:
+            self.launcher.update_files_item_count()
+
     def _queue_middle_selection_repair(self, *_):
         if self._middle_selection_repair_queued:
             return
@@ -4245,10 +4351,14 @@ class ExpandedLauncherView(QWidget):
         from bookmark_menu import visible_bookmark_children
         rows = visible_bookmark_children(root, self.launcher.children)
         if web is not None:
+            web.bookmark_strip.pointer_follow_enabled = (
+                lambda: getattr(self.launcher, 'pointer_warp_enabled', True))
             web.bookmark_strip.update_bookmark_bar(
                 rows, self.launcher.children, self.open_horizontal_bookmark)
         external_bar = getattr(self, '_external_bookmark_strip', None)
         if external_bar is not None:
+            external_bar.pointer_follow_enabled = (
+                lambda: getattr(self.launcher, 'pointer_warp_enabled', True))
             external_bar.update_bookmark_bar(
                 rows, self.launcher.children, self.open_horizontal_bookmark)
 

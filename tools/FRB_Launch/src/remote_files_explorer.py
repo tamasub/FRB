@@ -286,6 +286,7 @@ class RemoteFilesExplorer(QWidget):
         # Only one header remains: no duplicated 'first column' caption.
         header = QFrame(self)
         header.setObjectName('filesExpHeader')
+        self.exp_header = header
         # Match the *actual* Remote title strip, including user font scaling.
         remote_header = remote.findChild(QFrame, 'remoteTitleBar') if remote is not None else None
         remote_header_height = (remote_header.height() if remote_header is not None
@@ -1315,11 +1316,14 @@ class RemoteFilesExplorer(QWidget):
         self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
         self._exp_background = QColor(colors['panel'])
         self._exp_outline = QColor('#ccd3d7')  # identical to LaunchRemote
+        # Slightly lighter than the toolbar immediately above the embedded Exp.
+        exp_header = '#f8fcf9' if theme_family(theme) == 'light' else '#395247'
         self.setStyleSheet(f"""
             QWidget#remoteFilesExplorer, QWidget#embeddedFilesExplorer {{background:transparent;color:{colors['text']};
                 border:0;}}
-            QFrame#filesExpHeader {{background:{colors['header']};
-                border:1px solid {colors['panel_border']};border-radius:5px;}}
+            QFrame#filesExpHeader {{background:{exp_header};
+                border:0;border-bottom:1px solid {colors['panel_border']};
+                border-radius:0px;}}
             QLabel#filesExpTitle {{background:transparent;color:{colors['text']};
                 font-size:12px;font-weight:bold;border:0;}}
             /* Identical 28x24 HOME button styling to LaunchRemote. */

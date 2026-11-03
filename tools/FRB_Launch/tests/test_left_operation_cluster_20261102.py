@@ -25,7 +25,8 @@ def test_bookmarks_no_indicator_and_smaller_font():
     assert 'QToolButton#launchWebBookmarkEntry::menu-indicator { image: none; width: 0px; }' in source
     assert 'QToolButton#launchWebBookmarkEntry { font-size: 12px; }' in source
     assert 'font.setPointSizeF(max(8.0, font.pointSizeF() - 1.0))' in source
-    assert 'button.setMenu(menu)' in source  # Nested folders remain navigable.
+    assert 'flatten_bookmark_rows' in source  # All nested URL leaves display inline.
+    assert 'button.setMenu(menu)' not in source  # No per-folder popup menus.
 
 
 def test_browser_favorites_left_and_bookmark_navigation_unchanged():
