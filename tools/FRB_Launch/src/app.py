@@ -5008,12 +5008,26 @@ class Launcher(QWidget):
                                        else Qt.CheckState.Checked)
             return
 
-        if expanded and area == 'files_exp':
+        if (expanded and view._workspace_mode == 'files'
+                and area == 'files_exp'):
             self._remote_mouse_last_click = None
-            panel = self._current_remote_files_exp()
-            if panel is not None and not double:
-                panel.remote_activate_current()
-                self.remote_focus_area('files_exp')
+            # In Files Exp, a native double-click emits CLICK first. Defer
+            # the folder/virtual-item activation until Qt's double-click
+            # window has passed so the first click cannot execute an item
+            # before DOUBLE_CLICK hands off to Files List.
+            timer = getattr(self, '_remote_exp_click_timer', None)
+            if double:
+                if timer is not None:
+                    timer.stop()
+                # Exactly the same commit/target transition as Remote →.
+                self.remote_exp_right_to_list()
+            else:
+                if timer is None:
+                    timer = QTimer(self)
+                    timer.setSingleShot(True)
+                    timer.timeout.connect(self._remote_exp_single_click)
+                    self._remote_exp_click_timer = timer
+                timer.start(QApplication.instance().doubleClickInterval())
             return
         pane = {'files': view.left, 'directory': view.middle,
                 'bookmarks': view.right}.get(area)
@@ -5069,6 +5083,8 @@ class Launcher(QWidget):
             previous.close()
             return
         menu = web.tab_context_menu() if area == 'web_tabs' else web.page_context_menu()
+        if getattr(self, '_remote_pad_context_active', False):
+            self._prepend_remote_pad_navigation(menu)
         self._remote_web_popup = menu
         menu.aboutToHide.connect(lambda: setattr(self, '_remote_web_popup', None))
         menu.aboutToHide.connect(menu.deleteLater)
@@ -5088,6 +5104,104 @@ class Launcher(QWidget):
         menu.popup(point)
 
     def remote_context_menu(self):
+        """Remote-pad context: prepend navigation and existing history commands.
+
+        Only the central pad's CONTEXT_MENU command uses this scope. Native
+        pointer right-clicks retain their existing actions and order.
+        """
+        remote = getattr(self, 'remote_window', None)
+        if remote is None or not remote.isVisible():
+            return
+        self._remote_pad_context_active = True
+        self._remote_pad_context_menu = None
+        try:
+            self._show_remote_target_context_menu()
+        finally:
+            self._remote_pad_context_active = False
+        menu = self._remote_pad_context_menu
+        if menu is None:
+            # No selected item: navigation and history remain accessible.
+            menu = QMenu(self)
+            self._prepend_remote_pad_navigation(menu, force=True)
+            pad = remote.pad
+            menu.popup(pad.mapToGlobal(QPoint(pad.width() + 4, 0)))
+        if menu.isVisible():
+            self._enable_remote_context_wheel_for_menu(menu)
+
+    def _invoke_remote_pad_navigation(self, menu, command):
+        """Close QMenu/grab before dispatching an existing Remote command."""
+        wheel = getattr(self, '_remote_context_wheel', None)
+        if wheel is not None and wheel.root is menu:
+            wheel.stop()
+        menu.close()
+        QTimer.singleShot(0, lambda c=command: self.remote_command(c))
+
+    def _prepend_remote_pad_navigation(self, menu, *, force=False):
+        """Only the wheel-pad popup gets navigation and history actions."""
+        if not force and not getattr(self, '_remote_pad_context_active', False):
+            return False
+        if getattr(menu, '_remote_pad_navigation_added', False):
+            return False
+        original = menu.actions()
+        first = original[0] if original else None
+        view = getattr(self, 'expanded_view', None)
+        # Only when the active Remote controller is Files column 2. This is
+        # a DIRECT operating-target switch: the ordinary LEFT command may
+        # navigate the folder hierarchy instead of returning to Files Exp.
+        list_target = bool(
+            view is not None and view.isVisible()
+            and getattr(view, '_workspace_mode', None) == 'files'
+            and getattr(self, '_files_operating_target', None) == 'directory'
+            and getattr(self, '_remote_area', None) == 'directory')
+        commands = [('戻る', 'LEFT'), ('進む', 'RIGHT')]
+        if list_target:
+            commands.insert(0, ('Exp列に戻る', 'REMOTE_TARGET_EXP'))
+        inserted = []
+        for label, command in commands:
+            action = QAction(label, menu)
+            action.setToolTip(
+                '操作対象をFiles Exp列に切り替える' if command == 'REMOTE_TARGET_EXP'
+                else 'Remoteの' + ('←' if command == 'LEFT' else '→') + 'と同じ操作')
+            action.triggered.connect(
+                lambda checked=False, m=menu, c=command:
+                self._invoke_remote_pad_navigation(m, c))
+            if first is None:
+                menu.addAction(action)
+            else:
+                menu.insertAction(first, action)
+            inserted.append(action)
+        if list_target:
+            menu.insertSeparator(inserted[1])  # Direct Exp switch vs ← / →.
+
+        # Delegate to the SAME commands as Remote's dedicated history buttons.
+        # The menu must be dismissed before either history popup is shown;
+        # _invoke_remote_pad_navigation performs that hand-off asynchronously.
+        history_actions = []
+        for label, command in (('検索履歴', 'SEARCH_HISTORY'),
+                               ('フォルダー履歴', 'FOLDER_HISTORY')):
+            action = QAction(label, menu)
+            action.setToolTip('Remoteの「' + label + '」ボタンと同じ操作')
+            action.triggered.connect(
+                lambda checked=False, m=menu, c=command:
+                self._invoke_remote_pad_navigation(m, c))
+            if first is None:
+                menu.addAction(action)
+            else:
+                menu.insertAction(first, action)
+            history_actions.append(action)
+        menu.insertSeparator(history_actions[0])  # ← / → | 履歴.
+        if first is not None:
+            menu.insertSeparator(first)  # 履歴 | 元のコンテキスト操作.
+        menu._remote_pad_navigation_added = True
+        # Initial cursor is an explicit default, never inherited from Qt's
+        # hover-selected filesystem action underneath the mouse pointer.
+        if list_target or (getattr(menu, 'remote_context_root', False)
+                           and getattr(menu, 'remote_target_directory', None)):
+            menu._remote_pad_initial_action = inserted[0]
+        self._remote_pad_context_menu = menu
+        return True
+
+    def _show_remote_target_context_menu(self):
         """Open the selected object's existing menu beside the wheel pad."""
         remote = getattr(self, 'remote_window', None)
         if remote is None or not remote.isVisible():
@@ -5163,11 +5277,16 @@ class Launcher(QWidget):
                 self._enable_remote_context_wheel()
 
     def _enable_remote_context_wheel(self):
-        menu = getattr(self, '_launch_context_menu', None)
+        return self._enable_remote_context_wheel_for_menu(
+            getattr(self, '_launch_context_menu', None))
+
+    def _enable_remote_context_wheel_for_menu(self, menu):
         if menu is None or not menu.isVisible():
             return False
         previous = getattr(self, '_remote_context_wheel', None)
         if previous is not None:
+            if previous.active and previous.root is menu:
+                return True
             previous.stop()
         self._remote_context_wheel = RemoteContextWheel(self, menu)
         return True
@@ -5239,6 +5358,18 @@ class Launcher(QWidget):
             return
         # Use the same result activation path as Enter / native double-click.
         self.activate(row)
+
+    def _remote_exp_single_click(self):
+        """Complete an Exp-only pad click once a double-click is ruled out."""
+        view = self.expanded_view
+        if (not view.isVisible() or view._workspace_mode != 'files'
+                or self._remote_area != 'files_exp'
+                or getattr(self, '_remote_popup_area', None)):
+            return
+        panel = self._current_remote_files_exp()
+        if panel is not None:
+            panel.remote_activate_current()
+            self.remote_focus_area('files_exp')
 
     def _current_remote_files_exp(self):
         """Select the existing Exp tree independently of Remote placement.
@@ -5314,11 +5445,24 @@ class Launcher(QWidget):
         menu.addSection('Launch JSON（参照専用）')
         reference = menu.addAction('JSON参照IDをコピー')
         reference.setEnabled(bool(item_id))
-        chosen = menu.exec(point)
-        if chosen is reference and item_id:
-            import json
-            QApplication.clipboard().setText(json.dumps(
-                virtual_item_identity(identity), ensure_ascii=False))
+        if getattr(self, '_remote_pad_context_active', False):
+            # Non-blocking popup: the Remote can still drive its real QActions.
+            def copy_identity(checked=False):
+                if item_id:
+                    import json
+                    QApplication.clipboard().setText(json.dumps(
+                        virtual_item_identity(identity), ensure_ascii=False))
+            reference.triggered.connect(copy_identity)
+            self._prepend_remote_pad_navigation(menu)
+            self._launch_context_menu = menu
+            menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+            menu.popup(point)
+        else:
+            chosen = menu.exec(point)
+            if chosen is reference and item_id:
+                import json
+                QApplication.clipboard().setText(json.dumps(
+                    virtual_item_identity(identity), ensure_ascii=False))
 
     def remote_exp_right_to_list(self):
         """Exp → List: explicitly commit Exp and hand off the controller.
@@ -5401,6 +5545,11 @@ class Launcher(QWidget):
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        # Wheel/arrow/menu actions cancel a pending Exp pad click. In
+        # particular the native DOUBLE_CLICK must never run the first CLICK.
+        pending_exp_click = getattr(self, '_remote_exp_click_timer', None)
+        if pending_exp_click is not None and command != 'CLICK':
+            pending_exp_click.stop()
         text_dialog = getattr(self, '_remote_text_dialog', None)
         if text_dialog is not None:
             text_dialog.remote_command(command)
@@ -10611,6 +10760,8 @@ class Launcher(QWidget):
         # are complete commands and must dismiss all related popup windows.
         menu.triggered.connect(lambda action, m=menu:
             self._on_file_context_action_triggered(m, action))
+        if getattr(self, '_remote_pad_context_active', False):
+            self._prepend_remote_pad_navigation(menu)
         menu.popup(global_pos)
         return True
 
@@ -10751,6 +10902,8 @@ class Launcher(QWidget):
                     menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
                 elif hasattr(menu, 'setStyleSheet'):
                     menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
+                if getattr(self, '_remote_pad_context_active', False):
+                    self._prepend_remote_pad_navigation(menu)
                 menu.popup(global_pos)
                 return True
             try:
@@ -10858,6 +11011,8 @@ class Launcher(QWidget):
             menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
         elif origin in ('file', 'folder') and hasattr(menu, 'setStyleSheet'):
             menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
+        if getattr(self, '_remote_pad_context_active', False):
+            self._prepend_remote_pad_navigation(menu)
         menu.popup(global_pos)
         return True
 

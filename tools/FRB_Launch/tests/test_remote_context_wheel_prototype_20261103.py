@@ -300,3 +300,24 @@ def test_files_list_blank_background_uses_same_remote_context_adapter():
             "                self._enable_remote_context_wheel()" in APP)
     assert 'def _enable_remote_context_wheel(self):' in APP
     assert 'menu.popup(global_pos)' in APP
+
+
+def test_files_exp_context_starts_on_back_even_when_qt_hovered_files_list(harness):
+    back, forward, files = (FakeAction(s) for s in ('戻る', '進む', 'Filesリスト'))
+    menu, controller = harness.new_menu(back, forward, files)
+    menu._remote_pad_initial_action = back
+    menu.setActiveAction(files)  # QMenu/native hover initially picked Filesリスト.
+    harness.drain()
+    assert menu.activeAction() is back
+    controller.command('DOWN')
+    assert menu.activeAction() is forward
+    controller._select_first()  # Subsequent focus repairs keep current selection.
+    assert menu.activeAction() is forward
+
+
+def test_other_context_keeps_qt_native_initial_selection(harness):
+    back, forward, files = (FakeAction(s) for s in ('戻る', '進む', 'Filesリスト'))
+    menu, _controller = harness.new_menu(back, forward, files)
+    menu.setActiveAction(files)
+    harness.drain()
+    assert menu.activeAction() is files

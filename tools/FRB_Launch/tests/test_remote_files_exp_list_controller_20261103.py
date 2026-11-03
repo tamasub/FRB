@@ -91,18 +91,16 @@ def test_exp_central_button_expands_and_navigates_only_on_activation():
     panel._activate_index.assert_called_once_with(index)
 
 
-def test_remote_exp_click_calls_real_folder_tree():
-    fn=actual(APP,'Launcher','remote_mouse_click')
+def test_remote_exp_click_calls_real_folder_tree_after_doubleclick_window():
+    # A single Exp click must wait for the native double-click interval;
+    # otherwise the first half of a DOUBLE_CLICK could activate a virtual leaf.
+    fn=actual(APP,'Launcher','_remote_exp_single_click')
     panel=NS(remote_activate_current=Mock())
-    view=NS(isVisible=lambda: True, web_view_active=lambda: False,
-            commit_remote_inline_rename=lambda: False,
-            embedded_files_exp=panel)
-    app=NS(expanded_view=view, _remote_page_menu=None, _remote_area='files_exp',
-           _last_focus_area='directory', _remote_popup_area=None,
-           remote_cascade_command=lambda command: False,
-           _current_remote_files_exp=lambda: panel,
+    view=NS(isVisible=lambda: True, _workspace_mode='files')
+    app=NS(expanded_view=view, _remote_area='files_exp',
+           _remote_popup_area=None, _current_remote_files_exp=lambda: panel,
            remote_focus_area=Mock())
-    fn(app, double=False)
+    fn(app)
     panel.remote_activate_current.assert_called_once()
     app.remote_focus_area.assert_called_once_with('files_exp')
 

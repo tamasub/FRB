@@ -1,6 +1,6 @@
-"""Opt-in wheel-pad control of a *real* Qt filesystem context menu.
+"""Opt-in wheel-pad control of a *real* Qt context menu.
 
-Only menus opened from the Files List Remote are connected.  QMenu's popup
+Only menus opened from the Remote are connected.  QMenu's popup
 mouse grab can deliver events addressed to the pad *to the menu instead*;
 filtering at QApplication level by global cursor position bridges that gap.
 Normal pointer-based menus retain their native behaviour.  No SendKeys and
@@ -49,8 +49,16 @@ class RemoteContextWheel(QObject):
             items = selectable_actions(self.current)
             if not items:
                 return
-            current = (self._selected if self._selected in items else
-                       self.current.activeAction())
+            # A Files Exp folder can request 戻る as its initial cursor.
+            # Prefer it to Qt's native hover selection (often Filesリスト),
+            # but never override a selection already moved by the user.
+            if self._selected in items:
+                current = self._selected
+            else:
+                preferred = (getattr(self.root, '_remote_pad_initial_action', None)
+                             if self.current is self.root else None)
+                current = (preferred if preferred in items else
+                           self.current.activeAction())
             self._selected = current if current in items else items[0]
             self.current.setActiveAction(self._selected)
 
@@ -149,6 +157,13 @@ class RemoteContextWheel(QObject):
                 return True
             if name == 'RIGHT':
                 return True  # Right only opens a submenu, never executes a leaf.
+            # RemoteFolderActionsMenu has a bespoke Filesリスト *cascade*
+            # opener, not a QMenu submenu.  Keep its root popup alive when
+            # selecting this QAction, then return control to the cascade.
+            if action in getattr(self.current, 'openers', {}):
+                self.stop()
+                QTimer.singleShot(0, action.trigger)
+                return True
             # Dismiss popup/grab BEFORE a potentially modal confirmation or
             # inline rename; do not call the filesystem operation ourselves.
             self.stop()
