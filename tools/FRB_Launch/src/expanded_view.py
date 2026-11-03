@@ -1068,6 +1068,8 @@ class ExpandedPanel(QFrame):
         """Match the Windows Explorer-style type column and type sorting."""
         virtual = row.get('_launch_virtual_node')
         if virtual is not None:
+            if virtual.get('runtime_catalog') == 'browser_bookmarks':
+                return 'ブックマークフォルダー' if virtual['kind'] != 'file' else 'ブックマーク'
             return '仮想フォルダー' if virtual['kind'] != 'file' else 'Launch メニュー'
         if row.get('item_kind') in ('category', 'directory'):
             return 'ファイル フォルダー'

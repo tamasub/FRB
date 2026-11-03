@@ -100,15 +100,16 @@ def fake_launcher_home(*, embedded=True, target=('pc', None), remote_visible=Tru
              remote_window=NS(files_exp_panel=panel),
              navigate_files_exp_pc=lambda: (events.append('preview-pc') or True),
              navigate_files_exp_folder=lambda path: (events.append(('preview-folder', path)) or True),
+             navigate_virtual_launch_folder=lambda node: (events.append(('preview-virtual', node['node_id'])) or True),
              remote_focus_area=lambda area: events.append(('focus', area)))
     return win, events
 
 
-def test_launch_home_selects_exp_pc_then_shows_its_drive_rows_in_column_two():
+def test_launch_home_selects_first_exp_pc_when_pc_is_first_root():
     navigate = extracted(APP, 'Launcher', 'navigate_home')
     win, calls = fake_launcher_home()
     navigate(win)
-    assert calls == ['files-visible', 'exp-collapsed', 'exp-selected', 'preview-pc', ('focus', 'directory')]
+    assert calls == ['files-visible', 'exp-collapsed', 'exp-selected', 'preview-pc', ('focus', 'files_exp')]
 
 
 def test_home_refreshes_uninitialized_embedded_tree_then_collapses_before_selection():
@@ -117,7 +118,7 @@ def test_home_refreshes_uninitialized_embedded_tree_then_collapses_before_select
     win.expanded_view._embedded_files_exp_roots_ready = False
     navigate(win)
     assert calls == ['files-visible', 'reload', 'exp-collapsed', 'exp-selected',
-                     'preview-pc', ('focus', 'directory')]
+                     'preview-pc', ('focus', 'files_exp')]
 
 
 def test_repeated_home_never_reopens_previous_files_exp_branches():
@@ -132,12 +133,21 @@ def test_repeated_home_never_reopens_previous_files_exp_branches():
         'exp-selected', calls.index('exp-selected') + 1)
 
 
-def test_home_uses_exp_first_folder_in_standalone_mode_too():
+def test_home_uses_first_exp_folder_in_standalone_mode_too():
     navigate = extracted(APP, 'Launcher', 'navigate_home')
     win, calls = fake_launcher_home(embedded=False, target=('folder', 'C:\\FRB'))
     navigate(win)
     assert calls == ['files-visible', 'exp-collapsed', 'exp-selected', ('preview-folder', 'C:\\FRB'),
-                     ('focus', 'files')]
+                     ('focus', 'files_exp')]
+
+
+def test_home_uses_virtual_page_at_the_very_top_instead_of_pc():
+    navigate = extracted(APP, 'Launcher', 'navigate_home')
+    node = {'source': 'launch_json', 'node_id': 'page:work', 'kind': 'page'}
+    win, calls = fake_launcher_home(target=('virtual', node))
+    navigate(win)
+    assert calls == ['files-visible', 'exp-collapsed', 'exp-selected',
+                     ('preview-virtual', 'page:work'), ('focus', 'files_exp')]
 
 
 def test_home_falls_back_to_legacy_row_without_visible_files_exp():
@@ -152,8 +162,8 @@ def test_remote_and_launch_buttons_reuse_same_navigate_home_handler():
     remote_block = APP[APP.index("        if command == 'HOME':"):]
     assert 'self.navigate_home()' in remote_block.split("        if command == 'SEARCH':", 1)[0]
     assert "'HOME', width=28, height=24, role='icon'" in REMOTE
-    assert 'HOME：Files Expを全折りたたみ→先頭行を選択→第2列に表示' in APP
-    assert 'HOME：Files Expを全折りたたみ→先頭行を選択→第2列に表示' in REMOTE
+    assert 'HOME：Files Expの先頭行を選択→Files Listへ表示（全枝折りたたみ）' in APP
+    assert 'HOME：Files Expの先頭行を選択→Files Listへ表示（全枝折りたたみ）' in REMOTE
     # An embedded Exp is the selected navigation row; the Remote stays bound
     # to column 2 by the existing hidden-root policy.
     assert 'self.files_root_hidden_mode' in APP

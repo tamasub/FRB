@@ -313,7 +313,7 @@ class LaunchRemote(QWidget):
         head = QHBoxLayout(title_frame)
         head.setContentsMargins(2, 2, 2, 2)
         head.setSpacing(2)
-        self.home_button = self._button('', 'HOME：Files Expを全折りたたみ→先頭行を選択→第2列に表示',
+        self.home_button = self._button('', 'HOME：Files Expの先頭行を選択→Files Listへ表示（全枝折りたたみ）',
                                         'HOME', width=28, height=24, role='icon')
         self.home_button.setObjectName('remoteHomeButton')
         # The very same house outline used by Launch's navigation HOME.

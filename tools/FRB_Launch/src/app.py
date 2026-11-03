@@ -64,7 +64,7 @@ from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
-from launch_virtual_tree import virtual_execution_row, virtual_lookup_node
+from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node
 from context_menu_icons import context_action_icon
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
@@ -3078,7 +3078,7 @@ class Launcher(QWidget):
         for button, name, tip in (
             (self.nav_back_button, 'navBackButton', '前の画面に戻る'),
             (self.nav_forward_button, 'navForwardButton', 'Filesのフォルダー履歴を進む'),
-            (self.nav_home_button, 'navHomeButton', 'HOME：Files Expを全折りたたみ→先頭行を選択→第2列に表示')):
+            (self.nav_home_button, 'navHomeButton', 'HOME：Files Expの先頭行を選択→Files Listへ表示（全枝折りたたみ）')):
             button.setObjectName(name)
             button.setToolTip(tip)
             button.setFixedSize(40, 40)
@@ -5274,10 +5274,26 @@ class Launcher(QWidget):
         if not isinstance(row, dict):
             return False
         page_id, item_id = str(row.get('page_id') or ''), str(row.get('item_id') or '')
-        authoritative = virtual_execution_row(
-            getattr(self, 'authored_items', ()),
-            (getattr(self, 'data', None) or {}).get('items', ()),
-            page_id, item_id)
+        authored = getattr(self, 'authored_items', ())
+        runtime = (getattr(self, 'data', None) or {}).get('items', ())
+        # Runtime browser bookmarks are deliberately distinct from authored
+        # Launch commands. Double-click / Remote ● double-click opens a fresh
+        # Browser tab, never a physical file, and never runs a stale URL.
+        if row.get('_browser_bookmark'):
+            authoritative = virtual_bookmark_execution_row(
+                authored, runtime, page_id, item_id)
+            url = bookmark_web_url(authoritative)
+            if not url:
+                return False
+            view = self.expanded_view
+            if self.webview_settings.get('mode') == 'embedded':
+                return bool(view.show_web_url(url, new_tab=True))
+            # Company/external-browser mode cannot create an embedded tab.
+            # Switch to the Browser workspace before using the normal opener.
+            view.switch_workspace('browser')
+            self.activate(authoritative)
+            return True
+        authoritative = virtual_execution_row(authored, runtime, page_id, item_id)
         if authoritative is None:
             return False  # Deleted/disabled app or authored item since rendering.
         self.activate(authoritative)
@@ -5619,9 +5635,8 @@ class Launcher(QWidget):
                     web.hide_url_favorites()
             self._remote_popup_area = None
             self.navigate_home()
-            expanded = self.expanded_view.isVisible()
-            self.remote_focus_area(('directory' if self.files_root_hidden_mode else 'files')
-                                   if expanded else 'list')
+            # navigate_home already chooses Exp and synchronizes its cursor;
+            # do not immediately overwrite that operating target with List.
             return
         if command == 'SEARCH':
             self.hide_remote()
@@ -6414,6 +6429,9 @@ class Launcher(QWidget):
                 self.data=browser_bookmarks.attach(self.data,self.bookmark_browser,profiles)
                 if self.menu:self.menu.close();self.menu=None
                 self.render()
+                # The same virtual Files Exp/List also displays transient
+                # bookmarks. Rebind its selected folder after a catalog reload.
+                self._refresh_virtual_app_catalog()
             if errors:DIAG.warning('BOOKMARK partial read: %s',errors)
             if force:
                 count=sum(1 for r in self.data['items'] if r.get('_browser_bookmark') and r.get('item_kind')=='command') if self.data else 0
@@ -7796,7 +7814,7 @@ class Launcher(QWidget):
             return
         if self.expanded_view.isVisible():
             # HOME contract (both Launch and Remote): close ALL Files Exp
-            # branches, select its first root (usually PC), then show that
+            # branches, select the first visible Exp root, then show that
             # root's children in Files column 2. Browser tabs remain intact.
             # Reset the tree BEFORE selecting the first row so stale expanded
             # descendants and a previous current folder cannot survive HOME.
@@ -7822,6 +7840,8 @@ class Launcher(QWidget):
                     navigated = self.navigate_files_exp_pc()
                 elif kind == 'folder':
                     navigated = self.navigate_files_exp_folder(directory)
+                elif kind == 'virtual':
+                    navigated = self.navigate_virtual_launch_folder(directory)
             if not navigated:
                 # Compatibility fallback for configurations with no Files Exp
                 # model (classic/hidden first column, no Remote open).
@@ -7829,8 +7849,11 @@ class Launcher(QWidget):
                 if first is not None:
                     view.left.tree.setCurrentItem(first)
                     view.choose_files(first, 0)
-            self.remote_focus_area('directory' if self.files_root_hidden_mode
-                                   else 'files')
+            # HOME always leaves the controller in the selected Exp row.
+            # In particular, do not focus Files List merely because the
+            # embedded first column is enabled.
+            self.remote_focus_area('files_exp' if panel is not None else
+                                   ('directory' if self.files_root_hidden_mode else 'files'))
             return
         self._nav_before_change()
         self._nav_restoring = True

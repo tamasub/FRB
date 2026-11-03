@@ -152,7 +152,7 @@ def test_search_button_restores_main_window_and_native_search_focus():
     win.focus_search.assert_called_once()
 
 
-def test_home_button_navigates_home_and_returns_remote_to_primary_area():
+def test_home_button_delegates_operating_target_to_navigate_home():
     cmd, _ = method('remote_command')
     view = SimpleNamespace(isVisible=lambda: True,
                            hide_favorite_popup=Mock(),
@@ -165,5 +165,5 @@ def test_home_button_navigates_home_and_returns_remote_to_primary_area():
     cmd(win, 'HOME')
     win.hide_history_popup.assert_called_once()
     win.navigate_home.assert_called_once()
-    win.remote_focus_area.assert_called_once_with('files')
+    win.remote_focus_area.assert_not_called()  # navigate_home now selects Exp's first row.
     assert win._remote_popup_area is None

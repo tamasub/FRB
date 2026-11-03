@@ -33,15 +33,36 @@ def virtual_launch_pages(pages, authored_items, runtime_items=()):
                           if r.get('item_kind') == 'category'
                           and r.get('launch_source') == 'installed_apps'}
         authored_ids = {str(r['item_id']) for r in rows}
-        # Only cached installed-app rows directly under an enabled, authored
-        # application category. Other runtime rows (e.g. browser bookmarks)
-        # stay outside the virtual JSON explorer and cannot be edited as JSON.
+        # Runtime applications live immediately below their authored category.
         rows.extend(r for r in (runtime_items or ())
                     if isinstance(r, dict) and r.get('_installed_app')
                     and r.get('enabled', True)
                     and str(r.get('page_id')) == page_id and r.get('item_id')
                     and str(r.get('item_id')) not in authored_ids
                     and str(r.get('parent_item_id') or '') in app_categories)
+        # Browser bookmarks have the same authored-root / runtime-descendant
+        # contract, but can be arbitrarily nested. Never import a free-floating
+        # runtime item or one whose parent chain is not an enabled bookmark root.
+        bookmark_roots = {str(r['item_id']) for r in rows
+                          if r.get('item_kind') == 'category'
+                          and r.get('launch_source') == 'browser_bookmarks'}
+        accepted = set(bookmark_roots)
+        pending = [r for r in (runtime_items or ())
+                   if isinstance(r, dict) and r.get('_browser_bookmark')
+                   and r.get('enabled', True)
+                   and str(r.get('page_id')) == page_id and r.get('item_id')
+                   and str(r.get('item_id')) not in authored_ids]
+        # Breadth-first promotion ensures no bookmarks from invalid parents,
+        # disabled roots, other pages, or cyclic chains can appear in Files.
+        for _ in range(40):
+            newly = [r for r in pending
+                     if str(r.get('parent_item_id') or '') in accepted]
+            if not newly:
+                break
+            rows.extend(newly)
+            accepted.update(str(r['item_id']) for r in newly)
+            promoted = {id(r) for r in newly}
+            pending = [r for r in pending if id(r) not in promoted]
         by_parent = {}
         for pos, row in enumerate(rows):
             parent = str(row.get('parent_item_id') or '')
@@ -75,6 +96,7 @@ def virtual_launch_pages(pages, authored_items, runtime_items=()):
                     # Preserve source row data for the existing Launch execute path.
                     'row': row,
                     'runtime_catalog': ('installed_apps' if row.get('_installed_app')
+                                        else 'browser_bookmarks' if row.get('_browser_bookmark')
                                         else ''),
                 })
             return children
@@ -137,6 +159,40 @@ def virtual_lookup_node(pages, authored_items, page_id, item_id='', runtime_item
             if entry.get('item_id') == str(item_id):
                 return entry
             pending.extend(reversed(entry['children']))
+    return None
+
+
+def virtual_bookmark_execution_row(authored_items, runtime_items, page_id, item_id):
+    """Resolve a current browser bookmark only under its enabled authored root.
+
+    The incoming List row is display data, never an execution authority.
+    Bookmark folders are not runnable; URL/scheme validation is done by the
+    caller via bookmark_web_url, so stale or deleted bookmarks fail closed.
+    """
+    page_id, item_id = str(page_id or ''), str(item_id or '')
+    authored = {str(row.get('item_id')): row for row in (authored_items or ())
+                if isinstance(row, dict) and str(row.get('page_id')) == page_id
+                and row.get('enabled', True)}
+    runtime = {str(row.get('item_id')): row for row in (runtime_items or ())
+               if isinstance(row, dict) and str(row.get('page_id')) == page_id
+               and row.get('_browser_bookmark') and row.get('enabled', True)}
+    leaf = runtime.get(item_id)
+    if leaf is None or leaf.get('item_kind') != 'command':
+        return None
+    seen = {item_id}
+    parent_id = str(leaf.get('parent_item_id') or '')
+    for _ in range(40):
+        if not parent_id or parent_id in seen:
+            return None
+        seen.add(parent_id)
+        root = authored.get(parent_id)
+        if root is not None:
+            return leaf if (root.get('item_kind') == 'category' and
+                            root.get('launch_source') == 'browser_bookmarks') else None
+        parent = runtime.get(parent_id)
+        if parent is None or parent.get('item_kind') != 'category':
+            return None
+        parent_id = str(parent.get('parent_item_id') or '')
     return None
 
 

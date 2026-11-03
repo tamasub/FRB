@@ -597,8 +597,28 @@ class RemoteFilesExplorer(QWidget):
         item.setIcon(self._subdued_icon(base) if state == 'cut' else base)
         item.setBackground(QBrush(QColor('#d6f1e8')) if state == 'pasted'
                            else QBrush())
+        # Keep Files Exp folder names readable in dark mode too.
+        # Resetting to an empty QBrush() can fall back to the platform default
+        # black text, which disappears against the dark Exp background when the
+        # user records video in dark mode.  The normal state must therefore
+        # restore our explicit theme text color.
         item.setForeground(QBrush(QColor('#9ca8af')) if state == 'cut'
-                           else QBrush())
+                           else self._default_text_brush)
+
+    def _apply_default_text_brush(self):
+        """Repaint every visible Exp row with the current theme text color."""
+        def visit(parent):
+            for row in range(parent.rowCount()):
+                item = parent.child(row)
+                if item is None:
+                    continue
+                data = item.data(_DATA_ROLE) or {}
+                path = data.get('path')
+                if not path or data.get('pc'):
+                    item.setForeground(self._default_text_brush)
+                visit(item)
+        visit(self.model.invisibleRootItem())
+        self.refresh_transfer_visuals()
 
     def refresh_transfer_visuals(self):
         """Update visible folder icons from Launch's authoritative clipboard."""
@@ -788,24 +808,23 @@ class RemoteFilesExplorer(QWidget):
         """Select the first Files Exp root for Launch/Remote HOME.
 
         Selection and the column-2 preview are separate responsibilities:
-        return an explicit PC/folder target and let Launcher perform the
+        return a virtual-page/PC/folder target and let Launcher perform the
         navigation.  Launcher calls reset_to_roots() first, which folds all
         branches; this method then selects the fresh first root.
         Suppress delayed selection callbacks so HOME cannot navigate twice.
         """
-        # Virtual JSON pages precede PC visually, but HOME must still select
-        # the actual PC entry and preserve the established Files HOME contract.
-        index = next((self.model.index(row, 0)
-                      for row in range(self.model.rowCount())
-                      if self._is_pc_index(self.model.index(row, 0))),
-                     self.model.index(0, 0))
+        # The very first visible Exp root (including a virtual Launch page)
+        # is the new HOME destination. No hidden preference for PC.
+        index = self.model.index(0, 0)
         if not index.isValid():
             return None
         item = self.model.itemFromIndex(index)
         data = item.data(_DATA_ROLE) if item is not None else None
         if not isinstance(data, dict):
             return None
-        if data.get('pc'):
+        if data.get('virtual') is not None:
+            target = ('virtual', data['virtual'])
+        elif data.get('pc'):
             target = ('pc', None)
         else:
             path = self._index_path(index)
@@ -1655,6 +1674,7 @@ class RemoteFilesExplorer(QWidget):
 
     def apply_theme(self, theme):
         colors = theme_palette(theme)
+        self._default_text_brush = QBrush(QColor(colors['text']))
         self.tree.current_outline_color = QColor(colors['focus_outline'])
         # Share the same vector house icon as the Remote HOME, on theme change.
         self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
@@ -1707,4 +1727,5 @@ class RemoteFilesExplorer(QWidget):
                 background:{colors['selection']};color:{colors['text']};}}
             QTreeView#filesExpTree::item:hover:!selected {{background:{colors['hover']};}}
         """)
+        self._apply_default_text_brush()
         self.update()
