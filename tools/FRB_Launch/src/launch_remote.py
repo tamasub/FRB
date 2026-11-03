@@ -282,6 +282,7 @@ class LaunchRemote(QWidget):
         self._background_opacity = max(0.25, min(1.0, saved_opacity))
         self._opacity_wheel_angle_remainder = 0
         self._opacity_wheel_pixel_remainder = 0
+        self._remote_15_placement = False
 
         # Compact layout tuned from hands-on feedback: keep the pointer
         # travel short, but preserve enough button height and readable text.
@@ -494,7 +495,8 @@ class LaunchRemote(QWidget):
     def hideEvent(self, event):
         # Preserve the last actual position even when CLOSE is pressed.
         settings = getattr(self.parent(), 'settings', None)
-        if settings is not None and self.pos().x() >= -32000:
+        if (settings is not None and not self._remote_15_placement
+                and self.pos().x() >= -32000):
             settings.setValue('remote_last_position', self.pos())
             settings.sync()
         # The experimental tool window must not outlive a dismissed Remote.
@@ -924,6 +926,7 @@ class LaunchRemote(QWidget):
         self.area_label.setText('操作先：' + label)
 
     def show_at(self, global_point):
+        self._remote_15_placement = False
         # An already-visible Remote may have been dragged since its last
         # close; never snap it back to the previous session's saved point.
         if self.isVisible():

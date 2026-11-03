@@ -1524,7 +1524,25 @@ class ExpandedLauncherView(QWidget):
         group_layout.addWidget(self.shared_header)
         self.files_splitter = QSplitter(Qt.Orientation.Horizontal, self.files_group)
         self.files_splitter.setObjectName('expandedFilesSplitter')
-        self.files_splitter.addWidget(self.left)
+        # Keep the existing TWO-child splitter contract intact. Column 1.5
+        # is a width-reserved child of the first-column host, but the Remote
+        # window is never reparented to it (search results can float below).
+        self.files_first_host = QWidget(self.files_splitter)
+        self.files_first_host.setObjectName('expandedFilesFirstHost')
+        first_host_row = QHBoxLayout(self.files_first_host)
+        first_host_row.setContentsMargins(0, 0, 0, 0)
+        first_host_row.setSpacing(0)
+        first_host_row.addWidget(self.left, 1)
+        self.remote_15_lane = QFrame(self.files_first_host)
+        self.remote_15_lane.setObjectName('remote15PlacementLane')
+        self.remote_15_lane.setFixedWidth(196)
+        self.remote_15_lane.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.remote_15_lane.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.remote_15_lane.installEventFilter(self)
+        first_host_row.addWidget(self.remote_15_lane, 0)
+        self.remote_15_lane.hide()
+        self.files_splitter.addWidget(self.files_first_host)
         self.files_splitter.addWidget(self.middle)
         # Files Exp replaces only the old first-column CONTENT. The splitter,
         # old authored root tree and all of its data/selection logic survive.
@@ -1702,6 +1720,15 @@ class ExpandedLauncherView(QWidget):
             self.toolbar_scroller.setFixedHeight(required)
 
     def save_splitter_sizes(self, *_):
+        # Experimental 1.5-column widths must not poison older 2-column data.
+        if getattr(self.launcher, 'remote_15_mode', False):
+            widths = self.files_splitter.sizes()
+            if (self._workspace_mode == 'files' and len(widths) == 2
+                    and widths[0] >= 196 and widths[1] >= 100):
+                self.launcher.settings.setValue(
+                    'workspace_files_remote_15_splitter_sizes',
+                    '|'.join(map(str, widths)))
+            return
         # Embedded and original Files layouts have independent user widths.
         if getattr(self.launcher, 'files_exp_embedded_mode', False):
             widths = self.files_splitter.sizes()
@@ -1740,6 +1767,8 @@ class ExpandedLauncherView(QWidget):
 
     def apply_theme(self, theme):
         self.embedded_files_exp.apply_theme(theme)
+        self.remote_15_lane.setStyleSheet(
+            'QFrame#remote15PlacementLane { background: transparent; border: 0; }')
         if self.web_view is not None:
             self.web_view.apply_theme(theme)
         colors = theme_palette(theme)
@@ -3124,6 +3153,12 @@ class ExpandedLauncherView(QWidget):
             QCursor.setPos(destination)
 
     def eventFilter(self, obj, event):
+        if (obj is getattr(self, 'remote_15_lane', None) and
+                event.type() in (QEvent.Type.Resize, QEvent.Type.Move,
+                                 QEvent.Type.Show)):
+            # Defer to the settled splitter geometry (Qt can issue several
+            # intermediate events while restoring widths).
+            self.launcher.queue_remote_15_alignment()
         if (obj is getattr(self, 'middle_search_bar', None) and
                 event.type() == QEvent.Type.Resize):
             self._align_embedded_exp_header()
@@ -4535,7 +4570,10 @@ class ExpandedLauncherView(QWidget):
             self.embedded_files_exp.show()
         elif getattr(self.launcher, 'files_root_hidden_mode', False):
             self.left.hide()
+            self.files_first_host.setVisible(
+                bool(getattr(self.launcher, 'remote_15_mode', False)))
         self.right.hide()  # Bookmarks belong to Browser, never Files.
+        self.apply_remote_15_lane_mode()
         self._update_workspace_tabs()
         # During ExpandedLauncherView.__init__, Launcher.expanded_view has not
         # yet been assigned; a callback here would touch an uninitialized UI.
@@ -4567,6 +4605,45 @@ class ExpandedLauncherView(QWidget):
             panel.sync_current_directory(self.current_directory())
         return True
 
+    def apply_remote_15_lane_mode(self):
+        """Reserve 196px next to column 1 without embedding the Remote.
+
+        The legacy splitter still has exactly two children, so all former
+        saved sizes, hide/show and browser-state behavior remain compatible.
+        """
+        enabled = bool(getattr(self.launcher, 'remote_15_mode', False))
+        old = bool(getattr(self, '_remote_15_lane_applied', False))
+        if enabled == old:
+            return
+        self._remote_15_lane_applied = enabled
+        sizes = self.files_splitter.sizes()
+        if enabled:
+            self._remote_15_previous_sizes = sizes[:]
+            self.remote_15_lane.show()
+            self.files_first_host.show()
+            stored = str(self.launcher.settings.value(
+                'workspace_files_remote_15_splitter_sizes', '') or '')
+            try:
+                widths = [int(v) for v in stored.split('|')]
+                if len(widths) != 2 or widths[0] < 196 or widths[1] < 100:
+                    raise ValueError('invalid saved 1.5-column widths')
+            except (TypeError, ValueError):
+                first = sizes[0] if len(sizes) == 2 else 275
+                second = sizes[1] if len(sizes) == 2 else 700
+                # Classic single-column: the first host was hidden and zero.
+                first = max(0, first) + 196
+                widths = [max(196, first), max(100, second - 196)]
+            self.files_splitter.setSizes(widths)
+        else:
+            self.remote_15_lane.hide()
+            self.files_first_host.setVisible(
+                not self.launcher.files_root_hidden_mode
+                or self.launcher.files_exp_embedded_mode)
+            sizes = getattr(self, '_remote_15_previous_sizes', None)
+            if sizes and len(sizes) == 2:
+                self.files_splitter.setSizes(sizes)
+        self.launcher.queue_remote_15_alignment()
+
     def apply_files_root_hidden_mode(self):
         """Three reversible modes: legacy tree, hidden, or embedded Files Exp.
 
@@ -4586,6 +4663,10 @@ class ExpandedLauncherView(QWidget):
         self.left.header.setVisible(not embedded)
         self.embedded_files_exp.setVisible(embedded and self._workspace_mode == 'files')
         self.left.setVisible(not enabled or embedded)
+        host = getattr(self, 'files_first_host', None)
+        if host is not None:
+            host.setVisible(
+                not enabled or embedded or getattr(self.launcher, 'remote_15_mode', False))
         if embedded and not self._embedded_files_exp_roots_ready:
             self.reload_embedded_files_exp_roots()
         if embedded and not previously_embedded:

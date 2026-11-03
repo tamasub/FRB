@@ -2883,6 +2883,10 @@ class Launcher(QWidget):
             'experiment_files_exp_embedded', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
         if self.files_exp_embedded_mode:
             self.files_root_hidden_mode = True  # Remote operates column 2 only.
+        self.remote_15_mode = str(self.settings.value(
+            'experiment_remote_15_column', 'false')).strip().lower() in (
+                'true', '1', 'yes', 'on')
+        self._remote_15_alignment_pending = False
         self.remote_window = None
         self._remote_area = None
         self._remote_popup_area = None
@@ -3171,6 +3175,14 @@ class Launcher(QWidget):
             '従来の第1列は残したままFiles Expのツリーを組み込む。'
             'Remoteは第2列操作を維持し、単独のFiles Expウィンドウを表示しません。')
         self.files_exp_embedded_action.triggered.connect(self.set_files_exp_embedded_mode)
+        self.remote_15_action = self.theme_menu.addAction(
+            '実験：リモコンウィンドウ 1.5列表示')
+        self.remote_15_action.setCheckable(True)
+        self.remote_15_action.setChecked(self.remote_15_mode)
+        self.remote_15_action.setToolTip(
+            'Filesの第1列と第2列の間に配置場所を確保し、別WindowのRemoteを前面に表示します。'
+            'Remoteの検索結果選択・実行は従来のままです。')
+        self.remote_15_action.triggered.connect(self.set_remote_15_mode)
         self.files_root_hidden_action.setChecked(
             self.files_root_hidden_mode and not self.files_exp_embedded_mode)
         self.theme_menu.addSeparator()
@@ -4185,10 +4197,8 @@ class Launcher(QWidget):
             pointer = button.mapToGlobal(button_rect.center())
         menu.popup(QPoint(pointer.x() + 8, pointer.y() + 4))
 
-    def show_remote_at(self, pointer):
-        """Open at a verified desktop mouse point; do not steal IME focus."""
-        if not self.remote_on_desktop_double_click or not self.isVisible() or self.isMinimized():
-            return
+    def ensure_remote_window(self):
+        """The sole Remote instance serves desktop, overlay and history modes."""
         if self.remote_window is None:
             self.remote_window = LaunchRemote(self)
             self.remote_window.command.connect(self.remote_command)
@@ -4199,6 +4209,95 @@ class Launcher(QWidget):
             self.remote_window.files_exp_pc_selected.connect(self.navigate_files_exp_pc)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
+        return self.remote_window
+
+    def set_remote_15_mode(self, checked):
+        """Reversible overlay experiment; existing Remote commands stay intact."""
+        self.remote_15_mode = bool(checked)
+        self.settings.setValue('experiment_remote_15_column', self.remote_15_mode)
+        self.settings.sync()
+        self.remote_15_action.setChecked(self.remote_15_mode)
+        view = getattr(self, 'expanded_view', None)
+        if view is not None:
+            view.apply_remote_15_lane_mode()
+        if self.remote_15_mode:
+            self.queue_remote_15_alignment(show=True)
+        else:
+            remote = getattr(self, 'remote_window', None)
+            if remote is not None:
+                remote._remote_15_placement = False
+                saved = self.settings.value('remote_last_position')
+                if isinstance(saved, QPoint):
+                    remote.move(saved)
+        self.footer.setText(
+            'Remoteは第1.5列に別Windowで表示します。' if checked
+            else 'リモコン第1.5列表示を解除しました。')
+
+    def queue_remote_15_alignment(self, *, show=False):
+        """Schedule AFTER splitter geometry changes without focus stealing."""
+        if not getattr(self, 'remote_15_mode', False):
+            return
+        if show:
+            self._remote_15_needs_show = True
+        if getattr(self, '_remote_15_alignment_pending', False):
+            return
+        self._remote_15_alignment_pending = True
+        QTimer.singleShot(0, self._align_remote_15_now)
+
+    def _align_remote_15_now(self):
+        self._remote_15_alignment_pending = False
+        view = getattr(self, 'expanded_view', None)
+        if (not self.remote_15_mode or view is None or not self.isVisible()
+                or self.isMinimized() or view._workspace_mode != 'files'):
+            return
+        lane = getattr(view, 'remote_15_lane', None)
+        if lane is None:
+            return
+        # During global search the Files canvas may be temporarily hidden.
+        # Keep the separate Remote above the search result list, at its
+        # last anchored offset from Launch, rather than disappearing.
+        anchor_visible = view.isVisible() and lane.isVisible()
+        if not anchor_visible and not hasattr(self, '_remote_15_offset'):
+            return
+        show = bool(getattr(self, '_remote_15_needs_show', False))
+        self._remote_15_needs_show = False
+        remote = getattr(self, 'remote_window', None)
+        if not show and (remote is None or not remote.isVisible()):
+            # × closes Remote until another explicit Files selection.
+            return
+        if remote is None:
+            remote = self.ensure_remote_window()
+        remote.sync_window_mode()
+        if show:
+            remote.set_pages(self.pages)
+            remote.apply_theme(self.color_theme)
+            remote.set_workspace('files')
+            # Keep previous logical selection, particularly search results.
+            if self._remote_area is None:
+                self._remote_area = 'directory'
+            remote.set_area(self._remote_area)
+        remote._remote_15_placement = True
+        if anchor_visible:
+            pos = lane.mapToGlobal(QPoint(max(0, (lane.width() - remote.width()) // 2), 4))
+            self._remote_15_offset = pos - self.pos()
+        else:
+            pos = self.pos() + self._remote_15_offset
+        if remote.pos() != pos:
+            remote.move(pos)
+        if show and not remote.isVisible():
+            remote.show()
+        if remote.isVisible():
+            remote.raise_()  # Above main search/list overlays, without activation.
+
+    def show_remote_at(self, pointer):
+        """Open at a verified desktop mouse point; do not steal IME focus."""
+        if not self.remote_on_desktop_double_click or not self.isVisible() or self.isMinimized():
+            return
+        if (self.remote_15_mode and self.expanded_view.isVisible()
+                and self.expanded_view._workspace_mode == 'files'):
+            self.queue_remote_15_alignment(show=True)
+            return
+        self.ensure_remote_window()
         self.remote_window.sync_window_mode()
         self.remote_window.set_pages(self.pages)
         self.remote_window.apply_theme(self.color_theme)
@@ -4274,6 +4373,8 @@ class Launcher(QWidget):
 
     def workspace_changed(self, mode):
         """Refresh Remote without resetting the retained Files/Browser state."""
+        if mode == 'files' and getattr(self, 'remote_15_mode', False):
+            self.queue_remote_15_alignment(show=True)
         if getattr(self, '_remote_popup_area', None) == 'browser_history' and mode != 'browser':
             web = getattr(self.expanded_view, 'web_view', None)
             if web is not None:
@@ -5794,8 +5895,15 @@ class Launcher(QWidget):
         path.addRoundedRect(QRectF(self.rect()),self.CORNER_RADIUS,self.CORNER_RADIUS)
         self.setMask(QRegion(path.toFillPolygon().toPolygon()))
 
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if getattr(self, 'remote_15_mode', False):
+            self.queue_remote_15_alignment()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        if getattr(self, 'remote_15_mode', False):
+            self.queue_remote_15_alignment()
         if hasattr(self, 'page_overflow_button') and hasattr(self, 'search_bar'):
             self.update_header_tab_width()
         self.update_window_shape()
@@ -5813,6 +5921,8 @@ class Launcher(QWidget):
         if self.data is not None:self.reload()
         self.update_window_shape()
         super().showEvent(event)
+        if getattr(self, 'remote_15_mode', False):
+            self.queue_remote_15_alignment(show=True)
 
     def changeEvent(self, event):
         super().changeEvent(event)
