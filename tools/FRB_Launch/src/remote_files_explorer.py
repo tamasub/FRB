@@ -24,6 +24,7 @@ from clipboard_paste import clipboard_sources, is_cut_clipboard
 from file_transfer_visual import transfer_state
 from pathlib import Path
 from system_drives import drive_rows
+from launch_virtual_tree import virtual_launch_pages, virtual_item_identity
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
@@ -239,6 +240,8 @@ class RemoteFilesExplorer(QWidget):
     pc_selected = Signal()
     folder_context_requested = Signal(str, QPoint)
     folder_renamed = Signal(str, str)
+    virtual_item_activated = Signal(object)
+    virtual_context_requested = Signal(object, QPoint)
 
     def __init__(self, remote, theme, *, launcher=None, embedded=False):
         # The remote owns this independent, resizable frameless tool. Its
@@ -446,6 +449,7 @@ class RemoteFilesExplorer(QWidget):
             'item_kind': 'directory', 'icon_key': 'folder.yellow'})
             if launcher is not None else style.standardIcon(QStyle.StandardPixmap.SP_DirIcon))
         self._pc_icon = style.standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        self._virtual_file_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         self.apply_theme(theme)
 
     def _append_folder(self, parent, label, path, *, pc=False, missing=False):
@@ -467,6 +471,50 @@ class RemoteFilesExplorer(QWidget):
         parent.appendRow(item)
         self._apply_transfer_visual(item)
         return item
+
+    def _append_virtual(self, parent, node):
+        """A Launch JSON menu row, never a filesystem path."""
+        is_folder = node['kind'] != 'file'
+        icon = self._folder_icon if is_folder else self._virtual_file_icon
+        item = QStandardItem(icon, node['title'])
+        item.setEditable(False)
+        item.setDragEnabled(False)
+        item.setDropEnabled(False)
+        item.setData({'virtual': node, 'pc': False, 'path': None}, _DATA_ROLE)
+        item.setData(icon, _NORMAL_ICON_ROLE)
+        item.setData(False, _LOADED_ROLE)
+        identity = virtual_item_identity(node)
+        item.setToolTip('Launch JSON / ' + node['title'] + '\n' +
+                        '参照: ' + str(identity['node_id']))
+        if node['children']:
+            item.appendRow(QStandardItem(''))
+        parent.appendRow(item)
+        return item
+
+    def _virtual_index(self, index):
+        item = self.model.itemFromIndex(index) if index.isValid() else None
+        data = item.data(_DATA_ROLE) if item is not None else None
+        return bool(isinstance(data, dict) and data.get('virtual') is not None)
+
+    def remote_current_virtual_node(self):
+        index = self.tree.currentIndex()
+        item = self.model.itemFromIndex(index) if index.isValid() else None
+        data = item.data(_DATA_ROLE) if item is not None else None
+        return data.get('virtual') if isinstance(data, dict) else None
+
+    def _activate_virtual(self, index):
+        item = self.model.itemFromIndex(index)
+        data = item.data(_DATA_ROLE) if item is not None else None
+        node = data.get('virtual') if isinstance(data, dict) else None
+        if not node:
+            return False
+        self._selection_timer.stop()
+        if node['kind'] == 'file':
+            self.virtual_item_activated.emit(node['row'])
+        elif node['children']:
+            self.tree.setExpanded(index, not self.tree.isExpanded(index))
+        self._schedule_tree_state_save()
+        return True
 
     def _transfer_paths(self):
         launcher = self._launcher
@@ -539,6 +587,12 @@ class RemoteFilesExplorer(QWidget):
             self.model.clear()
             self.model.setHorizontalHeaderLabels(['フォルダー'])
             parent = self.model.invisibleRootItem()
+            launcher = self._launcher
+            if launcher is not None:
+                for page in virtual_launch_pages(
+                        getattr(launcher, 'pages', ()),
+                        getattr(launcher, 'authored_items', ())):
+                    self._append_virtual(parent, page)
             for root in roots:
                 path = root['path']
                 self._append_folder(parent, root['label'], path, pc=root['pc'],
@@ -690,7 +744,12 @@ class RemoteFilesExplorer(QWidget):
         branches; this method then selects the fresh first root.
         Suppress delayed selection callbacks so HOME cannot navigate twice.
         """
-        index = self.model.index(0, 0)
+        # Virtual JSON pages precede PC visually, but HOME must still select
+        # the actual PC entry and preserve the established Files HOME contract.
+        index = next((self.model.index(row, 0)
+                      for row in range(self.model.rowCount())
+                      if self._is_pc_index(self.model.index(row, 0))),
+                     self.model.index(0, 0))
         if not index.isValid():
             return None
         item = self.model.itemFromIndex(index)
@@ -800,6 +859,8 @@ class RemoteFilesExplorer(QWidget):
         if not index.isValid():
             return False
         self._selection_timer.stop()
+        if getattr(self, 'remote_current_virtual_node', lambda: None)() is not None:
+            return self._activate_virtual(index)
         if not self.tree.isExpanded(index):
             # expanded -> _activate_disclosure -> existing breadcrumb callback.
             self.tree.expand(index)
@@ -821,7 +882,9 @@ class RemoteFilesExplorer(QWidget):
                 tree.expand(index)
             else:
                 child = self.model.index(0, 0, index)
-                if child.isValid() and self._index_path(child):
+                if child.isValid() and (self._index_path(child) or
+                                        self._is_pc_index(child) or
+                                        getattr(self, '_virtual_index', lambda *_: False)(child)):
                     tree.setCurrentIndex(child)
                     self._selection_timer.stop()
                     tree.scrollTo(child)
@@ -892,6 +955,10 @@ class RemoteFilesExplorer(QWidget):
                     or getattr(launcher, '_files_operating_target', None) != 'files_exp'):
                 return
         index = self.tree.currentIndex()
+        # A virtual JSON item is never automatically executed by a delayed
+        # wheel preview. Only explicit row activation/Remote centre may run it.
+        if self.remote_current_virtual_node() is not None:
+            return
         if self._is_pc_index(index):
             self.pc_selected.emit()
             return
@@ -908,6 +975,8 @@ class RemoteFilesExplorer(QWidget):
         if self._syncing_directory:
             return
         self._selection_timer.stop()
+        if self._activate_virtual(index):
+            return
         if self._is_pc_index(index):
             self.pc_selected.emit()
             return
@@ -921,6 +990,11 @@ class RemoteFilesExplorer(QWidget):
             return
         self._selection_timer.stop()
         self.tree.setCurrentIndex(index)
+        # The disclosure triangle already performed this expansion. Do not
+        # toggle the virtual branch again via _activate_virtual().
+        if self.remote_current_virtual_node() is not None:
+            self._schedule_tree_state_save()
+            return
         self._activate_index(index)
 
     def sync_current_directory(self, directory):
@@ -1188,6 +1262,15 @@ class RemoteFilesExplorer(QWidget):
     def _show_folder_context(self, local_pos):
         # QAbstractScrollArea forwards positions in viewport coordinates.
         index = self.tree.indexAt(local_pos)
+        item = self.model.itemFromIndex(index) if index.isValid() else None
+        data = item.data(_DATA_ROLE) if item is not None else None
+        if isinstance(data, dict) and data.get('virtual') is not None:
+            self._selection_timer.stop()
+            self.tree.setCurrentIndex(index)
+            self.virtual_context_requested.emit(
+                virtual_item_identity(data['virtual']),
+                self.tree.viewport().mapToGlobal(local_pos))
+            return
         path = self._index_path(index)
         if path is None:
             return
@@ -1204,6 +1287,12 @@ class RemoteFilesExplorer(QWidget):
         item.setData(True, _LOADED_ROLE)
         data = item.data(_DATA_ROLE)
         if not isinstance(data, dict):
+            return
+        virtual = data.get('virtual')
+        if virtual is not None:
+            for child in virtual.get('children', ()):
+                self._append_virtual(item, child)
+            item.removeRow(0)
             return
         if data['pc']:
             children = [(row['title'], row['launch_browse_target'])
@@ -1238,6 +1327,9 @@ class RemoteFilesExplorer(QWidget):
                 break
             root = parent
         root_info = root.data(_DATA_ROLE) or {}
+        if info.get('virtual') is not None:
+            node = info['virtual']
+            return [root.text(), '<LAUNCH_JSON>', str(node['node_id'])]
         root_path = ('<PC>' if root_info.get('pc') else
                      os.path.normcase(os.path.normpath(str(root_info.get('path') or ''))))
         node_path = ('<PC>' if info.get('pc') else

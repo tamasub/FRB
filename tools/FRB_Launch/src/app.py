@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QT
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
+from remote_text_dialog import RemoteTextDialog
 from remote_context_wheel import RemoteContextWheel
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
@@ -4219,6 +4220,8 @@ class Launcher(QWidget):
             self.remote_window.files_exp_pc_selected.connect(self.navigate_files_exp_pc)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
+            self.remote_window.virtual_item_activated.connect(self.activate_virtual_launch_item)
+            self.remote_window.virtual_context_requested.connect(self.show_virtual_launch_context)
         return self.remote_window
 
     def set_remote_15_mode(self, checked):
@@ -5243,6 +5246,45 @@ class Launcher(QWidget):
         remote = getattr(self, 'remote_window', None)
         return getattr(remote, 'files_exp_panel', None) if remote is not None else None
 
+    def activate_virtual_launch_item(self, row):
+        """Run an authored Launch JSON leaf via the ordinary Launch executor.
+
+        Never convert the virtual row into a filesystem path. The canonical
+        page/item identity survives tree projection and future Studio edits.
+        """
+        if not isinstance(row, dict):
+            return False
+        page_id, item_id = str(row.get('page_id') or ''), str(row.get('item_id') or '')
+        authoritative = next((entry for entry in getattr(self, 'authored_items', ())
+                              if str(entry.get('page_id') or '') == page_id
+                              and str(entry.get('item_id') or '') == item_id
+                              and entry.get('enabled', True)), None)
+        if authoritative is None:
+            return False  # Deleted/disabled between projection and activation.
+        self.activate(authoritative)
+        return True
+
+    def show_virtual_launch_context(self, identity, point):
+        """Read-only virtual item context: Studio mutation actions come later.
+
+        Keep this disjoint from the real filesystem context menu. Copying a
+        JSON identity does not copy, cut or move any underlying file.
+        """
+        from launch_virtual_tree import virtual_item_identity
+        if not isinstance(identity, dict) or identity.get('source') != 'launch_json':
+            return
+        page_id = str(identity.get('page_id') or '')
+        item_id = str(identity.get('item_id') or '')
+        menu = QMenu(self)
+        menu.addSection('Launch JSON（参照専用）')
+        reference = menu.addAction('JSON参照IDをコピー')
+        reference.setEnabled(bool(item_id))
+        chosen = menu.exec(point)
+        if chosen is reference and item_id:
+            import json
+            QApplication.clipboard().setText(json.dumps(
+                virtual_item_identity(identity), ensure_ascii=False))
+
     def remote_exp_right_to_list(self):
         """Exp → List: explicitly commit Exp and hand off the controller.
 
@@ -5256,6 +5298,13 @@ class Launcher(QWidget):
         panel = self._current_remote_files_exp()
         if panel is None:
             return False
+        virtual = getattr(panel, 'remote_current_virtual_node', lambda: None)()
+        if virtual is not None:
+            # A Launch JSON folder is NOT a physical Files List directory.
+            # → expands its virtual branch; ● executes a terminal item.
+            if virtual.get('kind') != 'file':
+                panel.remote_branch(1)
+            return True
         # The explicit RIGHT command wins over a pending wheel debounce.
         timer = getattr(panel, '_selection_timer', None)
         if timer is not None:
@@ -5312,6 +5361,10 @@ class Launcher(QWidget):
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        text_dialog = getattr(self, '_remote_text_dialog', None)
+        if text_dialog is not None:
+            text_dialog.remote_command(command)
+            return
         # Files List's Remote-opened context menu owns the wheel/pad while
         # visible. Its own QAction is the cursor; never navigate the List below.
         menu_wheel = getattr(self, '_remote_context_wheel', None)
@@ -6696,6 +6749,18 @@ class Launcher(QWidget):
             if self.page_id not in ids:self.page_id=ids[0]
             self.tabs.setCurrentIndex(ids.index(self.page_id));self.tabs.blockSignals(False)
             self.stack=[];self.selection=None;self.checked.clear();self.render()
+            # Studio-edited Launch JSON pages/items appear in the virtual Exp
+            # tree on the next existing config reload, without filesystem IO.
+            view = getattr(self, 'expanded_view', None)
+            if view is not None and getattr(view, '_embedded_files_exp_roots_ready', False):
+                view.reload_embedded_files_exp_roots(preserve_state=True)
+            exp_panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
+            if exp_panel is not None:
+                save_state = getattr(exp_panel, '_save_tree_state', None)
+                if callable(save_state):
+                    save_state()
+                exp_panel.set_roots(self._remote_files_first_column_rows(), self.expander().expand)
+                exp_panel.restore_previous_tree_state()
             self._nav_reset()
             if hasattr(self,'registered_key'):self.register_key()
             jump_list.register_async(
@@ -11270,7 +11335,16 @@ class Launcher(QWidget):
             form.addWidget(actions)
             dialog.setMinimumWidth(480)
             dialog.resize(500, dialog.sizeHint().height())
-            accepted = dialog.exec() == QDialog.DialogCode.Accepted
+            remote = getattr(self, 'remote_window', None)
+            if remote is not None and remote.isVisible():
+                adapter = RemoteTextDialog(self, dialog, message_editor, actions)
+                self._remote_text_dialog = adapter
+                try:
+                    accepted = adapter.ask()
+                finally:
+                    self._remote_text_dialog = None
+            else:
+                accepted = dialog.exec() == QDialog.DialogCode.Accepted
             message = message_editor.text()
             if not accepted:
                 return

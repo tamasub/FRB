@@ -1592,6 +1592,10 @@ class ExpandedLauncherView(QWidget):
             launcher.show_files_exp_folder_menu)
         self.embedded_files_exp.folder_renamed.connect(
             launcher.on_files_exp_folder_renamed)
+        self.embedded_files_exp.virtual_item_activated.connect(
+            launcher.activate_virtual_launch_item)
+        self.embedded_files_exp.virtual_context_requested.connect(
+            launcher.show_virtual_launch_context)
         self.embedded_files_exp.hide()
         self._embedded_files_exp_roots_ready = False
         self.files_splitter.setChildrenCollapsible(False)

@@ -275,6 +275,8 @@ class LaunchRemote(QWidget):
     files_exp_pc_selected = Signal()
     files_exp_folder_context = Signal(str, QPoint)
     files_exp_folder_renamed = Signal(str, str)
+    virtual_item_activated = Signal(object)
+    virtual_context_requested = Signal(object, QPoint)
 
     def __init__(self, launcher):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
@@ -551,6 +553,10 @@ class LaunchRemote(QWidget):
                 pc_signal.connect(self.files_exp_pc_selected.emit)
             self.files_exp_panel.folder_context_requested.connect(self.files_exp_folder_context.emit)
             self.files_exp_panel.folder_renamed.connect(self.files_exp_folder_renamed.emit)
+            if hasattr(self.files_exp_panel, 'virtual_item_activated'):
+                self.files_exp_panel.virtual_item_activated.connect(self.virtual_item_activated.emit)
+            if hasattr(self.files_exp_panel, 'virtual_context_requested'):
+                self.files_exp_panel.virtual_context_requested.connect(self.virtual_context_requested.emit)
         panel = self.files_exp_panel
         if panel.isVisible():
             panel.hide()
