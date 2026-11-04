@@ -39,17 +39,22 @@ def remote_favorite_icon(heart):
 
 class WheelPad(QFrame):
     command = Signal(str)
+    # A real gesture moves the POINTER, never the fixed-position WheelPad.
+    # The compact pad is 68 px wide, so keep the threshold smaller than half.
+    DRAG_THRESHOLD_PX = 18
 
     def __init__(self, parent=None, *, compact=False):
         super().__init__(parent)
         self.setObjectName('remoteWheelPad')
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip('ホイールで選択／左クリック・ダブルクリック／右クリックで現在項目のメニュー')
+        self.setToolTip('ホイールで選択／クリック・ダブルクリック／押したまま左右へドラッグ：← →／右クリックでメニュー')
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._angle_remainder = 0
         self._pixel_remainder = 0
         self._pressed = False
         self._ignore_double_release = False
+        self._drag_start_pos = None
+        self._dragged = False
         self._compact = bool(compact)
         if self._compact:
             # Compact, but not too tiny: keep neighbor travel short while
@@ -112,16 +117,33 @@ class WheelPad(QFrame):
             event.accept()
             return
         if self._pressed:
+            self._drag_start_pos = event.position().toPoint()
+            self._dragged = False
             event.accept()
         else:
             super().mousePressEvent(event)
 
+    def mouseMoveEvent(self, event):
+        # Qt implicitly grabs the mouse while the left button is held. This
+        # continues to work if the pointer leaves the small pad's rectangle.
+        # Do NOT move this widget or its parent window.
+        start = getattr(self, '_drag_start_pos', None)
+        if self._pressed and start is not None:
+            pos = event.position().toPoint()
+            if (abs(pos.x() - start.x()) >= self.DRAG_THRESHOLD_PX or
+                    abs(pos.y() - start.y()) >= self.DRAG_THRESHOLD_PX):
+                self._dragged = True
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def mouseDoubleClickEvent(self, event):
-        # Qt recognizes the native platform double-click interval/distance.
-        # The first click already performed the normal single-click action,
-        # exactly as a real mouse does. Suppress only the second release.
+        # Preserve the existing native double-click command. A drag never
+        # synthesizes DOUBLE_CLICK or a second CLICK.
         if event.button() == Qt.MouseButton.LeftButton:
             self._pressed = False
+            self._drag_start_pos = None
+            self._dragged = False
             self._ignore_double_release = True
             if self.rect().contains(event.position().toPoint()):
                 self.command.emit('DOUBLE_CLICK')
@@ -138,15 +160,34 @@ class WheelPad(QFrame):
         if self._ignore_double_release and event.button() == Qt.MouseButton.LeftButton:
             self._ignore_double_release = False
             self._pressed = False
+            self._drag_start_pos = None
+            self._dragged = False
             event.accept()
             return
         if self._pressed and event.button() == Qt.MouseButton.LeftButton:
             self._pressed = False
-            if self.rect().contains(event.position().toPoint()):
+            pos = event.position().toPoint()
+            start = getattr(self, '_drag_start_pos', None)
+            self._drag_start_pos = None
+            moved = getattr(self, '_dragged', False)
+            self._dragged = False
+            if start is not None:
+                dx, dy = pos.x() - start.x(), pos.y() - start.y()
+                moved = moved or abs(dx) >= self.DRAG_THRESHOLD_PX or abs(dy) >= self.DRAG_THRESHOLD_PX
+            else:
+                dx, dy = 0, 0
+            if moved:
+                # Only a deliberate horizontal gesture invokes the existing
+                # arrow command. Vertical/ambiguous gestures cancel safely.
+                if abs(dx) >= self.DRAG_THRESHOLD_PX and abs(dx) > abs(dy):
+                    self.command.emit('LEFT' if dx < 0 else 'RIGHT')
+            elif self.rect().contains(pos):
                 self.command.emit('CLICK')
             event.accept()
         else:
             self._pressed = False
+            self._drag_start_pos = None
+            self._dragged = False
             super().mouseReleaseEvent(event)
 
 

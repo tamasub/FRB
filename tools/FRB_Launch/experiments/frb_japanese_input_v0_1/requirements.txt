@@ -1,0 +1,2 @@
+# FRB Launch の requirements.txt と同じ PySide6 バージョン
+PySide6==6.10.1
