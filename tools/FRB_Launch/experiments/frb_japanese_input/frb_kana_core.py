@@ -1,4 +1,4 @@
-"""FRB 日本語入力 v0.3: UI に依存しない、かな・ジェスチャー定義。
+"""FRB 日本語入力: UI に依存しない、かな・ジェスチャー・未確定入力定義。
 
 FRB Remote WheelPad の 18px 判定から発展させた単体実験用モデル。
 現段階では IME / Windows への入力送信 / 漢字変換を扱わない。
@@ -7,6 +7,7 @@ FRB Remote WheelPad の 18px 判定から発展させた単体実験用モデル
 from __future__ import annotations
 
 from dataclasses import dataclass
+from time import monotonic_ns
 
 # 方向の並び: 中央、左、上、右、下（スマホの一般的なフリック配置）。
 DIRECTIONS = ("center", "left", "up", "right", "down")
@@ -162,10 +163,84 @@ class WheelStepper:
 
 @dataclass
 class KanaInputModel:
-    """ウィンドウを使わず検証可能な編集状態。"""
+    """FRB ローカル未確定入力。Windows IMEへの接続はまだ行わない。
+
+    text[0:committed_length] が確定済み、残りは未確定文字列。
+    同一キーの中央クリックは末尾1文字を循環。時間経過では確定しない。
+    異なるキー／フリックは入力文字を追加するが、未確定文字列自体は維持。
+    Enter で初めて未確定文字列全体を確定する。
+    """
 
     row_index: int = 0
     text: str = ""
+    committed_length: int = 0
+    pending_key: str | None = None
+    pending_index: int = 0
+
+    @property
+    def has_preedit(self) -> bool:
+        return len(self.text) > self.committed_length
+
+    @property
+    def preedit_text(self) -> str:
+        return self.text[self.committed_length:]
+
+    @property
+    def committed_text(self) -> str:
+        return self.text[:self.committed_length]
+
+    @property
+    def preedit_char(self) -> str:
+        return self.text[-1] if self.has_preedit else ""
+
+    def _break_cycle(self) -> None:
+        self.pending_key = None
+        self.pending_index = 0
+
+    def commit(self) -> bool:
+        """明示的な Enter のみが確定させる。"""
+        if not self.has_preedit:
+            return False
+        self.committed_length = len(self.text)
+        self._break_cycle()
+        return True
+
+    def finish_preedit(self) -> None:
+        """既存呼び出し名の互換: 明示的な確定操作としてのみ使用。"""
+        self.commit()
+
+    def expire_preedit(self, now_ms: int | None = None) -> bool:
+        """時間経過による暗黙確定は禁止。常に何もしない。"""
+        return False
+
+    def _type_center(self, key: str, options: tuple[str, ...]) -> str:
+        if self.pending_key == key and self.has_preedit:
+            self.pending_index = (self.pending_index + 1) % len(options)
+            char = options[self.pending_index]
+            self.text = self.text[:-1] + char
+        else:
+            self.text += options[0]
+            self.pending_key = key
+            self.pending_index = 0
+            char = options[0]
+        return char
+
+    def type_kana(self, row_index: int, direction: str, *, now_ms: int | None = None) -> str | None:
+        """時間非依存の連続タップ／5方向フリック。
+
+        now_ms は旧呼び出し側との互換引数であり、確定判定には使用しない。
+        """
+        if not 0 <= row_index < len(KANA_ROWS):
+            raise IndexError(row_index)
+        kana = get_kana(row_index, direction)
+        if kana is None:
+            return None
+        if direction == "center":
+            options = tuple(c for c in KANA_ROWS[row_index][1] if c is not None)
+            return self._type_center(KANA_ROWS[row_index][0], options)
+        self._break_cycle()
+        self.text += kana
+        return kana
 
     def scroll(self, steps: int) -> None:
         self.row_index = row_after_wheel(self.row_index, steps)
@@ -176,25 +251,39 @@ class KanaInputModel:
         self.row_index = row_index
 
     def input(self, direction: str) -> str | None:
+        """旧式モデル互換の即時入力。アプリUIは type_kana を使用する。"""
+        self._break_cycle()
         kana = get_kana(self.row_index, direction)
         if kana is not None:
             self.text += kana
+            self.committed_length = len(self.text)
         return kana
 
     def special_input(self, key_name: str, direction: str) -> str | None:
-        """Perform a modifier operation or append one punctuation symbol."""
+        """濁点／小文字変更は未確定末尾へ。句読点は中央連打で循環。"""
         if key_name == PUNCTUATION_KEY:
             char = PUNCTUATION_FLICK.get(direction)
-            if char is not None:
-                self.text += char
+            if char is None:
+                return None
+            if direction == "center":
+                return self._type_center(PUNCTUATION_KEY, tuple(PUNCTUATION_FLICK.values()))
+            self._break_cycle()
+            self.text += char
             return char
         if key_name == MODIFIER_KEY:
+            self._break_cycle()
+            if not self.has_preedit:
+                return None
             self.text, char = transform_last_kana(self.text, direction)
             return char
         raise ValueError(f"Unknown special key: {key_name}")
 
     def backspace(self) -> None:
+        self._break_cycle()
         self.text = self.text[:-1]
+        self.committed_length = min(self.committed_length, len(self.text))
 
     def clear(self) -> None:
+        self._break_cycle()
         self.text = ""
+        self.committed_length = 0

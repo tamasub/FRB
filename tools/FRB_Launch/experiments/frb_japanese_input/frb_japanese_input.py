@@ -1,12 +1,14 @@
-"""FRB 日本語入力 v0.2 — FRB Remote-sized flick keyboard experiment.
+"""FRB 日本語入力 v0.6 — local kana + optional Windows IME bridge.
 
 Independent PySide6 experiment. Mouse selects a key; press, drag, release
-commits one kana. The key never moves. No IME or external text sending.
+inputs one kana. Repeated center taps cycle the pending kana.
+The key never moves. External IME input is an explicitly enabled experiment.
 """
 
 from __future__ import annotations
 
 import sys
+from dataclasses import replace
 
 from PySide6.QtCore import QPoint, QRect, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
@@ -15,8 +17,12 @@ from PySide6.QtWidgets import (
     QLineEdit, QMenu, QPushButton, QVBoxLayout, QWidget,
 )
 
-from frb_kana_core import KEY_LAYOUT, KANA_ROWS, KanaInputModel, classify_flick, get_kana
+from frb_kana_core import (
+    KEY_LAYOUT, KANA_ROWS, SPECIAL_KEYS, MODIFIER_KEY, PUNCTUATION_KEY,
+    KanaInputModel, classify_flick, flick_hint,
+)
 from mini_config import SIZE_PRESETS, DEFAULT_SIZE_INDEX, THRESHOLD_OPTIONS
+from ime_bridge import ExternalImeSession, Win32KeyboardSender
 
 ROW_INDEX = {name: i for i, (name, _chars) in enumerate(KANA_ROWS)}
 
@@ -36,12 +42,21 @@ def style_for_size(font_size: int) -> str:
         font-size: {font_size}px; font-weight: 600; padding: 0; }}
     QPushButton#kanaKey:hover {{ background: #45565e; border-color: #83aaa2; }}
     QPushButton#kanaKey[dragActive="true"] {{ background: #3b7460; border: 1px solid #8ad2b5; }}
-    QPushButton#literalKey {{ color: #e6ecea; background: #303840;
-        border: 1px solid #43525a; border-radius: 6px; font-size: {max(13,font_size-3)}px; padding: 0; }}
+    QPushButton#specialKey {{ color: #e6ecea; background: #303840;
+        border: 1px solid #43525a; border-radius: 6px;
+        font-size: {max(10,font_size-9)}px; font-weight: 600; padding: 0; }}
+    QPushButton#specialKey:hover {{ background: #45565e; border-color: #83aaa2; }}
+    QPushButton#specialKey[dragActive="true"] {{ background: #3b7460; border: 1px solid #8ad2b5; }}
     QPushButton#microButton {{ color: #e3eee8; background: #303a40;
         border: 1px solid #47585b; border-radius: 5px; font-size: 10px; padding: 0 2px; }}
     QPushButton#microButton:hover {{ background: #4c6860; }}
-    QPushButton#copyButton {{ color: white; background: #2a816b;
+    QPushButton#enterButton {{ color: white; background: #2a816b;
+        border: 1px solid #62b49a; border-radius: 5px; font-size: 10px; padding: 0; }}
+    QPushButton#imeButton {{ color: #d7eddf; background: #303a40;
+        border: 1px solid #47585b; border-radius: 4px; font-size: 9px; padding: 0; }}
+    QPushButton#imeButton:checked {{ color: #ffffff; background: #327d68;
+        border: 1px solid #9bdcc2; }}
+    QPushButton#copyButton {{ color: #e3eee8; background: #303a40;
         border: 1px solid #398a75; border-radius: 5px; font-size: 10px; padding: 0 2px; }}
     """
 
@@ -83,7 +98,7 @@ class FlickGuide(QWidget):
         painter.setFont(font)
         radius = n * 0.145
         for name, (x, y) in positions.items():
-            char = get_kana(ROW_INDEX[self.kana_name], name)
+            char = flick_hint(self.kana_name, name)
             if char is None:
                 continue
             if name == self.direction:
@@ -107,18 +122,17 @@ class FlickKanaKey(QPushButton):
 
     def __init__(self, kana_name: str, parent=None):
         super().__init__(kana_name, parent)
-        if kana_name not in ROW_INDEX:
-            raise ValueError(f"Unknown kana group: {kana_name}")
+        if kana_name not in ROW_INDEX and kana_name not in SPECIAL_KEYS:
+            raise ValueError(f"Unknown flick key: {kana_name}")
         self.kana_name = kana_name
         self.threshold_px = 10
-        self.setObjectName("kanaKey")
+        self.setObjectName("specialKey" if kana_name in SPECIAL_KEYS else "kanaKey")
         self.setProperty("dragActive", False)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._press_global = None
         self._pressed = False
         self._direction = "center"
-        self._ignore_double_release = False
 
     def _set_drag_active(self, active: bool):
         if self.property("dragActive") == active:
@@ -134,7 +148,6 @@ class FlickKanaKey(QPushButton):
             return
         self._press_global = event.globalPosition()
         self._pressed = True
-        self._ignore_double_release = False
         self._direction = "center"
         self._set_drag_active(True)
         self.gesture_started.emit(self.kana_name, "center")
@@ -157,25 +170,16 @@ class FlickKanaKey(QPushButton):
         super().mouseMoveEvent(event)
 
     def mouseDoubleClickEvent(self, event):
-        # Do not interpret the second press as another committed kana.
+        # Qt sends mouseDoubleClickEvent instead of mousePressEvent on the
+        # second tap. Handle it as another press so あ→い actually works.
         if event.button() == Qt.MouseButton.LeftButton:
-            self._ignore_double_release = True
-            self._pressed = False
-            self._press_global = None
-            self._set_drag_active(False)
-            self.gesture_cancelled.emit()
-            event.accept()
+            self.mousePressEvent(event)
             return
         super().mouseDoubleClickEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() != Qt.MouseButton.LeftButton:
             super().mouseReleaseEvent(event)
-            return
-        if self._ignore_double_release:
-            self._ignore_double_release = False
-            self._set_drag_active(False)
-            event.accept()
             return
         if self._pressed:
             direction = self._direction_at(event)
@@ -192,15 +196,18 @@ class FlickKanaKey(QPushButton):
 
 class MiniJapaneseInputWindow(QWidget):
     def __init__(self):
-        super().__init__(None, Qt.WindowType.Tool)
+        super().__init__(None, Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
         self.setObjectName("frbWindow")
-        self.setWindowTitle("FRB かな v0.2")
+        self.setWindowTitle("FRB かな v0.6")
         self.model = KanaInputModel()
+        self.ime_session = None
+        self.ime_sender = None
         self.preset_index = DEFAULT_SIZE_INDEX
         self.threshold_px = SIZE_PRESETS[self.preset_index].threshold
         self._last_operation = ""
         self._build_ui()
         self._apply_size_preset(first=True)
+        self._refresh_output()
 
     def _micro(self, text: str, handler, width: int | None = None, object_name="microButton") -> QPushButton:
         button = QPushButton(text, self)
@@ -222,6 +229,11 @@ class MiniJapaneseInputWindow(QWidget):
         header.setObjectName("header")
         top.addWidget(header)
         top.addStretch(1)
+        self.ime_button = self._micro('IME', self._toggle_external_ime, 29, 'imeButton')
+        self.ime_button.setCheckable(True)
+        self.ime_button.setFixedHeight(18)
+        self.ime_button.setToolTip('外部IME送信 実験モード: ON後、サクラエディタ等の入力欄をクリック')
+        top.addWidget(self.ime_button)
         self.smaller = self._micro("−", lambda: self._change_size(-1), 20)
         self.larger = self._micro("＋", lambda: self._change_size(1), 20)
         self.smaller.setToolTip("キーボードを小さく")
@@ -236,7 +248,7 @@ class MiniJapaneseInputWindow(QWidget):
         self.output.setObjectName("output")
         self.output.setReadOnly(True)
         self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.output.setPlaceholderText("入力結果")
+        self.output.setPlaceholderText("未確定入力 → Enterで確定")
         self.output.setFixedHeight(29)
         root.addWidget(self.output)
 
@@ -250,19 +262,13 @@ class MiniJapaneseInputWindow(QWidget):
         self.literal_buttons = []
         for row, names in enumerate(KEY_LAYOUT):
             for col, name in enumerate(names):
-                if name in ROW_INDEX:
+                if name in ROW_INDEX or name in SPECIAL_KEYS:
                     key = FlickKanaKey(name, keyboard)
                     key.gesture_started.connect(self._show_guide)
                     key.gesture_updated.connect(self._update_guide)
                     key.gesture_finished.connect(self._finish_gesture)
                     key.gesture_cancelled.connect(self._hide_guide)
                     self.keys[name] = key
-                else:
-                    key = QPushButton(name, keyboard)
-                    key.setObjectName("literalKey")
-                    key.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                    key.clicked.connect(lambda checked=False, char=name: self._append_literal(char))
-                    self.literal_buttons.append(key)
                 self.grid.addWidget(key, row, col)
                 self.grid.setColumnStretch(col, 1)
         root.addWidget(keyboard)
@@ -270,15 +276,19 @@ class MiniJapaneseInputWindow(QWidget):
 
         actions = QHBoxLayout()
         actions.setSpacing(3)
-        self.del_button = self._micro("⌫", self._backspace, 35)
+        self.del_button = self._micro("⌫", self._backspace, 25)
         self.del_button.setToolTip("末尾の文字を削除")
-        self.clear_button = self._micro("全消", self._clear)
-        self.copy_button = self._micro("コピー", self._copy, object_name="copyButton")
+        self.clear_button = self._micro("全消", self._clear, 32)
+        self.enter_button = self._micro("確定↵", self._commit, 53, object_name="enterButton")
+        self.enter_button.setToolTip("未確定文字列を確定（Enterキーでも可）")
+        self.copy_button = self._micro("コピー", self._copy, 40, object_name="copyButton")
         actions.addWidget(self.del_button)
-        actions.addWidget(self.clear_button, 1)
-        actions.addWidget(self.copy_button, 1)
+        actions.addWidget(self.clear_button)
+        actions.addWidget(self.enter_button)
+        actions.addWidget(self.copy_button)
+        actions.addStretch(1)
         root.addLayout(actions)
-        for button in (self.del_button, self.clear_button, self.copy_button):
+        for button in (self.del_button, self.clear_button, self.enter_button, self.copy_button):
             button.setFixedHeight(22)
 
         footer = QHBoxLayout()
@@ -371,46 +381,133 @@ class MiniJapaneseInputWindow(QWidget):
     def _hide_guide(self):
         self.guide.hide()
 
+    def _toggle_external_ime(self):
+        enabled = self.ime_button.isChecked()
+        if enabled and self.model.has_preedit:
+            self.ime_button.setChecked(False)
+            self.status.setText('IME ON前に確定↵または全消してください')
+            return
+        if enabled:
+            try:
+                sender = Win32KeyboardSender()
+                sender.set_noactivate(int(self.winId()), True)
+                self.ime_sender = sender
+                self.ime_session = ExternalImeSession(sender)
+                self.status.setText('IME ON: 送信先の入力欄をクリック')
+            except Exception as exc:
+                self.ime_button.setChecked(False)
+                self.status.setText(f'IME接続不可: {exc}')
+        else:
+            try:
+                if self.ime_session:
+                    self.ime_session.reset(cancel_external=True)
+                if self.ime_sender:
+                    self.ime_sender.set_noactivate(int(self.winId()), False)
+                self.status.setText('IME OFF: アプリ内のみ入力')
+            except Exception as exc:
+                self.status.setText(f'IME OFF: 外部の未確定状態は要確認 ({exc})')
+            finally:
+                self.ime_session = None
+                self.ime_sender = None
+
+    def _sync_external(self, old_model) -> bool:
+        if self.ime_session is not None:
+            try:
+                self.ime_session.sync(self.model.preedit_text)
+            except Exception as exc:
+                self.model = old_model
+                self._refresh_output()
+                self.status.setText(f'送信見送り: {exc}')
+                return False
+        self._refresh_output()
+        return True
+
     def _finish_gesture(self, name, direction):
         self._hide_guide()
         if direction is None:
-            self.status.setText("斜めは無効")
+            self.status.setText('斜めは無効')
             return
-        self.model.select(ROW_INDEX[name])
-        char = self.model.input(direction)
-        if char is None:
-            self.status.setText("候補なし")
-            return
-        self._refresh_output()
-        self.status.setText(f"入力 {char} / {len(self.model.text)}字")
-
-    def _append_literal(self, char):
-        self.model.text += char
-        self._refresh_output()
-        self.status.setText(f"入力 {char} / {len(self.model.text)}字")
+        previous = replace(self.model)
+        if name in SPECIAL_KEYS:
+            char = self.model.special_input(name, direction)
+            if char is None:
+                self.status.setText('変換対象なし' if name == MODIFIER_KEY else '候補なし')
+                return
+        else:
+            row = ROW_INDEX[name]
+            self.model.select(row)
+            char = self.model.type_kana(row, direction)
+            if char is None:
+                self.status.setText('候補なし')
+                return
+        if self._sync_external(previous):
+            label = '外部IME' if self.ime_session else '未確定'
+            self.status.setText(f'{label} {char} / 確定↵')
 
     def _refresh_output(self):
         self.output.setText(self.model.text)
         self.output.setCursorPosition(len(self.model.text))
+        if self.model.has_preedit:
+            # 未確定の末尾を見える化。前の文字もEnterまで未確定のまま。
+            self.output.setSelection(len(self.model.text) - 1, 1)
+        else:
+            self.output.deselect()
+        self.enter_button.setEnabled(self.model.has_preedit)
+
+    def _commit(self):
+        if not self.model.has_preedit:
+            self.status.setText('未確定文字なし')
+            return
+        if self.ime_session is not None:
+            try:
+                self.ime_session.commit()
+            except Exception as exc:
+                self.status.setText(f'確定見送り: {exc}')
+                return
+        self.model.commit()
+        self._refresh_output()
+        self.status.setText(f'確定 / {len(self.model.text)}字')
+
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self._commit()
+            event.accept()
+            return
+        if event.key() == Qt.Key.Key_Backspace:
+            self._backspace()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def _backspace(self):
+        if self.ime_session and not self.model.has_preedit:
+            self.status.setText('外部IME中: 確定済み文字の削除は送信しません')
+            return
+        previous = replace(self.model)
         self.model.backspace()
-        self._refresh_output()
-        self.status.setText("削除")
+        if self._sync_external(previous):
+            self.status.setText('削除')
 
     def _clear(self):
+        if self.ime_session and self.model.has_preedit:
+            try:
+                self.ime_session.sync('')
+            except Exception as exc:
+                self.status.setText(f'全消見送り: {exc}')
+                return
         self.model.clear()
         self._refresh_output()
-        self.status.setText("全消去")
+        self.status.setText('全消去（外部の確定済み文字は消しません）' if self.ime_session else '全消去')
 
     def _copy(self):
+        # コピーしても未確定文字を勝手に確定しない。
         QApplication.clipboard().setText(self.model.text)
-        self.status.setText("コピー完了")
+        self.status.setText("コピー完了（未確定状態は維持）")
 
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("FRB 日本語入力 v0.2 mini")
+    app.setApplicationName("FRB 日本語入力 v0.6 mini")
     app.setFont(QFont("Yu Gothic UI", 9))
     window = MiniJapaneseInputWindow()
     window.show()
