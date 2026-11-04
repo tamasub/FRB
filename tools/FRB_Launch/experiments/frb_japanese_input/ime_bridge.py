@@ -183,7 +183,8 @@ class Win32KeyboardSender:
     def send_tokens(self, tokens: list[str]) -> None:
         KEYUP = 0x0002
         SHIFT = 0x10
-        vkeys = {'BACKSPACE': 0x08, 'ENTER': 0x0D, 'ESCAPE': 0x1B}
+        vkeys = {'BACKSPACE': 0x08, 'ENTER': 0x0D, 'ESCAPE': 0x1B,
+                 'IME_ON': 0x16, 'IME_OFF': 0x1A}
         out = []
 
         def event(vk: int, release=False):

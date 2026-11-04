@@ -23,3 +23,8 @@ SIZE_PRESETS = (
 )
 DEFAULT_SIZE_INDEX = 2
 THRESHOLD_OPTIONS = (7, 8, 9, 10, 12, 14, 18)
+
+
+def compact_client_height(size: MiniSize, frame_height: int) -> int:
+    """Client height for the native-IME editor at the bottom; no empty candidate spacer."""
+    return max(195, size.outer_height - frame_height)

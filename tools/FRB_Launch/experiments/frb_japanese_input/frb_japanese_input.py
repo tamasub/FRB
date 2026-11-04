@@ -1,8 +1,7 @@
-"""FRB 日本語入力 v0.6 — local kana + optional Windows IME bridge.
+"""FRB 日本語入力 v0.10 — 4-mode keyboard with bottom IME editor.
 
-Independent PySide6 experiment. Mouse selects a key; press, drag, release
-inputs one kana. Repeated center taps cycle the pending kana.
-The key never moves. External IME input is an explicitly enabled experiment.
+Mouse selects a kana key; press, drag and release inputs kana. On Windows,
+local IME mode is the default. External app delivery is intentionally deferred.
 """
 
 from __future__ import annotations
@@ -14,15 +13,20 @@ from PySide6.QtCore import QPoint, QRect, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import (
     QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel,
-    QLineEdit, QMenu, QPushButton, QVBoxLayout, QWidget,
+    QLineEdit, QMenu, QPushButton, QVBoxLayout, QWidget, QSizePolicy,
 )
 
 from frb_kana_core import (
     KEY_LAYOUT, KANA_ROWS, SPECIAL_KEYS, MODIFIER_KEY, PUNCTUATION_KEY,
     KanaInputModel, classify_flick, flick_hint,
 )
-from mini_config import SIZE_PRESETS, DEFAULT_SIZE_INDEX, THRESHOLD_OPTIONS
-from ime_bridge import ExternalImeSession, Win32KeyboardSender
+from mini_config import (
+    SIZE_PRESETS, DEFAULT_SIZE_INDEX, THRESHOLD_OPTIONS,
+    compact_client_height,
+)
+from ime_bridge import Win32KeyboardSender
+from local_ime_bridge import LocalImeSession
+from keyboard_modes import (MODES, MODE_LABELS, MODE_COLUMNS, layout_for, request_ime_mode)
 
 ROW_INDEX = {name: i for i, (name, _chars) in enumerate(KANA_ROWS)}
 
@@ -37,6 +41,14 @@ def style_for_size(font_size: int) -> str:
     QLineEdit#output {{ color: #f9fdfb; background: #273137;
         border: 1px solid #465a59; border-radius: 6px;
         font-size: 14px; padding: 2px 6px; selection-background-color: #348d75; }}
+    QPushButton#literalKey {{ color: #f6f9f8; background: #353d46;
+        border: 1px solid #4c5861; border-radius: 5px;
+        font-size: 13px; font-weight: 600; padding: 0; }}
+    QPushButton#literalKey:hover {{ background: #45565e; border-color: #83aaa2; }}
+    QPushButton#modeButton {{ color: #dce8e4; background: #303a40;
+        border: 1px solid #47585b; border-radius: 4px; font-size: 10px; padding: 0; }}
+    QPushButton#modeButton:checked {{ color: #fff; background: #287c68;
+        border: 1px solid #9bdcc2; }}
     QPushButton#kanaKey {{ color: #f6f9f8; background: #353d46;
         border: 1px solid #4c5861; border-radius: 6px;
         font-size: {font_size}px; font-weight: 600; padding: 0; }}
@@ -194,20 +206,58 @@ class FlickKanaKey(QPushButton):
         super().mouseReleaseEvent(event)
 
 
+class NativeImeLineEdit(QLineEdit):
+    """Keep the real Windows IME composition, without setText during input.
+
+    QLineEdit already supports the Qt platform IME. We only monitor when a
+    candidate gets committed so the source gesture history can be reset.
+    """
+    native_commit_observed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._had_preedit = False
+        self._last_preedit = ""
+
+    def inputMethodEvent(self, event):
+        text = event.preeditString()
+        commit = event.commitString()
+        was_composing = self._had_preedit
+        super().inputMethodEvent(event)
+        self._had_preedit = bool(text)
+        self._last_preedit = text
+        if was_composing and commit and not text:
+            self.native_commit_observed.emit()
+
+    @property
+    def is_composing(self):
+        return self._had_preedit
+
+
 class MiniJapaneseInputWindow(QWidget):
     def __init__(self):
         super().__init__(None, Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
         self.setObjectName("frbWindow")
-        self.setWindowTitle("FRB かな v0.6")
+        self.setWindowTitle("FRB 日本語入力 v0.10")
         self.model = KanaInputModel()
         self.ime_session = None
         self.ime_sender = None
+        self._native_mode = False
+        self._updating_from_native = False
+        self._commit_in_progress = False
         self.preset_index = DEFAULT_SIZE_INDEX
         self.threshold_px = SIZE_PRESETS[self.preset_index].threshold
         self._last_operation = ""
+        self.input_mode = "kana"
+        self.shift_armed = False
+        self._mode_changing = False
         self._build_ui()
         self._apply_size_preset(first=True)
         self._refresh_output()
+        # v0.7 tests the *local* input box, not any outside editor.
+        # Enable automatically when Windows is available.
+        if sys.platform == "win32":
+            QTimer.singleShot(80, self._enable_native_ime_by_default)
 
     def _micro(self, text: str, handler, width: int | None = None, object_name="microButton") -> QPushButton:
         button = QPushButton(text, self)
@@ -229,10 +279,13 @@ class MiniJapaneseInputWindow(QWidget):
         header.setObjectName("header")
         top.addWidget(header)
         top.addStretch(1)
-        self.ime_button = self._micro('IME', self._toggle_external_ime, 29, 'imeButton')
+        self.ime_button = self._micro('IME', self._toggle_local_ime, 29, 'imeButton')
         self.ime_button.setCheckable(True)
+        # IME state is dictated by the selected keyboard mode, not by a
+        # competing manual toggle. Keep the compact indicator in the header.
+        self.ime_button.setEnabled(False)
         self.ime_button.setFixedHeight(18)
-        self.ime_button.setToolTip('外部IME送信 実験モード: ON後、サクラエディタ等の入力欄をクリック')
+        self.ime_button.setToolTip('ON: この入力欄でWindows IMEの変換候補を表示 / OFF: 従来のかな実験')
         top.addWidget(self.ime_button)
         self.smaller = self._micro("−", lambda: self._change_size(-1), 20)
         self.larger = self._micro("＋", lambda: self._change_size(1), 20)
@@ -244,13 +297,18 @@ class MiniJapaneseInputWindow(QWidget):
         top.addWidget(self.larger)
         root.addLayout(top)
 
-        self.output = QLineEdit(self)
-        self.output.setObjectName("output")
-        self.output.setReadOnly(True)
-        self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.output.setPlaceholderText("未確定入力 → Enterで確定")
-        self.output.setFixedHeight(29)
-        root.addWidget(self.output)
+        mode_strip = QHBoxLayout()
+        mode_strip.setSpacing(3)
+        self.mode_buttons = {}
+        for mode in MODES:
+            button = self._micro(MODE_LABELS[mode], lambda checked=False, m=mode: self._select_input_mode(m),
+                                 object_name="modeButton")
+            button.setCheckable(True)
+            button.setChecked(mode == self.input_mode)
+            button.setFixedHeight(20)
+            mode_strip.addWidget(button, 1)
+            self.mode_buttons[mode] = button
+        root.addLayout(mode_strip)
 
         keyboard = QWidget(self)
         self.keyboard = keyboard
@@ -260,17 +318,7 @@ class MiniJapaneseInputWindow(QWidget):
         self.grid.setVerticalSpacing(3)
         self.keys = {}
         self.literal_buttons = []
-        for row, names in enumerate(KEY_LAYOUT):
-            for col, name in enumerate(names):
-                if name in ROW_INDEX or name in SPECIAL_KEYS:
-                    key = FlickKanaKey(name, keyboard)
-                    key.gesture_started.connect(self._show_guide)
-                    key.gesture_updated.connect(self._update_guide)
-                    key.gesture_finished.connect(self._finish_gesture)
-                    key.gesture_cancelled.connect(self._hide_guide)
-                    self.keys[name] = key
-                self.grid.addWidget(key, row, col)
-                self.grid.setColumnStretch(col, 1)
+        self._build_keyboard_for_mode()
         root.addWidget(keyboard)
         self.guide = FlickGuide(self)
 
@@ -303,6 +351,143 @@ class MiniJapaneseInputWindow(QWidget):
         footer.addWidget(self.threshold_button)
         root.addLayout(footer)
 
+        # Bottom editor: keep native IME candidates away from the kana keys
+        # without inserting a large blank region. The Windows IME decides
+        # whether its candidate popup opens below or above the caret.
+        self.output = NativeImeLineEdit(self)
+        self.output.setObjectName("output")
+        self.output.native_commit_observed.connect(self._on_native_ime_committed)
+        self.output.textEdited.connect(self._on_native_text_edited)
+        self.output.returnPressed.connect(self._on_editor_return_pressed)
+        self.output.setReadOnly(True)
+        self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.output.setPlaceholderText("FRBかな入力 → IMEで変換")
+        self.output.setFixedHeight(29)
+        root.addWidget(self.output)
+
+
+    def _build_keyboard_for_mode(self):
+        """Replace key widgets in the existing grid; preserve the editor and IME."""
+        while self.grid.count():
+            child = self.grid.takeAt(0)
+            if child.widget() is not None:
+                child.widget().hide()
+                child.widget().deleteLater()
+        self.keys = {}
+        self.literal_buttons = []
+        if self.input_mode == 'kana':
+            for row, names in enumerate(KEY_LAYOUT):
+                for col, name in enumerate(names):
+                    key = FlickKanaKey(name, self.keyboard)
+                    key.gesture_started.connect(self._show_guide)
+                    key.gesture_updated.connect(self._update_guide)
+                    key.gesture_finished.connect(self._finish_gesture)
+                    key.gesture_cancelled.connect(self._hide_guide)
+                    self.keys[name] = key
+                    self.grid.addWidget(key, row, col)
+            cols = 3
+        else:
+            cols = MODE_COLUMNS[self.input_mode]
+            for spec in layout_for(self.input_mode):
+                if spec.action == 'spacer':
+                    continue
+                key = QPushButton(spec.label, self.keyboard)
+                key.setObjectName('literalKey')
+                key.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                key.setMinimumWidth(0)
+                key.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+                key.clicked.connect(lambda checked=False, k=spec: self._literal_action(k))
+                self.literal_buttons.append(key)
+                self.grid.addWidget(key, spec.row, spec.col, 1, spec.span)
+        for col in range(10):
+            self.grid.setColumnStretch(col, 1 if col < cols else 0)
+
+    def _literal_action(self, key):
+        """Latin/symbol/number keys insert directly, never via romaji SendInput."""
+        if self.input_mode == 'kana':
+            return
+        if key.action == 'shift':
+            self.shift_armed = not self.shift_armed
+            self.status.setText('英字: SHIFT ON' if self.shift_armed else '英字: SHIFT OFF')
+            return
+        if key.action == 'backspace':
+            self._backspace()
+            return
+        if key.action == 'enter':
+            self._commit()
+            return
+        if key.action != 'insert':
+            return
+        text = key.text
+        if self.input_mode == 'latin' and text.isalpha() and self.shift_armed:
+            text = text.upper()
+            self.shift_armed = False
+        if not text:
+            return
+        if self._native_mode:
+            self._ensure_editor_focus()
+            # QLineEdit.insert is a direct committed edit, not an IME key event.
+            # This also works if Windows IME's global mode is delayed.
+            self.output.insert(text)
+            self.model = KanaInputModel(text=self.output.text(),
+                                        committed_length=len(self.output.text()))
+            if self.ime_session is not None:
+                self.ime_session.forget()
+        else:
+            self.model.text += text
+            self.model.committed_length = len(self.model.text)
+            self._refresh_output()
+        self.status.setText(f'{MODE_LABELS[self.input_mode]}: {text}')
+
+    def _set_windows_ime_mode(self, mode: str):
+        """Explicit Japanese IME ON / non-kana IME OFF, in our editor only.
+
+        Microsoft IME accepts ImeOn / ImeOff virtual keys. This does not
+        install Japanese IME or switch Windows' input language by itself.
+        """
+        if not self._native_mode or self.ime_sender is None:
+            return
+        self._ensure_editor_focus()
+        request_ime_mode(mode, self.ime_sender, self._editor_is_focused)
+
+    def _select_input_mode(self, mode: str):
+        if mode not in MODES or self._mode_changing:
+            return
+        if mode == self.input_mode:
+            # Clicking the already-selected mode can restore the desired
+            # Windows IME state after another app/user changed it.
+            try:
+                self._set_windows_ime_mode(mode)
+            except Exception as exc:
+                self.status.setText(f'IME状態の再指定失敗: {exc}')
+            return
+        # Switching mode is an explicit user action: complete an active kana
+        # composition before disabling the Windows IME. Never time-commit.
+        if self.input_mode == 'kana' and self.model.has_preedit:
+            self._commit()
+        self._hide_guide()
+        self._mode_changing = True
+        try:
+            self.input_mode = mode
+            self.shift_armed = False
+            for name, button in self.mode_buttons.items():
+                button.setChecked(name == mode)
+            self.ime_button.setChecked(mode == 'kana')
+            self.output.setInputMethodHints(Qt.InputMethodHint.ImhNone if mode == 'kana'
+                else Qt.InputMethodHint.ImhPreferLatin | Qt.InputMethodHint.ImhNoPredictiveText)
+            if self._native_mode:
+                self._set_windows_ime_mode(mode)
+                self.model = KanaInputModel(text=self.output.text(),
+                                            committed_length=len(self.output.text()))
+                self.ime_session.forget()
+            self._build_keyboard_for_mode()
+            self._apply_size_preset()
+            self.status.setText(f'{MODE_LABELS[mode]} / Windows IME {"ON" if mode == "kana" else "OFF"} 指示')
+        except Exception as exc:
+            self.status.setText(f'モード切替: IME操作を確認してください ({exc})')
+        finally:
+            self._mode_changing = False
+
     def _change_size(self, offset: int):
         next_index = max(0, min(len(SIZE_PRESETS)-1, self.preset_index + offset))
         if next_index == self.preset_index:
@@ -327,9 +512,16 @@ class MiniJapaneseInputWindow(QWidget):
         # the total visible size matches the screenshot of FRB Remote.
         self.setMinimumSize(0, 0)
         self.setMaximumSize(16777215, 16777215)
-        self.resize(spec.outer_width, spec.outer_height - 27)
+        self.resize(self._mode_outer_width(spec), compact_client_height(spec, 27) + 24)
         if not first:
             QTimer.singleShot(0, self._fit_outer_frame)
+
+    def _mode_outer_width(self, spec):
+        if self.input_mode in ('latin', 'symbols'):
+            return max(330, spec.outer_width + 130)
+        if self.input_mode == 'numeric':
+            return max(234, spec.outer_width + 34)
+        return spec.outer_width
 
     def _fit_outer_frame(self):
         spec = SIZE_PRESETS[self.preset_index]
@@ -337,8 +529,8 @@ class MiniJapaneseInputWindow(QWidget):
         client = self.geometry()
         extra_width = max(0, frame.width() - client.width())
         extra_height = max(0, frame.height() - client.height())
-        self.setFixedSize(max(165, spec.outer_width - extra_width),
-                          max(195, spec.outer_height - extra_height))
+        self.setFixedSize(max(165, self._mode_outer_width(spec) - extra_width),
+                          compact_client_height(spec, extra_height) + 24)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -381,44 +573,118 @@ class MiniJapaneseInputWindow(QWidget):
     def _hide_guide(self):
         self.guide.hide()
 
-    def _toggle_external_ime(self):
+    def _enable_native_ime_by_default(self):
+        self.ime_button.setChecked(True)
+        self._toggle_local_ime()
+
+    def _toggle_local_ime(self):
         enabled = self.ime_button.isChecked()
-        if enabled and self.model.has_preedit:
-            self.ime_button.setChecked(False)
-            self.status.setText('IME ON前に確定↵または全消してください')
-            return
         if enabled:
+            if self.model.has_preedit:
+                self.ime_button.setChecked(False)
+                self.status.setText('IME ON前に確定↵または全消してください')
+                return
             try:
                 sender = Win32KeyboardSender()
-                sender.set_noactivate(int(self.winId()), True)
                 self.ime_sender = sender
-                self.ime_session = ExternalImeSession(sender)
-                self.status.setText('IME ON: 送信先の入力欄をクリック')
+                self.output.setReadOnly(False)
+                self.output.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+                self.output.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
+                self.output.setInputMethodHints(Qt.InputMethodHint.ImhNone)
+                self.ime_session = LocalImeSession(sender, self._editor_is_focused)
+                self._native_mode = True
+                self.output.setFocus(Qt.FocusReason.OtherFocusReason)
+                self.status.setText('手元IME: この欄で変換 / 外部送信なし')
+                self._set_windows_ime_mode(self.input_mode)
             except Exception as exc:
                 self.ime_button.setChecked(False)
-                self.status.setText(f'IME接続不可: {exc}')
-        else:
-            try:
-                if self.ime_session:
-                    self.ime_session.reset(cancel_external=True)
-                if self.ime_sender:
-                    self.ime_sender.set_noactivate(int(self.winId()), False)
-                self.status.setText('IME OFF: アプリ内のみ入力')
-            except Exception as exc:
-                self.status.setText(f'IME OFF: 外部の未確定状態は要確認 ({exc})')
-            finally:
+                self._native_mode = False
                 self.ime_session = None
                 self.ime_sender = None
+                self.output.setReadOnly(True)
+                self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                self.status.setText(f'IME利用不可: {exc}')
+        else:
+            # Don't lose an active native composition by switching to read-only.
+            if self._native_mode and self.model.has_preedit:
+                self.ime_button.setChecked(True)
+                self.status.setText('切替前に「確定↵」または「全消」を押してください')
+                return
+            if self._native_mode:
+                text = self.output.text()
+                self.model = KanaInputModel(text=text, committed_length=len(text))
+            self._native_mode = False
+            self.ime_session = None
+            self.ime_sender = None
+            self.output.setReadOnly(True)
+            self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            self._refresh_output()
+            self.status.setText('ローカルかな / IME OFF')
 
-    def _sync_external(self, old_model) -> bool:
+    def _editor_is_focused(self) -> bool:
+        # Never inject keystrokes if the intended editor has lost focus.
+        if not self.output.hasFocus():
+            return False
+        if not self.isActiveWindow():
+            return False
+        if self.ime_sender is None:
+            return False
+        hwnd = self.ime_sender.foreground_window()
+        return bool(hwnd and self.ime_sender.is_our_process(hwnd))
+
+    def _ensure_editor_focus(self):
+        if self._native_mode and not self.output.hasFocus():
+            self.output.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def _on_editor_return_pressed(self):
+        if not self._native_mode:
+            return
+        # Enter can be pressed on a physical keyboard or sent by the on-screen
+        # confirm button. Don't cycle the last kana after a native commit.
+        self.model.commit()
         if self.ime_session is not None:
+            self.ime_session.forget()
+        QTimer.singleShot(0, self._reconcile_native_commit)
+
+    def _on_native_ime_committed(self):
+        # Some IMEs commit the preedit when a candidate is clicked. Let the
+        # native editor finish processing, then reconcile the gesture history.
+        if self._native_mode:
+            QTimer.singleShot(0, self._reconcile_native_commit)
+
+    def _on_native_text_edited(self, _text):
+        if self._native_mode:
+            QTimer.singleShot(0, self._reconcile_native_commit)
+
+    def _reconcile_native_commit(self):
+        if not self._native_mode or self._commit_in_progress or self.output.is_composing:
+            return
+        actual = self.output.text()
+        expected = self.model.text
+        # During live composition, QLineEdit.text() may omit the preedit.
+        # Never treat a shorter prefix as a completed user edit.
+        if actual == expected or expected.startswith(actual):
+            return
+        # A native conversion candidate, or a direct keyboard edit, changed
+        # the editor content. The real editor is authoritative at this point.
+        self.model = KanaInputModel(text=actual, committed_length=len(actual))
+        self.ime_session.forget()
+        self.status.setText('IME候補確定 / この欄の文字列を反映')
+
+    def _sync_local_ime(self, old_model) -> bool:
+        if self._native_mode:
             try:
+                self._ensure_editor_focus()
                 self.ime_session.sync(self.model.preedit_text)
+                self.enter_button.setEnabled(self.model.has_preedit)
             except Exception as exc:
                 self.model = old_model
-                self._refresh_output()
-                self.status.setText(f'送信見送り: {exc}')
+                self.enter_button.setEnabled(self.model.has_preedit)
+                self.status.setText(f'手元IME入力見送り: {exc}')
                 return False
+            # CRITICAL: NEVER call QLineEdit.setText() while native IME is
+            # composing. That would destroy the Windows candidate session.
+            return True
         self._refresh_output()
         return True
 
@@ -440,11 +706,15 @@ class MiniJapaneseInputWindow(QWidget):
             if char is None:
                 self.status.setText('候補なし')
                 return
-        if self._sync_external(previous):
-            label = '外部IME' if self.ime_session else '未確定'
+        if self._sync_local_ime(previous):
+            label = '手元IME' if self._native_mode else '未確定'
             self.status.setText(f'{label} {char} / 確定↵')
 
     def _refresh_output(self):
+        if self._native_mode:
+            # Qt's real IME owns the input line and candidate popup.
+            self.enter_button.setEnabled(self.model.has_preedit)
+            return
         self.output.setText(self.model.text)
         self.output.setCursorPosition(len(self.model.text))
         if self.model.has_preedit:
@@ -455,18 +725,25 @@ class MiniJapaneseInputWindow(QWidget):
         self.enter_button.setEnabled(self.model.has_preedit)
 
     def _commit(self):
+        if self.input_mode != 'kana':
+            self.status.setText('英数字は入力と同時に確定済み')
+            return
         if not self.model.has_preedit:
             self.status.setText('未確定文字なし')
             return
-        if self.ime_session is not None:
+        if self._native_mode:
+            self._ensure_editor_focus()
             try:
+                self._commit_in_progress = True
                 self.ime_session.commit()
             except Exception as exc:
-                self.status.setText(f'確定見送り: {exc}')
+                self.status.setText(f'IME確定見送り: {exc}')
                 return
+            finally:
+                self._commit_in_progress = False
         self.model.commit()
         self._refresh_output()
-        self.status.setText(f'確定 / {len(self.model.text)}字')
+        self.status.setText('確定↵ / IME入力欄' if self._native_mode else f'確定 / {len(self.model.text)}字')
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
@@ -480,34 +757,64 @@ class MiniJapaneseInputWindow(QWidget):
         super().keyPressEvent(event)
 
     def _backspace(self):
-        if self.ime_session and not self.model.has_preedit:
-            self.status.setText('外部IME中: 確定済み文字の削除は送信しません')
+        if self.input_mode != 'kana':
+            if self._native_mode:
+                self._ensure_editor_focus()
+                self.output.backspace()
+                text = self.output.text()
+                self.model = KanaInputModel(text=text, committed_length=len(text))
+                self.ime_session.forget()
+            else:
+                self.model.backspace()
+                self.model.committed_length = len(self.model.text)
+                self._refresh_output()
+            self.status.setText('1文字削除')
+            return
+        if self._native_mode and not self.model.has_preedit:
+            try:
+                self._ensure_editor_focus()
+                self.ime_session.backspace_committed()
+                # Keep the local gesture history in sync with a committed
+                # character deletion; QLineEdit processes SendInput later.
+                self.model.backspace()
+                self.model.committed_length = len(self.model.text)
+                self.status.setText('IME入力欄: 1文字削除')
+            except Exception as exc:
+                self.status.setText(f'削除見送り: {exc}')
             return
         previous = replace(self.model)
         self.model.backspace()
-        if self._sync_external(previous):
+        if self._sync_local_ime(previous):
             self.status.setText('削除')
 
     def _clear(self):
-        if self.ime_session and self.model.has_preedit:
+        if self._native_mode:
             try:
-                self.ime_session.sync('')
+                self._ensure_editor_focus()
+                self.ime_session.cancel()
+                QApplication.inputMethod().reset()
+                self.ime_session.forget()
+                self.output.clear()
             except Exception as exc:
                 self.status.setText(f'全消見送り: {exc}')
                 return
         self.model.clear()
         self._refresh_output()
-        self.status.setText('全消去（外部の確定済み文字は消しません）' if self.ime_session else '全消去')
+        self.status.setText('この欄を全消去' if self._native_mode else '全消去')
 
     def _copy(self):
-        # コピーしても未確定文字を勝手に確定しない。
-        QApplication.clipboard().setText(self.model.text)
-        self.status.setText("コピー完了（未確定状態は維持）")
+        if self._native_mode:
+            # QLineEdit.text() may omit the live IME preedit string.
+            value = self.output.text() or self.model.text
+        else:
+            value = self.model.text
+        QApplication.clipboard().setText(value)
+        self.status.setText('コピー完了 / 変換状態は維持')
 
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("FRB 日本語入力 v0.6 mini")
+    app.setApplicationName("FRB 日本語入力 v0.10 four modes")
     app.setFont(QFont("Yu Gothic UI", 9))
     window = MiniJapaneseInputWindow()
     window.show()
