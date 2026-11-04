@@ -92,6 +92,7 @@ from runtime_paths import launch_home
 from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
 from desktop_double_click import DesktopDoubleClick
 from launch_remote import LaunchRemote
+from remote_kana_integration import RemoteKanaIntegration
 from passive_header_drag import PassiveHeaderDrag
 from remote_navigation import next_area, previous_area, starting_area
 from remote_page_items import visible_remote_page_roots
@@ -4107,6 +4108,9 @@ class Launcher(QWidget):
                 self.menu = None
 
     def hide_remote(self):
+        companion = getattr(self, '_remote_kana_companion', None)
+        if companion is not None:
+            companion.hide()
         self.close_remote_folder_menu()
         self.close_remote_page_menu()
         popup = getattr(self, '_remote_popup_area', None)
@@ -4209,11 +4213,36 @@ class Launcher(QWidget):
             pointer = button.mapToGlobal(button_rect.center())
         menu.popup(QPoint(pointer.x() + 8, pointer.y() + 4))
 
+    def _remote_kana(self):
+        companion = getattr(self, '_remote_kana_companion', None)
+        if companion is None:
+            companion = RemoteKanaIntegration(self)
+            self._remote_kana_companion = companion
+        return companion
+
+    def toggle_remote_kana(self):
+        try:
+            self._remote_kana().toggle()
+        except Exception as exc:
+            # Surface errors in the existing remote rather than silently
+            # breaking normal navigation when the optional experiment fails.
+            remote = getattr(self, 'remote_window', None)
+            if remote is not None:
+                remote.set_area('FRB かなフリック起動失敗')
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, 'FRB かなフリック', str(exc))
+
     def ensure_remote_window(self):
         """The sole Remote instance serves desktop, overlay and history modes."""
         if self.remote_window is None:
             self.remote_window = LaunchRemote(self)
             self.remote_window.command.connect(self.remote_command)
+            self.remote_window.geometry_changed.connect(
+                lambda: getattr(self, '_remote_kana_companion', None) and
+                self._remote_kana_companion.reposition())
+            self.remote_window.remote_hidden.connect(
+                lambda: getattr(self, '_remote_kana_companion', None) and
+                self._remote_kana_companion.hide())
             self.remote_window.header_pressed.connect(self.bring_launcher_forward_from_remote_header)
             self.remote_window.more_menu_opening.connect(self.update_remote_more_menu)
             self.remote_window.page_clicked.connect(self.open_remote_page)
@@ -5566,6 +5595,9 @@ class Launcher(QWidget):
         if command == 'CLOSE':
             self.hide_remote()
             return
+        if command == 'REMOTE_KANA_TOGGLE':
+            self.toggle_remote_kana()
+            return
         if not self.isVisible() or self.isMinimized():
             self.hide_remote()
             return
@@ -6074,6 +6106,9 @@ class Launcher(QWidget):
         self.history_popup.setStyleSheet(LIGHT_HISTORY_QSS if light else self._dark_history_qss)
         if getattr(self, 'remote_window', None) is not None:
             self.remote_window.apply_theme(self.color_theme)
+        companion = getattr(self, '_remote_kana_companion', None)
+        if companion is not None:
+            companion.theme_changed()
         self.history_filter.setStyleSheet(
             'QLineEdit#historyFilter { border:1px solid %s; border-radius:6px; '
             'padding:2px 8px; background:%s; color:%s; font-size:13px; }'
@@ -6426,6 +6461,18 @@ class Launcher(QWidget):
         super().moveEvent(event)
         if getattr(self, 'remote_15_mode', False):
             self.queue_remote_15_alignment()
+        else:
+            # A visible kana + Remote pair follows a dragged main Launch
+            # window together. Without kana, keep Remote's free placement.
+            companion = getattr(self, '_remote_kana_companion', None)
+            remote = getattr(self, 'remote_window', None)
+            keyboard = getattr(companion, 'window', None) if companion is not None else None
+            if (self.isVisible() and remote is not None and remote.isVisible()
+                    and keyboard is not None and keyboard.isVisible()):
+                delta = event.pos() - event.oldPos()
+                if not delta.isNull():
+                    # Remote.geometry_changed triggers kana.reposition().
+                    remote.move(remote.pos() + delta)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -10794,6 +10841,10 @@ class Launcher(QWidget):
             applications = []
         for application in applications:
             action = submenu.addAction(application.title)
+            # Remote's delayed activation must survive a dismissed native
+            # QMenu; retain the intended operation independent of QAction.
+            if hasattr(action, 'setData'):
+                action.setData(('open_with_app', str(path), application.executable))
             action.setIcon(self.file_icons.icon(QFileInfo(application.executable)))
             action.triggered.connect(
                 lambda checked=False, filename=str(path), exe=application.executable:
@@ -10804,6 +10855,8 @@ class Launcher(QWidget):
             unavailable = submenu.addAction('（起動可能な候補が見つかりません）')
             unavailable.setEnabled(False)
         other = submenu.addAction('別のプログラムを選択…')
+        if hasattr(other, 'setData'):
+            other.setData(('open_with_dialog', str(path)))
         other.setIcon(context_action_icon('open_with'))
         other.triggered.connect(
             lambda checked=False, filename=str(path):

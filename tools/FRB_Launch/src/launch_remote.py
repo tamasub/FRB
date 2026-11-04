@@ -37,6 +37,40 @@ def remote_favorite_icon(heart):
     return QIcon(pixmap)
 
 
+def remote_compact_icon(kind: str, light: bool) -> QIcon:
+    """Scalable Remote symbols; HOME shares the main-window geometry."""
+    if kind == 'home':
+        return browser_navigation_icon('home', 'light' if light else 'dark')
+    image = QPixmap(64, 64)
+    image.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    ink = QColor('#24483d' if light else '#e4f6ee')
+    painter.setPen(QPen(ink, 3.2))
+    if kind == 'remote':
+        painter.setBrush(ink)
+        painter.drawRoundedRect(15, 4, 34, 56, 9, 9)
+        painter.setBrush(QColor('#f4fbf8' if light else '#132b25'))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(21, 9, 22, 22)
+        painter.setBrush(QColor('#f4fbf8' if light else '#132b25'))
+        for x in (24, 32, 40):
+            painter.drawEllipse(x - 3, 44, 6, 6)
+    elif kind == 'keyboard':
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRoundedRect(5, 12, 54, 40, 6, 6)
+        painter.setBrush(ink)
+        painter.setPen(Qt.PenStyle.NoPen)
+        for y in (20, 29, 38):
+            for x in (13, 23, 33, 43):
+                if y == 38 and x in (23, 33):
+                    continue
+                painter.drawRoundedRect(x, y, 7, 6, 1, 1)
+        painter.drawRoundedRect(23, 39, 17, 5, 1, 1)
+    painter.end()
+    return QIcon(image)
+
+
 class WheelPad(QFrame):
     command = Signal(str)
     # A real gesture moves the POINTER, never the fixed-position WheelPad.
@@ -319,6 +353,8 @@ class LaunchRemote(QWidget):
     virtual_item_activated = Signal(object)
     virtual_folder_selected = Signal(object)
     virtual_context_requested = Signal(object, QPoint)
+    geometry_changed = Signal()
+    remote_hidden = Signal()
 
     def __init__(self, launcher):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
@@ -339,6 +375,7 @@ class LaunchRemote(QWidget):
         self._opacity_wheel_angle_remainder = 0
         self._opacity_wheel_pixel_remainder = 0
         self._remote_15_placement = False
+        self._window_mode_transition = False
 
         # Compact layout tuned from hands-on feedback: keep the pointer
         # travel short, but preserve enough button height and readable text.
@@ -351,17 +388,21 @@ class LaunchRemote(QWidget):
         # Distinct title strip; no extra mouse travel or focus change.
         title_frame = QFrame(self)
         title_frame.setObjectName('remoteTitleBar')
+        # Shared fixed title-strip height with FRB かなフリック.
+        title_frame.setFixedHeight(30)
         head = QHBoxLayout(title_frame)
         head.setContentsMargins(2, 2, 2, 2)
         head.setSpacing(2)
-        self.home_button = self._button('', 'HOME：Files Expの先頭行を選択→Files Listへ表示（全枝折りたたみ）',
-                                        'HOME', width=28, height=24, role='icon')
-        self.home_button.setObjectName('remoteHomeButton')
-        # The very same house outline used by Launch's navigation HOME.
-        # Only its rendered size differs for the compact remote title bar.
-        self.home_button.setIconSize(QSize(18, 18))
-        self.home_button.setIcon(browser_navigation_icon('home', theme_family(launcher.color_theme)))
-        head.addWidget(self.home_button)
+        # The title bar carries the Remote's identity, not another HOME.
+        # The actual large HOME lives directly above the WheelPad below.
+        self.header_remote_icon = QLabel(title_frame)
+        self.header_remote_icon.setObjectName('remoteIdentityIcon')
+        self.header_remote_icon.setFixedSize(25, 24)
+        self.header_remote_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_remote_icon.setPixmap(remote_compact_icon(
+            'remote', theme_family(launcher.color_theme) == 'light').pixmap(22, 22))
+        self.header_remote_icon.setToolTip('FRB Remote')
+        head.addWidget(self.header_remote_icon)
         title = QLabel('FRB Remote v0.12', title_frame)
         title.setObjectName('remoteTitle')
         head.addWidget(title, 1)
@@ -404,6 +445,7 @@ class LaunchRemote(QWidget):
         self._passive_header_drag = PassiveHeaderDrag(self, on_header_press=self.header_pressed.emit)
         title_frame.installEventFilter(self._passive_header_drag)
         title.installEventFilter(self._passive_header_drag)
+        self.header_remote_icon.installEventFilter(self._passive_header_drag)
 
         # Remote Page selector: click opens that Page's compact first column.
         # Its child categories use the existing CascadeMenu hover/search logic.
@@ -462,18 +504,30 @@ class LaunchRemote(QWidget):
         root.addLayout(row_workspaces)
         # Browser gets its own full-width row. It is not a Files target.
         root.addWidget(self.browser_button)
-        # History -> TAB controls -> wheel pad: keep Tab/BackTab next to the
-        # history operations and immediately above the three-way wheel row.
-        row_bottom = QHBoxLayout()
-        row_bottom.setContentsMargins(0, 0, 0, 0)
-        row_bottom.setSpacing(2)
-        row_bottom.addWidget(self._button('検索履歴', '1回目：検索履歴を開く／2回目：選択中の履歴を決定。ダブルクリック：検索結果のカレント行を実行',
-                                          'SEARCH_HISTORY', width=85, height=37, role='small', wheel_enabled=True))
-        self.folder_history_button = self._button(
-            'フォルダー履歴', '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動',
-            'FOLDER_HISTORY', width=85, height=37, role='small', wheel_enabled=True)
-        row_bottom.addWidget(self.folder_history_button)
-        root.addLayout(row_bottom)
+        # Former dedicated history buttons were redundant: both remain in
+        # WheelPad's context menu. Use the saved row for a prominent HOME
+        # directly above the pad and a keyboard launcher on its right.
+        row_quick = QHBoxLayout()
+        row_quick.setContentsMargins(0, 0, 0, 0)
+        row_quick.setSpacing(2)
+        row_quick.addSpacing(50)
+        self.home_button = self._button('', 'HOME：Files Expの先頭へ',
+                                        'HOME', width=68, height=46, role='quick',
+                                        wheel_enabled=True)
+        self.home_button.setObjectName('remoteLargeHomeButton')
+        self.home_button.setIconSize(QSize(34, 34))
+        self.home_button.setIcon(browser_navigation_icon(
+            'home', theme_family(launcher.color_theme)))
+        row_quick.addWidget(self.home_button)
+        self.kana_button = self._button('', 'FRB かなフリックをRemoteの下へ表示／非表示',
+                                        'REMOTE_KANA_TOGGLE', width=50, height=46,
+                                        role='quick', wheel_enabled=True)
+        self.kana_button.setObjectName('remoteKanaButton')
+        self.kana_button.setIconSize(QSize(31, 31))
+        self.kana_button.setIcon(remote_compact_icon(
+            'keyboard', theme_family(launcher.color_theme) == 'light'))
+        row_quick.addWidget(self.kana_button)
+        root.addLayout(row_quick)
         row_mid = QHBoxLayout()
         row_mid.setContentsMargins(0, 0, 0, 0)
         row_mid.setSpacing(2)
@@ -532,21 +586,50 @@ class LaunchRemote(QWidget):
         self.set_files_root_hidden_mode(
             bool(getattr(launcher, 'files_root_hidden_mode', False)))
 
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        self.geometry_changed.emit()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.geometry_changed.emit()
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        # setWindowFlags() temporarily hides the native Remote window.
+        # This is not a user close and must not dismiss its kana companion.
+        if not self._window_mode_transition:
+            self.remote_hidden.emit()
+
+    def set_kana_visible(self, visible: bool):
+        self.kana_button.setProperty('active', bool(visible))
+        self.kana_button.style().unpolish(self.kana_button)
+        self.kana_button.style().polish(self.kana_button)
+        # Kana and Remote are native owner-linked tools. Never promote either
+        # to topmost merely because the keyboard is open: Chrome or another
+        # foreground app must be able to cover the entire Launch group.
+
     def sync_window_mode(self):
         """Use the same outside-click policy as the main Launch window."""
         launcher = self.parent()
         auto_dismiss = bool(getattr(launcher, 'dismiss_on_outside_click', True))
         flags = (Qt.WindowType.FramelessWindowHint |
                  Qt.WindowType.WindowDoesNotAcceptFocus |
-                 (Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
-                  if auto_dismiss else Qt.WindowType.Window))
+                 (Qt.WindowType.Tool if auto_dismiss else Qt.WindowType.Window) |
+                 (Qt.WindowType.WindowStaysOnTopHint
+                  if auto_dismiss else Qt.WindowType(0)))
         if self.windowFlags() == flags:
             return
         visible, pos = self.isVisible(), self.pos()
-        self.setWindowFlags(flags)
-        self.move(pos)
-        if visible:
-            self.show()
+        self._window_mode_transition = True
+        try:
+            self.setWindowFlags(flags)
+            self.move(pos)
+            if visible:
+                self.show()
+                self.raise_()  # Never activate: preserve the keyboard's IME focus.
+        finally:
+            self._window_mode_transition = False
 
     def set_files_root_hidden_mode(self, enabled):
         """Remove both obsolete column switch controls in single-column mode."""
@@ -838,7 +921,10 @@ class LaunchRemote(QWidget):
         # The initial theme is applied before the header button exists.
         # On subsequent theme changes refresh the shared vector icon too.
         if hasattr(self, 'home_button'):
+            light_mode = theme_family(theme) == 'light'
             self.home_button.setIcon(browser_navigation_icon('home', theme_family(theme)))
+            self.kana_button.setIcon(remote_compact_icon('keyboard', light_mode))
+            self.header_remote_icon.setPixmap(remote_compact_icon('remote', light_mode).pixmap(22, 22))
         if hasattr(self, 'more_new_tab_action'):
             self.more_new_tab_action.setIcon(browser_navigation_icon(
                 'plus', theme_family(theme)))
@@ -869,7 +955,10 @@ class LaunchRemote(QWidget):
             QPushButton[role="workspace"][active="true"] {{background:{active_bg};
                 border:1px solid {c['focus_outline']};}}
             QPushButton[role="icon"] {{font-size:12px;padding:0;}}
-            QPushButton#remoteHomeButton {{border-radius:7px;padding:0;}}
+            QPushButton#remoteLargeHomeButton {{border-radius:7px;padding:0;}}
+            QPushButton#remoteKanaButton {{border-radius:7px;padding:0;}}
+            QPushButton#remoteKanaButton[active="true"] {{background:{active_bg};
+                border:2px solid {c['focus_outline']};}}
             QPushButton:hover {{background:{hover_bg};}}
             QPushButton:pressed {{background:{active_bg};}}
             QLabel {{background:transparent;color:{c['text']};border:0;}}
@@ -911,10 +1000,7 @@ class LaunchRemote(QWidget):
 
     def set_workspace(self, mode):
         self.up_band.set_files_mode(mode == 'files')
-        self.folder_history_button.setToolTip(
-            '1回目：URLのお気に入りを開く／2回目：選択中のURLを開く'
-            if mode == 'browser' else
-            '1回目：フォルダー履歴を開く／2回目：選択中のフォルダーへ移動')
+        # History remains available through WheelPad context menu.
         """Active mode is visible even though Remote never takes focus."""
         for button, active in (
                 (self.files_exp_button, mode == 'files' and self._files_operating_target == 'files_exp'),

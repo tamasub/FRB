@@ -321,3 +321,39 @@ def test_other_context_keeps_qt_native_initial_selection(harness):
     menu.setActiveAction(files)
     harness.drain()
     assert menu.activeAction() is files
+
+
+def test_open_with_submenu_launches_app_even_after_native_popup_closed(harness):
+    """Remote must not depend on a submenu QAction surviving QMenu.close()."""
+    app_choice = FakeAction('sakura')
+    app_choice.data = lambda: ('open_with_app', r'C:\work\note.md', r'C:\Sakura\sakura.exe')
+    submenu = FakeMenu(app_choice)
+    submenu.visible = False
+    root, wheel = harness.new_menu(FakeAction('プログラムから開く', submenu=submenu))
+    launched = []
+    harness.launcher.open_file_with_selected_app = lambda *args: launched.append(args)
+    harness.drain()
+    assert wheel.command('RIGHT')
+    harness.drain()
+    assert submenu.activeAction() is app_choice
+    assert wheel.command('CLICK')
+    assert not root.isVisible()  # Native popup released before app launch.
+    assert app_choice.trigger_calls == 0  # Do not call a stale QAction.
+    harness.drain()
+    assert launched == [(r'C:\work\note.md', r'C:\Sakura\sakura.exe')]
+
+
+def test_open_with_submenu_other_program_uses_existing_handler(harness):
+    other = FakeAction('別のプログラムを選択…')
+    other.data = lambda: ('open_with_dialog', r'C:\work\note.md')
+    submenu = FakeMenu(other)
+    submenu.visible = False
+    root, wheel = harness.new_menu(FakeAction('プログラムから開く', submenu=submenu))
+    invoked = []
+    harness.launcher.perform_filesystem_context_action = lambda *args: invoked.append(args)
+    harness.drain()
+    wheel.command('RIGHT')
+    harness.drain()
+    wheel.command('CLICK')
+    harness.drain()
+    assert invoked == [('open_with', r'C:\work\note.md', 'file')]

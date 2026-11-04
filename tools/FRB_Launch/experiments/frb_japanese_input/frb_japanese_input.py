@@ -9,8 +9,8 @@ from __future__ import annotations
 import sys
 from dataclasses import replace
 
-from PySide6.QtCore import QPoint, QRect, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtCore import QPoint, QRect, QRectF, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel,
     QLineEdit, QMenu, QPushButton, QVBoxLayout, QWidget, QSizePolicy,
@@ -33,10 +33,9 @@ ROW_INDEX = {name: i for i, (name, _chars) in enumerate(KANA_ROWS)}
 
 
 
-def style_for_size(font_size: int) -> str:
-    return f"""
-    QWidget#frbWindow {{ background: #1b2228; color: #f4f7f5; }}
-    QLabel#header {{ color: #e1f5e9; font-size: 12px; font-weight: bold; }}
+def style_for_size(font_size: int, theme: str = "dark") -> str:
+    css = f"""
+    QWidget#frbWindow {{ background: transparent; color: #f4f7f5; }}
     QLabel#status {{ color: #91b6aa; font-size: 9px; }}
     QLineEdit#output {{ color: #f9fdfb; background: #273137;
         border: 1px solid #465a59; border-radius: 6px;
@@ -71,6 +70,122 @@ def style_for_size(font_size: int) -> str:
     QPushButton#copyButton {{ color: #e3eee8; background: #303a40;
         border: 1px solid #398a75; border-radius: 5px; font-size: 10px; padding: 0 2px; }}
     """
+    if theme == 'light':
+        palette = {
+            '#1b2228': '#edf5f0', '#f4f7f5': '#203e35',
+            '#e1f5e9': '#2d6553', '#91b6aa': '#53776a',
+            '#f9fdfb': '#213c33', '#273137': '#ffffff',
+            '#465a59': '#a9cbb9', '#348d75': '#b9e7d0',
+            '#f6f9f8': '#264e40', '#353d46': '#ffffff',
+            '#4c5861': '#b8ccc1', '#45565e': '#d8eae0',
+            '#83aaa2': '#5c9f82', '#dce8e4': '#305c4c',
+            '#303a40': '#f4fbf7', '#47585b': '#b8d0c2',
+'#287c68': '#b9e7d0',
+            '#9bdcc2': '#6bb998', '#3b7460': '#c8edd8',
+            '#8ad2b5': '#519877', '#e6ecea': '#285343',
+            '#303840': '#f5fcf8', '#43525a': '#b8ccc1',
+            '#e3eee8': '#2d5949', '#4c6860': '#deede4',
+            '#2a816b': '#287c68', '#62b49a': '#4e9d82',
+            '#d7eddf': '#2d6553', '#327d68': '#b9e7d0',
+            '#ffffff': '#ffffff', '#398a75': '#82bda3',
+        }
+        # Placeholder substitution prevents a color already replaced from
+        # accidentally being replaced again by another palette entry.
+        tokens = {}
+        for i, (old, new) in enumerate(palette.items()):
+            token = f'__FRB_COLOR_{i}__'
+            css = css.replace(old, token)
+            tokens[token] = new
+        for token, color in tokens.items():
+            css = css.replace(token, color)
+        # Avoid white-on-pale active controls in the light theme.
+        css = css.replace('QPushButton#modeButton:checked { color: #fff;',
+                          'QPushButton#modeButton:checked { color: #164d39;')
+        css = css.replace('QPushButton#imeButton:checked { color: #ffffff;',
+                          'QPushButton#imeButton:checked { color: #164d39;')
+        css = css.replace('QPushButton#enterButton { color: white;',
+                          'QPushButton#enterButton { color: #ffffff;')
+    # Same title-bar geometry, border and button language as FRB Remote.
+    # Keep this self-contained so the standalone keyboard still starts without Launch.
+    if theme == 'light':
+        header_bg, frame_border, title_ink, control_bg, hover_bg = (
+            '#dbe7df', '#bbd8c7', '#233e32', '#eaf6ec', '#ecf7f1')
+    else:
+        header_bg, frame_border, title_ink, control_bg, hover_bg = (
+            '#263532', '#4b6660', '#e6f0eb', '#344a42', '#344d47')
+    css += f"""
+    QFrame#kanaTitleBar {{ background:{header_bg};
+        border:1px solid {frame_border}; border-radius:5px; }}
+    QLabel#kanaTitle {{ background:transparent; border:0;
+        color:{title_ink}; font-size:10px; font-weight:bold; }}
+    QLabel#kanaIdentityIcon {{ background:transparent; border:0; }}
+    QPushButton#kanaCloseButton {{ background:{control_bg}; color:{title_ink};
+        border:1px solid {frame_border}; border-radius:5px;
+        padding:0; font-size:12px; }}
+    QPushButton#kanaCloseButton:hover {{ background:{hover_bg}; }}
+    """
+    return css
+
+
+def keyboard_title_icon(light: bool) -> QIcon:
+    """Draw the same keyboard silhouette used by the Remote launch button."""
+    image = QPixmap(64, 64)
+    image.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    ink = QColor('#24483d' if light else '#e4f6ee')
+    painter.setPen(QPen(ink, 3.2))
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawRoundedRect(5, 12, 54, 40, 6, 6)
+    painter.setBrush(ink)
+    painter.setPen(Qt.PenStyle.NoPen)
+    for y in (20, 29, 38):
+        for x in (13, 23, 33, 43):
+            if y == 38 and x in (23, 33):
+                continue
+            painter.drawRoundedRect(x, y, 7, 6, 1, 1)
+    painter.drawRoundedRect(23, 39, 17, 5, 1, 1)
+    painter.end()
+    return QIcon(image)
+
+
+class KanaTitleBar(QFrame):
+    """A draggable decorative header; its close button keeps its own clicks."""
+
+    def __init__(self, owner):
+        super().__init__(owner)
+        self.setObjectName('kanaTitleBar')
+        self._owner = owner
+        self._drag_origin = None
+        self._window_origin = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_origin = event.globalPosition().toPoint()
+            self._window_origin = self._owner.pos()
+            handle = self._owner.windowHandle()
+            if handle is not None and handle.startSystemMove():
+                self._drag_origin = None
+                self._window_origin = None
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if (self._drag_origin is not None and self._window_origin is not None
+                and event.buttons() & Qt.MouseButton.LeftButton):
+            self._owner.move(self._window_origin + event.globalPosition().toPoint() - self._drag_origin)
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and self._drag_origin is not None:
+            self._drag_origin = None
+            self._window_origin = None
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
 
 class FlickGuide(QWidget):
@@ -83,6 +198,7 @@ class FlickGuide(QWidget):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.kana_name = "あ"
         self.direction = "center"
+        self.light_theme = False
         self.setFixedSize(80, 80)
         self.hide()
 
@@ -102,8 +218,10 @@ class FlickGuide(QWidget):
             "up": (c, c - offset), "right": (c + offset, c),
             "down": (c, c + offset),
         }
-        painter.setBrush(QColor(15, 22, 26, 207))
-        painter.setPen(QPen(QColor(148, 179, 168, 95), 1))
+        painter.setBrush(QColor(235, 249, 241, 230) if self.light_theme
+                         else QColor(15, 22, 26, 207))
+        painter.setPen(QPen(QColor(65, 130, 98, 130) if self.light_theme
+                            else QColor(148, 179, 168, 95), 1))
         painter.drawRoundedRect(2, 2, n-4, n-4, 15, 15)
         font = QFont("Yu Gothic UI", max(10, int(n * 0.14)))
         font.setBold(True)
@@ -115,11 +233,13 @@ class FlickGuide(QWidget):
                 continue
             if name == self.direction:
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(113, 213, 169, 235))
+                painter.setBrush(QColor(112, 194, 143, 235))
                 painter.drawEllipse(QPoint(round(x), round(y)), round(radius), round(radius))
                 painter.setPen(QColor(10, 35, 26))
             else:
-                painter.setPen(QColor(234, 246, 241, 220 if name == "center" else 172))
+                painter.setPen(QColor(26, 75, 53, 230 if name == "center" else 180)
+                               if self.light_theme else
+                               QColor(234, 246, 241, 220 if name == "center" else 172))
             d = round(n * 0.19)
             painter.drawText(QRect(round(x)-d, round(y)-d, 2*d, 2*d),
                              Qt.AlignmentFlag.AlignCenter, char)
@@ -235,10 +355,22 @@ class NativeImeLineEdit(QLineEdit):
 
 
 class MiniJapaneseInputWindow(QWidget):
-    def __init__(self):
-        super().__init__(None, Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
+    send_requested = Signal(str)
+    theme_requested = Signal(str)
+    hidden_from_user = Signal()
+    layout_size_changed = Signal()
+
+    def __init__(self, parent=None):
+        # The keyboard is owned by Remote in Launch mode, so Qt/Windows keep
+        # it above its owner without pinning it over unrelated applications.
+        # This applies to standalone mode too: a foreground Chrome window must
+        # be free to cover the keyboard.
+        super().__init__(parent, Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
         self.setObjectName("frbWindow")
-        self.setWindowTitle("FRB 日本語入力 v0.10")
+        self.setWindowTitle("FRB かなフリック")
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self._panel_fill = QColor('#222e2c')
+        self._panel_outline = QColor('#ccd3d7')
         self.model = KanaInputModel()
         self.ime_session = None
         self.ime_sender = None
@@ -251,6 +383,7 @@ class MiniJapaneseInputWindow(QWidget):
         self.input_mode = "kana"
         self.shift_armed = False
         self._mode_changing = False
+        self.display_theme = 'dark' 
         self._build_ui()
         self._apply_size_preset(first=True)
         self._refresh_output()
@@ -273,16 +406,42 @@ class MiniJapaneseInputWindow(QWidget):
         root.setContentsMargins(6, 5, 6, 4)
         root.setSpacing(4)
 
+        # FRB Remote-style identity strip: icon + title + close. No repeated
+        # "FRBかな" heading in the keyboard body itself.
+        title_frame = KanaTitleBar(self)
+        # Do not let the vertical layout stretch the title beyond Remote's 30px.
+        title_frame.setFixedHeight(30)
+        head = QHBoxLayout(title_frame)
+        head.setContentsMargins(2, 2, 2, 2)
+        head.setSpacing(2)
+        self.header_keyboard_icon = QLabel(title_frame)
+        self.header_keyboard_icon.setObjectName('kanaIdentityIcon')
+        self.header_keyboard_icon.setFixedSize(25, 24)
+        self.header_keyboard_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_keyboard_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.header_keyboard_icon.setToolTip('FRB かなフリック')
+        head.addWidget(self.header_keyboard_icon)
+        self.header_title = QLabel('FRB かなフリック', title_frame)
+        self.header_title.setObjectName('kanaTitle')
+        self.header_title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        head.addWidget(self.header_title, 1)
+        self.close_button = self._micro('×', self.hide, 22, 'kanaCloseButton')
+        self.close_button.setFixedHeight(22)
+        self.close_button.setToolTip('閉じる')
+        head.addWidget(self.close_button)
+        root.addWidget(title_frame)
+
+        # Size and IME controls move below the title, without consuming the
+        # limited horizontal space needed by the new header title.
         top = QHBoxLayout()
         top.setSpacing(3)
-        header = QLabel("FRB かな", self)
-        header.setObjectName("header")
-        top.addWidget(header)
         top.addStretch(1)
+        self.theme_button = self._micro('☀', self._toggle_theme, 20)
+        self.theme_button.setFixedHeight(18)
+        self.theme_button.setToolTip('ライト／ダークを切り替え')
+        top.addWidget(self.theme_button)
         self.ime_button = self._micro('IME', self._toggle_local_ime, 29, 'imeButton')
         self.ime_button.setCheckable(True)
-        # IME state is dictated by the selected keyboard mode, not by a
-        # competing manual toggle. Keep the compact indicator in the header.
         self.ime_button.setEnabled(False)
         self.ime_button.setFixedHeight(18)
         self.ime_button.setToolTip('ON: この入力欄でWindows IMEの変換候補を表示 / OFF: 従来のかな実験')
@@ -329,14 +488,17 @@ class MiniJapaneseInputWindow(QWidget):
         self.clear_button = self._micro("全消", self._clear, 32)
         self.enter_button = self._micro("確定↵", self._commit, 53, object_name="enterButton")
         self.enter_button.setToolTip("未確定文字列を確定（Enterキーでも可）")
-        self.copy_button = self._micro("コピー", self._copy, 40, object_name="copyButton")
+        self.copy_button = self._micro("コピー", self._copy, 32, object_name="copyButton")
+        self.send_button = self._micro("送信", self._request_send, 38, object_name="enterButton")
+        self.enter_button.setFixedWidth(43)
         actions.addWidget(self.del_button)
         actions.addWidget(self.clear_button)
         actions.addWidget(self.enter_button)
         actions.addWidget(self.copy_button)
+        actions.addWidget(self.send_button)
         actions.addStretch(1)
         root.addLayout(actions)
-        for button in (self.del_button, self.clear_button, self.enter_button, self.copy_button):
+        for button in (self.del_button, self.clear_button, self.enter_button, self.copy_button, self.send_button):
             button.setFixedHeight(22)
 
         footer = QHBoxLayout()
@@ -361,7 +523,7 @@ class MiniJapaneseInputWindow(QWidget):
         self.output.returnPressed.connect(self._on_editor_return_pressed)
         self.output.setReadOnly(True)
         self.output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.output.setPlaceholderText("FRBかな入力 → IMEで変換")
+        self.output.setPlaceholderText("入力 → IMEで変換")
         self.output.setFixedHeight(29)
         root.addWidget(self.output)
 
@@ -488,6 +650,51 @@ class MiniJapaneseInputWindow(QWidget):
         finally:
             self._mode_changing = False
 
+    def apply_theme(self, theme: str):
+        """Restyle only; never rebuild the IME editor or discard composition."""
+        self.display_theme = 'light' if theme == 'light' else 'dark'
+        self.theme_button.setText('☾' if self.display_theme == 'light' else '☀')
+        self.guide.light_theme = self.display_theme == 'light'
+        light = self.display_theme == 'light'
+        self._panel_fill = QColor('#fcfffd' if light else '#222e2c')
+        self._panel_outline = QColor('#ccd3d7')
+        self.header_keyboard_icon.setPixmap(keyboard_title_icon(light).pixmap(20, 20))
+        self.setStyleSheet(style_for_size(SIZE_PRESETS[self.preset_index].font_size,
+                                          self.display_theme))
+        self.guide.update()
+
+    def _toggle_theme(self):
+        next_theme = 'dark' if self.display_theme == 'light' else 'light'
+        self.apply_theme(next_theme)
+        self.theme_requested.emit(next_theme)
+        if self._native_mode:
+            self._ensure_editor_focus()
+
+    def _request_send(self):
+        """Only committed text goes to the explicitly captured destination."""
+        if self._native_mode and (self.output.is_composing or self.model.has_preedit):
+            self.status.setText('IME変換中です。候補確定↵してから送信')
+            return
+        value = self.output.text() if self._native_mode else self.model.text
+        if not value:
+            self.status.setText('送信する文字がありません')
+            return
+        self.send_requested.emit(value)
+
+    def mark_sent(self, ok: bool, message: str = ''):
+        if ok:
+            # Do not call _clear() here: it sends an IME ESCAPE keystroke.
+            # For an external destination that would cancel/edit the WRONG
+            # window immediately after a successful Unicode SendInput.
+            self.model.clear()
+            if self.ime_session is not None:
+                self.ime_session.forget()
+            self.output.clear()
+            self._refresh_output()
+            self.status.setText(message or '送信済み。入力欄をクリア')
+        else:
+            self.status.setText(message or '送信先が不明です')
+
     def _change_size(self, offset: int):
         next_index = max(0, min(len(SIZE_PRESETS)-1, self.preset_index + offset))
         if next_index == self.preset_index:
@@ -499,7 +706,7 @@ class MiniJapaneseInputWindow(QWidget):
 
     def _apply_size_preset(self, first=False):
         spec = SIZE_PRESETS[self.preset_index]
-        self.setStyleSheet(style_for_size(spec.font_size))
+        self.apply_theme(self.display_theme)
         for key in (*self.keys.values(), *self.literal_buttons):
             key.setFixedHeight(spec.key_height)
         for key in self.keys.values():
@@ -508,11 +715,10 @@ class MiniJapaneseInputWindow(QWidget):
         self.threshold_button.setText(f"{self.threshold_px}px ▾")
         self.smaller.setEnabled(self.preset_index > 0)
         self.larger.setEnabled(self.preset_index < len(SIZE_PRESETS)-1)
-        # QWidget geometry excludes the OS title bar; adjust after show so
-        # the total visible size matches the screenshot of FRB Remote.
+        # A frameless title uses our own 24px header; keep key rows compact.
         self.setMinimumSize(0, 0)
         self.setMaximumSize(16777215, 16777215)
-        self.resize(self._mode_outer_width(spec), compact_client_height(spec, 27) + 24)
+        self.resize(self._mode_outer_width(spec), compact_client_height(spec, 0) + 48)
         if not first:
             QTimer.singleShot(0, self._fit_outer_frame)
 
@@ -525,16 +731,31 @@ class MiniJapaneseInputWindow(QWidget):
 
     def _fit_outer_frame(self):
         spec = SIZE_PRESETS[self.preset_index]
-        frame = self.frameGeometry()
-        client = self.geometry()
-        extra_width = max(0, frame.width() - client.width())
-        extra_height = max(0, frame.height() - client.height())
-        self.setFixedSize(max(165, self._mode_outer_width(spec) - extra_width),
-                          compact_client_height(spec, extra_height) + 24)
+        # Frameless Qt Tool has no OS title bar. Reserve an extra compact row
+        # for theme / IME / size, while preserving the four flick-key rows.
+        self.setFixedSize(max(165, self._mode_outer_width(spec)),
+                          compact_client_height(spec, 0) + 48)
+
+    def paintEvent(self, event):
+        """Same rounded outer panel/outline geometry as FRB Remote."""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setBrush(self._panel_fill)
+        painter.setPen(QPen(self._panel_outline, 1))
+        painter.drawRoundedRect(QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5), 10, 10)
+        painter.end()
 
     def showEvent(self, event):
         super().showEvent(event)
         QTimer.singleShot(0, self._fit_outer_frame)
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        self.hidden_from_user.emit()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.layout_size_changed.emit()
 
     def _open_threshold_menu(self):
         menu = QMenu(self)
@@ -814,7 +1035,7 @@ class MiniJapaneseInputWindow(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("FRB 日本語入力 v0.10 four modes")
+    app.setApplicationName("FRB 日本語入力 v0.11 Remote integrated")
     app.setFont(QFont("Yu Gothic UI", 9))
     window = MiniJapaneseInputWindow()
     window.show()

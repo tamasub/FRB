@@ -33,7 +33,7 @@ if not "%FRB_ENV_REFRESH%"=="1" (
   .venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
   if errorlevel 1 goto fail
 )
-.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata --icon "assets\frb_launch.ico" --add-data "assets;assets" src\app.py
+.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata --icon "assets\frb_launch.ico" --add-data "assets;assets" --add-data "experiments\frb_japanese_input;experiments/frb_japanese_input" src\app.py
 if errorlevel 1 goto fail
 xcopy /E /I /Y defs dist\FRBLaunch\defs
 if errorlevel 1 goto fail

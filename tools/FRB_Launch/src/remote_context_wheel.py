@@ -164,6 +164,28 @@ class RemoteContextWheel(QObject):
                 self.stop()
                 QTimer.singleShot(0, action.trigger)
                 return True
+            # Native QMenu can invalidate submenu action wrappers on close.
+            # Extract the saved Open With payload while the menu is alive,
+            # then call the EXISTING Launch handler once the popup grab ends.
+            # Ordinary mouse selection still goes through QAction.triggered.
+            payload = action.data() if hasattr(action, 'data') else None
+            if (self.current is not self.root and
+                    isinstance(payload, (tuple, list)) and payload and
+                    payload[0] in ('open_with_app', 'open_with_dialog')):
+                operation = payload[0]
+                arguments = tuple(payload[1:])
+                if ((operation == 'open_with_app' and len(arguments) == 2) or
+                        (operation == 'open_with_dialog' and len(arguments) == 1)):
+                    self.stop()
+                    self.root.close()
+                    if operation == 'open_with_app':
+                        QTimer.singleShot(0, lambda args=arguments:
+                                          self.launcher.open_file_with_selected_app(*args))
+                    else:
+                        QTimer.singleShot(0, lambda filename=arguments[0]:
+                                          self.launcher.perform_filesystem_context_action(
+                                              'open_with', filename, 'file'))
+                    return True
             # Dismiss popup/grab BEFORE a potentially modal confirmation or
             # inline rename; do not call the filesystem operation ourselves.
             self.stop()
