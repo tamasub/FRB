@@ -21,10 +21,6 @@ published: true
 
 **「フリック入力できるんなら、日本語も入力できるんじゃねぇ？」**
 
-![alt text](/images/ai-collaboration11-frb-kana-flick/kana-flick-01.png)
-![alt text](/images/ai-collaboration11-frb-kana-flick/image.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-0.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-1.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-2.png)
-
-
 
 ……で、本当に作ってしまいました（笑）。
 
@@ -32,6 +28,12 @@ published: true
 
 ※「世界標準」や「救世主」は、もちろん記者会見の冗談です。需要調査や一般的な使いやすさの検証を終えたという話ではありません。
 :::
+
+
+![alt text](/images/ai-collaboration11-frb-kana-flick/kana-flick-01.png)
+![alt text](/images/ai-collaboration11-frb-kana-flick/image.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-0.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-1.png)![alt text](/images/ai-collaboration11-frb-kana-flick/image-2.png)
+
+
 
 # FRB研究所 緊急記者会見（笑）
 
