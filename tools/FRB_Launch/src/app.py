@@ -12,7 +12,7 @@ from pathlib import Path
 from ctypes import wintypes
 import ctypes
 import math
-from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl
+from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl, QItemSelectionModel
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
@@ -21,6 +21,7 @@ from remote_confirmation import RemoteConfirmation
 from remote_text_dialog import RemoteTextDialog
 from remote_context_wheel import RemoteContextWheel
 from shuriken_model import configured_entries
+from shuriken_scroll_handoff import handoff_current_at_scroll_stop
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
@@ -5573,6 +5574,30 @@ class Launcher(QWidget):
         self.remote_focus_area('files_exp')
         return True
 
+    def remote_scroll_files_list_target(self):
+        """Return current Files List tree only while scroll animation is safe.
+
+        The Remote captures this exact widget when released and rechecks it
+        for every animation frame. No target hopping or modal side effects.
+        """
+        if not self.isVisible() or self.isMinimized():
+            return None
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if (getattr(self, '_remote_text_dialog', None) is not None
+                or getattr(self, '_remote_confirmation', None) is not None
+                or (menu_wheel is not None and menu_wheel.active
+                    and menu_wheel.root.isVisible())):
+            return None
+        view = self.expanded_view
+        if (not view.isVisible() or view._workspace_mode != 'files'
+                or getattr(self, '_remote_area', None) != 'directory'):
+            return None
+        tree = view.middle.tree
+        if (not tree.isVisible()
+                or tree.state() == QAbstractItemView.State.EditingState):
+            return None
+        return tree if tree.verticalScrollBar() is not None else None
+
     def remote_scroll_files_list(self, pixels):
         """Scroll the Files List viewport without moving its selected item.
 
@@ -5601,6 +5626,23 @@ class Launcher(QWidget):
         if bar is None or not pixels:
             return
         bar.setValue(max(bar.minimum(), min(bar.maximum(), bar.value() + int(pixels))))
+
+    def remote_scroll_files_list_settle(self, stopped_tree):
+        """Hand off the stopped viewport to the next ぐりぐり current row.
+
+        Called once on a completed flight or deliberate long-press stop. The
+        Qt selection model's NoUpdate keeps all selected filesystem entries
+        unchanged (notably any pending Git-commit target). This is NOT a
+        click or a file-selection event.
+        """
+        if stopped_tree is not self.remote_scroll_files_list_target():
+            return
+        view = self.expanded_view
+        if getattr(stopped_tree, 'deliberate_blank_selection', False):
+            return
+        handoff_current_at_scroll_stop(
+            stopped_tree, view.row_data,
+            QItemSelectionModel.SelectionFlag.NoUpdate)
 
     def shuriken_items(self, hand_index=1):
         """Use authored Launch JSON; one hand_index identifies one Remote button."""

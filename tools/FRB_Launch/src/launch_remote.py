@@ -83,7 +83,7 @@ class WheelPad(QFrame):
         super().__init__(parent)
         self.setObjectName('remoteWheelPad')
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip('ホイールで選択／クリック・ダブルクリック／押したまま左右へドラッグ：← →／右クリックでメニュー')
+        self.setToolTip('通常：ホイールで選択／滑走中：順方向で加速・逆方向で減速／クリック・ダブルクリック／左右ドラッグ：← →／右クリックでメニュー')
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._angle_remainder = 0
         self._pixel_remainder = 0
@@ -142,9 +142,22 @@ class WheelPad(QFrame):
             self._pixel_remainder += pixel
             steps = int(self._pixel_remainder / 36)
             self._pixel_remainder -= steps * 36
-        # Limit trackpad bursts to protect expensive directory refreshes.
+        # A single physical wheel event has ONE owner. Capture that owner
+        # BEFORE processing its notches: if the flight becomes invalid during
+        # this event, the remaining notches must not leak to the old current.
+        # This applies equally over ぐりぐり and the shuriken scroll button.
+        scroll_pad = getattr(remote, 'scroll_pad', None)
+        flight_owned_wheel = (scroll_pad is not None
+                              and getattr(scroll_pad, '_flight', None) is not None)
         for _ in range(min(abs(steps), 5)):
-            self.command.emit('UP' if steps > 0 else 'DOWN')
+            direction = 'UP' if steps > 0 else 'DOWN'
+            if flight_owned_wheel:
+                if getattr(scroll_pad, '_flight', None) is not None:
+                    scroll_pad.wheel_while_flying(direction)
+                # Invalid/finished flight never falls through to a current
+                # step within this same physical wheel event.
+                continue
+            self.command.emit(direction)
         event.accept()
 
     def mousePressEvent(self, event):
@@ -563,10 +576,15 @@ class LaunchRemote(QWidget):
         root.addLayout(row_mid)
 
         # An independent scroll-only pad immediately below the ぐりぐり pad.
-        # Same footprint and centerline. It scrolls the visible Files List,
-        # never the selected file or the Remote's current navigation cursor.
+        # Same footprint and centerline. During flight, only the viewport
+        # moves. On a real stop, the logical current is handed off without
+        # changing the selected filesystem entries.
         self.scroll_pad = ShurikenScrollPad(self)
+        # A flight is bound to this exact Files List tree. Switching tabs,
+        # opening a dialog or changing the Remote target stops it safely.
+        self.scroll_pad.target_provider = launcher.remote_scroll_files_list_target
         self.scroll_pad.scroll_requested.connect(launcher.remote_scroll_files_list)
+        self.scroll_pad.flight_settled.connect(launcher.remote_scroll_files_list_settle)
         root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.up_band = UpDoubleClickBand(self)
@@ -992,7 +1010,7 @@ class LaunchRemote(QWidget):
             QLabel#remotePadLabel {{font-size:9px;font-weight:bold;}}
             QLabel#remotePadGlyph {{font-family:'Segoe UI Emoji';font-size:11px;}}
             QLabel#remoteShurikenScrollLabel {{font-size:9px;font-weight:bold;}}
-            QLabel#remoteShurikenScrollGlyph {{font-size:18px;font-weight:bold;}}
+            QLabel#remoteShurikenScrollGlyph {{font-size:12px;font-weight:bold;}}
             QFrame#remoteShurikenScrollPad {{background:{active_bg};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
             QFrame#remoteUpDoubleClickBand {{background:transparent;

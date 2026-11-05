@@ -8,8 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'src'))
-from shuriken_scroll_model import (DEADZONE_PX, TICK_MS,
-                                   pixels_per_tick, release_impulse)
+from shuriken_scroll_model import DEADZONE_PX, TICK_MS
 
 
 def source(name):
@@ -17,31 +16,40 @@ def source(name):
 
 
 def test_click_does_not_scroll():
-    for value in (-11, -1, 0, 1, 11):
-        assert pixels_per_tick(value) == 0
-        assert release_impulse(value, 0) == 0
-    assert DEADZONE_PX == 12
+    from shuriken_scroll_model import plan_flick
+    for dy in (-17, -1, 0, 1, 17):
+        assert plan_flick([(0, 0, 0), (0.1, 0, dy)]) is None
+    assert DEADZONE_PX == 18
 
 
-def test_up_drag_moves_content_up_and_down_drag_reverses():
-    assert pixels_per_tick(-15) > 0
-    assert pixels_per_tick(+15) < 0
-    assert pixels_per_tick(-60) == -pixels_per_tick(+60)
-    assert pixels_per_tick(-80) > pixels_per_tick(-20)
-    assert TICK_MS == 40
+def test_up_flick_moves_content_up_and_down_flick_reverses():
+    from shuriken_scroll_model import plan_flick
+    up = plan_flick([(0, 0, 0), (0.05, 0, -25), (0.10, 0, -50)])
+    down = plan_flick([(0, 0, 0), (0.05, 0, 25), (0.10, 0, 50)])
+    assert up.distance_px > 0
+    assert down.distance_px == -up.distance_px
+    assert TICK_MS == 16
 
 
-def test_short_flick_before_first_timer_tick_still_moves():
-    assert release_impulse(-20, 0) > 0
-    assert release_impulse(20, 0) < 0
-    assert release_impulse(-500, 0) == 460
-    assert release_impulse(500, 0) == -460
-    assert release_impulse(-60, 1) == 0  # no release inertia
+def test_stronger_flick_flies_farther_and_accelerates_gently():
+    from shuriken_scroll_model import plan_flick, eased_displacement
+    weak = plan_flick([(0, 0, 0), (0.2, 0, -30)])
+    strong = plan_flick([(0, 0, 0), (0.06, 0, -30)])
+    assert strong.distance_px > weak.distance_px > 0
+    assert strong.duration_s >= weak.duration_s
+    t = strong.duration_s
+    positions = [eased_displacement(strong, t * i / 8) for i in range(9)]
+    increments = [b - a for a, b in zip(positions, positions[1:])]
+    assert increments[0] < increments[2] < increments[3]
+    assert increments[7] < increments[5] < increments[4]
+    assert abs(positions[-1] - strong.distance_px) < 0.01
 
 
-def test_quick_scroll_rate_clamped_for_compact_one_and_half_column_goal():
-    assert pixels_per_tick(-90) == pixels_per_tick(-2000)
-    assert pixels_per_tick(90) == pixels_per_tick(2000)
+def test_flick_speed_is_bounded():
+    from shuriken_scroll_model import plan_flick, MAX_TRAVEL_PX, MAX_DURATION_S
+    huge = plan_flick([(0, 0, 0), (0.001, 0, -800)])
+    assert huge.distance_px == MAX_TRAVEL_PX
+    assert huge.duration_s <= MAX_DURATION_S
 
 
 def test_placement_is_exactly_below_original_68_x_46_pad():
@@ -56,11 +64,13 @@ def test_placement_is_exactly_below_original_68_x_46_pad():
 
 def test_mouse_press_held_timer_release_and_hide():
     source_text = source('src/remote_shuriken_scroll.py')
-    assert 'self._timer.start()' in source_text
+    assert 'plan_flick(self._samples)' in source_text
     assert 'self._timer.timeout.connect(self._scroll_tick)' in source_text
-    assert 'pixels_per_tick(self._dy)' in source_text
-    assert 'release_impulse(dy, self._ticks_emitted)' in source_text
+    assert 'eased_displacement(flight, elapsed)' in source_text
+    assert 'self._timer.start()' in source_text
     assert 'self._timer.stop()' in source_text
+    assert 'if self._flight is not None:' in source_text
+    assert 'self._braking_press = True' in source_text
     assert 'def hideEvent' in source_text and 'self._stop()' in source_text
     assert 'Qt.FocusPolicy.NoFocus' in source_text
 
@@ -155,7 +165,7 @@ def test_app_scroll_handler_changes_only_scrollbar_not_selection_with_fake_tree(
 
 def test_cancel_or_hide_never_synthesizes_an_event_into_other_app():
     text = source('src/remote_shuriken_scroll.py')
-    assert 'QApplication.mouseButtons()' in text
+    assert 'self._target() is not self._flight_target' in text
     assert 'def _stop(self):' in text
     assert 'self._stop()' in text
     assert 'QCursor.setPos(' not in text
