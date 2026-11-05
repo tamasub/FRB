@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('assets', 'assets'), ('experiments/frb_japanese_input', 'experiments/frb_japanese_input')]
+datas = [('assets', 'assets'), ('experiments\\frb_japanese_input', 'experiments/frb_japanese_input')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('tzdata')

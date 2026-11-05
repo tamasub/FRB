@@ -28,6 +28,7 @@ def virtual_launch_pages(pages, authored_items, runtime_items=()):
             continue
         rows = [r for r in (authored_items or ())
                 if isinstance(r, dict) and r.get('enabled', True)
+                and not r.get('shuriken_only', False)
                 and str(r.get('page_id')) == page_id and r.get('item_id')]
         app_categories = {str(r['item_id']) for r in rows
                           if r.get('item_kind') == 'category'

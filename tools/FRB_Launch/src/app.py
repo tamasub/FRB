@@ -20,6 +20,7 @@ from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
 from remote_text_dialog import RemoteTextDialog
 from remote_context_wheel import RemoteContextWheel
+from shuriken_model import configured_entries
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
@@ -5572,10 +5573,52 @@ class Launcher(QWidget):
         self.remote_focus_area('files_exp')
         return True
 
+    def shuriken_items(self, hand_index=1):
+        """Use authored Launch JSON; one hand_index identifies one Remote button."""
+        return configured_entries({'items': self.authored_items}, hand_index)
+
+    def execute_shuriken_item(self, item_id):
+        """Reuse the original Launch runner or existing file-context action.
+
+        Never guess a filesystem target. A Git commit requires exactly one
+        explicitly selected existing file in Files List and retains its usual
+        message-editor and confirmation dialogs.
+        """
+        if not self.isVisible() or self.isMinimized():
+            return
+        active = {row.item_id for row in self.shuriken_items(1)}
+        if item_id not in active:
+            return
+        row = next((r for r in self.authored_items if r.get('item_id') == item_id), None)
+        if row is None:
+            return
+        context_action = str(row.get('shuriken_context_action_id') or '')
+        if context_action:
+            if context_action != 'git_commit_from_zip':
+                self.error('未対応の手裏剣コンテキスト操作です: ' + context_action)
+                return
+            view = self.expanded_view
+            if (not view.isVisible() or view._workspace_mode != 'files'):
+                self.error('ファイル名でGitコミット：Files Listでファイルを1件選択してください')
+                return
+            paths = list(view.middle_selected_paths())
+            if len(paths) != 1 or not Path(paths[0]).is_file():
+                self.error('ファイル名でGitコミット：ファイルを1件だけ選択してください')
+                return
+            self.perform_filesystem_context_action(context_action, paths[0], 'file')
+        elif row.get('launch_actions'):
+            self.execute(row)
+
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
         # Wheel/arrow/menu actions cancel a pending Exp pad click. In
         # particular the native DOUBLE_CLICK must never run the first CLICK.
+        if command.startswith('SHURIKEN_ITEM:'):
+            # A flick can finish over a stale transient menu. Selection IDs
+            # are validated against current DataJSON before any side effect.
+            QTimer.singleShot(0, lambda item_id=command.split(':', 1)[1]:
+                              self.execute_shuriken_item(item_id))
+            return
         pending_exp_click = getattr(self, '_remote_exp_click_timer', None)
         if pending_exp_click is not None and command != 'CLICK':
             pending_exp_click.stop()
@@ -7474,7 +7517,7 @@ class Launcher(QWidget):
                 result.append(dict(item_id=str(p),title=p.name,description=str(p),item_kind='directory' if p.is_dir() else 'command',icon_key='folder.yellow' if p.is_dir() else 'file',launch_browse_target=str(p),launch_actions=[{'launch_action_type':'Open','launch_target':str(p)}],_file=str(p),**({'_browse_file': str(p)} if p.is_file() else {})))
             return result
         parent=row['item_id'] if row else ''
-        return sorted([x for x in self.data['items'] if x.get('enabled',True) and x['page_id']==(row['page_id'] if row else self.page_id) and x.get('parent_item_id','')==parent],key=lambda x:x.get('sort_order',0))
+        return sorted([x for x in self.data['items'] if x.get('enabled',True) and not x.get('shuriken_only', False) and x['page_id']==(row['page_id'] if row else self.page_id) and x.get('parent_item_id','')==parent],key=lambda x:x.get('sort_order',0))
 
     def displayed_children(self, parent):
         """Skip redundant singleton folder levels for browser bookmarks only."""

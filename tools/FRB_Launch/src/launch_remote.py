@@ -14,6 +14,7 @@ from passive_header_drag import PassiveHeaderDrag
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
 from remote_files_explorer import RemoteFilesExplorer
+from remote_shuriken import ShurikenButton
 
 
 def remote_favorite_icon(heart):
@@ -510,7 +511,13 @@ class LaunchRemote(QWidget):
         row_quick = QHBoxLayout()
         row_quick.setContentsMargins(0, 0, 0, 0)
         row_quick.setSpacing(2)
-        row_quick.addSpacing(50)
+        # 1の手 identifies this shuriken BUTTON, not a direction or menu ID.
+        # The initial two-action UI shows a fixed circle; direction decides
+        # the action. The JSON model allows future button indices/entries.
+        self.shuriken_button = ShurikenButton(launcher, self, hand_index=1)
+        self.shuriken_button.triggered.connect(
+            lambda item_id: self.command.emit('SHURIKEN_ITEM:' + item_id))
+        row_quick.addWidget(self.shuriken_button)
         self.home_button = self._button('', 'HOME：Files Expの先頭へ',
                                         'HOME', width=68, height=46, role='quick',
                                         wheel_enabled=True)
@@ -956,6 +963,7 @@ class LaunchRemote(QWidget):
                 border:1px solid {c['focus_outline']};}}
             QPushButton[role="icon"] {{font-size:12px;padding:0;}}
             QPushButton#remoteLargeHomeButton {{border-radius:7px;padding:0;}}
+            QPushButton#remoteShurikenButton {{border-radius:7px;padding:0;}}
             QPushButton#remoteKanaButton {{border-radius:7px;padding:0;}}
             QPushButton#remoteKanaButton[active="true"] {{background:{active_bg};
                 border:2px solid {c['focus_outline']};}}

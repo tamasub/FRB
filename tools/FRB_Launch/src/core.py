@@ -52,9 +52,29 @@ def validate(data):
                 raise ValueError('引数は配列です')
             if step.get('launch_result_format', 'none') != 'none':
                 raise ValueError('v0.1の処理結果変数は未対応です')
+        if row.get('shuriken_enabled', False):
+            # 1の手 is a BUTTON index. A button may have many directional items.
+            index = row.get('shuriken_button_index')
+            if not isinstance(index, int) or isinstance(index, bool) or index < 1:
+                raise ValueError('手裏剣ボタン番号は1以上の整数です')
+            if row.get('shuriken_direction') not in (
+                    'center', 'up', 'up_right', 'right', 'down_right', 'down',
+                    'down_left', 'left', 'up_left'):
+                raise ValueError('手裏剣の方向はcenterを含む9方向から選択してください')
+            context = row.get('shuriken_context_action_id', '')
+            if context and context != 'git_commit_from_zip':
+                raise ValueError('未対応の手裏剣コンテキスト操作です')
+            if not context and not row.get('launch_actions'):
+                raise ValueError('手裏剣の実行アクションがありません')
         # A selection group may temporarily have no candidates while the user
         # imports a replacement CSV and assigns group_id values later.
         # Keep the item valid; the selection screen already handles 0 rows.
+    from collections import Counter
+    shuriken_counts = Counter(row.get('shuriken_button_index')
+                              for row in items.values()
+                              if row.get('shuriken_enabled') and row.get('enabled', True))
+    if any(n > 10 for n in shuriken_counts.values()):
+        raise ValueError('手裏剣メニューは1ボタンにつき最大10件です')
     menu_shortcuts(data)  # Check root-only scope and duplicates before activation.
     return data
 
@@ -165,6 +185,7 @@ def searchable_rows(data, query, bookmark_browser=None):
     result = []
     for row in data['items']:
         if (not visible_bookmark(row) or not row.get('enabled', True)
+                or row.get('shuriken_only', False)
                 or not pages[row['page_id']].get('enabled', True)):
             continue
         chain = []; p = row.get('parent_item_id'); hidden = False

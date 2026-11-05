@@ -355,7 +355,11 @@
           "launch_result_format": "none",
           "launch_show_console": true
         }
-      ]
+      ],
+      "shuriken_enabled": true,
+      "shuriken_button_index": 1,
+      "shuriken_direction": "up_left",
+      "shuriken_order": 10
     },
     {
       "item_id": "devices",
@@ -948,7 +952,29 @@
           "launch_action_type": "Open",
           "launch_target": "F:\\FRB\\tools\\FRB_Launch\\_make_launch_zip.bat"
         }
-      ]
+      ],
+      "shuriken_enabled": true,
+      "shuriken_button_index": 1,
+      "shuriken_direction": "up_right",
+      "shuriken_order": 20
+    },
+    {
+      "item_id": "shuriken_git_commit_filename",
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "title": "ファイル名を使ってGitコミット",
+      "description": "Files Listで現在選択している1ファイルの名前をコミットメッセージに使う",
+      "item_kind": "command",
+      "icon_key": "file",
+      "sort_order": 20,
+      "enabled": true,
+      "shuriken_only": true,
+      "shuriken_enabled": true,
+      "shuriken_button_index": 1,
+      "shuriken_direction": "down",
+      "shuriken_order": 30,
+      "shuriken_context_action_id": "git_commit_from_zip",
+      "launch_actions": []
     },
     {
       "item_id": "audio_list",
