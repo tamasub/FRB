@@ -157,7 +157,7 @@ class ShurikenPreview(QWidget):
                     is_up = (entry.direction == 'up'
                              if {row.direction for row in self.entries} == {'up', 'down'}
                              else index == 0)
-                    text_cy = -70.0 if is_up else 70.0
+                    text_cy = -62.0 if is_up else 62.0
                     mark_y = -self.MARKER_DISTANCE if is_up else self.MARKER_DISTANCE
                 else:
                     text_cy = mark_y = -radius + (index + 0.5) * band

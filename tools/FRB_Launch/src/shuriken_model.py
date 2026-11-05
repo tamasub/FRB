@@ -22,9 +22,9 @@ MAX_ITEMS_PER_HAND = 10
 THREE_SECTOR_LAYOUT = {
     # Compass angle, caption anchor X/Y, alignment. Keep captions clear of
     # the central current ring and selected-direction indicator.
-    'up_left': (-150.0, -66.0, -22.0, 'right'),
-    'up_right': (-30.0, 66.0, -22.0, 'left'),
-    'down': (90.0, 0.0, 70.0, 'center'),
+    'up_left': (-150.0, -58.0, -18.0, 'right'),
+    'up_right': (-30.0, 58.0, -18.0, 'left'),
+    'down': (90.0, 0.0, 62.0, 'center'),
 }
 THREE_SECTOR_DIVIDERS = (-90.0, 30.0, 150.0)
 
@@ -34,10 +34,10 @@ THREE_SECTOR_DIVIDERS = (-90.0, 30.0, 150.0)
 # up_left -> up, up_right -> right, down_right -> down, down_left -> left.
 # The divider lines bisect the gaps at 45/135/225/315 degrees (an X).
 FOUR_SECTOR_LAYOUT = {
-    'up': (-90.0, 0.0, -70.0, 'center'),
-    'right': (0.0, 62.0, 0.0, 'left'),
-    'down': (90.0, 0.0, 70.0, 'center'),
-    'left': (180.0, -62.0, 0.0, 'right'),
+    'up': (-90.0, 0.0, -62.0, 'center'),
+    'right': (0.0, 54.0, 0.0, 'left'),
+    'down': (90.0, 0.0, 62.0, 'center'),
+    'left': (180.0, -54.0, 0.0, 'right'),
 }
 
 
