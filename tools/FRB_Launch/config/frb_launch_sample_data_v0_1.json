@@ -971,8 +971,8 @@
       "shuriken_only": true,
       "shuriken_enabled": true,
       "shuriken_button_index": 1,
-      "shuriken_direction": "down",
-      "shuriken_order": 30,
+      "shuriken_direction": "down_right",
+      "shuriken_order": 40,
       "shuriken_context_action_id": "git_commit_from_zip",
       "launch_actions": []
     },
@@ -1939,7 +1939,11 @@
           "launch_failure_policy": "stop",
           "launch_result_format": "none"
         }
-      ]
+      ],
+      "shuriken_enabled": true,
+      "shuriken_button_index": 1,
+      "shuriken_direction": "down_left",
+      "shuriken_order": 30
     },
     {
       "page_id": "windows",

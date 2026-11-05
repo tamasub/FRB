@@ -2,7 +2,8 @@
 
 A hand index identifies a BUTTON, not a radial sector. One button may have
 up to ten entries. Two actions use the up/down guide; the three-action
-experiment uses three 120-degree sectors. Captions are not hit targets.
+experiment uses three 120-degree sectors; the four-action experiment uses
+standard quadrants. Captions are not hit targets.
 """
 import math
 from dataclasses import dataclass
@@ -26,10 +27,24 @@ THREE_SECTOR_LAYOUT = {
 THREE_SECTOR_DIVIDERS = (-90.0, 30.0, 150.0)
 
 
+FOUR_SECTOR_LAYOUT = {
+    'up_left': (-135.0, -8.0, -22.0, 'right'),
+    'up_right': (-45.0, 8.0, -22.0, 'left'),
+    'down_left': (135.0, -8.0, 34.0, 'right'),
+    'down_right': (45.0, 8.0, 34.0, 'left'),
+}
+
+
 def uses_three_sector_guide(entries):
     """True exactly when the buttons' three entries match the 3-way sketch."""
     return (len(entries) == 3
             and {row.direction for row in entries} == set(THREE_SECTOR_LAYOUT))
+
+
+def uses_four_sector_guide(entries):
+    """True exactly when the buttons' four entries match the 4-way sketch."""
+    return (len(entries) == 4
+            and {row.direction for row in entries} == set(FOUR_SECTOR_LAYOUT))
 
 
 def three_sector_slot(entry, radius=72.0, marker_distance=42.0):
@@ -37,7 +52,15 @@ def three_sector_slot(entry, radius=72.0, marker_distance=42.0):
     angle, label_x, label_y = THREE_SECTOR_LAYOUT[entry.direction]
     radians = math.radians(angle)
     return (label_x, label_y, marker_distance * math.cos(radians),
-            marker_distance * math.sin(radians))
+            marker_distance * math.sin(radians), 'center')
+
+
+def four_sector_slot(entry, radius=72.0, marker_distance=42.0):
+    """Return (label_anchor_x, label_y, marker_x, marker_y, align)."""
+    angle, anchor_x, label_y, align = FOUR_SECTOR_LAYOUT[entry.direction]
+    radians = math.radians(angle)
+    return (anchor_x, label_y, marker_distance * math.cos(radians),
+            marker_distance * math.sin(radians), align)
 
 
 @dataclass(frozen=True)
@@ -146,15 +169,13 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
 
     Unlike the center key of a kana pad, clicking without a deliberate flick
     NEVER launches an action. Three sectors map to left-up/right-up/down.
+    Four sectors map to the usual left-up/right-up/left-down/right-down
+    quadrants.
     """
     if not entries or math.hypot(dx, dy) < min_release_distance:
-        # No action is bound to a mere click. The center of the GUIDE is not
-        # an executable fifth kana key: a deliberate flick is mandatory.
         return None
     pointer = math.degrees(math.atan2(dy, dx))
     if uses_three_sector_guide(entries):
-        # Full 120° angular regions, matching the three rays in the preview.
-        # A tiny dead-band exactly on a divider avoids accidental commits.
         candidates = sorted((abs((pointer - THREE_SECTOR_LAYOUT[e.direction][0]
                                   + 180.0) % 360.0 - 180.0), index)
                             for index, e in enumerate(entries))
@@ -162,6 +183,25 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
         if len(candidates) > 1 and candidates[1][0] - nearest < 2.0:
             return None
         return entries[index]
+    if uses_four_sector_guide(entries):
+        candidates = sorted((abs((pointer - FOUR_SECTOR_LAYOUT[e.direction][0]
+                                  + 180.0) % 360.0 - 180.0), index)
+                            for index, e in enumerate(entries))
+        nearest, index = candidates[0]
+        if len(candidates) > 1 and candidates[1][0] - nearest < 2.0:
+            return None
+        return entries[index]
+    targets = _gesture_angles(entries)
+    candidates = sorted((abs((pointer - angle + 180.0) % 360.0 - 180.0), index)
+                        for index, angle in enumerate(targets) if angle is not None)
+    if not candidates:
+        return None
+    nearest_delta, index = candidates[0]
+    if nearest_delta > 48.0:
+        return None
+    if len(candidates) > 1 and (candidates[1][0] - nearest_delta) < 0.25:
+        return None
+    return entries[index]
     targets = _gesture_angles(entries)
     candidates = sorted((abs((pointer - angle + 180.0) % 360.0 - 180.0), index)
                         for index, angle in enumerate(targets) if angle is not None)

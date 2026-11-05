@@ -5573,6 +5573,35 @@ class Launcher(QWidget):
         self.remote_focus_area('files_exp')
         return True
 
+    def remote_scroll_files_list(self, pixels):
+        """Scroll the Files List viewport without moving its selected item.
+
+        Unlike the WheelPad's UP/DOWN, this is a viewport scroll only. A
+        non-activating Remote may safely scroll Qt's existing scrollbar; it
+        never synthesizes mouse-wheel/keyboard events or changes the target.
+        Other workspaces/dialogs do not receive scroll commands in this trial.
+        """
+        if not self.isVisible() or self.isMinimized():
+            return
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if (getattr(self, '_remote_text_dialog', None) is not None
+                or getattr(self, '_remote_confirmation', None) is not None
+                or (menu_wheel is not None and menu_wheel.active
+                    and menu_wheel.root.isVisible())):
+            return
+        view = self.expanded_view
+        if (not view.isVisible() or view._workspace_mode != 'files'
+                or getattr(self, '_remote_area', None) != 'directory'):
+            return
+        tree = view.middle.tree
+        if (not tree.isVisible()
+                or tree.state() == QAbstractItemView.State.EditingState):
+            return
+        bar = tree.verticalScrollBar()
+        if bar is None or not pixels:
+            return
+        bar.setValue(max(bar.minimum(), min(bar.maximum(), bar.value() + int(pixels))))
+
     def shuriken_items(self, hand_index=1):
         """Use authored Launch JSON; one hand_index identifies one Remote button."""
         return configured_entries({'items': self.authored_items}, hand_index)

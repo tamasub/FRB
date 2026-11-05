@@ -1,8 +1,8 @@
 """Mouse-only round flick guide for FRB Remote (no keyboard injection).
 
 Press: a fixed circle appears above the button. Three-menu mode uses the
-same 120-degree geometry for label positions and flick hit-testing.
-Release without movement cancels. Captions may overrun the constant circle.
+same geometry for label positions and flick hit-testing. Release without
+movement cancels. Captions may overrun the constant circle.
 """
 import math
 from pathlib import Path
@@ -12,7 +12,8 @@ from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
 from shuriken_model import (choose_entry, uses_three_sector_guide,
-                            three_sector_slot, THREE_SECTOR_DIVIDERS)
+                            uses_four_sector_guide, three_sector_slot,
+                            four_sector_slot, THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
 
 # Icon provided for the experiment; retain the same asset in the packaged app.
@@ -24,7 +25,8 @@ class ShurikenPreview(QWidget):
 
     A press shows the guide immediately. Pointer delta selects an action but
     never repositions the guide. Three entries use a left-up / right-up /
-    bottom wedge guide and captions with readable, independently sized boxes.
+    bottom wedge guide, while four entries use the expected quadrants.
+    Captions stay readable in independently sized boxes.
     """
     CANVAS_WIDTH = 520        # Transparent window; NOT the circular guide size.
     CANVAS_HEIGHT = 320
@@ -98,50 +100,68 @@ class ShurikenPreview(QWidget):
 
         count = len(self.entries)
         triad = uses_three_sector_guide(self.entries)
+        quad = uses_four_sector_guide(self.entries)
         band = (radius * 2.0) / count
         max_text_width = min(230, self.width() - 20)
 
-        # Draw the *same* three 120-degree dividers used by choose_entry().
-        # The ring stays one fixed circle, even if the captions overrun it.
+        # Draw dividers from the same geometry used by choose_entry().
         painter.setPen(QPen(QColor(159, 195, 133, 185), 1.0))
         if triad:
             for angle in THREE_SECTOR_DIVIDERS:
                 theta = math.radians(angle)
                 painter.drawLine(QPointF(0, 0), QPointF(radius * math.cos(theta),
                                                         radius * math.sin(theta)))
+        elif quad:
+            painter.drawLine(QPointF(-radius, 0), QPointF(radius, 0))
+            painter.drawLine(QPointF(0, -radius), QPointF(0, radius))
         else:
             for index in range(1, count):
                 y = -radius + index * band
                 half_width = math.sqrt(max(0.0, radius * radius - y * y))
                 painter.drawLine(QPointF(-half_width, y), QPointF(half_width, y))
 
+        TEXT_SIDE_PADDING = 8
         for index, entry in enumerate(self.entries):
             if triad:
-                text_cx, text_cy, mark_x, mark_y = three_sector_slot(entry)
+                text_anchor_x, text_cy, mark_x, mark_y, text_align = three_sector_slot(entry)
+                caption = entry.title
+                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
+                text_h = max(18, metrics.height() + 6)
+                text_rect = QRectF(text_anchor_x - text_w / 2.0, text_cy - text_h / 2.0,
+                                   text_w, text_h)
+                draw_flags = int(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
+            elif quad:
+                text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
+                caption = entry.title
+                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
+                text_h = max(18, metrics.height() + 6)
+                if text_align == 'right':
+                    text_rect = QRectF(text_anchor_x - text_w, text_cy - text_h / 2.0, text_w, text_h)
+                    draw_flags = int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                else:
+                    text_rect = QRectF(text_anchor_x, text_cy - text_h / 2.0, text_w, text_h)
+                    draw_flags = int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
             else:
-                text_cx = mark_x = 0.0
+                text_anchor_x = mark_x = 0.0
                 text_cy = mark_y = -radius + (index + 0.5) * band
+                caption = entry.title
+                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
+                text_h = max(18, metrics.height() + 6)
+                text_rect = QRectF(-text_w / 2.0, text_cy - text_h / 2.0, text_w, text_h)
+                draw_flags = int(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
 
-            caption = entry.title
-            text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18)
-            text_h = max(18, metrics.height() + 6)
-            text_rect = QRectF(text_cx - text_w / 2.0, text_cy - text_h / 2.0,
-                               text_w, text_h)
             active = entry.item_id == self.selected_id
             if active:
-                # Keep 48px for the 120° wedges. At r=42px it fits wholly
-                # inside a radius-72px circular sector (the min clearance
-                # to an edge is >24px).
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor(150, 203, 121, 125))
                 painter.drawEllipse(QPointF(mark_x, mark_y),
                                     self.CURRENT_RADIUS, self.CURRENT_RADIUS)
 
-            # Soft green semi-transparent textbox, centered on each segment.
-            # Keep its width independent of the circular guide's radius.
             for grow, alpha in ((6, 26), (3, 44)):
-                shadow = text_rect.adjusted(-grow, -grow / 2.0,
-                                            grow, grow / 2.0)
+                shadow = text_rect.adjusted(-grow, -grow / 2.0, grow, grow / 2.0)
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor(181, 214, 160, alpha))
                 painter.drawRoundedRect(shadow, 8, 8)
@@ -150,13 +170,12 @@ class ShurikenPreview(QWidget):
             painter.setBrush(QColor(220, 243, 204, 227) if active
                              else QColor(236, 248, 228, 208))
             painter.drawRoundedRect(text_rect, 7, 7)
-            if metrics.horizontalAdvance(caption) > (text_w - 10):
+            available_text_width = max(12, int(text_draw_rect.width()) - 2)
+            if metrics.horizontalAdvance(caption) > available_text_width:
                 caption = metrics.elidedText(caption, Qt.TextElideMode.ElideRight,
-                                            int(text_w - 10))
+                                             available_text_width)
             painter.setPen(QColor('#254c35'))
-            painter.drawText(text_rect,
-                             int(Qt.AlignmentFlag.AlignCenter |
-                                 Qt.AlignmentFlag.AlignVCenter), caption)
+            painter.drawText(text_draw_rect, draw_flags, caption)
         painter.end()
 
 

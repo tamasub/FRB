@@ -15,6 +15,7 @@ from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
 from remote_files_explorer import RemoteFilesExplorer
 from remote_shuriken import ShurikenButton
+from remote_shuriken_scroll import ShurikenScrollPad
 
 
 def remote_favorite_icon(heart):
@@ -561,6 +562,13 @@ class LaunchRemote(QWidget):
         root.addLayout(row_top)
         root.addLayout(row_mid)
 
+        # An independent scroll-only pad immediately below the ぐりぐり pad.
+        # Same footprint and centerline. It scrolls the visible Files List,
+        # never the selected file or the Remote's current navigation cursor.
+        self.scroll_pad = ShurikenScrollPad(self)
+        self.scroll_pad.scroll_requested.connect(launcher.remote_scroll_files_list)
+        root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
+
         self.up_band = UpDoubleClickBand(self)
         self.up_band.command.connect(self.command.emit)
         root.addWidget(self.up_band)
@@ -983,6 +991,10 @@ class LaunchRemote(QWidget):
             QLabel#remotePadCaption {{color:{c['muted_text']};font-size:10px;}}
             QLabel#remotePadLabel {{font-size:9px;font-weight:bold;}}
             QLabel#remotePadGlyph {{font-family:'Segoe UI Emoji';font-size:11px;}}
+            QLabel#remoteShurikenScrollLabel {{font-size:9px;font-weight:bold;}}
+            QLabel#remoteShurikenScrollGlyph {{font-size:18px;font-weight:bold;}}
+            QFrame#remoteShurikenScrollPad {{background:{active_bg};
+                border:1px dashed {c['focus_outline']};border-radius:5px;}}
             QFrame#remoteUpDoubleClickBand {{background:transparent;
                 border:1px solid #a5adb0;border-radius:4px;}}
             QFrame#remoteUpDoubleClickBand QLabel {{color:{c['muted_text']};font-size:10px;}}
