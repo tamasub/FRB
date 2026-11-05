@@ -12,7 +12,18 @@ from shuriken_model import (ShurikenEntry, configured_entries, choose_entry,
 
 
 def sample():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    # Historical 3-action fixture, independent of the live cardinal 4-action JSON.
+    data = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    keep = {'zip_studio': 'up_left', 'launch_source_zip': 'up_right',
+            'shuriken_git_commit_filename': 'down'}
+    for row in data['items']:
+        if row.get('item_id') in keep:
+            row['shuriken_direction'] = keep[row['item_id']]
+            if row['item_id'] == 'shuriken_git_commit_filename':
+                row['shuriken_order'] = 30
+        elif row.get('shuriken_enabled'):
+            row['shuriken_enabled'] = False
+    return data
 
 
 def preview_source():
@@ -67,19 +78,21 @@ def test_ui_does_not_expand_circle_to_fit_long_menu_names():
     src = preview_source()
     assert 'radius = self.RADIUS' in src
     assert 'metrics.horizontalAdvance(caption)' in src
-    assert 'painter.drawText(text_rect,' in src
+    assert 'painter.drawText(text_draw_rect,' in src
     assert 'Qt.TextElideMode.ElideRight' in src
     assert 'painter.rotate(180)' not in src
     assert 'painter.setClipPath' not in src
     assert 'LABEL_FONT_PX = 12' in src
 
 
-def test_ui_marks_current_with_small_disc_behind_horizontal_label():
+def test_ui_shows_white_origin_and_selection_indicator():
     src = preview_source()
     assert 'CURRENT_RADIUS = 24' in src
+    assert 'MARKER_RADIUS = 12.5' in src
+    assert 'current_indicator_position(' in src
+    assert src.index('self.CURRENT_RADIUS, self.CURRENT_RADIUS)') < src.index('self.MARKER_RADIUS, self.MARKER_RADIUS)')
     assert 'active = entry.item_id == self.selected_id' in src
-    assert 'painter.drawEllipse(QPointF(mark_x, mark_y),' in src
-    assert src.index('painter.drawEllipse(QPointF(mark_x, mark_y)') < src.index('painter.drawText(text_rect,')
+    assert 'painter.drawEllipse(QPointF(marker_x, marker_y),' in src
     assert "self.selected_id = selected.item_id if selected is not None else ''" in src
 
 

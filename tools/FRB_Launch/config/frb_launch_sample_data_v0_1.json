@@ -358,7 +358,7 @@
       ],
       "shuriken_enabled": true,
       "shuriken_button_index": 1,
-      "shuriken_direction": "up_left",
+      "shuriken_direction": "up",
       "shuriken_order": 10
     },
     {
@@ -955,7 +955,7 @@
       ],
       "shuriken_enabled": true,
       "shuriken_button_index": 1,
-      "shuriken_direction": "up_right",
+      "shuriken_direction": "right",
       "shuriken_order": 20
     },
     {
@@ -971,7 +971,7 @@
       "shuriken_only": true,
       "shuriken_enabled": true,
       "shuriken_button_index": 1,
-      "shuriken_direction": "down_right",
+      "shuriken_direction": "down",
       "shuriken_order": 40,
       "shuriken_context_action_id": "git_commit_from_zip",
       "launch_actions": []
@@ -1942,7 +1942,7 @@
       ],
       "shuriken_enabled": true,
       "shuriken_button_index": 1,
-      "shuriken_direction": "down_left",
+      "shuriken_direction": "left",
       "shuriken_order": 30
     },
     {

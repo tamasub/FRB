@@ -1,8 +1,9 @@
 """Mouse-only round flick guide for FRB Remote (no keyboard injection).
 
-Press: a fixed circle appears above the button. Three-menu mode uses the
-same geometry for label positions and flick hit-testing. Release without
-movement cancels. Captions may overrun the constant circle.
+Press: a fixed circle appears above the button. With two to four actions,
+a white center ring and one green indicator show the current gesture sector.
+Four actions use an X divider and cardinal kana-style flick directions.
+Release without movement cancels. Captions may overrun the constant circle.
 """
 import math
 from pathlib import Path
@@ -13,7 +14,8 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
 from shuriken_model import (choose_entry, uses_three_sector_guide,
                             uses_four_sector_guide, three_sector_slot,
-                            four_sector_slot, THREE_SECTOR_DIVIDERS)
+                            four_sector_slot, current_indicator_position,
+                            THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
 
 # Icon provided for the experiment; retain the same asset in the packaged app.
@@ -21,18 +23,19 @@ ICON_PATH = Path(__file__).resolve().parent.parent / 'assets' / 'remote_shuriken
 
 
 class ShurikenPreview(QWidget):
-    """Passive, button-anchored round preview for the two-action baseline.
+    """Button-anchored preview; selection is indicated, never executed here.
 
-    A press shows the guide immediately. Pointer delta selects an action but
-    never repositions the guide. Three entries use a left-up / right-up /
-    bottom wedge guide, while four entries use the expected quadrants.
-    Captions stay readable in independently sized boxes.
+    Idle: green indicator at the white center ring. Dragging: green indicator
+    moves to the currently selected sector. Gesture and preview share the
+    same angles, and the guide never follows the pointer.
     """
     CANVAS_WIDTH = 520        # Transparent window; NOT the circular guide size.
     CANVAS_HEIGHT = 320
     RADIUS = 72               # Constant visual radius, independent of captions.
     GAP_ABOVE_BUTTON = 15     # Visible gap between ring and the button.
-    CURRENT_RADIUS = 24       # Reduced marker (diameter 48px) for a quieter guide.
+    CURRENT_RADIUS = 24       # White central origin ring (diameter 48 px).
+    MARKER_RADIUS = 12.5      # Single green current indicator, center or sector.
+    MARKER_DISTANCE = 42      # 24 + 12.5 < 42 < 72 - 12.5.
     LABEL_FONT_PX = 12        # Readable; long titles extend beyond the ring.
 
     def __init__(self, owner):
@@ -112,49 +115,71 @@ class ShurikenPreview(QWidget):
                 painter.drawLine(QPointF(0, 0), QPointF(radius * math.cos(theta),
                                                         radius * math.sin(theta)))
         elif quad:
-            painter.drawLine(QPointF(-radius, 0), QPointF(radius, 0))
-            painter.drawLine(QPointF(0, -radius), QPointF(0, radius))
+            # The cardinal four-way guide uses an X (not the old +).
+            # Endpoints stop exactly on the circumference (no spillover).
+            diagonal = radius / math.sqrt(2.0)
+            painter.drawLine(QPointF(-diagonal, -diagonal),
+                             QPointF(diagonal, diagonal))
+            painter.drawLine(QPointF(-diagonal, diagonal),
+                             QPointF(diagonal, -diagonal))
         else:
             for index in range(1, count):
                 y = -radius + index * band
                 half_width = math.sqrt(max(0.0, radius * radius - y * y))
                 painter.drawLine(QPointF(-half_width, y), QPointF(half_width, y))
 
+        # The same origin is visible for 2-, 3- and 4-menu guides.
+        # Paint it *after* dividers to hide crossings in the center.
+        if 2 <= count <= 4:
+            painter.setPen(QPen(QColor('#385e56'), 1.2))
+            painter.setBrush(QColor('#ffffff'))
+            painter.drawEllipse(QPointF(0, 0), self.CURRENT_RADIUS, self.CURRENT_RADIUS)
+
+            # The model owns the marker location, including the idle center.
+            marker_x, marker_y = current_indicator_position(
+                self.entries, self.selected_id, self.MARKER_DISTANCE)
+            painter.setPen(QPen(QColor('#426d59'), 1.0))
+            painter.setBrush(QColor('#aed2a0'))
+            painter.drawEllipse(QPointF(marker_x, marker_y),
+                                self.MARKER_RADIUS, self.MARKER_RADIUS)
+
         TEXT_SIDE_PADDING = 8
         for index, entry in enumerate(self.entries):
             if triad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = three_sector_slot(entry)
-                caption = entry.title
-                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
-                text_h = max(18, metrics.height() + 6)
+            elif quad:
+                text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
+            else:
+                # Two entries remain vertically ordered: up then down.
+                # Keep their captions beyond the indicator, not on top of it.
+                text_anchor_x = mark_x = 0.0
+                if count == 2:
+                    is_up = (entry.direction == 'up'
+                             if {row.direction for row in self.entries} == {'up', 'down'}
+                             else index == 0)
+                    text_cy = -70.0 if is_up else 70.0
+                    mark_y = -self.MARKER_DISTANCE if is_up else self.MARKER_DISTANCE
+                else:
+                    text_cy = mark_y = -radius + (index + 0.5) * band
+                text_align = 'center'
+
+            caption = entry.title
+            text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
+            text_h = max(18, metrics.height() + 6)
+            if text_align == 'right':
+                text_rect = QRectF(text_anchor_x - text_w, text_cy - text_h / 2.0, text_w, text_h)
+                draw_flags = int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            elif text_align == 'left':
+                text_rect = QRectF(text_anchor_x, text_cy - text_h / 2.0, text_w, text_h)
+                draw_flags = int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            else:
                 text_rect = QRectF(text_anchor_x - text_w / 2.0, text_cy - text_h / 2.0,
                                    text_w, text_h)
                 draw_flags = int(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
-            elif quad:
-                text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
-                caption = entry.title
-                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
-                text_h = max(18, metrics.height() + 6)
-                if text_align == 'right':
-                    text_rect = QRectF(text_anchor_x - text_w, text_cy - text_h / 2.0, text_w, text_h)
-                    draw_flags = int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                else:
-                    text_rect = QRectF(text_anchor_x, text_cy - text_h / 2.0, text_w, text_h)
-                    draw_flags = int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
-            else:
-                text_anchor_x = mark_x = 0.0
-                text_cy = mark_y = -radius + (index + 0.5) * band
-                caption = entry.title
-                text_w = min(max_text_width, metrics.horizontalAdvance(caption) + 18 + TEXT_SIDE_PADDING * 2)
-                text_h = max(18, metrics.height() + 6)
-                text_rect = QRectF(-text_w / 2.0, text_cy - text_h / 2.0, text_w, text_h)
-                draw_flags = int(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-                text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
-
+            text_draw_rect = text_rect.adjusted(TEXT_SIDE_PADDING, 0, -TEXT_SIDE_PADDING, 0)
             active = entry.item_id == self.selected_id
-            if active:
+            # For the general 5+ fallback retain the original row highlight.
+            if active and count > 4:
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor(150, 203, 121, 125))
                 painter.drawEllipse(QPointF(mark_x, mark_y),

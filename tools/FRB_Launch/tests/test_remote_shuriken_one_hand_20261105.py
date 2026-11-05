@@ -22,15 +22,16 @@ def source(path):
     return (ROOT / path).read_text(encoding='utf-8')
 
 
-def test_user_config_registers_three_real_actions_in_one_hand(data):
+def test_user_config_registers_four_real_actions_in_one_hand(data):
     entries = configured_entries(data, 1)
-    assert len(entries) == 3
+    assert len(entries) == 4
     assert [x.item_id for x in entries] == [
-        'zip_studio', 'launch_source_zip', 'shuriken_git_commit_filename']
-    assert [x.direction for x in entries] == ['up_left', 'up_right', 'down']
+        'zip_studio', 'launch_source_zip',
+        'faeee8f3-0b4a-4344-b5f1-594902740f42', 'shuriken_git_commit_filename']
+    assert [x.direction for x in entries] == ['up', 'right', 'left', 'down']
     assert entries[0].context_action_id == ''
     assert entries[1].context_action_id == ''
-    assert entries[2].context_action_id == 'git_commit_from_zip'
+    assert entries[3].context_action_id == 'git_commit_from_zip'
     assert configured_entries(data, 2) == []
     assert all(row.hand_index == 1 for row in entries)
 
@@ -38,10 +39,9 @@ def test_user_config_registers_three_real_actions_in_one_hand(data):
 def test_buttons_not_limited_to_four_or_one_per_sector(data):
     assert MAX_ITEMS_PER_HAND >= 10
     rows = [r for r in data['items'] if r.get('shuriken_enabled')]
-    assert len(rows) == 3
-    assert len(sector_entries(configured_entries(data, 1), 'up_left')) == 1
-    assert len(sector_entries(configured_entries(data, 1), 'up_right')) == 1
-    assert len(sector_entries(configured_entries(data, 1), 'down')) == 1
+    assert len(rows) == 4
+    assert all(len(sector_entries(configured_entries(data, 1), direction)) == 1
+               for direction in ('up', 'right', 'down', 'left'))
 
 
 @pytest.mark.parametrize('dx,dy,direction', [
@@ -64,7 +64,7 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
     assert 'painter.drawEllipse(QPointF(mark_x, mark_y),' in src
     assert 'for angle in THREE_SECTOR_DIVIDERS:' in src
     assert 'painter.drawLine(QPointF(0, 0), QPointF(radius * math.cos(theta),' in src
-    assert 'painter.drawText(text_rect,' in src
+    assert 'painter.drawText(text_draw_rect,' in src
     assert 'painter.rotate(180)' not in src
     assert 'setPixelSize(self.LABEL_FONT_PX)' in src
     assert 'self._preview.present(self, self._entries, None)' in src
@@ -72,15 +72,16 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
 
 
 
-def test_three_way_blind_flicks_match_wedge_labels_and_click_cancels(data):
+def test_four_way_blind_flicks_match_cardinal_labels_and_click_cancels(data):
     entries = configured_entries(data, 1)
-    assert choose_entry(entries, -40, -30).item_id == 'zip_studio'
-    assert choose_entry(entries, 40, -30).item_id == 'launch_source_zip'
+    assert choose_entry(entries, 0, -47).item_id == 'zip_studio'
+    assert choose_entry(entries, 47, 0).item_id == 'launch_source_zip'
+    assert choose_entry(entries, -47, 0).item_id == 'faeee8f3-0b4a-4344-b5f1-594902740f42'
     assert choose_entry(entries, 0, 47).item_id == 'shuriken_git_commit_filename'
     assert choose_entry(entries, 0, 0) is None
     assert choose_entry(entries, 0, 20) is None
-    # Straight up is the visible divider between two upper wedges.
-    assert choose_entry(entries, 0, -47) is None
+    # Diagonal 45 degrees is a divider and cancels.
+    assert choose_entry(entries, 47, -47) is None
 
 
 
@@ -90,7 +91,7 @@ def test_exactly_ten_actions_per_button_still_supported(data):
     template = next(x for x in draft['items'] if x.get('shuriken_enabled'))
     directions = ('up', 'up_right', 'right', 'down_right', 'down',
                   'down_left', 'left', 'up_left')
-    for i in range(7):
+    for i in range(6):
         clone = copy.deepcopy(template)
         clone['item_id'] = f'shuriken_extra_{i}'
         clone['shuriken_direction'] = directions[i]
@@ -103,7 +104,7 @@ def test_reject_eleven_menu_items_same_button(data):
     import copy
     draft = copy.deepcopy(data)
     template = next(x for x in draft['items'] if x.get('shuriken_enabled'))
-    for i in range(8):
+    for i in range(7):
         clone = copy.deepcopy(template)
         clone['item_id'] = f'shuriken_extra_{i}'
         draft['items'].append(clone)

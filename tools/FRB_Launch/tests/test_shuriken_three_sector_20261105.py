@@ -13,8 +13,12 @@ from shuriken_model import (configured_entries, choose_entry, three_sector_slot,
 
 
 def entries():
-    data = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
-    return configured_entries(data, 1)
+    # Preserve the former three-sector experiment as a standalone fixture.
+    # The live sample intentionally has FOUR cardinal directions now.
+    from shuriken_model import ShurikenEntry
+    return [ShurikenEntry('zip_studio', 'FRB Studio をZIP保存', 1, 'up_left', 10),
+            ShurikenEntry('launch_source_zip', 'FRB Launch をZIP保存', 1, 'up_right', 20),
+            ShurikenEntry('shuriken_git_commit_filename', 'Gitコミット', 1, 'down', 30)]
 
 
 def test_three_sectors_match_reference_picture_and_real_action_ids():
@@ -41,14 +45,14 @@ def test_flick_and_cancel(dx,dy,expected):
     assert (selected.item_id if selected else None) == expected
 
 
-def test_current_circle_diameter_48_fits_each_wedge():
-    # Radius 72; marker center 42. Nearest edge of a 120-degree sector:
-    # 42*sin(60deg) > 24; outer-ring margin 72-42 > 24.
+def test_current_origin_48_and_selected_dot_25_fit_each_wedge():
+    # White origin radius=24; selected dot radius=12.5 at distance=42.
     for row in entries():
-        _, _, marker_x, marker_y = three_sector_slot(row)
+        _, _, marker_x, marker_y, _ = three_sector_slot(row)
         distance = math.hypot(marker_x, marker_y)
-        assert distance + 24 < 72
-        assert distance * math.sin(math.radians(60)) > 24
+        assert distance + 12.5 < 72
+        assert distance - 12.5 > 24
+        assert distance * math.sin(math.radians(60)) > 12.5
 
 
 def test_two_menu_legacy_up_down_flick_behavior_is_retained():
