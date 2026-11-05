@@ -17,9 +17,10 @@ from shuriken_model import (choose_entry, uses_three_sector_guide,
                             four_sector_slot, current_indicator_position,
                             THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
+from shuriken_assets import resource_root
 
 # Icon provided for the experiment; retain the same asset in the packaged app.
-ICON_PATH = Path(__file__).resolve().parent.parent / 'assets' / 'remote_shuriken.png'
+ICON_PATH = resource_root(__file__) / 'assets' / 'remote_shuriken.png'
 
 
 class ShurikenPreview(QWidget):

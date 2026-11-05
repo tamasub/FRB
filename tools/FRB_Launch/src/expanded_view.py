@@ -33,6 +33,7 @@ from folder_sort_preferences import (DEFAULT_SORT, load_directory_sort,
                                      save_directory_sort)
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
 from folder_favorites import FolderFavorites
+from files_list_search_history import FilesListSearchHistory
 from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
@@ -288,6 +289,25 @@ def _files_history_icon(theme):
     painter.setPen(pen)
     painter.drawEllipse(QRectF(5, 4, 13, 13))
     painter.drawLine(QPointF(16, 16), QPointF(20, 20))
+    painter.end()
+    return QIcon(pix)
+
+
+def _files_list_keyword_history_icon(theme):
+    """Small clock/history glyph matching the breadcrumb 30px toolbutton."""
+    pix = QPixmap(48, 48)
+    pix.setDevicePixelRatio(2)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    color = '#647c70' if theme_family(theme) == 'light' else '#e3eee7'
+    pen = QPen(QColor(color), 1.7)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawEllipse(QRectF(3, 3, 17, 17))
+    painter.drawLine(QPointF(11.5, 6.0), QPointF(11.5, 11.5))
+    painter.drawLine(QPointF(11.5, 11.5), QPointF(15.0, 13.5))
     painter.end()
     return QIcon(pix)
 
@@ -1428,6 +1448,25 @@ class ExpandedLauncherView(QWidget):
         self.files_list_title_label.setObjectName('filesListTitle')
         files_list_title_layout.addWidget(self.files_list_title_label)
         middle_search_layout.addWidget(self.files_list_title_box, 0)
+        # This is a *local Files List* keyword history, not Launcher-global
+        # search history. Keep the same small, left-side breadcrumb button UI.
+        history_path = (Path(launcher.settings.fileName()).parent
+                        / 'files_list_search_history.json')
+        self.files_list_search_history = FilesListSearchHistory(history_path)
+        self.middle_search_history_button = QToolButton(self.middle_search_bar)
+        self.middle_search_history_button.setObjectName('expandedMiddleSearchHistoryButton')
+        self.middle_search_history_button.setFixedSize(30, 29)
+        self.middle_search_history_button.setIconSize(QSize(22, 22))
+        self.middle_search_history_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.middle_search_history_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.middle_search_history_button.setToolTip(
+            'Files List検索履歴：現在のキーワードを登録／登録済みキーワードを呼び出し')
+        self.middle_search_history_menu = QMenu(self.middle_search_history_button)
+        self.middle_search_history_menu.setObjectName('filesListSearchHistoryMenu')
+        self.middle_search_history_menu.aboutToShow.connect(self.populate_middle_search_history_menu)
+        self.middle_search_history_button.setMenu(self.middle_search_history_menu)
+        self.middle_search_history_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        middle_search_layout.addWidget(self.middle_search_history_button, 0)
         self.middle_search = QLineEdit(self.middle_search_bar)
         self.middle_search.setObjectName('expandedMiddleSearch')
         self.middle_search.setMinimumHeight(29)
@@ -1864,6 +1903,7 @@ class ExpandedLauncherView(QWidget):
         self.density_button.setText('')
         self.density_button.setIcon(density_lines_icon(theme_family(theme)))
         self.files_history_button.setIcon(_files_history_icon(theme))
+        self.middle_search_history_button.setIcon(_files_list_keyword_history_icon(theme))
         self.bookmark_close_button.setIcon(browser_navigation_icon(
             'close', theme_family(theme)))
         if self._browser_empty_bookmark_button is not None:
@@ -1980,6 +2020,15 @@ class ExpandedLauncherView(QWidget):
                 border-radius:3px;}}
             QLabel#filesListTitle {{color:{text};font-size:12px;font-weight:bold;
                 background:transparent;border:0;}}
+            QToolButton#expandedMiddleSearchHistoryButton {{background:{bg};color:{text};
+                border:1px solid {border};border-radius:7px;padding:0;}}
+            QToolButton#expandedMiddleSearchHistoryButton:hover {{background:{hover};}}
+            QMenu#filesListSearchHistoryMenu {{background:{colors['history_bg']};
+                color:{colors['history_text']};border:1px solid {colors['history_border']};
+                padding:4px;}}
+            QMenu#filesListSearchHistoryMenu::item {{padding:5px 12px;}}
+            QMenu#filesListSearchHistoryMenu::item:selected {{background:{colors['history_selected']};
+                color:{colors['history_selected_text']};}}
             QLineEdit#expandedMiddleSearch {{background:{bg};color:{text};border:1px solid {border};
                 border-radius:7px;padding:3px 7px;font-size:12px;selection-background-color:#78bba0;}}
             QLineEdit#expandedMiddleSearch:focus {{border:1px solid #55a38c;}}
@@ -2274,6 +2323,48 @@ class ExpandedLauncherView(QWidget):
             self._middle_sort_directory = directory
         self._update_middle_header_sort()
         self._fill_middle_from_current()
+
+    def populate_middle_search_history_menu(self):
+        """Refresh the left-side button's popup each time it is opened."""
+        menu = self.middle_search_history_menu
+        menu.clear()
+        current = self.middle_search.text().strip()
+        register = menu.addAction('＋  現在のキーワードを履歴に登録')
+        register.setEnabled(bool(current))
+        register.triggered.connect(self.register_middle_search_history)
+        menu.addSeparator()
+        if not self.files_list_search_history.keywords:
+            placeholder = menu.addAction('（登録された検索履歴はありません）')
+            placeholder.setEnabled(False)
+        else:
+            for keyword in self.files_list_search_history.keywords:
+                action = menu.addAction(keyword)
+                action.setToolTip(keyword)
+                action.triggered.connect(
+                    lambda checked=False, value=keyword: self.select_middle_search_history(value))
+            menu.addSeparator()
+            forget = menu.addMenu('履歴から削除')
+            for keyword in self.files_list_search_history.keywords:
+                action = forget.addAction(keyword)
+                action.triggered.connect(
+                    lambda checked=False, value=keyword: self.remove_middle_search_history(value))
+
+    def register_middle_search_history(self, *_):
+        try:
+            self.files_list_search_history.remember(self.middle_search.text())
+        except OSError as exc:
+            self.middle_search_history_button.setToolTip('検索履歴を保存できません: ' + str(exc))
+
+    def select_middle_search_history(self, keyword):
+        # Existing textChanged -> apply_middle_filter keeps AND/OR semantics.
+        self.middle_search.setText(keyword)
+        self.middle_search.setFocus(Qt.FocusReason.MouseFocusReason)
+
+    def remove_middle_search_history(self, keyword):
+        try:
+            self.files_list_search_history.remove(keyword)
+        except OSError as exc:
+            self.middle_search_history_button.setToolTip('検索履歴を削除できません: ' + str(exc))
 
     def apply_middle_filter(self, *_):
         # Keep the local search separate from Launcher-global search.

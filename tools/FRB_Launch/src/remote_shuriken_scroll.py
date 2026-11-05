@@ -10,9 +10,18 @@ import time
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel
+try:
+    from PySide6.QtGui import QPixmap
+except Exception:  # Qt-free tests may not provide QtGui.
+    QPixmap = None
 
+from shuriken_assets import resource_root
 from shuriken_scroll_model import (TICK_MS, ARRIVAL_DECEL_START, plan_flick,
                                    plan_full_range_flight, eased_displacement)
+
+ICON_PATH = resource_root(__file__) / 'assets' / 'remote_shuriken_scroll.png'
+ICON_MAX_WIDTH = 42
+ICON_MAX_HEIGHT = 26
 
 # A button press becomes a brake pedal. Quick tap: a persistent slowdown;
 # long hold: full stop. Braking uses a virtual flight clock, never changes the
@@ -61,18 +70,34 @@ class ShurikenScrollPad(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(1, 1, 1, 1)
         layout.setSpacing(0)
+
+        icon = QLabel('', self)
+        icon.setObjectName('remoteShurikenScrollIcon')
+        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
         caption = QLabel('手裏剣↕', self)
         caption.setObjectName('remoteShurikenScrollLabel')
         caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
+        # Keep the old glyph label as an internal state carrier so the
+        # existing Qt-free regression tests and status logic remain intact.
         glyph = QLabel('⇅', self)
         glyph.setObjectName('remoteShurikenScrollGlyph')
         glyph.setAlignment(Qt.AlignmentFlag.AlignCenter)
         glyph.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
+        layout.addWidget(icon)
         layout.addWidget(caption)
-        layout.addWidget(glyph)
+
+        self._icon_label = icon
         self._caption = caption
         self._glyph = glyph
+        self._icon_pixmap = None
+        if QPixmap is not None:
+            self._icon_pixmap = QPixmap(str(ICON_PATH))
+        self._apply_icon_pixmap()
 
     def wheelEvent(self, event):
         pad = getattr(self.parentWidget(), 'pad', None)
@@ -89,6 +114,24 @@ class ShurikenScrollPad(QFrame):
     def _target(self):
         provider = self.target_provider
         return provider() if callable(provider) else None
+
+    def _apply_icon_pixmap(self):
+        label = getattr(self, '_icon_label', None)
+        if label is None:
+            return
+        pixmap = getattr(self, '_icon_pixmap', None)
+        if pixmap is None or getattr(pixmap, 'isNull', lambda: True)():
+            if hasattr(label, 'setText'):
+                label.setText('⇅')
+            return
+        if hasattr(pixmap, 'scaled'):
+            pixmap = pixmap.scaled(ICON_MAX_WIDTH, ICON_MAX_HEIGHT,
+                                   Qt.AspectRatioMode.KeepAspectRatio,
+                                   Qt.TransformationMode.SmoothTransformation)
+        if hasattr(label, 'setPixmap'):
+            label.setPixmap(pixmap)
+        elif hasattr(label, 'setText'):
+            label.setText('手裏剣')
 
     def _update_feedback(self):
         """Expose which wheel direction controls speed, without moving current.

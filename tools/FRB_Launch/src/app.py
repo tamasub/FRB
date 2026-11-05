@@ -6573,20 +6573,28 @@ class Launcher(QWidget):
 
     def moveEvent(self, event):
         super().moveEvent(event)
+        # Follow the Launch frame immediately, including the 1.5-column
+        # mode where Remote itself is realigned on the next Qt event turn.
+        # With kana hidden, Remote retains its original independent placement.
+        companion = getattr(self, '_remote_kana_companion', None)
+        remote = getattr(self, 'remote_window', None)
+        keyboard = getattr(companion, 'window', None) if companion is not None else None
+        follow_keyboard = (self.isVisible() and keyboard is not None
+                           and keyboard.isVisible())
+        delta = event.pos() - event.oldPos()
+        if follow_keyboard and not delta.isNull():
+            follow = getattr(companion, 'follow_launcher_move', None)
+            if callable(follow):
+                follow(delta)
         if getattr(self, 'remote_15_mode', False):
             self.queue_remote_15_alignment()
-        else:
-            # A visible kana + Remote pair follows a dragged main Launch
-            # window together. Without kana, keep Remote's free placement.
-            companion = getattr(self, '_remote_kana_companion', None)
-            remote = getattr(self, 'remote_window', None)
-            keyboard = getattr(companion, 'window', None) if companion is not None else None
-            if (self.isVisible() and remote is not None and remote.isVisible()
-                    and keyboard is not None and keyboard.isVisible()):
-                delta = event.pos() - event.oldPos()
-                if not delta.isNull():
-                    # Remote.geometry_changed triggers kana.reposition().
-                    remote.move(remote.pos() + delta)
+        elif follow_keyboard and remote is not None and remote.isVisible() and not delta.isNull():
+            remote.move(remote.pos() + delta)
+            # A direct update is necessary on some Windows builds where a
+            # programmatic Remote.move does not emit a native MoveEvent.
+            reposition = getattr(companion, 'reposition', None)
+            if callable(reposition):
+                reposition()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

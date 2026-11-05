@@ -116,6 +116,18 @@ class RemoteKanaIntegration:
         if self.window.pos() != desired:
             self.window.move(desired)
 
+    def follow_launcher_move(self, delta):
+        """Translate a visible kana pane with its Launch owner immediately.
+
+        Remote may be aligned on the next event-loop cycle in 1.5-column
+        mode. Moving the keyboard by the same delta prevents a stationary
+        keyboard during that interval. Remote.reposition() subsequently
+        adjusts edge-of-screen positioning without accumulating deltas.
+        """
+        if (self.window is not None and self.window.isVisible()
+                and not delta.isNull()):
+            self.window.move(self.window.pos() + delta)
+
     def _mark_hidden(self):
         # Re-enable native delegate focus-out when the companion closes.
         # Leave the inline rename text/editor untouched: Enter/Escape in the
