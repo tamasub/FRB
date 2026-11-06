@@ -57,7 +57,7 @@ def test_placement_is_exactly_below_original_68_x_46_pad():
     button = source('src/remote_shuriken_scroll.py')
     assert "self.setFixedSize(68, 46)" in button
     assert "self.scroll_pad = ShurikenScrollPad(self)" in remote
-    assert remote.index('root.addLayout(row_mid)') < remote.index('root.addWidget(self.scroll_pad') < remote.index('self.up_band = UpDoubleClickBand(self)')
+    assert remote.index('root.addWidget(self.pad, 0, Qt.AlignmentFlag.AlignHCenter)') < remote.index('root.addWidget(self.scroll_pad') < remote.index('self.up_band = UpDoubleClickBand(self)')
     assert 'Qt.AlignmentFlag.AlignHCenter' in remote
     assert "self.scroll_pad.scroll_requested.connect(launcher.remote_scroll_files_list)" in remote
 

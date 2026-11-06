@@ -48,6 +48,7 @@ class DummyEvent:
         self.accepted = False
 
     def button(self): return self._button
+    def buttons(self): return self._button
     def position(self): return NS(toPoint=lambda: self.xy)
     def globalPosition(self): return NS(toPoint=lambda: NS(x=lambda: self.gxy[0], y=lambda: self.gxy[1]))
     def accept(self): self.accepted = True
@@ -150,6 +151,7 @@ def test_normal_shuriken_flick_remains_intact_outside_confirmation(module):
     button.mousePressEvent(DummyEvent())
     assert button._preview is not None
     assert button._preview.present.call_count == 1
+    button.mouseMoveEvent(DummyEvent(global_y=50))  # Draw UP eye first.
     button.mouseReleaseEvent(DummyEvent(global_y=50))  # -50px = UP
     button.triggered.emit.assert_called_once_with('zip')
     button._preview.hide.assert_called_once_with()
@@ -160,6 +162,7 @@ def test_normal_shuriken_flick_remains_intact_outside_confirmation(module):
 def test_dialog_appearing_during_flick_prevents_background_launch(module):
     button, launcher = make_button(module)
     button.mousePressEvent(DummyEvent())
+    button.mouseMoveEvent(DummyEvent(global_y=50))
     launcher._remote_confirmation = NS(remote_command=Mock())
     button.mouseReleaseEvent(DummyEvent(global_y=50))
     button.triggered.emit.assert_not_called()

@@ -28,13 +28,15 @@ def actual(source, klass, name, extras=None):
     return env[name]
 
 
-def test_remote_buttons_split_and_browser_full_width():
-    assert "'REMOTE_TARGET_EXP', width=85, height=27" in REMOTE
-    assert "'REMOTE_TARGET_LIST', width=85, height=27" in REMOTE
+def test_files_targets_are_selected_by_grigri_not_redundant_buttons():
+    assert "'REMOTE_TARGET_EXP', width=85, height=27" not in REMOTE
+    assert "'REMOTE_TARGET_LIST', width=85, height=27" not in REMOTE
     assert "'WORKSPACE_BROWSER', width=172, height=27" in REMOTE
-    assert 'row_workspaces.addWidget(self.files_exp_button)' in REMOTE
-    assert 'row_workspaces.addWidget(self.files_list_button)' in REMOTE
+    assert 'self.files_exp_button = self._button(' not in REMOTE
+    assert 'self.files_list_button = self._button(' not in REMOTE
     assert 'root.addWidget(self.browser_button)' in REMOTE
+    assert "ShurikenEntry('REMOTE_TARGET_EXP', 'Exp列', 0, 'left', 0)" in REMOTE
+    assert "ShurikenEntry('REMOTE_TARGET_LIST', 'List列', 0, 'right', 1)" in REMOTE
     assert "'files_exp': 'Files Exp'" in REMOTE
     assert "'directory': 'Files List'" in REMOTE
 

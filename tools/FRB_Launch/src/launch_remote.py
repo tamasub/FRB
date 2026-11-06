@@ -14,8 +14,10 @@ from passive_header_drag import PassiveHeaderDrag
 from launch_appearance import theme_palette, theme_family
 from browser_nav_icons import browser_navigation_icon
 from remote_files_explorer import RemoteFilesExplorer
-from remote_shuriken import ShurikenButton
+from remote_shuriken import ShurikenButton, ShurikenPreview
+from shuriken_model import ShurikenEntry, choose_entry
 from remote_shuriken_scroll import ShurikenScrollPad
+from mouse_pointer_rod import MousePointerRodPad
 
 
 def remote_favorite_icon(heart):
@@ -75,22 +77,37 @@ def remote_compact_icon(kind: str, light: bool) -> QIcon:
 
 class WheelPad(QFrame):
     command = Signal(str)
-    # A real gesture moves the POINTER, never the fixed-position WheelPad.
-    # The compact pad is 68 px wide, so keep the threshold smaller than half.
-    DRAG_THRESHOLD_PX = 18
+    # The legacy horizontal drag-to-LEFT/RIGHT navigation is RETIRED.
+    # A deliberate hold opens the two-way Exp/List shuriken target selector.
+    DRAG_THRESHOLD_PX = 18  # Cancel long-press when dragging too early.
+    TARGET_SELECT_DEADZONE_PX = 12  # Only used while eye is at its origin.
+    TARGET_MENU_HOLD_MS = 450
 
     def __init__(self, parent=None, *, compact=False):
         super().__init__(parent)
         self.setObjectName('remoteWheelPad')
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip('通常：ホイールで選択／滑走中：順方向で加速・逆方向で減速／クリック・ダブルクリック／左右ドラッグ：← →／右クリックでメニュー')
+        self.setToolTip('ホイールで選択／クリック・ダブルクリック／長押し→左右へシュッでExp列・List列を選択／右クリックでメニュー')
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._angle_remainder = 0
         self._pixel_remainder = 0
+        self._rod_wheel_angle_remainder = 0
+        self._rod_wheel_pixel_remainder = 0
         self._pressed = False
         self._ignore_double_release = False
         self._drag_start_pos = None
         self._dragged = False
+        self._target_menu_open = False
+        self._target_preview = None
+        self._target_choice = None  # Exactly the choice the eye last displayed.
+        self.target_switch_allowed = None  # Remote supplies Files-only eligibility.
+        self._target_entries = (
+            ShurikenEntry('REMOTE_TARGET_EXP', 'Exp列', 0, 'left', 0),
+            ShurikenEntry('REMOTE_TARGET_LIST', 'List列', 0, 'right', 1),
+        )
+        self._target_hold_timer = QTimer(self)
+        self._target_hold_timer.setSingleShot(True)
+        self._target_hold_timer.timeout.connect(self._show_target_menu)
         self._compact = bool(compact)
         if self._compact:
             # Compact, but not too tiny: keep neighbor travel short while
@@ -125,13 +142,49 @@ class WheelPad(QFrame):
             caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
             layout.addWidget(caption)
 
+    def _target_allowed(self):
+        allowed = getattr(self, 'target_switch_allowed', None)
+        return bool(callable(allowed) and allowed())
+
+    def _show_target_menu(self):
+        """Long press only: show the existing Pokeball current-dot guide."""
+        if (not self._pressed or self._dragged
+                or self._drag_start_pos is None or not self._target_allowed()):
+            return
+        if self._target_preview is None:
+            self._target_preview = ShurikenPreview(self)
+        self._target_choice = None
+        self._target_menu_open = True
+        self._target_preview.present(self, self._target_entries, self._target_choice)
+
+    def _hide_target_menu(self):
+        timer = getattr(self, '_target_hold_timer', None)
+        if timer is not None:
+            timer.stop()
+        preview = getattr(self, '_target_preview', None)
+        if preview is not None:
+            preview.hide()
+        self._target_menu_open = False
+        self._target_choice = None
+
+    def hideEvent(self, event):
+        self._hide_target_menu()
+        self._pressed = False
+        self._drag_start_pos = None
+        self._dragged = False
+        super().hideEvent(event)
+
     def wheelEvent(self, event):
         # Works both for native pad events and button wheel forwarding.
         # Ctrl+wheel changes ONLY the Remote background transparency.
-        remote = self.parentWidget() if hasattr(self, 'parentWidget') else None
+        parent_method = getattr(self, 'parentWidget', None)
+        owner = parent_method() if callable(parent_method) else None
+        remote = getattr(owner, '_remote', None) or owner
         adjust_opacity = getattr(remote, 'adjust_background_opacity_from_wheel', None)
         if callable(adjust_opacity) and adjust_opacity(event):
             return
+        # This button ALWAYS keeps the original Files/Browser navigation,
+        # including when physically embedded in the blue pointing-rod pad.
         angle = event.angleDelta().y()
         pixel = event.pixelDelta().y()
         if angle:
@@ -166,8 +219,12 @@ class WheelPad(QFrame):
             event.accept()
             return
         if self._pressed:
+            self._hide_target_menu()
             self._drag_start_pos = event.position().toPoint()
             self._dragged = False
+            timer = getattr(self, '_target_hold_timer', None)
+            if timer is not None and self._target_allowed():
+                timer.start(self.TARGET_MENU_HOLD_MS)
             event.accept()
         else:
             super().mousePressEvent(event)
@@ -179,9 +236,25 @@ class WheelPad(QFrame):
         start = getattr(self, '_drag_start_pos', None)
         if self._pressed and start is not None:
             pos = event.position().toPoint()
-            if (abs(pos.x() - start.x()) >= self.DRAG_THRESHOLD_PX or
-                    abs(pos.y() - start.y()) >= self.DRAG_THRESHOLD_PX):
+            dx, dy = pos.x() - start.x(), pos.y() - start.y()
+            if self._target_menu_open:
+                # The green eye and the pending command are ONE state.
+                # Once the eye chooses a side, no later velocity, distance,
+                # or release-coordinate test can silently cancel it.
+                self._target_choice = choose_entry(
+                    self._target_entries, dx, dy,
+                    min_release_distance=self.TARGET_SELECT_DEADZONE_PX)
+                if self._target_preview is not None:
+                    self._target_preview.present(
+                        self, self._target_entries, self._target_choice)
+            elif (abs(dx) >= self.DRAG_THRESHOLD_PX or
+                  abs(dy) >= self.DRAG_THRESHOLD_PX):
+                # Before the hold, movement CANCELS the timer. The old drag
+                # must not silently navigate List to its first row.
                 self._dragged = True
+                timer = getattr(self, '_target_hold_timer', None)
+                if timer is not None:
+                    timer.stop()
             event.accept()
             return
         super().mouseMoveEvent(event)
@@ -190,6 +263,7 @@ class WheelPad(QFrame):
         # Preserve the existing native double-click command. A drag never
         # synthesizes DOUBLE_CLICK or a second CLICK.
         if event.button() == Qt.MouseButton.LeftButton:
+            self._hide_target_menu()
             self._pressed = False
             self._drag_start_pos = None
             self._dragged = False
@@ -207,6 +281,7 @@ class WheelPad(QFrame):
             event.accept()
             return
         if self._ignore_double_release and event.button() == Qt.MouseButton.LeftButton:
+            self._hide_target_menu()
             self._ignore_double_release = False
             self._pressed = False
             self._drag_start_pos = None
@@ -225,12 +300,18 @@ class WheelPad(QFrame):
                 moved = moved or abs(dx) >= self.DRAG_THRESHOLD_PX or abs(dy) >= self.DRAG_THRESHOLD_PX
             else:
                 dx, dy = 0, 0
-            if moved:
-                # Only a deliberate horizontal gesture invokes the existing
-                # arrow command. Vertical/ambiguous gestures cancel safely.
-                if abs(dx) >= self.DRAG_THRESHOLD_PX and abs(dx) > abs(dy):
-                    self.command.emit('LEFT' if dx < 0 else 'RIGHT')
-            elif self.rect().contains(pos):
+            # A long-press gesture selects the *operating target* only.
+            # NEVER reuse old LEFT/RIGHT (List LEFT can jump to row one).
+            menu_open = getattr(self, '_target_menu_open', False)
+            # Commit EXACTLY the current eye's displayed selection, not a
+            # second release-time hit test with another distance threshold.
+            # Releasing slowly is intentionally identical to releasing fast.
+            chosen = (getattr(self, '_target_choice', None)
+                      if menu_open and self._target_allowed() else None)
+            self._hide_target_menu()
+            if chosen is not None:
+                self.command.emit(chosen.item_id)
+            elif not menu_open and not moved and self.rect().contains(pos):
                 self.command.emit('CLICK')
             event.accept()
         else:
@@ -478,45 +559,23 @@ class LaunchRemote(QWidget):
         self.page_separator.setFixedHeight(7)
         self.page_separator.hide()
 
-        # Files Exp and Files List select the operating target, not the
-        # working directory. Browser remains a separate full-width action.
+        # The former Files Exp / Files List buttons are retired.  The hold
+        # menu on the ぐりぐり pad is the sole visible Files target selector.
+        # Keep only the logical target; changing it must not navigate rows.
         self._files_operating_target = 'directory'
-        # Files Exp is the left workspace button, not a separate popup toggle.
         self.files_exp_panel = None
         self._grid_aligned = False
         self._applying_grid_alignment = False
         self.files_exp_theme = launcher.color_theme
-        self.files_exp_button = self._button(
-            'Files Exp', 'Files Expツリーをぐりぐり操作（場所は変えずに切替）',
-            'REMOTE_TARGET_EXP', width=85, height=27, role='workspace',
-            wheel_enabled=True)
-        self.files_list_button = self._button(
-            'Files List', '第2列をぐりぐり操作（場所は変えずに切替）',
-            'REMOTE_TARGET_LIST', width=85, height=27, role='workspace',
-            wheel_enabled=True)
-
-        # One-click mode switch, directly above BackTab/Tab.  Wheel gestures
-        # on these buttons still go through the shared WheelPad accumulator.
-        # Geometry shared by the Page and all control rows:
-        # Page = 172px. Two columns = 85 + 2 gap + 85 = 172px.
-        # Wheel row = 50 + 2 gap + 68 + 2 gap + 50 = 172px.
-        # Every row starts at the same 5px root left margin.
-        row_workspaces = QHBoxLayout()
-        row_workspaces.setContentsMargins(0, 0, 0, 0)
-        row_workspaces.setSpacing(2)
-        # Keep the historical attribute for older tests/integrations.
-        self.files_button = self.files_exp_button
+        # Browser remains a distinct workspace action.
         self.browser_button = self._button('Browser', 'Browser画面へ切り替え / 右クリック：ブックマークを展開',
                                            'WORKSPACE_BROWSER', width=172, height=27,
                                            role='workspace', wheel_enabled=True)
-        # Mirror Files: right-click opens a non-modal, searchable cascade.
-        # Native left-click remains WORKSPACE_BROWSER, never a context action.
+        # Browser right-click opens its non-modal searchable bookmarks;
+        # native left-click remains WORKSPACE_BROWSER.
         self.browser_button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.browser_button.customContextMenuRequested.connect(
             lambda _point: self.command.emit('REMOTE_BROWSER_BOOKMARK_MENU'))
-        row_workspaces.addWidget(self.files_exp_button)
-        row_workspaces.addWidget(self.files_list_button)
-        root.addLayout(row_workspaces)
         # Browser gets its own full-width row. It is not a Files target.
         root.addWidget(self.browser_button)
         # Former dedicated history buttons were redundant: both remain in
@@ -526,8 +585,8 @@ class LaunchRemote(QWidget):
         row_quick.setContentsMargins(0, 0, 0, 0)
         row_quick.setSpacing(2)
         # 1の手 identifies this shuriken BUTTON, not a direction or menu ID.
-        # The initial two-action UI shows a fixed circle; direction decides
-        # the action. The JSON model allows future button indices/entries.
+        # Its 4-action eye marker is authoritative; the release commits what
+        # the user saw, rather than re-evaluating the mouse trajectory.
         self.shuriken_button = ShurikenButton(launcher, self, hand_index=1)
         self.shuriken_button.triggered.connect(
             lambda item_id: self.command.emit('SHURIKEN_ITEM:' + item_id))
@@ -549,19 +608,21 @@ class LaunchRemote(QWidget):
             'keyboard', theme_family(launcher.color_theme) == 'light'))
         row_quick.addWidget(self.kana_button)
         root.addLayout(row_quick)
-        row_mid = QHBoxLayout()
-        row_mid.setContentsMargins(0, 0, 0, 0)
-        row_mid.setSpacing(2)
-        self.left_button = self._button('←', '戻る / 左へ',
-                                        'LEFT', width=50, height=46)
-        row_mid.addWidget(self.left_button)
         self.pad = WheelPad(self, compact=True)
+        # With the two Files target buttons removed, the ぐりぐり hold menu
+        # also offers the path BACK from Browser to Files Exp/List.  The
+        # actual REMOTE_TARGET_* dispatcher preserves Files' current row.
+        # Native modal confirmations retain sole ownership of input.
+        self.pad.target_switch_allowed = lambda: (
+            launcher.isVisible() and not launcher.isMinimized()
+            and launcher.expanded_view.isVisible()
+            and launcher.expanded_view._workspace_mode in ('files', 'browser')
+            and getattr(launcher, '_remote_text_dialog', None) is None
+            and getattr(launcher, '_remote_confirmation', None) is None)
         self.pad.command.connect(self.command.emit)
-        row_mid.addWidget(self.pad)
-        self.right_button = self._button('→', 'フォルダーへ / 右へ',
-                                         'RIGHT', width=50, height=46)
-        row_mid.addWidget(self.right_button)
-        # The wheel row is added after the Tab/BackTab row below.
+        # No old ←/→ buttons: the ぐりぐり alone occupies this center row.
+        # The hold selector chooses a COLUMN, never a first/next row.
+        # The regular wheel / click / double click on ぐりぐり remain intact.
 
         row_top = QHBoxLayout()
         row_top.setContentsMargins(0, 0, 0, 0)
@@ -573,7 +634,9 @@ class LaunchRemote(QWidget):
         row_top.addWidget(self.backtab_button)
         row_top.addWidget(self.tab_button)
         root.addLayout(row_top)
-        root.addLayout(row_mid)
+        root.addWidget(self.pad, 0, Qt.AlignmentFlag.AlignHCenter)
+        self._pad_layout_index = root.indexOf(self.pad)
+        self._pad_inside_rod = False
 
         # An independent scroll-only pad immediately below the ぐりぐり pad.
         # Same footprint and centerline. During flight, only the viewport
@@ -602,15 +665,22 @@ class LaunchRemote(QWidget):
         status_layout.addWidget(self.area_label)
         root.addWidget(status_frame)
 
-        # The old caption and up/down buttons are intentionally omitted.
-        # The wheel pad emits UP/DOWN, CLICK and DOUBLE_CLICK without synthetic keys.
+        # v0.8: the actual ぐりぐり is embedded in the blue aim area only
+        # while the experiment is ON. Its OWN wheel/click/hold stay native;
+        # the remaining blue surface exclusively owns rod length + selection.
+        self.pointer_rod = MousePointerRodPad(self)
+        root.addWidget(self.pointer_rod)
+
+        # The wheel pad emits UP/DOWN, CLICK and DOUBLE_CLICK without synthetic
+        # keys. Its hold selector owns Files Exp/List switching; the former
+        # target pair and dedicated arrow buttons no longer occupy space.
         self.adjustSize()
         # Keep the window large enough for the intentionally tall tab/history
         # buttons. Their height is fixed on each button, not by the stylesheet.
         self.setMinimumHeight(root.sizeHint().height())
 
         # Accept the same wheel gesture over *every* Remote surface: empty
-        # strips, title/status text, arrows, Page buttons and the central pad.
+        # strips, title/status text, remaining buttons and the central pad.
         # Never install this on a cascade QMenu (it has its own window/scroll).
         self.installEventFilter(self)
         for widget in self.findChildren(QWidget):
@@ -618,13 +688,22 @@ class LaunchRemote(QWidget):
                 widget.installEventFilter(self)
         self.set_files_root_hidden_mode(
             bool(getattr(launcher, 'files_root_hidden_mode', False)))
+        self.set_mouse_pointer_rod_enabled(
+            bool(getattr(launcher, 'mouse_pointer_rod_mode', False)))
 
     def moveEvent(self, event):
         super().moveEvent(event)
+        rod = getattr(self, 'pointer_rod', None)
+        if rod is not None:
+            rod.refresh_position()
         self.geometry_changed.emit()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        rod = getattr(self, 'pointer_rod', None)
+        if rod is not None:
+            # Let the layout settle before recomputing the pad anchor.
+            QTimer.singleShot(0, rod.refresh_position)
         self.geometry_changed.emit()
 
     def hideEvent(self, event):
@@ -633,6 +712,52 @@ class LaunchRemote(QWidget):
         # This is not a user close and must not dismiss its kana companion.
         if not self._window_mode_transition:
             self.remote_hidden.emit()
+
+    def set_mouse_pointer_rod_enabled(self, enabled):
+        """Embed/restore the one native ぐりぐり button without changing its duties."""
+        enabled = bool(enabled)
+        self.pad._hide_target_menu()
+        self.pad._pressed = False
+        self.pad._drag_start_pos = None
+        self.pad._dragged = False
+        self.pad._ignore_double_release = False
+        root = self.layout()
+        if enabled and not self._pad_inside_rod:
+            root.removeWidget(self.pad)
+            self.pad.setParent(self.pointer_rod)
+            self.pointer_rod.set_wheel_pad(self.pad)
+            self.pad.show()
+            self._pad_inside_rod = True
+        elif not enabled and self._pad_inside_rod:
+            self.pointer_rod.set_wheel_pad(None)
+            self.pad.hide()
+            self.pad.setParent(self)
+            root.insertWidget(self._pad_layout_index, self.pad, 0,
+                              Qt.AlignmentFlag.AlignHCenter)
+            self.pad.show()
+            self._pad_inside_rod = False
+        self.pointer_rod.set_mode_enabled(enabled)
+        self.pad.setToolTip(
+            'ホイールで選択／クリック・ダブルクリック／長押し→左右へシュッでExp列・List列を選択／右クリックでメニュー')
+        self.setMinimumHeight(0)
+        root.activate()
+        self.adjustSize()
+        self.setMinimumHeight(root.sizeHint().height())
+        if enabled:
+            QTimer.singleShot(0, self._clamp_pointer_rod_to_screen)
+            QTimer.singleShot(0, self.pointer_rod.refresh_position)
+
+    def _clamp_pointer_rod_to_screen(self):
+        if not self.isVisible() or getattr(self, '_grid_aligned', False):
+            return  # Files grid alignment manages its own remote position.
+        screen = QApplication.screenAt(self.frameGeometry().center()) or QApplication.primaryScreen()
+        if screen is None:
+            return
+        rect = screen.availableGeometry()
+        x = max(rect.left(), min(self.x(), rect.right() - self.width() + 1))
+        y = max(rect.top(), min(self.y(), rect.bottom() - self.height() + 1))
+        if x != self.x() or y != self.y():
+            self.move(x, y)
 
     def set_kana_visible(self, visible: bool):
         self.kana_button.setProperty('active', bool(visible))
@@ -690,6 +815,12 @@ class LaunchRemote(QWidget):
         timer = getattr(self, 'search_history_click_timer', None)
         if timer is not None:
             timer.stop()
+        rod = getattr(self, 'pointer_rod', None)
+        if rod is not None:
+            # A dismissed Remote cancels pending hover and accent timers as
+            # well as hiding the painted overlay. No spontaneous reappearance.
+            rod._stop_aiming()
+            rod.hide_overlay()
         super().hideEvent(event)
 
     def toggle_files_exp(self):
@@ -850,6 +981,10 @@ class LaunchRemote(QWidget):
 
     def moveEvent(self, event):
         super().moveEvent(event)
+        # This is the effective moveEvent (overrides the earlier definition).
+        rod = getattr(self, 'pointer_rod', None)
+        if rod is not None:
+            rod.refresh_position()
         if self._applying_grid_alignment:
             return
         # Deliberate Remote drag ends the grid layout for this open session;
@@ -860,15 +995,18 @@ class LaunchRemote(QWidget):
             self.position_files_exp()
 
     def focus_cursor_on_files_exp(self):
-        """Desktop-double-click only: move pointer to the Files Exp button."""
+        """Desktop summons the Remote with the pointer on the central ぐりぐり.
+
+        Keep this public method name for callers of the older Remote; the
+        deleted Files Exp button is no longer a valid pointer destination.
+        """
         launcher = self.parent()
         if not getattr(launcher, 'pointer_warp_enabled', True):
             return
         if not self.isVisible():
             return
         from PySide6.QtGui import QCursor
-        QCursor.setPos(self.files_exp_button.mapToGlobal(
-            self.files_exp_button.rect().center()))
+        QCursor.setPos(self.pad.mapToGlobal(self.pad.rect().center()))
 
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
@@ -879,8 +1017,12 @@ class LaunchRemote(QWidget):
                 return True
             if self.adjust_background_opacity_from_wheel(event):
                 return True
+            # Wheel events have ONE spatial owner. Blue background controls
+            # rod length; embedded central button and every other Remote
+            # surface retain the existing ぐりぐり navigation behavior.
+            if obj is getattr(self, 'pointer_rod', None):
+                return False  # Let MousePointerRodPad.wheelEvent handle it.
             if hasattr(self, 'pad'):
-                # Keep normal wheel navigation unchanged without Ctrl.
                 self.pad.wheelEvent(event)
                 return True
         return super().eventFilter(obj, event)
@@ -947,6 +1089,9 @@ class LaunchRemote(QWidget):
     def apply_theme(self, theme):
         """Follow the Launch appearance palette, including live theme changes."""
         self.files_exp_theme = theme
+        rod = getattr(self, 'pointer_rod', None)
+        if rod is not None:
+            rod.set_theme(theme_family(theme))
         panel = getattr(self, 'files_exp_panel', None)
         if panel is not None:
             panel.apply_theme(theme)
@@ -1018,6 +1163,7 @@ class LaunchRemote(QWidget):
             QFrame#remoteUpDoubleClickBand QLabel {{color:{c['muted_text']};font-size:10px;}}
             QFrame#remoteWheelPad {{background:{active_bg};
                 border:1px dashed {c['focus_outline']};border-radius:5px;}}
+            QFrame#mousePointerRodPad {{background:transparent;border:0;}}
         """)
         self.update()
 
@@ -1039,15 +1185,14 @@ class LaunchRemote(QWidget):
     def set_workspace(self, mode):
         self.up_band.set_files_mode(mode == 'files')
         # History remains available through WheelPad context menu.
-        """Active mode is visible even though Remote never takes focus."""
-        for button, active in (
-                (self.files_exp_button, mode == 'files' and self._files_operating_target == 'files_exp'),
-                (self.files_list_button, mode == 'files' and self._files_operating_target == 'directory'),
-                (self.browser_button, mode == 'browser')):
-            if button.property('active') != active:
-                button.setProperty('active', active)
-                button.style().unpolish(button)
-                button.style().polish(button)
+        # The Files target is shown in the status footer and the ぐりぐり
+        # Pokeball selector, not by the removed pair of workspace buttons.
+        button = self.browser_button
+        active = mode == 'browser'
+        if button.property('active') != active:
+            button.setProperty('active', active)
+            button.style().unpolish(button)
+            button.style().polish(button)
 
     def set_more_menu_mode(self, mode, *, can_add_tab=True):
         browser = mode == 'browser'

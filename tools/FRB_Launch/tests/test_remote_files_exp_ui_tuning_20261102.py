@@ -71,7 +71,7 @@ def test_size_persists_via_launch_settings_not_separate_file():
 def test_desktop_double_click_warps_to_files_exp_only():
     warp = method(REMOTE, 'LaunchRemote', 'focus_cursor_on_files_exp')
     show = method(APP, 'Launcher', 'show_remote_at')
-    assert 'self.files_exp_button.rect().center()' in warp
+    assert 'self.pad.rect().center()' in warp
     assert "'pointer_warp_enabled', True" in warp
     assert 'QCursor.setPos(' in warp
     assert 'self.remote_window.show_at(pointer)' in show

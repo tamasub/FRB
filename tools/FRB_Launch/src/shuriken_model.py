@@ -33,12 +33,29 @@ THREE_SECTOR_DIVIDERS = (-90.0, 30.0, 150.0)
 # target positions preserves the circular order of the four JSON actions:
 # up_left -> up, up_right -> right, down_right -> down, down_left -> left.
 # The divider lines bisect the gaps at 45/135/225/315 degrees (an X).
+# Two target selectors use a vertical divider: LEFT = Exp, RIGHT = List.
+# Keep captions inside the ball, *above* the side markers so text stays
+# readable after the green eye moves. Keep the dot at +/-42 px unchanged.
+# This is intentionally separate from the older 2-item up/down shuriken.
+TWO_HORIZONTAL_LAYOUT = {
+    # Place the captions slightly below the center so the selector feels
+    # connected to the Pokeball eye, not like distant outside labels.
+    'left': (180.0, -38.0, 18.0, 'center'),
+    'right': (0.0, 38.0, 18.0, 'center'),
+}
+
 FOUR_SECTOR_LAYOUT = {
     'up': (-90.0, 0.0, -62.0, 'center'),
     'right': (0.0, 54.0, 0.0, 'left'),
     'down': (90.0, 0.0, 62.0, 'center'),
     'left': (180.0, -54.0, 0.0, 'right'),
 }
+
+
+def uses_two_horizontal_sector_guide(entries):
+    """Whether 2 items represent the FRB Remote Exp/List selector."""
+    return (len(entries) == 2
+            and {row.direction for row in entries} == set(TWO_HORIZONTAL_LAYOUT))
 
 
 def uses_three_sector_guide(entries):
@@ -51,6 +68,14 @@ def uses_four_sector_guide(entries):
     """True exactly when the buttons' four entries match the 4-way sketch."""
     return (len(entries) == 4
             and {row.direction for row in entries} == set(FOUR_SECTOR_LAYOUT))
+
+
+def two_horizontal_sector_slot(entry, radius=72.0, marker_distance=42.0):
+    """Left/right label and current-dot coordinates; not a navigation hitbox."""
+    angle, anchor_x, label_y, align = TWO_HORIZONTAL_LAYOUT[entry.direction]
+    return (anchor_x, label_y,
+            -marker_distance if entry.direction == 'left' else marker_distance,
+            0.0, align)
 
 
 def three_sector_slot(entry, radius=72.0, marker_distance=42.0):
@@ -81,6 +106,8 @@ def current_indicator_position(entries, selected_id='', marker_distance=42.0):
     selected = next((row for row in entries if row.item_id == selected_id), None)
     if selected is None:
         return (0.0, 0.0)
+    if uses_two_horizontal_sector_guide(entries):
+        return two_horizontal_sector_slot(selected, marker_distance=marker_distance)[2:4]
     if uses_three_sector_guide(entries):
         return three_sector_slot(selected, marker_distance=marker_distance)[2:4]
     if uses_four_sector_guide(entries):
@@ -206,6 +233,13 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
     """
     if not entries or math.hypot(dx, dy) < min_release_distance:
         return None
+    if uses_two_horizontal_sector_guide(entries):
+        # Exp/List selection is a cardinal horizontal flick ONLY. A diagonal
+        # release or a click at the central ring must never switch columns.
+        if abs(dx) < min_release_distance or abs(dx) <= abs(dy) + 3.0:
+            return None
+        direction = 'left' if dx < 0 else 'right'
+        return next((row for row in entries if row.direction == direction), None)
     pointer = math.degrees(math.atan2(dy, dx))
     if uses_three_sector_guide(entries):
         candidates = sorted((abs((pointer - THREE_SECTOR_LAYOUT[e.direction][0]

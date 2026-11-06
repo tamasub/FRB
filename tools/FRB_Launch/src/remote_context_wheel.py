@@ -63,13 +63,11 @@ class RemoteContextWheel(QObject):
             self.current.setActiveAction(self._selected)
 
     def _hit(self, global_pos):
-        """Recognize only pad and its adjacent arrow buttons, not the whole Remote."""
+        """Recognize only the ぐりぐり pad; the arrow buttons were retired."""
         remote = getattr(self.launcher, 'remote_window', None)
         if remote is None or not remote.isVisible():
             return None
-        for name, widget in (('CLICK', getattr(remote, 'pad', None)),
-                             ('LEFT', getattr(remote, 'left_button', None)),
-                             ('RIGHT', getattr(remote, 'right_button', None))):
+        for name, widget in (('CLICK', getattr(remote, 'pad', None)),):
             if widget is not None and widget.isVisible():
                 if widget.rect().contains(widget.mapFromGlobal(global_pos)):
                     return name

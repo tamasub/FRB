@@ -68,7 +68,7 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
     assert 'painter.rotate(180)' not in src
     assert 'setPixelSize(self.LABEL_FONT_PX)' in src
     assert 'self._preview.present(self, self._entries, None)' in src
-    assert 'self._preview.present(self, self._entries, choice)' in src
+    assert 'self._preview.present(self, self._entries, self._selected_entry)' in src
 
 
 

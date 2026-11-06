@@ -245,19 +245,18 @@ def test_popup_grab_wheel_redirected_by_pointer_position(harness):
     assert a.trigger_calls == 0
 
 
-def test_popup_grab_left_right_clicks_still_route_to_actual_menu(harness):
+def test_popup_grab_does_not_route_clicks_to_retired_arrow_buttons(harness):
     actions = [FakeAction('コピー'), FakeAction('削除')]
     menu, controller = harness.new_menu(*actions)
     harness.drain()
     def evt(kind, point):
         return NS(type=lambda: kind, globalPosition=lambda: NS(toPoint=lambda: point),
                   button=lambda: 1, accept=lambda: None)
-    assert controller.eventFilter(menu, evt('press', 'right')) is True
-    assert controller.eventFilter(menu, evt('release', 'right')) is True
-    assert menu.isVisible()  # A leaf must never execute on RIGHT.
-    assert controller.eventFilter(menu, evt('press', 'left')) is True
-    assert controller.eventFilter(menu, evt('release', 'left')) is True
-    assert not menu.isVisible()  # LEFT closes safely.
+    assert controller.eventFilter(menu, evt('press', 'right')) is False
+    assert controller.eventFilter(menu, evt('release', 'right')) is False
+    assert controller.eventFilter(menu, evt('press', 'left')) is False
+    assert controller.eventFilter(menu, evt('release', 'left')) is False
+    assert menu.isVisible()
     assert all(a.trigger_calls == 0 for a in actions)
 
 
@@ -266,8 +265,9 @@ def test_remote_opened_files_list_only_and_normal_context_unchanged():
     assert "if pane is view.middle:\n                self._enable_remote_context_wheel()" in APP
     assert "menu_wheel = getattr(self, '_remote_context_wheel', None)" in APP
     assert "if menu_wheel is not None and menu_wheel.command(command):" in APP
-    assert "self.left_button = self._button('←'" in REMOTE
-    assert "self.right_button = self._button('→'" in REMOTE
+    assert "self.left_button = self._button('←'" not in REMOTE
+    assert "self.right_button = self._button('→'" not in REMOTE
+    assert 'root.addWidget(self.pad, 0, Qt.AlignmentFlag.AlignHCenter)' in REMOTE
     assert "self._launch_context_menu = menu" in APP
 
 

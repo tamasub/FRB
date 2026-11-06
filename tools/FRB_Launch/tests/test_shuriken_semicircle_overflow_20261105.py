@@ -71,7 +71,7 @@ def test_ui_full_circle_is_fixed_above_button():
     assert 'painter.drawEllipse(QRectF(-radius, -radius, radius * 2, radius * 2))' in src
     assert 'band = (radius * 2.0) / count' in src
     assert 'self._preview.present(self, self._entries, None)' in src
-    assert 'self._preview.present(self, self._entries, choice)' in src
+    assert 'self._preview.present(self, self._entries, self._selected_entry)' in src
 
 
 def test_ui_does_not_expand_circle_to_fit_long_menu_names():
@@ -97,10 +97,11 @@ def test_ui_shows_white_origin_and_selection_indicator():
 
 
 
-def test_ui_does_not_need_preview_to_complete_fast_throw():
+def test_ui_release_respects_the_last_painted_eye():
     src = preview_source()
     release = src[src.index('    def mouseReleaseEvent('):src.index('    def hideEvent(')]
-    assert 'chosen = choose_entry(self._entries, dx, dy)' in release
+    assert 'chosen = self._selected_entry' in release
+    assert 'chosen = choose_entry(self._entries, dx, dy)' not in release
     assert 'self.triggered.emit(chosen.item_id)' in release
     assert 'self._preview.hide()' in release
     assert 'if chosen is not None:' in release

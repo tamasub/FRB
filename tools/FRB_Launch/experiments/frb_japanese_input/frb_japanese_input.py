@@ -9,7 +9,7 @@ from __future__ import annotations
 import sys
 from dataclasses import replace
 
-from PySide6.QtCore import QPoint, QRect, QRectF, Qt, QTimer, Signal
+from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel,
@@ -27,6 +27,7 @@ from mini_config import (
 from ime_bridge import Win32KeyboardSender
 from local_ime_bridge import LocalImeSession
 from keyboard_modes import (MODES, MODE_LABELS, MODE_COLUMNS, layout_for, request_ime_mode)
+from kana_guide_layout import place_guide
 
 ROW_INDEX = {name: i for i, (name, _chars) in enumerate(KANA_ROWS)}
 
@@ -46,8 +47,8 @@ def style_for_size(font_size: int, theme: str = "dark") -> str:
     QPushButton#literalKey:hover {{ background: #45565e; border-color: #83aaa2; }}
     QPushButton#modeButton {{ color: #dce8e4; background: #303a40;
         border: 1px solid #47585b; border-radius: 4px; font-size: 10px; padding: 0; }}
-    QPushButton#modeButton:checked {{ color: #fff; background: #287c68;
-        border: 1px solid #9bdcc2; }}
+    QPushButton#modeButton:checked {{ color: #fff; background: #416457;
+        border: 1px solid #86bea7; }}
     QPushButton#kanaKey {{ color: #f6f9f8; background: #353d46;
         border: 1px solid #4c5861; border-radius: 6px;
         font-size: {font_size}px; font-weight: 600; padding: 0; }}
@@ -65,8 +66,8 @@ def style_for_size(font_size: int, theme: str = "dark") -> str:
         border: 1px solid #62b49a; border-radius: 5px; font-size: 10px; padding: 0; }}
     QPushButton#imeButton {{ color: #d7eddf; background: #303a40;
         border: 1px solid #47585b; border-radius: 4px; font-size: 9px; padding: 0; }}
-    QPushButton#imeButton:checked {{ color: #ffffff; background: #327d68;
-        border: 1px solid #9bdcc2; }}
+    QPushButton#imeButton:checked {{ color: #ffffff; background: #416457;
+        border: 1px solid #86bea7; }}
     QPushButton#copyButton {{ color: #e3eee8; background: #303a40;
         border: 1px solid #398a75; border-radius: 5px; font-size: 10px; padding: 0 2px; }}
     """
@@ -80,8 +81,8 @@ def style_for_size(font_size: int, theme: str = "dark") -> str:
             '#4c5861': '#b8ccc1', '#45565e': '#d8eae0',
             '#83aaa2': '#5c9f82', '#dce8e4': '#305c4c',
             '#303a40': '#f4fbf7', '#47585b': '#b8d0c2',
-'#287c68': '#b9e7d0',
-            '#9bdcc2': '#6bb998', '#3b7460': '#c8edd8',
+            '#287c68': '#b9e7d0', '#416457': '#d7ece1',
+            '#9bdcc2': '#6bb998', '#86bea7': '#8fc7ab', '#3b7460': '#c8edd8',
             '#8ad2b5': '#519877', '#e6ecea': '#285343',
             '#303840': '#f5fcf8', '#43525a': '#b8ccc1',
             '#e3eee8': '#2d5949', '#4c6860': '#deede4',
@@ -189,61 +190,104 @@ class KanaTitleBar(QFrame):
 
 
 class FlickGuide(QWidget):
-    """A tiny, partially transparent, mouse-transparent 5-way hint."""
+    """Five-way Pokeball guide shown OUTSIDE the keyboard's key hit areas.
+
+    It is a passive Tool window, not a child overlay clipped by the narrow
+    FRB kana panel. It neither takes focus from the native IME nor receives
+    mouse input. The visible green eye and the pending kana direction agree.
+    """
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
+                 Qt.WindowType.WindowDoesNotAcceptFocus |
+                 Qt.WindowType.WindowTransparentForInput)
+        super().__init__(parent, flags)
+        self.setObjectName('kanaPokeballGuide')
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.kana_name = "あ"
-        self.direction = "center"
+        self.kana_name = 'あ'
+        self.direction = 'center'
         self.light_theme = False
-        self.setFixedSize(80, 80)
+        self.setFixedSize(108, 108)
         self.hide()
 
     def configure(self, kana_name: str, direction: str | None) -> None:
         self.kana_name = kana_name
-        self.direction = direction or ""
+        # None denotes a diagonal/cancel gesture. Never show the center eye
+        # for a direction that would be cancelled when released.
+        self.direction = direction
         self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        n = self.width()
-        c = n / 2.0
-        offset = n * 0.245
-        positions = {
-            "center": (c, c), "left": (c - offset, c),
-            "up": (c, c - offset), "right": (c + offset, c),
-            "down": (c, c + offset),
-        }
-        painter.setBrush(QColor(235, 249, 241, 230) if self.light_theme
-                         else QColor(15, 22, 26, 207))
-        painter.setPen(QPen(QColor(65, 130, 98, 130) if self.light_theme
-                            else QColor(148, 179, 168, 95), 1))
-        painter.drawRoundedRect(2, 2, n-4, n-4, 15, 15)
-        font = QFont("Yu Gothic UI", max(10, int(n * 0.14)))
-        font.setBold(True)
-        painter.setFont(font)
-        radius = n * 0.145
-        for name, (x, y) in positions.items():
-            char = flick_hint(self.kana_name, name)
-            if char is None:
-                continue
-            if name == self.direction:
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(112, 194, 143, 235))
-                painter.drawEllipse(QPoint(round(x), round(y)), round(radius), round(radius))
-                painter.setPen(QColor(10, 35, 26))
-            else:
-                painter.setPen(QColor(26, 75, 53, 230 if name == "center" else 180)
-                               if self.light_theme else
-                               QColor(234, 246, 241, 220 if name == "center" else 172))
-            d = round(n * 0.19)
-            painter.drawText(QRect(round(x)-d, round(y)-d, 2*d, 2*d),
-                             Qt.AlignmentFlag.AlignCenter, char)
-        painter.end()
+        try:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            painter.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
+            side = min(self.width(), self.height())
+            center = QPointF(self.width() / 2.0, self.height() / 2.0)
+            c = center.x()
+            radius = side * 0.475
+            option_distance = side * 0.325
+            marker_radius = side * 0.128
+
+            # Match FRB Remote ShurikenPreview's quieter pastel Pokeball.
+            # The same thin strokes and pale fill make the kana guide feel
+            # like one member of the Remote UI family instead of a bold badge.
+            background = QColor(228, 244, 215, 255)
+            border = QColor(154, 196, 119, 210)
+            divider = QColor(159, 195, 133, 185)
+            text_ink = QColor('#183e33')
+
+            painter.setPen(QPen(border, 1.2))
+            painter.setBrush(background)
+            painter.drawEllipse(center, radius, radius)
+
+            # Diagonal borders form four cardinal flick sectors, exactly as
+            # on the 4-way shuriken; the central click remains a fifth action.
+            diagonal = radius / (2.0 ** 0.5)
+            painter.setPen(QPen(divider, 1.0))
+            painter.drawLine(QPointF(c - diagonal, c - diagonal),
+                             QPointF(c + diagonal, c + diagonal))
+            painter.drawLine(QPointF(c - diagonal, c + diagonal),
+                             QPointF(c + diagonal, c - diagonal))
+
+            painter.setPen(QPen(QColor('#385e56'), 1.2))
+            painter.setBrush(QColor('#ffffff'))
+            painter.drawEllipse(center, side * 0.178, side * 0.178)
+
+            positions = {
+                'center': center,
+                'left': QPointF(c - option_distance, c),
+                'up': QPointF(c, c - option_distance),
+                'right': QPointF(c + option_distance, c),
+                'down': QPointF(c, c + option_distance),
+            }
+            # Draw the marker BEFORE the kana characters. This makes the
+            # selected kana legible even when the green eye is beneath it.
+            chosen = self.direction
+            if chosen in positions and flick_hint(self.kana_name, chosen) is not None:
+                painter.setPen(QPen(QColor('#426d59'), 1.0))
+                painter.setBrush(QColor('#aed2a0'))
+                painter.drawEllipse(positions[chosen], marker_radius, marker_radius)
+
+            font = QFont('Yu Gothic UI')
+            font.setPixelSize(max(15, round(side * 0.153)))
+            font.setBold(True)
+            painter.setFont(font)
+            size = 28.0
+            for name, position in positions.items():
+                char = flick_hint(self.kana_name, name)
+                if char is None:
+                    continue
+                painter.setPen(text_ink)
+                rect = QRectF(position.x() - size / 2.0,
+                              position.y() - size / 2.0, size, size)
+                painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, char)
+        finally:
+            # A painter left active makes Qt's backing store fail repeatedly.
+            painter.end()
 
 
 class FlickKanaKey(QPushButton):
@@ -314,7 +358,10 @@ class FlickKanaKey(QPushButton):
             super().mouseReleaseEvent(event)
             return
         if self._pressed:
-            direction = self._direction_at(event)
+            # Commit the direction already displayed by the green eye.
+            # Recomputing from release coordinates could disagree with the
+            # guide when the mouse is released slowly or after stopping.
+            direction = self._direction
             self._pressed = False
             self._press_global = None
             self._set_drag_active(False)
@@ -711,7 +758,10 @@ class MiniJapaneseInputWindow(QWidget):
             key.setFixedHeight(spec.key_height)
         for key in self.keys.values():
             key.threshold_px = self.threshold_px
-        self.guide.setFixedSize(spec.guide_size, spec.guide_size)
+        # Large enough to read; this is now a separate passive Tool window,
+        # so it is not squeezed into the 200px-wide keyboard panel.
+        guide_side = max(108, spec.guide_size + 26)
+        self.guide.setFixedSize(guide_side, guide_side)
         self.threshold_button.setText(f"{self.threshold_px}px ▾")
         self.smaller.setEnabled(self.preset_index > 0)
         self.larger.setEnabled(self.preset_index < len(SIZE_PRESETS)-1)
@@ -750,6 +800,7 @@ class MiniJapaneseInputWindow(QWidget):
         QTimer.singleShot(0, self._fit_outer_frame)
 
     def hideEvent(self, event):
+        self._hide_guide()
         super().hideEvent(event)
         self.hidden_from_user.emit()
 
@@ -774,19 +825,33 @@ class MiniJapaneseInputWindow(QWidget):
         self.status.setText(f"感度 {value}px")
 
     def _guide_position(self, key):
-        c = key.mapTo(self, key.rect().center())
-        side = self.guide.width()
-        x = c.x() - side // 2
-        y = c.y() - side // 2 - 11
-        x = max(2, min(self.width() - side - 2, x))
-        y = max(2, min(self.height() - side - 2, y))
+        """Anchor the popup to each pressed key at a constant 8px gap.
+
+        mapToGlobal works even if the key is a child of the keyboard grid
+        rather than a direct child of the floating tool window. It avoids
+        QWidget::mapTo(parent must be in parent hierarchy) warnings.
+        """
+        key_top = key.mapToGlobal(QPoint(0, 0))
+        grid_top = self.keyboard.mapToGlobal(QPoint(0, 0))
+        anchor = key.mapToGlobal(key.rect().center())
+        screen = QApplication.screenAt(anchor) or QApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else QRect(0, 0, 1920, 1080)
+        x, y = place_guide(
+            (key_top.x(), key_top.y(), key.width(), key.height()),
+            (grid_top.x(), grid_top.y(), self.keyboard.width(), self.keyboard.height()),
+            (available.x(), available.y(), available.width(), available.height()),
+            (self.guide.width(), self.guide.height()),
+        )
         return QPoint(x, y)
 
     def _show_guide(self, name, direction):
+        key = self.keys.get(name)
+        if key is None:
+            return
         self.guide.configure(name, direction)
-        self.guide.move(self._guide_position(self.keys[name]))
-        self.guide.raise_()
+        self.guide.move(self._guide_position(key))
         self.guide.show()
+        self.guide.raise_()
 
     def _update_guide(self, name, direction):
         self.guide.configure(name, direction)

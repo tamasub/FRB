@@ -2893,6 +2893,10 @@ class Launcher(QWidget):
         self.remote_15_mode = str(self.settings.value(
             'experiment_remote_15_column', 'false')).strip().lower() in (
                 'true', '1', 'yes', 'on')
+        # Opt-in aim-only prototype: never move or click the OS cursor.
+        self.mouse_pointer_rod_mode = str(self.settings.value(
+            'experiment_mouse_pointer_rod', 'false')).strip().lower() in (
+                'true', '1', 'yes', 'on')
         self._remote_15_alignment_pending = False
         self.remote_window = None
         self._remote_area = None
@@ -3193,6 +3197,14 @@ class Launcher(QWidget):
             'Filesの第1列と第2列の間に配置場所を確保し、別WindowのRemoteを前面に表示します。'
             'Remoteの検索結果選択・実行は従来のままです。')
         self.remote_15_action.triggered.connect(self.set_remote_15_mode)
+        self.mouse_pointer_rod_action = self.theme_menu.addAction(
+            '実験：マウス差し棒（Mouse Pointer Rod）モード')
+        self.mouse_pointer_rod_action.setCheckable(True)
+        self.mouse_pointer_rod_action.setChecked(self.mouse_pointer_rod_mode)
+        self.mouse_pointer_rod_action.setToolTip(
+            'Remote下部で角度を調整、ぐりぐりホイールで長さを調整します。'
+            '実験：操作エリアの左クリックでFiles List/Exp行を直接選択。OSクリック送信なし。')
+        self.mouse_pointer_rod_action.triggered.connect(self.set_mouse_pointer_rod_mode)
         self.files_root_hidden_action.setChecked(
             self.files_root_hidden_mode and not self.files_exp_embedded_mode)
         self.theme_menu.addSeparator()
@@ -3857,7 +3869,14 @@ class Launcher(QWidget):
         remote = getattr(self, 'remote_window', None)
         if remote is None or not remote.isVisible():
             return None
-        top = remote.files_button.mapToGlobal(QPoint(0, 0)).y() - 1
+        # The retired Files Exp/List buttons no longer provide a popup
+        # anchor.  Use the ぐりぐり pad; legacy light-weight stubs may still
+        # expose files_button instead.
+        anchor_widget = (getattr(remote, 'pad', None)
+                         or getattr(remote, 'files_button', None))
+        if anchor_widget is None:
+            return None
+        top = anchor_widget.mapToGlobal(QPoint(0, 0)).y() - 1
         former_bottom = remote.mapToGlobal(QPoint(0, remote.height() - 6)).y()
         if former_bottom <= top:
             return None
@@ -3961,7 +3980,11 @@ class Launcher(QWidget):
         directory = view.current_directory()
         self._remote_folder_source_path = (os.path.normcase(os.path.normpath(str(directory)))
                                            if directory else None)
-        anchor = remote.files_button.mapToGlobal(QPoint(remote.files_button.width() - 1, 0))
+        anchor_widget = (getattr(remote, 'pad', None)
+                         or getattr(remote, 'files_button', None))
+        if anchor_widget is None:
+            return
+        anchor = anchor_widget.mapToGlobal(QPoint(anchor_widget.width() - 1, 0))
         self._remote_folder_popup_pos = anchor
         self.fill_cascade(menu, {'item_kind': 'category', 'item_id': 'remote-files-first-column',
                                  'title': 'Files', 'launch_source': 'remote_files_roots'})
@@ -4256,6 +4279,20 @@ class Launcher(QWidget):
             self.remote_window.virtual_folder_selected.connect(self.navigate_virtual_launch_folder)
             self.remote_window.virtual_context_requested.connect(self.show_virtual_launch_context)
         return self.remote_window
+
+    def set_mouse_pointer_rod_mode(self, checked):
+        """Reversible direct Files row experiment; no OS input injection."""
+        self.mouse_pointer_rod_mode = bool(checked)
+        self.settings.setValue('experiment_mouse_pointer_rod',
+                               self.mouse_pointer_rod_mode)
+        self.settings.sync()
+        self.mouse_pointer_rod_action.setChecked(self.mouse_pointer_rod_mode)
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_mouse_pointer_rod_enabled(self.mouse_pointer_rod_mode)
+        self.footer.setText(
+            'マウス差し棒：List/Expの行を直接選択（OSクリック送信なし）。'
+            if checked else 'マウス差し棒：OFF（通常のぐりぐり操作に戻しました）。')
 
     def set_remote_15_mode(self, checked):
         """Reversible overlay experiment; existing Remote commands stay intact."""

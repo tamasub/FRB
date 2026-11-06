@@ -13,7 +13,8 @@ from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
 from shuriken_model import (choose_entry, uses_three_sector_guide,
-                            uses_four_sector_guide, three_sector_slot,
+                            uses_four_sector_guide, uses_two_horizontal_sector_guide,
+                            two_horizontal_sector_slot, three_sector_slot,
                             four_sector_slot, current_indicator_position,
                             THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
@@ -103,6 +104,7 @@ class ShurikenPreview(QWidget):
         painter.drawEllipse(QRectF(-radius, -radius, radius * 2, radius * 2))
 
         count = len(self.entries)
+        horizontal_pair = uses_two_horizontal_sector_guide(self.entries)
         triad = uses_three_sector_guide(self.entries)
         quad = uses_four_sector_guide(self.entries)
         band = (radius * 2.0) / count
@@ -110,7 +112,9 @@ class ShurikenPreview(QWidget):
 
         # Draw dividers from the same geometry used by choose_entry().
         painter.setPen(QPen(QColor(159, 195, 133, 185), 1.0))
-        if triad:
+        if horizontal_pair:
+            painter.drawLine(QPointF(0, -radius), QPointF(0, radius))
+        elif triad:
             for angle in THREE_SECTOR_DIVIDERS:
                 theta = math.radians(angle)
                 painter.drawLine(QPointF(0, 0), QPointF(radius * math.cos(theta),
@@ -146,7 +150,9 @@ class ShurikenPreview(QWidget):
 
         TEXT_SIDE_PADDING = 8
         for index, entry in enumerate(self.entries):
-            if triad:
+            if horizontal_pair:
+                text_anchor_x, text_cy, mark_x, mark_y, text_align = two_horizontal_sector_slot(entry)
+            elif triad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = three_sector_slot(entry)
             elif quad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
@@ -222,7 +228,7 @@ class ShurikenButton(QPushButton):
         self._preview = None
         self._drag_start = None
         self._entries = []
-        self._direction = ''
+        self._selected_entry = None  # The action whose eye is currently painted.
         self._confirmation_on_press = None
         self._pixmap = QPixmap(str(ICON_PATH))
 
@@ -268,13 +274,14 @@ class ShurikenButton(QPushButton):
             # Never show the shuriken guide or start a new background action.
             self._drag_start = None
             self._entries = []
+            self._selected_entry = None
             if self._preview is not None:
                 self._preview.hide()
             super().mousePressEvent(event)
             return
         self._entries = self.launcher.shuriken_items(self.hand_index)
         self._drag_start = event.globalPosition().toPoint()
-        self._direction = ''
+        self._selected_entry = None
         if self._preview is None:
             self._preview = ShurikenPreview(self)
         # PRESS only shows the guide; it must NOT preselect an action.
@@ -287,10 +294,13 @@ class ShurikenButton(QPushButton):
             dx, dy = point.x() - self._drag_start.x(), point.y() - self._drag_start.y()
             # The guide stays ABOVE the button. The pointer only controls
             # the current mark; two rows or three 120° wedges never move.
-            choice = choose_entry(self._entries, dx, dy,
-                                  min_release_distance=self.DRAG_DEADZONE)
+            self._selected_entry = choose_entry(
+                self._entries, dx, dy,
+                min_release_distance=self.DRAG_DEADZONE)
             if self._preview is not None:
-                self._preview.present(self, self._entries, choice)
+                # Draw exactly the committed choice; rendering and release
+                # never use separate thresholds or timing rules.
+                self._preview.present(self, self._entries, self._selected_entry)
             event.accept()
             return
         super().mouseMoveEvent(event)
@@ -309,12 +319,14 @@ class ShurikenButton(QPushButton):
             event.accept()
             return
         if event.button() == Qt.MouseButton.LeftButton and self._drag_start is not None:
-            point = event.globalPosition().toPoint()
-            dx, dy = point.x() - self._drag_start.x(), point.y() - self._drag_start.y()
-            chosen = choose_entry(self._entries, dx, dy)
+            # The displayed green eye is authoritative, even if the user
+            # stops moving for several seconds or releases very slowly.
+            # No separate release-time hit test may select an invisible
+            # action or cancel a visible one.
+            chosen = self._selected_entry
             self._drag_start = None
             self._entries = []
-            self._direction = ''
+            self._selected_entry = None
             if self._preview is not None:
                 self._preview.hide()
             super().mouseReleaseEvent(event)
@@ -329,6 +341,8 @@ class ShurikenButton(QPushButton):
     def hideEvent(self, event):
         self._confirmation_on_press = None
         self._drag_start = None
+        self._selected_entry = None
+        self._entries = []
         if self._preview is not None:
             self._preview.hide()
         super().hideEvent(event)
