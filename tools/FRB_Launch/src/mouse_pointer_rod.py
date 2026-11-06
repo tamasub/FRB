@@ -456,14 +456,14 @@ class MousePointerRodPad(QFrame):
                 painter.setBrush(QColor('#6aa94a'))
                 painter.drawEllipse(QPointF(x, y), 11.0, 11.0)
             painter.setPen(QColor('#365d53' if is_light else '#d9eee3'))
-            painter.drawText(QRectF(6, 5, self.width() - 12, 23),
+            painter.drawText(QRectF(6, 5, self.width() - 12, 9),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              'マウス差し棒  実験')
-            painter.drawText(QRectF(6, 26, self.width() - 12, 19),
+            painter.drawText(QRectF(6, 26, self.width() - 12, 9),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              f'長さ：{round(self._length)} px')
             # Single line stays ABOVE the centered ぐりぐり button.
-            painter.drawText(QRectF(6, 46, self.width() - 12, 19),
+            painter.drawText(QRectF(6, 46, self.width() - 12, 9),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              f'通常：{NORMAL_WHEEL_STEP_PX}px / 押下：{FAST_WHEEL_STEP_PX}px')
         finally:
