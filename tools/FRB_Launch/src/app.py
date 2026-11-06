@@ -4380,7 +4380,13 @@ class Launcher(QWidget):
             remote.set_area(self._remote_area)
         remote._remote_15_placement = True
         if anchor_visible:
-            pos = lane.mapToGlobal(QPoint(max(0, (lane.width() - remote.width()) // 2), 4))
+            # Put the green rod origin as low as possible in column 1.5.
+            # Both the first show and subsequent realignments use the same
+            # bottom anchor; the old 4px TOP anchor left a large empty lane.
+            bottom_gap = 4
+            left = max(0, (lane.width() - remote.width()) // 2)
+            top = max(0, lane.height() - remote.height() - bottom_gap)
+            pos = lane.mapToGlobal(QPoint(left, top))
             self._remote_15_offset = pos - self.pos()
         else:
             pos = self.pos() + self._remote_15_offset
@@ -8209,6 +8215,11 @@ class Launcher(QWidget):
             # embedded first column is enabled.
             self.remote_focus_area('files_exp' if panel is not None else
                                    ('directory' if self.files_root_hidden_mode else 'files'))
+            # HOME from either the main toolbar or Remote returns the floating
+            # controller to the BOTTOM of the 1.5-column lane, not its old
+            # saved/dragged location. Do not reopen a Remote closed with ×.
+            if getattr(self, 'remote_15_mode', False):
+                self.queue_remote_15_alignment()
             return
         self._nav_before_change()
         self._nav_restoring = True

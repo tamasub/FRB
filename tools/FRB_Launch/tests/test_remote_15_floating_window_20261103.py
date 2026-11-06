@@ -53,6 +53,7 @@ class Remote:
     def set_area(self, area): self.area = area
     def pos(self): return self.position
     def width(self): return 184
+    def height(self): return getattr(self, '_height', 420)
     def move(self, pos): self.position = pos
     def show(self): self.visible = True
     def raise_(self): self.raised += 1
@@ -62,6 +63,7 @@ class Lane:
     def __init__(self, visible=True): self.visible = visible
     def isVisible(self): return self.visible
     def width(self): return 196
+    def height(self): return getattr(self, '_height', 740)
     def mapToGlobal(self, local): return Point(300 + local.x, 100 + local.y)
 
 
@@ -89,10 +91,47 @@ def test_floating_remote_is_visible_over_files_and_does_not_reparent():
     app = build(with_remote=False)
     actual_method(APP, '_align_remote_15_now')(app)
     assert app.remote_window.visible
-    assert app.remote_window.position == Point(306, 104)
+    assert app.remote_window.position == Point(306, 416)
     assert app.remote_window.raised == 1
     assert app.remote_window.area == 'directory'
     assert app.remote_window._remote_15_placement
+
+
+def test_bottom_anchor_tracks_lane_height_and_remote_height():
+    app = build(visible=True, needs_show=False)
+    app.remote_window.position = Point(120, 115)  # user moved Remote
+    actual_method(APP, '_align_remote_15_now')(app)
+    assert app.remote_window.position == Point(306, 416)
+    # Shorter Files pane: the green origin should follow the new bottom.
+    app.expanded_view.remote_15_lane._height = 620
+    actual_method(APP, '_align_remote_15_now')(app)
+    assert app.remote_window.position == Point(306, 296)
+    # Taller Remote (e.g. a layout change) must also remain bottom-aligned.
+    app.remote_window._height = 470
+    actual_method(APP, '_align_remote_15_now')(app)
+    assert app.remote_window.position == Point(306, 246)
+
+
+def test_bottom_anchor_does_not_exceed_short_lane_top():
+    app = build(visible=True, needs_show=False)
+    app.expanded_view.remote_15_lane._height = 250
+    actual_method(APP, '_align_remote_15_now')(app)
+    assert app.remote_window.position == Point(306, 100)
+
+
+def test_pointer_rod_below_controls_has_independent_low_origin():
+    # User layout: blue aim surface, current-folder band, detached green
+    # origin, then the target status. The intermediate List band is never
+    # falsely advertised as a blue aiming surface.
+    assert REMOTE.index('root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)') < REMOTE.index('root.addWidget(self.pointer_rod)')
+    assert REMOTE.index('root.addWidget(self.pointer_rod)') < REMOTE.index('root.addWidget(self.up_band)')
+    assert REMOTE.index('root.addWidget(self.up_band)') < REMOTE.index('root.addWidget(self.pointer_rod_origin)')
+    assert REMOTE.index('root.addWidget(self.pointer_rod_origin)') < REMOTE.index('root.addWidget(status_frame)')
+    rod = (ROOT / 'src/mouse_pointer_rod.py').read_text('utf-8')
+    assert 'PAD_HEIGHT = 114' in rod
+    assert 'self._origin_marker.origin_global()' in rod
+    assert 'self.mapFromGlobal(' in rod
+    assert 'self._origin_marker = marker' in rod
 
 
 def test_user_closed_remote_stays_closed_during_geometry_changes():
@@ -104,9 +143,9 @@ def test_user_closed_remote_stays_closed_during_geometry_changes():
 
 def test_hidden_files_canvas_global_search_preserves_remote_and_anchor():
     app = build(visible=True, anchor_visible=False, needs_show=False)
-    app._remote_15_offset = Point(206, 34)
+    app._remote_15_offset = Point(206, 346)
     actual_method(APP, '_align_remote_15_now')(app)
-    assert app.remote_window.position == Point(306, 104)
+    assert app.remote_window.position == Point(306, 416)
     assert app.remote_window.visible
     assert app.remote_window.raised == 1
 
@@ -133,6 +172,17 @@ def test_native_tool_is_not_embedded_into_reserved_splitter():
     assert 'self.files_splitter.addWidget(remote)' not in VIEW
     assert 'super().__init__(launcher, flags)' in REMOTE
     assert 'Qt.WindowType.Tool' in REMOTE
+
+
+def test_remote_resize_reanchors_the_low_origin_without_changing_rod_controls():
+    cls = next(node for node in ast.parse(REMOTE).body
+               if isinstance(node, ast.ClassDef) and node.name == 'LaunchRemote')
+    resize = next(node for node in cls.body
+                  if isinstance(node, ast.FunctionDef) and node.name == 'resizeEvent')
+    body = ast.get_source_segment(REMOTE, resize)
+    assert "getattr(launcher, 'remote_15_mode', False)" in body
+    assert 'launcher.queue_remote_15_alignment' in body
+    assert 'rod.refresh_position' in body
 
 
 def test_cross_mode_state_and_saved_manual_position_are_protected():

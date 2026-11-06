@@ -17,7 +17,7 @@ from remote_files_explorer import RemoteFilesExplorer
 from remote_shuriken import ShurikenButton, ShurikenPreview
 from shuriken_model import ShurikenEntry, choose_entry
 from remote_shuriken_scroll import ShurikenScrollPad
-from mouse_pointer_rod import MousePointerRodPad
+from mouse_pointer_rod import MousePointerRodPad, MousePointerRodOrigin
 
 
 def remote_favorite_icon(heart):
@@ -650,9 +650,20 @@ class LaunchRemote(QWidget):
         self.scroll_pad.flight_settled.connect(launcher.remote_scroll_files_list_settle)
         root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
 
+        # Visual order while the experiment is ON:
+        # BLUE (aim and native central ぐりぐり) -> current-folder band ->
+        # GREEN physical origin -> operating-target status.
+        # These are SEPARATE surfaces: the List band is never blue aim input.
+        self.pointer_rod = MousePointerRodPad(self)
+        root.addWidget(self.pointer_rod)
+
         self.up_band = UpDoubleClickBand(self)
         self.up_band.command.connect(self.command.emit)
         root.addWidget(self.up_band)
+
+        self.pointer_rod_origin = MousePointerRodOrigin(self)
+        root.addWidget(self.pointer_rod_origin)
+        self.pointer_rod.set_origin_marker(self.pointer_rod_origin)
 
         # The current target is status information, not a control.
         status_frame = QFrame(self)
@@ -664,12 +675,6 @@ class LaunchRemote(QWidget):
         self.area_label.setFixedHeight(16)
         status_layout.addWidget(self.area_label)
         root.addWidget(status_frame)
-
-        # v0.8: the actual ぐりぐり is embedded in the blue aim area only
-        # while the experiment is ON. Its OWN wheel/click/hold stay native;
-        # the remaining blue surface exclusively owns rod length + selection.
-        self.pointer_rod = MousePointerRodPad(self)
-        root.addWidget(self.pointer_rod)
 
         # The wheel pad emits UP/DOWN, CLICK and DOUBLE_CLICK without synthetic
         # keys. Its hold selector owns Files Exp/List switching; the former
@@ -704,6 +709,11 @@ class LaunchRemote(QWidget):
         if rod is not None:
             # Let the layout settle before recomputing the pad anchor.
             QTimer.singleShot(0, rod.refresh_position)
+        # When the rod mode changes Remote height, keep its bottom anchored
+        # in column 1.5 instead of leaving the green origin floating up.
+        launcher = self.parent()
+        if getattr(launcher, 'remote_15_mode', False):
+            QTimer.singleShot(0, launcher.queue_remote_15_alignment)
         self.geometry_changed.emit()
 
     def hideEvent(self, event):
@@ -736,6 +746,9 @@ class LaunchRemote(QWidget):
                               Qt.AlignmentFlag.AlignHCenter)
             self.pad.show()
             self._pad_inside_rod = False
+        origin = getattr(self, 'pointer_rod_origin', None)
+        if origin is not None:
+            origin.setVisible(enabled)
         self.pointer_rod.set_mode_enabled(enabled)
         self.pad.setToolTip(
             'ホイールで選択／クリック・ダブルクリック／長押し→左右へシュッでExp列・List列を選択／右クリックでメニュー')

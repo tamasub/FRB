@@ -112,7 +112,7 @@ def test_rod_pad_height_and_no_system_cursor_hijack():
     pad = (ROOT / 'src' / 'mouse_pointer_rod.py').read_text('utf-8')
     remote = (ROOT / 'src' / 'launch_remote.py').read_text('utf-8')
     adapter = (ROOT / 'src' / 'mouse_pointer_rod_direct.py').read_text('utf-8')
-    assert 'PAD_HEIGHT = 180' in pad
+    assert 'PAD_HEIGHT = 114' in pad
     assert "self._dispatch_tip_action('context')" not in pad
     assert "self._dispatch_tip_action('double' if self._double_pending else 'select')" in pad
     assert "QTimer.singleShot(0, self._clamp_pointer_rod_to_screen)" in remote

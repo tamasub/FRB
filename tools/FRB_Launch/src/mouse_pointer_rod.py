@@ -107,9 +107,43 @@ class MousePointerRodOverlay(QWidget):
             painter.end()
 
 
+class MousePointerRodOrigin(QWidget):
+    """Independent visible rod origin BELOW the current-folder band.
+
+    The gap between the blue aiming surface and this marker is deliberately
+    NOT an aiming surface. Keep it non-interactive: legacy Remote wheel
+    routing stays in charge outside the blue pad.
+    """
+    HEIGHT = 28
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setObjectName('mousePointerRodOrigin')
+        self.setFixedHeight(self.HEIGHT)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.hide()
+
+    def origin_global(self):
+        point = self.mapToGlobal(QPoint(round(self.width() / 2),
+                                        round(self.height() / 2)))
+        return (point.x(), point.y())
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        try:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor('#6aa94a'))
+            painter.drawEllipse(QPointF(self.width() / 2, self.height() / 2),
+                                11.0, 11.0)
+        finally:
+            painter.end()
+
+
 class MousePointerRodPad(QFrame):
     """Blue region: delayed aim overlay and native direct List/Exp selection."""
-    PAD_HEIGHT = 180
+    PAD_HEIGHT = 114  # Aim surface ends BEFORE the List folder operation band.
     BASE_BOTTOM_MARGIN = 19
     HOVER_REVEAL_MS = 250
     WHEEL_EMPHASIS_MS = 650
@@ -134,6 +168,7 @@ class MousePointerRodPad(QFrame):
         self._wheel_pixel_remainder = 0
         self._left_pressed = False
         self._wheel_pad = None
+        self._origin_marker = None
         self._remote = remote
         self._overlay = None
         self._aim_hovering = False
@@ -159,6 +194,11 @@ class MousePointerRodPad(QFrame):
             # native central button. Merely enabling must not reveal the rod.
             QTimer.singleShot(0, self._sync_hover)
 
+    def set_origin_marker(self, marker):
+        """Keep the green point below the separate folder action band."""
+        self._origin_marker = marker
+        self.refresh_position()
+
     def set_wheel_pad(self, pad):
         """Watch native central-button entry without stealing its events."""
         if self._wheel_pad is not None:
@@ -171,10 +211,10 @@ class MousePointerRodPad(QFrame):
     def _position_wheel_pad(self):
         pad = self._wheel_pad
         if pad is not None:
-            # Keep the green rod origin at the original bottom-center, NOT
-            # underneath the ぐりぐり widget. Leave the top hint unobstructed.
+            # Button is near the BLUE surface's bottom, not on the origin.
+            # The true green origin is placed below the separate folder band.
             x = round((self.width() - pad.width()) / 2)
-            y = max(0, round((self.height() - pad.height()) / 2))
+            y = max(0, self.height() - pad.height() - 4)
             pad.move(x, y)
 
     def resizeEvent(self, event):
@@ -199,9 +239,18 @@ class MousePointerRodPad(QFrame):
         self.update()
 
     def origin_local(self):
+        # The real anchor lives OUTSIDE this widget, beneath the List band.
+        # Convert its screen coordinate back into blue-pad coordinates so
+        # direction_from_pointer() keeps working without special-case math.
+        if self._origin_marker is not None and self._origin_marker.isVisible():
+            gx, gy = self._origin_marker.origin_global()
+            pt = self.mapFromGlobal(QPoint(round(gx), round(gy)))
+            return (float(pt.x()), float(pt.y()))
         return (self.width() / 2.0, self.height() - self.BASE_BOTTOM_MARGIN)
 
     def origin_global(self):
+        if self._origin_marker is not None and self._origin_marker.isVisible():
+            return self._origin_marker.origin_global()
         x, y = self.origin_local()
         point = self.mapToGlobal(QPoint(round(x), round(y)))
         return (point.x(), point.y())
@@ -399,10 +448,13 @@ class MousePointerRodPad(QFrame):
             painter.setBrush(QColor('#e5f0f8' if is_light else '#304357'))
             painter.setPen(QPen(QColor('#8fb7a4' if is_light else '#688d7d'), 1.0))
             painter.drawRoundedRect(QRectF(self.rect()).adjusted(.5, .5, -.5, -.5), 4, 4)
-            x, y = self.origin_local()
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor('#6aa94a'))
-            painter.drawEllipse(QPointF(x, y), 11.0, 11.0)
+            # The green origin is a separate sibling widget BELOW the List
+            # current-folder band. Never paint a fake origin inside the blue.
+            if self._origin_marker is None:
+                x, y = self.origin_local()
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor('#6aa94a'))
+                painter.drawEllipse(QPointF(x, y), 11.0, 11.0)
             painter.setPen(QColor('#365d53' if is_light else '#d9eee3'))
             painter.drawText(QRectF(6, 5, self.width() - 12, 23),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,

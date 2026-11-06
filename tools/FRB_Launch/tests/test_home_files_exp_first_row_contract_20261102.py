@@ -157,6 +157,19 @@ def test_home_falls_back_to_legacy_row_without_visible_files_exp():
     assert calls == ['files-visible', 'legacy-current', 'legacy-preview', ('focus', 'files')]
 
 
+def test_home_in_column_15_reanchors_remote_to_lane_bottom():
+    # The main HOME and Remote HOME share navigate_home; neither changes the
+    # existing Files row-selection responsibilities.
+    navigate = extracted(APP, 'Launcher', 'navigate_home')
+    win, calls = fake_launcher_home()
+    win.remote_15_mode = True
+    win.queue_remote_15_alignment = lambda **kw: calls.append(('align-bottom', kw))
+    navigate(win)
+    assert calls[-1] == ('align-bottom', {})
+    assert calls[:-1] == ['files-visible', 'exp-collapsed', 'exp-selected',
+                          'preview-pc', ('focus', 'files_exp')]
+
+
 def test_remote_and_launch_buttons_reuse_same_navigate_home_handler():
     assert 'self.nav_home_button.clicked.connect(self.navigate_home)' in APP
     remote_block = APP[APP.index("        if command == 'HOME':"):]
