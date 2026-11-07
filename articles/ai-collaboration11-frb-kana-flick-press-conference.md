@@ -1,5 +1,5 @@
 ---
-title: "AI協働：FRB Launch — パソコンでかなフリック入力使う人なんているの？（笑）"
+title: "AI協働：FRB Launch 第2回 記者会見風 — パソコンでかなフリック入力使う人なんているの？（笑）"
 emoji: "🎙️"
 type: "idea"
 topics: ["ai", "個人開発", "python", "ui", "思考拡張"]

@@ -1,5 +1,5 @@
 ---
-title: "AI協働：FRB Launch — エクスプローラーに魂を吹き込む手裏剣の話 — しゅっ！（笑）"
+title: "AI協働：FRB Launch 第3回 記者会見風 — エクスプローラーに魂を吹き込む手裏剣の話 — しゅっ！（笑）"
 emoji: "🥷"
 type: "idea"
 topics: ["ai", "個人開発", "python", "ui", "思考拡張"]

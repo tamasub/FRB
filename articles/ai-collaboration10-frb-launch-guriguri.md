@@ -1,5 +1,5 @@
 ---
-title: "AI協働：FRB Launch — 世界標準規格の野望・第2弾 — みんなも、ぐりぐりしてみませんか？（笑）"
+title: "AI協働：FRB Launch 第1回 記者会見風 — 世界標準規格の野望・第2弾 — みんなも、ぐりぐりしてみませんか？（笑）"
 emoji: "🖱️"
 type: "idea"
 topics: ["ai", "python", "ux", "frb", "thinking"]

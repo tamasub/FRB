@@ -1,5 +1,5 @@
 ---
-title: "AI協働：FRB Launch — 新型UIふぅ『マウス差し棒』発表！〜2cmの移動をなくしたい〜"
+title: "AI協働：FRB Launch 第4回 記者会見風 — 新型UIふぅ『マウス差し棒』！〜2cmの移動をなくしたい〜"
 emoji: "🎣"
 type: "idea"
 topics: ["python", "pyside6", "ui", "ux", "個人開発"]
