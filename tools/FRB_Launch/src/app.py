@@ -3937,6 +3937,11 @@ class Launcher(QWidget):
         menu.open_mode = 'mouse'
         self._remote_page_menu = menu
         self.menu = menu
+        # Qt can destroy the C++ object before Python releases these refs.
+        if hasattr(menu, 'destroyed'):
+            menu.destroyed.connect(
+                lambda _object=None, token=id(menu):
+                self._on_remote_page_menu_destroyed(token))
         root = {'item_kind': 'category', 'item_id': 'remote-browser-bookmarks',
                 'title': 'ブックマーク', 'launch_source': 'remote_browser_bookmark_roots'}
         self.fill_cascade(menu, root)
@@ -4123,14 +4128,25 @@ class Launcher(QWidget):
         tree.viewport().update()
         return True
 
+    def _on_remote_page_menu_destroyed(self, menu_token):
+        """Qt may delete a Page QMenu while Python still holds its wrapper."""
+        for attribute in ('_remote_page_menu', 'menu'):
+            candidate = getattr(self, attribute, None)
+            if candidate is not None and id(candidate) == menu_token:
+                setattr(self, attribute, None)
+
     def close_remote_page_menu(self):
-        """Dismiss the Remote Page cascade, not an unrelated Compact menu."""
+        """Dismiss the Remote Page cascade, even after native Qt deletion."""
         page_menu = getattr(self, '_remote_page_menu', None)
         self._remote_page_menu = None
+        # Drop both references BEFORE closing; close/hide may trigger signals.
+        if getattr(self, 'menu', None) is page_menu and page_menu is not None:
+            self.menu = None
         if page_menu is not None:
-            page_menu.close()  # CascadeMenu closes its child columns as well.
-            if getattr(self, 'menu', None) is page_menu:
-                self.menu = None
+            try:
+                page_menu.close()  # Also closes the nested popup columns.
+            except RuntimeError:
+                pass  # C++ QMenu already deleted; Python wrapper was stale.
 
     def hide_remote(self):
         companion = getattr(self, '_remote_kana_companion', None)
@@ -4212,11 +4228,16 @@ class Launcher(QWidget):
             return
         existing = getattr(self, '_remote_page_menu', None)
         if existing is not None:
-            existing.close()
-            existing.deleteLater()
-            self._remote_page_menu = None
-        if self.menu is not None and self.menu is not existing:
-            self.menu.close()
+            self.close_remote_page_menu()
+            try:
+                existing.deleteLater()
+            except RuntimeError:
+                pass  # Previous native popup was already destroyed.
+        if self.menu is not None:
+            try:
+                self.menu.close()
+            except RuntimeError:
+                self.menu = None
         # A virtual category with the page's root item ID ('') is sufficient
         # for fill_cascade() to use the same filters, icons and hover expansion.
         root = {'item_id': '', 'page_id': page_id,
@@ -4226,6 +4247,11 @@ class Launcher(QWidget):
         menu.remote_page_navigation = True
         self._remote_page_menu = menu
         self.menu = menu
+        # Qt can destroy the C++ object before Python releases these refs.
+        if hasattr(menu, 'destroyed'):
+            menu.destroyed.connect(
+                lambda _object=None, token=id(menu):
+                self._on_remote_page_menu_destroyed(token))
         self.fill_cascade(menu, root)
         # Position the LEFT EDGE beside the actual click, not at the far
         # right of the entire Remote. Both mouse buttons share this path.
@@ -4815,15 +4841,25 @@ class Launcher(QWidget):
         semantics without giving the popup or IME editor keyboard focus.
         """
         menu = getattr(self, 'menu', None)
-        if menu is None or not menu.isVisible():
+        try:
+            if menu is None or not menu.isVisible():
+                return False
+        except RuntimeError:
+            self._on_remote_page_menu_destroyed(id(menu))
+            if getattr(self, 'menu', None) is menu:
+                self.menu = None
             return False
         # A Remote Page's wheel always browses the FIRST column. Its selected
         # row may preview one child column, but scrolling must never jump into
         # that child (or cascade all the way to the right). Explicit click,
         # hover, LEFT/RIGHT still use the normal deepest-column behavior.
         remote_root = getattr(self, '_remote_page_menu', None)
-        page_wheel = (command in ('UP', 'DOWN')
-                      and remote_root is not None and remote_root.isVisible())
+        try:
+            page_wheel = (command in ('UP', 'DOWN')
+                          and remote_root is not None and remote_root.isVisible())
+        except RuntimeError:
+            self._on_remote_page_menu_destroyed(id(remote_root))
+            page_wheel = False
         if page_wheel:
             menu = remote_root
         else:
@@ -4974,7 +5010,12 @@ class Launcher(QWidget):
         """
         expanded = self.expanded_view.isVisible()
         remote_page = getattr(self, '_remote_page_menu', None)
-        remote_page_visible = remote_page is not None and remote_page.isVisible()
+        try:
+            remote_page_visible = remote_page is not None and remote_page.isVisible()
+        except RuntimeError:
+            # Deleted native CascadeMenu must not block subsequent pad clicks.
+            self._on_remote_page_menu_destroyed(id(remote_page))
+            remote_page_visible = False
         if (expanded and not remote_page_visible
                 and getattr(self.expanded_view, 'web_view_active', lambda: False)()):
             area = self._remote_area
@@ -6020,7 +6061,12 @@ class Launcher(QWidget):
         # the wheel/click to that column before considering the background.
         dispatch_cascade = getattr(self, 'remote_cascade_command', None)
         remote_page = getattr(self, '_remote_page_menu', None)
-        remote_page_visible = remote_page is not None and remote_page.isVisible()
+        try:
+            remote_page_visible = remote_page is not None and remote_page.isVisible()
+        except RuntimeError:
+            # Deleted native CascadeMenu must not block subsequent pad clicks.
+            self._on_remote_page_menu_destroyed(id(remote_page))
+            remote_page_visible = False
         if (remote_page_visible or not (web_active and str(area).startswith('web_body'))):
             if dispatch_cascade is not None and dispatch_cascade(command):
                 return
@@ -8994,7 +9040,15 @@ class Launcher(QWidget):
 
     def cascade(self,row,q=None,mode="keyboard"):
         self.hover_timer.stop();self.pending_menu_item=None
-        if self.menu:self.menu.close();self.menu.deleteLater()
+        previous = getattr(self, 'menu', None)
+        if previous is getattr(self, '_remote_page_menu', None) and previous is not None:
+            self.close_remote_page_menu()
+        if previous is not None:
+            try:
+                previous.close()
+                previous.deleteLater()
+            except RuntimeError:
+                pass  # No further operations on a previously deleted QMenu.
         self.menu=(AppCascadeMenu if row.get('launch_source')=='installed_apps' else CascadeMenu)(parent=self,launcher=self)
         self.menu.open_mode=mode;self.menu.owner_item=q or self.list.currentItem()
         self.menu.compact_files_cascade = (row.get('item_kind') == 'directory')

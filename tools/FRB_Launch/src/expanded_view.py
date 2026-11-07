@@ -1711,8 +1711,9 @@ class ExpandedLauncherView(QWidget):
         self.splitter.addWidget(self.files_content_stack)
         self.root_widget.set_corner_end_provider(
             lambda: (None if self._workspace_mode == 'browser' else
-                     self.files_content_stack.mapTo(
-                         self.root_widget, QPoint(self.files_content_stack.width(), 0)).x()))
+                     self.root_widget.mapFromGlobal(
+                         self.files_content_stack.mapToGlobal(
+                             QPoint(self.files_content_stack.width(), 0))).x()))
         # A SINGLE rule spans the whole Browser workspace, including
         # Bookmarks. The bookmarks frame has no competing upper border.
         self.root_widget.set_underline_end_provider(lambda: None)
@@ -2956,7 +2957,14 @@ class ExpandedLauncherView(QWidget):
             return
         old_path = Path(path)
         new_name = item.text(0)
-        if new_name == old_path.name:
+        # itemChanged also fires when Qt updates row icons, flags, size hints,
+        # and other display metadata.  Those notifications are NOT renames.
+        # In particular PC drive rows display "Volume (F:)" while their
+        # physical path is "F:\\", so comparing only old_path.name would
+        # falsely try to rename the drive to a string containing ':'.
+        if (row.get('_system_drive') or
+                new_name == row.get('title', old_path.name) or
+                new_name == old_path.name):
             return
         try:
             # The default extension selection avoids changing .txt by accident.
