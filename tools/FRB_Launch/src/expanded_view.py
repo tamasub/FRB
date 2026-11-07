@@ -2350,6 +2350,38 @@ class ExpandedLauncherView(QWidget):
         self._update_middle_header_sort()
         self._fill_middle_from_current()
 
+    def _dismiss_middle_search_history_on_outside_click(self, obj, event):
+        """Restore outside-click dismissal for the non-grabbing Files List menu.
+
+        Unlike a native Qt.Popup, the Tool-style history menu does not dismiss
+        itself when another widget receives a mouse press.  This view already
+        filters QApplication events, so observe the press without consuming it:
+        the clicked file, button, or other control must still work normally.
+        """
+        menu = getattr(self, 'middle_search_history_menu', None)
+        if menu is None or not menu.isVisible():
+            return
+        kind = event.type()
+        if kind == QEvent.Type.ApplicationDeactivate:
+            # Includes clicks on the desktop / a different application, which
+            # are not delivered as widget mouse presses to this Qt process.
+            menu.hide()
+            return
+        if kind != QEvent.Type.MouseButtonPress:
+            return
+        point = event.globalPosition().toPoint()
+        button = self.middle_search_history_button
+        if (button.isVisible() and
+                button.rect().contains(button.mapFromGlobal(point))):
+            # The clock button owns its existing click-to-toggle behavior.
+            return
+        if menu.frameGeometry().contains(point):
+            return  # Let QMenu deliver this press to its QAction.
+        for submenu in menu.findChildren(QMenu):
+            if submenu.isVisible() and submenu.frameGeometry().contains(point):
+                return  # Do not close while selecting a '履歴から削除' item.
+        menu.hide()
+
     def toggle_middle_search_history_menu(self):
         """Toggle Files List keyword history without Qt's global popup grab.
 
@@ -3563,6 +3595,7 @@ class ExpandedLauncherView(QWidget):
             QCursor.setPos(destination)
 
     def eventFilter(self, obj, event):
+        self._dismiss_middle_search_history_on_outside_click(obj, event)
         if (getattr(self, 'middle', None) is not None
                 and obj is self.middle.tree.viewport()
                 and event.type() == QEvent.Type.Resize):
