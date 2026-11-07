@@ -3,7 +3,7 @@ title: "AI協働：FRB Launch 第5回 記者会見風 —『ワープ差し棒�
 emoji: "🪄"
 type: "idea"
 topics: ["ai", "ui", "ux", "python", "pyside6"]
-published: false
+published: true
 ---
 
 ## はじめに — 昨日の差し棒が、もう古くなった（笑）
