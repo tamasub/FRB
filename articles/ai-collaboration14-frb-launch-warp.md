@@ -280,7 +280,7 @@ AIに実装を手伝ってもらい、人間が触って違和感を返す。新
 
 #### 関連記事・ソース
 
-- [前回：AI協働：FRB Launch 第4回 記者会見風 — 新型UIふぅ『マウス差し棒』！〜2cmの移動をなくしたい〜]（`ai-collaboration13-frb-launch-rod-press.md`）
+- 前回：[AI協働：FRB Launch 第4回 記者会見風 — 新型UIふぅ『マウス差し棒』！〜2cmの移動をなくしたい〜]（`ai-collaboration13-frb-launch-rod-press.md`）
 - [FRB Launch ソース（GitHub）](https://github.com/tamasub/FRB/tree/main/tools)
 
 ※本記事は個人の試作・体験を記録したものです。製品としての一般的な性能や操作性を保証するものではありません。
