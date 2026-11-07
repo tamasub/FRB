@@ -119,16 +119,16 @@ def test_bottom_anchor_does_not_exceed_short_lane_top():
     assert app.remote_window.position == Point(306, 100)
 
 
-def test_pointer_rod_below_controls_has_independent_low_origin():
-    # User layout: blue aim surface, current-folder band, detached green
-    # origin, then the target status. The intermediate List band is never
-    # falsely advertised as a blue aiming surface.
+def test_pointer_rod_below_controls_has_integrated_origin_above_grigri():
+    # Blue aim surface is taller and contains the green pivot; the current-
+    # folder band remains separate and must never receive blue aim input.
     assert REMOTE.index('root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)') < REMOTE.index('root.addWidget(self.pointer_rod)')
     assert REMOTE.index('root.addWidget(self.pointer_rod)') < REMOTE.index('root.addWidget(self.up_band)')
-    assert REMOTE.index('root.addWidget(self.up_band)') < REMOTE.index('root.addWidget(self.pointer_rod_origin)')
-    assert REMOTE.index('root.addWidget(self.pointer_rod_origin)') < REMOTE.index('root.addWidget(status_frame)')
+    assert REMOTE.index('root.addWidget(self.up_band)') < REMOTE.index('root.addWidget(status_frame)')
+    assert 'self.pointer_rod_origin = MousePointerRodOrigin(self.pointer_rod)' in REMOTE
+    assert 'root.addWidget(self.pointer_rod_origin)' not in REMOTE
     rod = (ROOT / 'src/mouse_pointer_rod.py').read_text('utf-8')
-    assert 'PAD_HEIGHT = 114' in rod
+    assert 'PAD_HEIGHT = 144' in rod
     assert 'self._origin_marker.origin_global()' in rod
     assert 'self.mapFromGlobal(' in rod
     assert 'self._origin_marker = marker' in rod

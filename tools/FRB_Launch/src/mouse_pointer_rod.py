@@ -4,13 +4,14 @@ Only wheel gestures over the blue surface change length (15px/notch, or
 60px/notch while the left button is held there). The embedded ぐりぐり retains
 its native List/Exp/Browser wheel, click, right-click and hold commands.
 The rod fades into view after an intentional 250ms hover, and disappears
-when leaving the blue surface or entering the native ぐりぐり. No system cursor
-is moved or clicked.
+when leaving the blue surface or entering the native ぐりぐり. The ORIGINAL
+click adapter never moves the OS cursor. A separate explicit Windows-mode
+adapter can temporarily move it to the tip, emit a native click, and restore it.
 """
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QPoint, QPointF, QRectF
-from PySide6.QtGui import QColor, QCursor, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QFrame, QWidget
+from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QFont
+from PySide6.QtWidgets import QApplication, QFrame, QWidget, QMenu
 
 from mouse_pointer_rod_model import (
     DEFAULT_DIRECTION, DEFAULT_LENGTH, NORMAL_WHEEL_STEP_PX,
@@ -25,7 +26,8 @@ class MousePointerRodOverlay(QWidget):
     def __init__(self, parent):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
                  Qt.WindowType.WindowDoesNotAcceptFocus |
-                 Qt.WindowType.WindowTransparentForInput)
+                 Qt.WindowType.WindowTransparentForInput |
+                 Qt.WindowType.WindowStaysOnTopHint)
         super().__init__(parent, flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
@@ -69,7 +71,18 @@ class MousePointerRodOverlay(QWidget):
             old_bounds = None  # The desktop coordinate system changed.
         if not self.isVisible():
             self.show()
-        else:
+        # QMenu/popups can be a separate top-level native window.  Keep the
+        # mouse-transparent guide above them without changing input focus.
+        # Page/history QMenus deliberately use Qt.Tool rather than Qt.Popup
+        # so the Remote remains clickable. activePopupWidget() is None for
+        # those tool menus; still keep the rod line in FRONT of their items.
+        top_levels = getattr(QApplication, 'topLevelWidgets', None)
+        menu_open = (callable(top_levels) and any(
+            isinstance(widget, QMenu) and widget.isVisible()
+            for widget in top_levels()))
+        if QApplication.activePopupWidget() is not None or menu_open:
+            self.raise_()
+        if self.isVisible():
             new_bounds = self._paint_bounds()
             # Repaint only the previous/new line. Full desktop repaints on
             # every pixel of mouse travel make aiming noticeably sluggish.
@@ -108,18 +121,18 @@ class MousePointerRodOverlay(QWidget):
 
 
 class MousePointerRodOrigin(QWidget):
-    """Independent visible rod origin BELOW the current-folder band.
+    """Real, mouse-transparent green anchor just ABOVE the native ぐりぐり.
 
-    The gap between the blue aiming surface and this marker is deliberately
-    NOT an aiming surface. Keep it non-interactive: legacy Remote wheel
-    routing stays in charge outside the blue pad.
+    The marker is a child of the blue pad, not another full-width row.
+    Its center is the one authoritative origin used for painting, pointing
+    and SMART geometry. The remote's current-folder band stays separate.
     """
-    HEIGHT = 28
+    DIAMETER = 22
 
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName('mousePointerRodOrigin')
-        self.setFixedHeight(self.HEIGHT)
+        self.setFixedSize(self.DIAMETER, self.DIAMETER)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.hide()
@@ -136,15 +149,16 @@ class MousePointerRodOrigin(QWidget):
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor('#6aa94a'))
             painter.drawEllipse(QPointF(self.width() / 2, self.height() / 2),
-                                11.0, 11.0)
+                                9.0, 9.0)
         finally:
             painter.end()
 
 
 class MousePointerRodPad(QFrame):
-    """Blue region: delayed aim overlay and native direct List/Exp selection."""
-    PAD_HEIGHT = 114  # Aim surface ends BEFORE the List folder operation band.
-    BASE_BOTTOM_MARGIN = 19
+    """Blue region: delayed aim overlay and independently selectable click adapter."""
+    PAD_HEIGHT = 144  # +30 px of blue aiming room; folder band is still separate.
+    BASE_BOTTOM_MARGIN = 66  # fallback: button 46 + bottom 4 + marker half 11 + gap 5
+    ORIGIN_GAP_ABOVE_GRIGRI = 5  # Clear gap between marker bottom and button.
     HOVER_REVEAL_MS = 250
     WHEEL_EMPHASIS_MS = 650
 
@@ -160,10 +174,23 @@ class MousePointerRodPad(QFrame):
             'Expだけダブルクリックで展開。右クリック無効。'
             '中央ぐりぐりは従来操作。')
         self._enabled = False
+        self._windows_click_mode = False  # Existing direct List/Exp adapter by default.
+        self._smart_mode = False  # Independent, opt-in vertical tracking experiment.
+        self._smart_expected_cursor = None
         self._length = DEFAULT_LENGTH
         self._direction = DEFAULT_DIRECTION
         self._double_pending = False
         self._wheel_during_press = False
+        self._native_warp_guard = False
+        self._pending_native_tip = None
+        self._native_single_timer = QTimer(self)
+        self._native_single_timer.setSingleShot(True)
+        self._native_single_timer.timeout.connect(self._flush_pending_native_click)
+        # Native popups capture hover/leave events.  Only while the Windows
+        # experiment is enabled, poll the REAL cursor to restore the guide.
+        self._native_hover_watchdog = QTimer(self)
+        self._native_hover_watchdog.setInterval(95)
+        self._native_hover_watchdog.timeout.connect(self._watch_windows_hover)
         self._wheel_angle_remainder = 0
         self._wheel_pixel_remainder = 0
         self._left_pressed = False
@@ -182,21 +209,102 @@ class MousePointerRodPad(QFrame):
         self._theme = 'light'
         self.hide()
 
+    def set_windows_click_mode(self, enabled):
+        """Use native Windows clicks only when expressly selected in settings."""
+        self._windows_click_mode = bool(enabled)
+        self._cancel_pending_native_click()
+        self._update_windows_watchdog()
+        self.setToolTip(
+            ('Windows実験：青い部分で照準、左クリックで先端にOSクリック。'
+             'ダブルクリック可。カーソルは元の位置へ復帰。右クリック無効。'
+             if self._windows_click_mode else
+             '青い部分：方向／ホイール15px、押しながら60px／左クリックでカレント指定。'
+             'Expだけダブルクリックで展開。右クリック無効。中央ぐりぐりは従来操作。'))
+        self.update()
+
+    def set_smart_mode(self, enabled):
+        """Opt-in: wheel translates the tip vertically and warps the real cursor."""
+        self._smart_mode = bool(enabled)
+        self._smart_expected_cursor = None
+        self.update()
+
     def set_mode_enabled(self, enabled):
         self._enabled = bool(enabled)
         self._double_pending = False
         self._wheel_during_press = False
         self._left_pressed = False
+        cancel = getattr(self, '_cancel_pending_native_click', None)
+        if callable(cancel):
+            cancel()
         self._stop_aiming()
+        self._smart_expected_cursor = None
         self.setVisible(self._enabled)
+        update_watchdog = getattr(self, '_update_windows_watchdog', None)
+        if callable(update_watchdog):
+            update_watchdog()
         if self._enabled:
             # Defer the pointer check until Qt has laid out/reparented the
             # native central button. Merely enabling must not reveal the rod.
             QTimer.singleShot(0, self._sync_hover)
 
+    def _update_windows_watchdog(self):
+        if self._enabled and self._windows_click_mode and self.isVisible():
+            if not self._native_hover_watchdog.isActive():
+                self._native_hover_watchdog.start()
+        else:
+            self._native_hover_watchdog.stop()
+
+    def _watch_windows_hover(self):
+        """Recover aim even while Qt's native popup owns mouse tracking."""
+        if not self._enabled or not self._windows_click_mode or not self.isVisible():
+            self._native_hover_watchdog.stop()
+            return
+        if not self._cursor_on_blue():
+            if not self._native_warp_guard:
+                self._stop_aiming()
+            return
+        self._sync_hover()
+        if self._aim_visible:
+            self.refresh_position()
+
+    def _cancel_pending_native_click(self):
+        self._native_single_timer.stop()
+        self._pending_native_tip = None
+
+    def _queue_native_single_click(self):
+        """Wait for Qt's double-click gesture before sending anything to OS.
+
+        If we warp the real pointer out/back for the first click, Windows
+        resets the double-click target/window; a later second click cannot
+        reliably become a native double click.  Buffer the first release.
+        """
+        self._pending_native_tip = self.tip_global()
+        delay_ms = max(1, QApplication.styleHints().mouseDoubleClickInterval())
+        self._native_single_timer.start(delay_ms)
+
+    def _flush_pending_native_click(self):
+        tip = self._pending_native_tip
+        self._pending_native_tip = None
+        if tip is None or not (self._enabled and self._windows_click_mode):
+            return
+        remote = self.parentWidget()
+        launcher = remote.parent() if remote is not None else None
+        if launcher is not None and self._cursor_on_blue():
+            self._dispatch_windows_click('select', remote, launcher, target_override=tip)
+
+    def _finish_native_warp(self):
+        """Qt does not always send Enter after a QMenu takes the grab."""
+        if self._enabled and self._windows_click_mode and self._cursor_on_blue():
+            self._aim_hovering = True
+            self._aim_visible = True
+            self._hover_timer.stop()
+            self.refresh_position()
+        self._native_warp_guard = False
+
     def set_origin_marker(self, marker):
-        """Keep the green point below the separate folder action band."""
+        """Bind the actual green pivot to the blue pad above ぐりぐり."""
         self._origin_marker = marker
+        self._position_origin_marker()
         self.refresh_position()
 
     def set_wheel_pad(self, pad):
@@ -211,11 +319,26 @@ class MousePointerRodPad(QFrame):
     def _position_wheel_pad(self):
         pad = self._wheel_pad
         if pad is not None:
-            # Button is near the BLUE surface's bottom, not on the origin.
-            # The true green origin is placed below the separate folder band.
             x = round((self.width() - pad.width()) / 2)
             y = max(0, self.height() - pad.height() - 4)
             pad.move(x, y)
+        self._position_origin_marker()
+
+    def _position_origin_marker(self):
+        """Place green anchor DIRECTLY above ぐりぐり, inside the blue pad.
+
+        Run whenever the pad is resized or the button is reparented. The
+        marker is click-through, so aiming still works right across it.
+        """
+        marker = self._origin_marker
+        if marker is None:
+            return
+        pad = self._wheel_pad
+        button_top = (pad.y() if pad is not None else
+                      self.height() - 46 - 4)
+        x = round((self.width() - marker.width()) / 2)
+        y = max(0, button_top - marker.height() - self.ORIGIN_GAP_ABOVE_GRIGRI)
+        marker.move(x, y)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -239,17 +362,16 @@ class MousePointerRodPad(QFrame):
         self.update()
 
     def origin_local(self):
-        # The real anchor lives OUTSIDE this widget, beneath the List band.
-        # Convert its screen coordinate back into blue-pad coordinates so
-        # direction_from_pointer() keeps working without special-case math.
-        if self._origin_marker is not None and self._origin_marker.isVisible():
+        # The green marker is INSIDE blue, directly above ぐりぐり. Convert
+        # the same physical center to local coordinates for all rod modes.
+        if self._origin_marker is not None:
             gx, gy = self._origin_marker.origin_global()
             pt = self.mapFromGlobal(QPoint(round(gx), round(gy)))
             return (float(pt.x()), float(pt.y()))
         return (self.width() / 2.0, self.height() - self.BASE_BOTTOM_MARGIN)
 
     def origin_global(self):
-        if self._origin_marker is not None and self._origin_marker.isVisible():
+        if self._origin_marker is not None:
             return self._origin_marker.origin_global()
         x, y = self.origin_local()
         point = self.mapToGlobal(QPoint(round(x), round(y)))
@@ -259,13 +381,58 @@ class MousePointerRodPad(QFrame):
         return rod_endpoint(self.origin_global(), self._direction, self._length)
 
     def adjust_length(self, steps, *, fast=False):
-        """Wheel only: left button held selects the 60px fast gear."""
+        """Original length wheel, or opt-in SMART vertical-tip wheel."""
         if not self._enabled:
+            return
+        if getattr(self, '_smart_mode', False):
+            self._smart_adjust_vertical(steps, fast=fast)
             return
         new_length = length_after_wheel(self._length, steps, fast=fast)
         if new_length != self._length:
             self._length = new_length
             self.refresh_position()
+
+    def _smart_adjust_vertical(self, steps, *, fast=False):
+        """Wheel: tip moves vertically; actual blue cursor stays on its ray.
+
+        Compute in pad-local coordinates to avoid virtual desktop/DPI offsets.
+        The OS pointer is only warped when SMART mode is explicitly enabled.
+        """
+        if not steps or not self._cursor_on_blue():
+            return
+        from mouse_pointer_rod_smart_model import smart_vertical_step
+        from mouse_pointer_rod_smart_cursor import move_smart_cursor
+        origin = self.origin_local()
+        tip = rod_endpoint(origin, self._direction, self._length)
+        original_global = QCursor.pos()
+        current = self.mapFromGlobal(original_global)
+        current_local = (float(current.x()), float(current.y()))
+        button = self._wheel_pad.geometry() if self._wheel_pad is not None else None
+        exclusion = ((button.left(), button.top(), button.right(), button.bottom())
+                     if button is not None else None)
+        dy = -int(steps) * (FAST_WHEEL_STEP_PX if fast else NORMAL_WHEEL_STEP_PX)
+        result = smart_vertical_step(
+            origin, tip, current_local, dy,
+            (0, 0, self.width() - 1, self.height() - 1), exclusion)
+        if result is None:
+            return  # At the pad/central-button/length boundary: hold position.
+        new_local = QPoint(round(result.cursor[0]), round(result.cursor[1]))
+        if not self._in_blue(new_local):
+            return  # Pixel rounding must never land on ぐりぐり or outside blue.
+        new_global = self.mapToGlobal(new_local)
+        old_length, old_direction = self._length, self._direction
+        # Publish the new geometry AND the warp guard before setPos(). Some
+        # Qt platforms deliver synthetic mouse events synchronously.
+        self._length = result.length
+        self._direction = result.direction
+        self._smart_expected_cursor = new_global
+        if not move_smart_cursor(QCursor, new_global):
+            self._length, self._direction = old_length, old_direction
+            self._smart_expected_cursor = None
+            return  # A denied cursor move must not change rod geometry.
+        # Next *physical* move clears the guard, and aiming resumes exactly
+        # from the new blue-pad cursor position (no stale-event snap).
+        self.refresh_position()
 
     def _in_blue(self, local_point):
         return (self.rect().contains(local_point) and
@@ -283,9 +450,14 @@ class MousePointerRodPad(QFrame):
         else:
             # Entering the area without moving must still aim at the actual
             # cursor position rather than at the previous stored direction.
-            here = self.mapFromGlobal(QCursor.pos())
-            self._direction = direction_from_pointer(
-                self.origin_local(), (here.x(), here.y()), self._direction)
+            cursor = QCursor.pos()
+            expected = getattr(self, '_smart_expected_cursor', None)
+            if not (getattr(self, '_smart_mode', False) and
+                    expected is not None and cursor == expected):
+                self._smart_expected_cursor = None
+                here = self.mapFromGlobal(cursor)
+                self._direction = direction_from_pointer(
+                    self.origin_local(), (here.x(), here.y()), self._direction)
             if not self._aim_hovering:
                 self._aim_hovering = True
                 self._hover_timer.start(self.HOVER_REVEAL_MS)
@@ -329,10 +501,26 @@ class MousePointerRodPad(QFrame):
 
     def mouseMoveEvent(self, event):
         if self._enabled:
+            if getattr(self, '_native_warp_guard', False):
+                event.accept()
+                return
             origin = self.origin_local()
-            pointer = (event.position().x(), event.position().y())
+            expected = getattr(self, '_smart_expected_cursor', None)
+            if getattr(self, '_smart_mode', False) and expected is not None:
+                if QCursor.pos() == expected:
+                    event.accept()  # Warp event: the tip geometry is already set.
+                    return
+                self._smart_expected_cursor = None
+            # A programmatic cursor warp can leave a queued stale Qt move
+            # event behind.  In SMART mode always read the REAL current
+            # position, so the next manual sideways movement never jumps.
+            local_pos = (self.mapFromGlobal(QCursor.pos())
+                         if getattr(self, '_smart_mode', False) else
+                         event.position().toPoint())
+            pointer = (float(local_pos.x()), float(local_pos.y())) if getattr(
+                self, '_smart_mode', False) else (event.position().x(), event.position().y())
             # Moving across the central native pad must not change aim.
-            if not self._in_blue(event.position().toPoint()):
+            if not self._in_blue(local_pos):
                 self._stop_aiming()
                 event.accept()
                 return
@@ -346,7 +534,10 @@ class MousePointerRodPad(QFrame):
         super().mouseMoveEvent(event)
 
     def leaveEvent(self, event):
-        self._stop_aiming()
+        # Temporary native pointer warping generates a synthetic Leave during a native click.
+        # The OS pointer is already back on the pad when Qt delivers it.
+        if not getattr(self, '_native_warp_guard', False):
+            self._stop_aiming()
         super().leaveEvent(event)
 
     def _dispatch_tip_action(self, action):
@@ -356,8 +547,83 @@ class MousePointerRodPad(QFrame):
         launcher = remote.parent() if remote is not None else None
         if launcher is None:
             return False
+        if self._windows_click_mode:
+            return self._dispatch_windows_click(action, remote, launcher)
         from mouse_pointer_rod_direct import direct_files_action
         return direct_files_action(launcher, self.tip_global(), action)
+
+    def _dispatch_windows_click(self, action, remote, launcher, target_override=None):
+        """Single click or two-click native sequence at ONE fixed screen point.
+
+        Native double clicks must not warp the cursor away between clicks.
+        The first physical release is buffered so a second release can replace
+        it with one reliable OS double click, not a triple click.
+        """
+        if action not in ('select', 'double'):
+            return False
+        if not self._cursor_on_blue():
+            return False
+        tip_x, tip_y = self.tip_global() if target_override is None else target_override
+        target = QPoint(round(tip_x), round(tip_y))
+        if QApplication.screenAt(target) is None:
+            return False  # Do not click an invalid off-desktop point.
+        if remote.frameGeometry().contains(target):
+            return False  # The blue pad must never recursively click itself.
+
+        # Page columns are non-grabbing QMenus in THIS Qt process. Windows
+        # SendInput can reach Chrome and the Files history menu, but its
+        # button sequence may not activate these cascade QActions. Resolve
+        # the visible item once by the exact rod tip and let the existing
+        # QAction callback perform its own operation. No per-item logic.
+        from mouse_pointer_rod_qt_menu import dispatch_page_cascade_action
+        top_levels = getattr(QApplication, 'topLevelWidgets', None)
+        if (callable(top_levels) and
+                dispatch_page_cascade_action(target, top_levels())):
+            return True
+
+        # Our QMenus run in the SAME Qt GUI thread as the pad.  SendInput
+        # queues native events, but restoring the pointer immediately can move
+        # it away before the QAction receives the release.  Chrome runs in a
+        # separate process, so the previous immediate restore worked there.
+        top_levels = getattr(QApplication, 'topLevelWidgets', None)
+        own_menu_at_tip = (callable(top_levels) and any(
+            isinstance(widget, QMenu) and widget.isVisible()
+            and widget.frameGeometry().contains(target)
+            for widget in top_levels()))
+
+        self._native_warp_guard = True
+        restore_deferred = False
+        try:
+            from mouse_pointer_rod_windows import click_at
+            if own_menu_at_tip:
+                # Keep the OS cursor at the QAction briefly while Qt processes
+                # WM_LBUTTONDOWN/UP. This is a nonblocking timer, not sleep() on
+                # the GUI thread. Leave the cursor alone if the user moved it.
+                def restore_after_menu_click(original, clicked_tip):
+                    def finish():
+                        try:
+                            from mouse_pointer_rod_windows import restore_cursor_if_unchanged
+                            restore_cursor_if_unchanged(QCursor, original, clicked_tip)
+                        finally:
+                            self._finish_native_warp()
+                    QTimer.singleShot(70, finish)
+                restore_deferred = True
+                click_at(target, cursor=QCursor, double=(action == 'double'),
+                         defer_restore=restore_after_menu_click)
+            else:
+                # Windows apps and normal Launch widgets retain the tested
+                # immediate cursor-restoration behavior of v0.2.
+                click_at(target, cursor=QCursor, double=(action == 'double'))
+            return True
+        except OSError as exc:
+            # Native input can be blocked (elevated app, Citrix, locked desktop).
+            footer = getattr(launcher, 'footer', None)
+            if footer is not None:
+                footer.setText(f'Windowsマウス方式：クリック失敗: {exc}')
+            return False
+        finally:
+            if not restore_deferred:
+                QTimer.singleShot(85, self._finish_native_warp)
 
     def mousePressEvent(self, event):
         if self._enabled and event.button() == Qt.MouseButton.LeftButton:
@@ -373,7 +639,14 @@ class MousePointerRodPad(QFrame):
                              self.rect().contains(event.position().toPoint()) and
                              (self._wheel_pad is None or not self._wheel_pad.geometry().contains(event.position().toPoint())))
             if should_select:
-                self._dispatch_tip_action('double' if self._double_pending else 'select')
+                if getattr(self, '_windows_click_mode', False):
+                    if self._double_pending:
+                        self._cancel_pending_native_click()
+                        self._dispatch_tip_action('double')
+                    else:
+                        self._queue_native_single_click()
+                else:
+                    self._dispatch_tip_action('double' if self._double_pending else 'select')
             self._double_pending = False
             self._wheel_during_press = False
         event.accept()
@@ -385,6 +658,8 @@ class MousePointerRodPad(QFrame):
             self._left_pressed = True
             self._wheel_during_press = False
             self._double_pending = True
+            if getattr(self, '_windows_click_mode', False):
+                self._cancel_pending_native_click()
         event.accept()
 
     def contextMenuEvent(self, event):
@@ -431,9 +706,14 @@ class MousePointerRodPad(QFrame):
 
     def showEvent(self, event):
         super().showEvent(event)
+        self._update_windows_watchdog()
         QTimer.singleShot(0, self._sync_hover)
 
     def hideEvent(self, event):
+        self._cancel_pending_native_click()
+        self._native_hover_watchdog.stop()
+        self._native_warp_guard = False
+        self._smart_expected_cursor = None
         self._double_pending = False
         self._left_pressed = False
         self._wheel_during_press = False
@@ -448,23 +728,32 @@ class MousePointerRodPad(QFrame):
             painter.setBrush(QColor('#e5f0f8' if is_light else '#304357'))
             painter.setPen(QPen(QColor('#8fb7a4' if is_light else '#688d7d'), 1.0))
             painter.drawRoundedRect(QRectF(self.rect()).adjusted(.5, .5, -.5, -.5), 4, 4)
-            # The green origin is a separate sibling widget BELOW the List
-            # current-folder band. Never paint a fake origin inside the blue.
+            # The real green origin is a transparent child above ぐりぐり.
+            # Paint a fallback dot only for standalone/no-marker previews.
             if self._origin_marker is None:
                 x, y = self.origin_local()
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor('#6aa94a'))
                 painter.drawEllipse(QPointF(x, y), 11.0, 11.0)
+            # Same compact 10px glyph height as the '1の手' shuriken caption.
+            font = QFont('Yu Gothic UI', 9)
+            font.setPixelSize(10)
+            painter.setFont(font)
             painter.setPen(QColor('#365d53' if is_light else '#d9eee3'))
-            painter.drawText(QRectF(6, 5, self.width() - 12, 9),
+            painter.drawText(QRectF(6, 5, self.width() - 12, 12),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                             'マウス差し棒  実験')
-            painter.drawText(QRectF(6, 26, self.width() - 12, 9),
+                             'ワープ差し棒 ～ぐりぐりスピナー～  実験' if self._smart_mode else 'マウス差し棒  実験')
+            painter.drawText(QRectF(6, 19, self.width() - 12, 12),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              f'長さ：{round(self._length)} px')
             # Single line stays ABOVE the centered ぐりぐり button.
-            painter.drawText(QRectF(6, 46, self.width() - 12, 9),
+            painter.drawText(QRectF(6, 33, self.width() - 12, 12),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              f'通常：{NORMAL_WHEEL_STEP_PX}px / 押下：{FAST_WHEEL_STEP_PX}px')
+            if self._windows_click_mode:
+                painter.setPen(QColor('#1765a8' if is_light else '#91c9ff'))
+                painter.drawText(QRectF(6, 47, self.width() - 12, 12),
+                                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                                 'Windowsマウス方式 ON')
         finally:
             painter.end()

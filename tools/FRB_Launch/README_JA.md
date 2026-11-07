@@ -37,3 +37,7 @@
 6. Browser画面左側での通常のブックマーククリックは従来どおりであること。
 
 ※ v74までのFiles/Browser右クリック機能、お気に入り登録、黒い残像の保留状態には手を加えていません。
+
+
+## マウス差し棒・Windows方式（実験）
+設定メニューから「実験：マウス差し棒（Mouse Pointer Rod）モード」をONにした後、「実験：マウス差し棒 Windowsマウス方式」をONにすると、青い照準領域からWindowsマウスクリックを試せます。OFFで従来のFiles List/Exp直接操作へ戻ります。詳細は `CHANGE_NOTE_MousePointerRod_WindowsMouse_20261107.md` を参照。

@@ -2897,6 +2897,16 @@ class Launcher(QWidget):
         self.mouse_pointer_rod_mode = str(self.settings.value(
             'experiment_mouse_pointer_rod', 'false')).strip().lower() in (
                 'true', '1', 'yes', 'on')
+        # Independent opt-in click adapter. Default is the original direct-Qt
+        # List/Exp mode; this setting never enables Windows injection by itself.
+        self.mouse_pointer_rod_windows_mode = str(self.settings.value(
+            'experiment_mouse_pointer_rod_windows', 'false')).strip().lower() in (
+                'true', '1', 'yes', 'on')
+        # Opt-in SMART Rod: change tip Y, solve new angle/length, and move the
+        # physical aiming cursor inside blue. Independent of Windows clicks.
+        self.mouse_pointer_rod_smart_mode = str(self.settings.value(
+            'experiment_mouse_pointer_rod_smart', 'false')).strip().lower() in (
+                'true', '1', 'yes', 'on')
         self._remote_15_alignment_pending = False
         self.remote_window = None
         self._remote_area = None
@@ -3176,6 +3186,18 @@ class Launcher(QWidget):
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
         self.files_root_hidden_action = self.theme_menu.addAction('実験：Files ルート非表示')
         self.files_root_hidden_action.setCheckable(True)
+        self.mouse_pointer_rod_smart_action = self.theme_menu.addAction(
+            '実験：ワープ差し棒 － ぐりぐりスピナー（上下追従）')
+        self.mouse_pointer_rod_smart_action.setCheckable(True)
+        self.mouse_pointer_rod_smart_action.setChecked(self.mouse_pointer_rod_smart_mode)
+        self.mouse_pointer_rod_smart_action.setEnabled(self.mouse_pointer_rod_mode)
+        self.mouse_pointer_rod_smart_action.setToolTip(
+            '青い操作エリアでホイールを回すと、差し棒の先端がX固定で上下移動し、'
+            '実カーソルも新しい差し棒の角度へ追従します。'
+            '青エリア外・中央ぐりぐりへは移動しません。'
+            'OFFで従来の棒の伸縮へ戻ります。')
+        self.mouse_pointer_rod_smart_action.triggered.connect(
+            self.set_mouse_pointer_rod_smart_mode)
         self.files_root_hidden_action.setChecked(self.files_root_hidden_mode)
         self.files_root_hidden_action.setToolTip(
             'Files第1列・Browserブックマーク列・リモコンTab/BackTabを隠す。'
@@ -3205,6 +3227,17 @@ class Launcher(QWidget):
             'Remote下部で角度を調整、ぐりぐりホイールで長さを調整します。'
             '実験：操作エリアの左クリックでFiles List/Exp行を直接選択。OSクリック送信なし。')
         self.mouse_pointer_rod_action.triggered.connect(self.set_mouse_pointer_rod_mode)
+        self.mouse_pointer_rod_windows_action = self.theme_menu.addAction(
+            '実験：マウス差し棒 Windowsマウス方式')
+        self.mouse_pointer_rod_windows_action.setCheckable(True)
+        self.mouse_pointer_rod_windows_action.setChecked(self.mouse_pointer_rod_windows_mode)
+        self.mouse_pointer_rod_windows_action.setEnabled(self.mouse_pointer_rod_mode)
+        self.mouse_pointer_rod_windows_action.setToolTip(
+            '差し棒の青い部分のクリックをWindowsの実マウスクリックへ切替。'
+            'カーソルを先端へ一瞬移動して戻します。Windows限定の実験です。'
+            'OFFで従来のFiles List/Exp直接操作へ戻ります。')
+        self.mouse_pointer_rod_windows_action.triggered.connect(
+            self.set_mouse_pointer_rod_windows_mode)
         self.files_root_hidden_action.setChecked(
             self.files_root_hidden_mode and not self.files_exp_embedded_mode)
         self.theme_menu.addSeparator()
@@ -4307,18 +4340,57 @@ class Launcher(QWidget):
         return self.remote_window
 
     def set_mouse_pointer_rod_mode(self, checked):
-        """Reversible direct Files row experiment; no OS input injection."""
+        """Enable the rod surface; the chosen click adapter stays independent."""
         self.mouse_pointer_rod_mode = bool(checked)
         self.settings.setValue('experiment_mouse_pointer_rod',
                                self.mouse_pointer_rod_mode)
         self.settings.sync()
         self.mouse_pointer_rod_action.setChecked(self.mouse_pointer_rod_mode)
+        windows_action = getattr(self, 'mouse_pointer_rod_windows_action', None)
+        if windows_action is not None:
+            windows_action.setEnabled(self.mouse_pointer_rod_mode)
+        smart_action = getattr(self, 'mouse_pointer_rod_smart_action', None)
+        if smart_action is not None:
+            smart_action.setEnabled(self.mouse_pointer_rod_mode)
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_mouse_pointer_rod_enabled(self.mouse_pointer_rod_mode)
         self.footer.setText(
-            'マウス差し棒：List/Expの行を直接選択（OSクリック送信なし）。'
+            ('マウス差し棒：Windowsクリック実験（カーソルを先端へ移動→復帰）。'
+             if getattr(self, 'mouse_pointer_rod_windows_mode', False) else
+             'マウス差し棒：List/Expの行を直接選択（OSクリック送信なし）。')
             if checked else 'マウス差し棒：OFF（通常のぐりぐり操作に戻しました）。')
+
+    def set_mouse_pointer_rod_windows_mode(self, checked):
+        """Hot-switch only the blue-pad click adapter; no change to ぐりぐり."""
+        self.mouse_pointer_rod_windows_mode = bool(checked)
+        self.settings.setValue('experiment_mouse_pointer_rod_windows',
+                               self.mouse_pointer_rod_windows_mode)
+        self.settings.sync()
+        self.mouse_pointer_rod_windows_action.setChecked(
+            self.mouse_pointer_rod_windows_mode)
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_mouse_pointer_rod_windows_mode(self.mouse_pointer_rod_windows_mode)
+        self.footer.setText(
+            'マウス差し棒：Windowsマウス方式（実験・カーソル瞬間移動あり）。'
+            if checked else 'マウス差し棒：従来方式（Files List/Exp直接操作）。')
+
+    def set_mouse_pointer_rod_smart_mode(self, checked):
+        """Toggle only rod geometry / cursor-follow, not the click adapter."""
+        self.mouse_pointer_rod_smart_mode = bool(checked)
+        self.settings.setValue('experiment_mouse_pointer_rod_smart',
+                               self.mouse_pointer_rod_smart_mode)
+        self.settings.sync()
+        action = getattr(self, 'mouse_pointer_rod_smart_action', None)
+        if action is not None:
+            action.setChecked(self.mouse_pointer_rod_smart_mode)
+        remote = getattr(self, 'remote_window', None)
+        if remote is not None:
+            remote.set_mouse_pointer_rod_smart_mode(self.mouse_pointer_rod_smart_mode)
+        self.footer.setText(
+            'スマート マウス差し棒：先端X固定で上下追従、実カーソルも青エリア内で追従。'
+            if checked else 'スマート マウス差し棒：OFF（従来の長さ調整に戻しました）。')
 
     def set_remote_15_mode(self, checked):
         """Reversible overlay experiment; existing Remote commands stay intact."""

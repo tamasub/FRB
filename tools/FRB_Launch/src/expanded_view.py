@@ -1167,6 +1167,23 @@ class ExpandedPanel(QFrame):
                 self.tree.setCurrentItem(first)
 
 
+class _NonGrabbingHistoryMenu(QMenu):
+    """A QMenu with actions but WITHOUT the normal Qt.Popup mouse grab.
+
+    The Windows Mouse Pointer Rod clicks through SendInput from the remote pad.
+    A regular QToolButton InstantPopup captures the mouse, which redirects the
+    synthetic click away from the history row and steals the pad's wheel input.
+    A Tool-style QMenu follows the already working Page cascade pattern.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Tool |
+                            Qt.WindowType.FramelessWindowHint |
+                            Qt.WindowType.WindowStaysOnTopHint)
+        self.setToolTipsVisible(True)
+
+
 class _MiddleSortButton(QToolButton):
     """Small local keyboard handler for the Files-column sort control.
 
@@ -1461,11 +1478,19 @@ class ExpandedLauncherView(QWidget):
         self.middle_search_history_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.middle_search_history_button.setToolTip(
             'Files List検索履歴：現在のキーワードを登録／登録済みキーワードを呼び出し')
-        self.middle_search_history_menu = QMenu(self.middle_search_history_button)
+        # Do NOT use QToolButton.setMenu(...)/InstantPopup here.  That creates
+        # a native Qt.Popup grab, preventing Windows-rod click/wheel input from
+        # reaching the Remote whenever this one particular history is open.
+        # Instead open a non-grabbing QMenu explicitly, just like Page menus.
+        self.middle_search_history_menu = _NonGrabbingHistoryMenu(
+            self.middle_search_history_button)
         self.middle_search_history_menu.setObjectName('filesListSearchHistoryMenu')
-        self.middle_search_history_menu.aboutToShow.connect(self.populate_middle_search_history_menu)
-        self.middle_search_history_button.setMenu(self.middle_search_history_menu)
-        self.middle_search_history_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        # Tool QMenus do not rely on a native popup dismissal. Explicitly
+        # close after a selection (including a nested delete-history action).
+        self.middle_search_history_menu.triggered.connect(
+            lambda _action: self.middle_search_history_menu.hide())
+        self.middle_search_history_button.clicked.connect(
+            self.toggle_middle_search_history_menu)
         middle_search_layout.addWidget(self.middle_search_history_button, 0)
         self.middle_search = QLineEdit(self.middle_search_bar)
         self.middle_search.setObjectName('expandedMiddleSearch')
@@ -2325,6 +2350,32 @@ class ExpandedLauncherView(QWidget):
         self._update_middle_header_sort()
         self._fill_middle_from_current()
 
+    def toggle_middle_search_history_menu(self):
+        """Toggle Files List keyword history without Qt's global popup grab.
+
+        A real button press and an OS click from the Windows rod enter through
+        the same signal.  The menu is positioned next to its original button;
+        the original keyword and removal QAction handlers remain unchanged.
+        """
+        menu = self.middle_search_history_menu
+        if menu.isVisible():
+            menu.hide()
+            return
+        self.populate_middle_search_history_menu()
+        button = self.middle_search_history_button
+        size = menu.sizeHint()
+        point = button.mapToGlobal(QPoint(0, button.height()))
+        screen = QApplication.screenAt(point) or QApplication.primaryScreen()
+        if screen is not None:
+            bounds = screen.availableGeometry()
+            point.setX(max(bounds.left(), min(point.x(),
+                          bounds.right() - size.width() + 1)))
+            if point.y() + size.height() > bounds.bottom() + 1:
+                point.setY(button.mapToGlobal(QPoint(0, -size.height())).y())
+            point.setY(max(bounds.top(), min(point.y(),
+                          bounds.bottom() - size.height() + 1)))
+        menu.popup(point)
+
     def populate_middle_search_history_menu(self):
         """Refresh the left-side button's popup each time it is opened."""
         menu = self.middle_search_history_menu
@@ -2344,7 +2395,11 @@ class ExpandedLauncherView(QWidget):
                 action.triggered.connect(
                     lambda checked=False, value=keyword: self.select_middle_search_history(value))
             menu.addSeparator()
-            forget = menu.addMenu('履歴から削除')
+            # The submenu must also avoid a native Qt.Popup grab.  Otherwise
+            # the rod would stop working again on the 'remove history' branch.
+            forget = _NonGrabbingHistoryMenu(menu)
+            forget.setTitle('履歴から削除')
+            menu.addMenu(forget)
             for keyword in self.files_list_search_history.keywords:
                 action = forget.addAction(keyword)
                 action.triggered.connect(

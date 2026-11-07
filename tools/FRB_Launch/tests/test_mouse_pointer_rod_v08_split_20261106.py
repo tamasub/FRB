@@ -163,7 +163,7 @@ def test_external_wheels_still_forward_to_native_pad():
     assert 'if (not self._pressed or self._dragged' in s
     assert 'self._target_hold_timer.timeout.connect(self._show_target_menu)' in s
     rod=(ROOT/'src/mouse_pointer_rod.py').read_text('utf-8')
-    assert 'BASE_BOTTOM_MARGIN = 19' in rod
+    assert 'BASE_BOTTOM_MARGIN = 66' in rod  # pivot moved inside blue above ぐりぐり
     assert 'def _position_wheel_pad(self)' in rod
     for tok in ('SendInput(', 'SetCursorPos(', 'QCursor.setPos('):
         assert tok not in rod

@@ -651,9 +651,9 @@ class LaunchRemote(QWidget):
         root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
 
         # Visual order while the experiment is ON:
-        # BLUE (aim and native central ぐりぐり) -> current-folder band ->
-        # GREEN physical origin -> operating-target status.
-        # These are SEPARATE surfaces: the List band is never blue aim input.
+        # BLUE (aim, green pivot directly ABOVE native ぐりぐり) ->
+        # current-folder band -> operating-target status.
+        # The band stays separate: it is never a blue aiming surface.
         self.pointer_rod = MousePointerRodPad(self)
         root.addWidget(self.pointer_rod)
 
@@ -661,8 +661,9 @@ class LaunchRemote(QWidget):
         self.up_band.command.connect(self.command.emit)
         root.addWidget(self.up_band)
 
-        self.pointer_rod_origin = MousePointerRodOrigin(self)
-        root.addWidget(self.pointer_rod_origin)
+        # Overlay the actual green pivot INSIDE blue without consuming an
+        # extra row. Its global center remains the single rod origin.
+        self.pointer_rod_origin = MousePointerRodOrigin(self.pointer_rod)
         self.pointer_rod.set_origin_marker(self.pointer_rod_origin)
 
         # The current target is status information, not a control.
@@ -693,8 +694,12 @@ class LaunchRemote(QWidget):
                 widget.installEventFilter(self)
         self.set_files_root_hidden_mode(
             bool(getattr(launcher, 'files_root_hidden_mode', False)))
+        self.set_mouse_pointer_rod_windows_mode(
+            bool(getattr(launcher, 'mouse_pointer_rod_windows_mode', False)))
         self.set_mouse_pointer_rod_enabled(
             bool(getattr(launcher, 'mouse_pointer_rod_mode', False)))
+        self.set_mouse_pointer_rod_smart_mode(
+            bool(getattr(launcher, 'mouse_pointer_rod_smart_mode', False)))
 
     def moveEvent(self, event):
         super().moveEvent(event)
@@ -722,6 +727,14 @@ class LaunchRemote(QWidget):
         # This is not a user close and must not dismiss its kana companion.
         if not self._window_mode_transition:
             self.remote_hidden.emit()
+
+    def set_mouse_pointer_rod_windows_mode(self, enabled):
+        """Select the OS click adapter without altering rod aim or other buttons."""
+        self.pointer_rod.set_windows_click_mode(enabled)
+
+    def set_mouse_pointer_rod_smart_mode(self, enabled):
+        """Keep click adapters untouched; opt in to vertical tip tracking."""
+        self.pointer_rod.set_smart_mode(enabled)
 
     def set_mouse_pointer_rod_enabled(self, enabled):
         """Embed/restore the one native ぐりぐり button without changing its duties."""

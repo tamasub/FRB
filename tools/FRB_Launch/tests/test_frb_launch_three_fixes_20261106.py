@@ -138,7 +138,9 @@ def test_main_drag_moves_kana_in_both_remote_modes():
 def test_files_list_history_button_is_left_of_local_search_and_keeps_filter():
     text = (ROOT/'src/expanded_view.py').read_text('utf-8')
     assert "self.files_list_search_history = FilesListSearchHistory(history_path)" in text
-    assert "self.middle_search_history_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)" in text
+    # v0.3: the Files List history must not grab input from the Remote rod.
+    assert 'self.middle_search_history_menu = _NonGrabbingHistoryMenu(' in text
+    assert 'self.middle_search_history_button.clicked.connect(' in text
     assert text.index('middle_search_layout.addWidget(self.middle_search_history_button, 0)') < text.index('self.middle_search = QLineEdit(self.middle_search_bar)')
     assert 'self.middle_search.textChanged.connect(self.apply_middle_filter)' in text
     assert 'self.middle_search.setText(keyword)' in text

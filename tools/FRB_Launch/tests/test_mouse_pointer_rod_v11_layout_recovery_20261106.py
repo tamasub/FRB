@@ -1,4 +1,4 @@
-"""v1.1 recovery: direct layout + detached origin, Qt-free source and logic checks."""
+"""Rod layout regression (v1.1 recovery plus experimental on-blue pivot)."""
 import ast
 from pathlib import Path
 from types import SimpleNamespace as NS
@@ -19,40 +19,40 @@ def method(name):
     return env[name]
 
 
-def test_visual_order_blue_band_green_status_and_no_intervening_blue():
+def test_visual_order_blue_band_status_and_no_new_blue_below_band():
     parts = [
         'root.addWidget(self.pointer_rod)',
         'root.addWidget(self.up_band)',
-        'root.addWidget(self.pointer_rod_origin)',
         'root.addWidget(status_frame)',
     ]
-    starts = [REMOTE.index(part) for part in parts]
-    assert starts == sorted(starts)
-    assert "self.pointer_rod.set_origin_marker(self.pointer_rod_origin)" in REMOTE
-    assert 'self.pointer_rod_origin = MousePointerRodOrigin(self)' in REMOTE
+    assert [REMOTE.index(part) for part in parts] == sorted(REMOTE.index(part) for part in parts)
+    assert 'root.addWidget(self.pointer_rod_origin)' not in REMOTE
+    assert 'self.pointer_rod_origin = MousePointerRodOrigin(self.pointer_rod)' in REMOTE
+    assert 'self.pointer_rod.set_origin_marker(self.pointer_rod_origin)' in REMOTE
 
 
-def test_green_marker_is_sibling_not_blue_and_only_visible_in_experiment():
+def test_green_marker_is_click_through_above_grigri_and_visible_only_in_experiment():
     assert 'class MousePointerRodOrigin(QWidget):' in ROD
     assert "self.setObjectName('mousePointerRodOrigin')" in ROD
     assert 'self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)' in ROD
     assert 'origin.setVisible(enabled)' in REMOTE
-    assert 'PAD_HEIGHT = 114' in ROD
+    assert 'PAD_HEIGHT = 144' in ROD
     assert 'self.height() - pad.height() - 4' in ROD
+    assert 'button_top - marker.height() - self.ORIGIN_GAP_ABOVE_GRIGRI' in ROD
 
 
-def test_aim_angle_uses_lower_marker_not_blue_bottom():
+def test_aim_angle_uses_marker_on_blue_above_grigri():
     origin_local = method('origin_local')
     origin_global = method('origin_global')
-    marker = NS(isVisible=lambda:True,origin_global=lambda:(500,800))
+    marker = NS(isVisible=lambda:True,origin_global=lambda:(500,678))
     fake = NS(_origin_marker=marker,
               mapFromGlobal=lambda point:NS(x=lambda:point[0]-400,
                                             y=lambda:point[1]-600),
-              width=lambda:178,height=lambda:114, BASE_BOTTOM_MARGIN=19)
-    assert origin_local(fake) == (100.,200.)  # below the 114px blue surface
-    assert origin_global(fake) == (500,800)
+              width=lambda:178,height=lambda:144, BASE_BOTTOM_MARGIN=66)
+    assert origin_local(fake) == (100.,78.)
+    assert origin_global(fake) == (500,678)
     fake._origin_marker = None
-    assert origin_local(fake) == (89.,95.)  # fallback for standalone preview
+    assert origin_local(fake) == (89.,78.)  # fallback for standalone preview
 
 
 def test_control_boundaries_and_hover_remain_v09():
