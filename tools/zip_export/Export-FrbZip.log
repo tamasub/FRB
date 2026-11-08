@@ -1469,3 +1469,38 @@ D: ???: D:\FRB_backups (?ZIP?SHA256???)
 Windows PowerShell transcript end
 End time: 20261106110617
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20261109000507
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 20520
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+?????: D:\FRB_backups (????)
+???????: F:\FRB_backups
+
+??       : F:\FRB
+????? : 22,876 / ???? 2,247.7 MB / ??????? 12 ?
+  ??: .git
+  ??: bin
+  ??: tools/FRB_Launch/app_zip
+  ??: tools/FRB_Launch_release_test_area/release
+  ??: tools/FRBStudio/bin
+  ??: tools/FRBStudio/obj
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/bin
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/obj
+  ??: tools/FRBStudio_App/app_zip
+  ??: tools/FRBStudio_App/NativeShell/bin
+  ??: tools/FRBStudio_App/NativeShell/obj
+  ??: tools/FRBStudio_App/wwwroot/js/lib/mermaid
