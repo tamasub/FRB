@@ -156,8 +156,11 @@ def test_menu_and_remote_contain_independent_switches():
     app=(ROOT/'src/app.py').read_text('utf-8')
     remote=(ROOT/'src/launch_remote.py').read_text('utf-8')
     assert "experiment_mouse_pointer_rod_windows" in app
-    assert 'windows_action.setEnabled(self.mouse_pointer_rod_mode)' in app
-    assert 'self.mouse_pointer_rod_windows_action.triggered.connect(' in app
+    # The click adapters are independent in persistence/engine, but a
+    # mutually exclusive public submenu now chooses the active adapter.
+    assert "self.mouse_pointer_rod_choice_group.setExclusive(True)" in app
+    assert "self.mouse_pointer_rod_windows_action = self.mouse_pointer_rod_choice_actions['windows']" in app
+    assert 'self.mouse_pointer_rod_smart_action = None' in app
     assert 'def set_mouse_pointer_rod_windows_mode(self, enabled):' in remote
     assert 'self.pointer_rod.set_windows_click_mode(enabled)' in remote
     assert 'if self._windows_click_mode:' in (ROOT/'src/mouse_pointer_rod.py').read_text('utf-8')

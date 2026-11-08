@@ -170,6 +170,6 @@ def test_bookmark_pointer_follow_setting_retired_but_safety_is_preserved():
 def test_global_vdi_override_remains_available():
     app = (SRC / 'app.py').read_text(encoding='utf-8')
     view = (SRC / 'expanded_view.py').read_text(encoding='utf-8')
-    assert "'Citrix / VDI互換：マウスポインター自動移動OFF'" in app
-    assert 'self.vdi_no_cursor_warp_action.triggered.connect(self.set_vdi_no_cursor_warp)' in app
+    assert "self.theme_menu.addMenu('マウスポインター自動移動')" in app
+    assert 'self.set_pointer_warp_enabled(value)' in app
     assert "'pointer_warp_enabled', True" in view

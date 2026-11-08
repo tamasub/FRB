@@ -11,7 +11,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from expanded_view_model import root_wheel_target
-from wheel_adaptive import wheel_steps, can_follow_at_edge
+from wheel_adaptive import wheel_steps, can_follow_at_edge, monotonic_edge_anchor
 
 
 def test_real_scroll_never_follows_cursor_and_precision_does_not_warp_midrange():
@@ -141,6 +141,7 @@ qtimer = SimpleNamespace(singleShot=lambda ms, cb: World.calls.append(cb))
 namespace = dict(Qt=q, QAbstractItemView=a, QApplication=World,
                  QTimer=qtimer, QCursor=Mouse, QPoint=Coord,
                  wheel_steps=wheel_steps, can_follow_at_edge=can_follow_at_edge,
+                 monotonic_edge_anchor=monotonic_edge_anchor,
                  root_wheel_target=root_wheel_target,
                  cursor_target=lambda size, rect, x: (x, rect[1]+rect[3]//2))
 exec(extract_handler('wheel_middle_at_edge'), namespace)

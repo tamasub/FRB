@@ -35,3 +35,25 @@ def can_follow_at_edge(scroll_before, scroll_after, scroll_min, scroll_max,
     if row_direction > 0:
         return scroll_after >= scroll_max
     return scroll_after <= scroll_min
+
+
+def monotonic_edge_anchor(current_index, hover_index, movement):
+    """Prevent a fixed pointer from walking the logical row backwards.
+
+    When OS pointer warping is disabled, the content moves *under* the
+    stationary cursor. After scrolling (including a selection-induced Qt
+    auto-scroll), Qt may report that cursor's hovered row as an older index.
+    Start from the hovered row only when it is already in the requested
+    direction relative to the current row. At the same/behind position,
+    continue from the current row instead. The caller must apply this only
+    to OFF-mode Files List edge-follow, not to ordinary scroll/ON mode.
+    """
+    if current_index is None or current_index < 0:
+        return hover_index if hover_index is not None and hover_index >= 0 else None
+    if hover_index is None or hover_index < 0:
+        return current_index
+    if movement > 0:
+        return max(current_index, hover_index)
+    if movement < 0:
+        return min(current_index, hover_index)
+    return current_index

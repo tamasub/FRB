@@ -12,8 +12,10 @@ from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QVBoxLayout, Q
                                QToolButton, QTabWidget, QTabBar, QMenu, QWidget, QLabel,
                                QScrollArea, QGraphicsOpacityEffect, QMessageBox, QFileIconProvider,
                                QTreeWidgetItem, QHeaderView, QAbstractItemView)
-from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile, QWebEngineDownloadRequest
+from PySide6.QtWebEngineCore import QWebEnginePage as _QtWebEnginePage, QWebEngineProfile, QWebEngineDownloadRequest
 from PySide6.QtWebEngineWidgets import QWebEngineView
+
+from web_console_policy import should_suppress_console_message
 
 from browser_nav_icons import browser_navigation_icon
 from launch_downloads import safe_download_name, unique_path, safe_extract_zip
@@ -173,6 +175,19 @@ class _WebCloseButton(QToolButton):
         self.setAutoRaise(True)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setToolTip('タブを閉じる')
+
+
+class QWebEnginePage(_QtWebEnginePage):
+    """Limit *known* embedded Chromium console noise, never all page errors.
+
+    This changes stderr reporting only; it does not repair font downloads,
+    rendering, or the Chromium shared-dictionary SQLite store.
+    """
+
+    def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        if should_suppress_console_message(message):
+            return
+        super().javaScriptConsoleMessage(level, message, lineNumber, sourceID)
 
 
 class _LaunchWebPage(QWebEngineView):

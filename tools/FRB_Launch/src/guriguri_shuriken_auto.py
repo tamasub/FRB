@@ -16,6 +16,13 @@ AUTO_SHURIKEN_WINDOW_MS = 700          # 判定対象の時間窓（100msだと�
 AUTO_SHURIKEN_MAX_GAP_MS = 150        # これ以上イベント間が空くと連続判定をリセット
 AUTO_SHURIKEN_MIN_SPAN_MS = 220        # 1瞬間のバーストでは起動しない
 AUTO_SHURIKEN_MIN_RATE_NPS = 25.0     # 判定区間の最低回転ペース（ノッチ/秒）
+# 【継続ぐりぐり補助起動】瞬間速度が閾値未満でも、同方向の意図的な連続回転なら起動。
+# 例: 1ノッチ/80ms だと 12.5 ノッチ/秒。上の25を満たさず永久に起動しない。
+# 瞬間高速判定はそのまま残し、この条件は第2の起動経路として追加する。
+AUTO_SHURIKEN_SUSTAINED_ENABLED = True
+AUTO_SHURIKEN_SUSTAINED_MIN_EVENTS = 7       # 連続するwheelEvent数（単発の誤発火防止）
+AUTO_SHURIKEN_SUSTAINED_MIN_NOTCHES = 7      # 同方向の累積ノッチ数
+AUTO_SHURIKEN_SUSTAINED_MIN_SPAN_MS = 420    # 高速バーストではなく一定時間の操作意図を検出
 AUTO_SHURIKEN_REARM_MS = 450          # 手裏剣終了直後の再発火防止
 AUTO_SHURIKEN_INITIAL_SPEED = 500.0  # 自動起動時の既存手裏剣への入力速度換算 (px/s)
 AUTO_SHURIKEN_REVERSE_STOP_NOTCHES = 200  # 自動手裏剣中、連続逆回転で確定停止
@@ -73,10 +80,22 @@ class WheelShurikenGate:
         # A trackpad/Qt event may aggregate several physical wheel notches.
         # Count those notches, but require at least two distinct events and
         # sustained speed. Slow scrolling must remain ordinary hybrid input.
-        if (len(self._samples) >= AUTO_SHURIKEN_MIN_EVENTS
-                and notches >= AUTO_SHURIKEN_MIN_NOTCHES
-                and span >= AUTO_SHURIKEN_MIN_SPAN_MS / 1000.0
-                and notches / max(span, 0.001) >= AUTO_SHURIKEN_MIN_RATE_NPS):
+        fast_burst = (len(self._samples) >= AUTO_SHURIKEN_MIN_EVENTS
+                      and notches >= AUTO_SHURIKEN_MIN_NOTCHES
+                      and span >= AUTO_SHURIKEN_MIN_SPAN_MS / 1000.0
+                      and notches / max(span, 0.001) >= AUTO_SHURIKEN_MIN_RATE_NPS)
+        # Some physical wheels deliver exactly one notch per event. With the
+        # owner's tuned min-span=220ms and min-rate=25nps, four such events
+        # can never satisfy BOTH conditions (4 / .220 < 25), even when the
+        # user keeps turning for several seconds. Treat clearly sustained,
+        # same-direction wheel action as an additional deliberate gesture.
+        # The existing time window, max gap, direction and source reset logic
+        # above still apply; an idle/slow or isolated wheel cannot arm it.
+        sustained = (AUTO_SHURIKEN_SUSTAINED_ENABLED
+                     and len(self._samples) >= AUTO_SHURIKEN_SUSTAINED_MIN_EVENTS
+                     and notches >= AUTO_SHURIKEN_SUSTAINED_MIN_NOTCHES
+                     and span >= AUTO_SHURIKEN_SUSTAINED_MIN_SPAN_MS / 1000.0)
+        if fast_burst or sustained:
             self.reset(cooldown=True, now=t)
             return direction
         return 0

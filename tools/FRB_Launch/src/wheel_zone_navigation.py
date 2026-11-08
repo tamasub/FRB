@@ -11,7 +11,11 @@ from wheel_edge_hold import EdgeWheelHold
 
 class WheelZoneNavigation:
     def __init__(self, min_seconds=0.45, min_steps=3,
-                 max_gap=0.75, quiet_seconds=0.9, clock=None):
+                 max_gap=0.75, quiet_seconds=0.9, clock=None,
+                 enabled=True):
+        # The public Launch disables wheel-based inter-area jumps.  Retain
+        # the old mechanism for compatibility, but do not arm it at runtime.
+        self.enabled = bool(enabled)
         self.clock = clock or time.monotonic
         self.min_seconds = min_seconds
         self.min_steps = min_steps
@@ -23,6 +27,8 @@ class WheelZoneNavigation:
 
     def wheel_is_locked(self):
         """True means discard this wheel event; clicks still work normally."""
+        if not self.enabled:
+            return False
         if not self.locked:
             return False
         now = self.clock()
@@ -36,6 +42,8 @@ class WheelZoneNavigation:
 
     def feed(self, zone, at_boundary, steps):
         """Return True on a sustained *extra* push beyond this zone's edge."""
+        if not self.enabled:
+            return False
         if self.locked:
             return False
         hold = self.holds.get(zone)

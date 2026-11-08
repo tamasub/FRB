@@ -1,4 +1,4 @@
-"""Remote Citrix/VDI mode is opt-in; existing desktop warp stays unchanged."""
+"""Cursor warp is an explicit opt-in; legacy VDI preference remains compatible."""
 from pathlib import Path
 import ast
 
@@ -18,13 +18,15 @@ def method(name, cls, func):
 
 def test_settings_are_opt_in_and_persistent():
     constructor = method('app.py', 'Launcher', '__init__')
-    assert "'vdi_no_cursor_warp', 'false'" in constructor
-    assert 'self.pointer_warp_enabled = not self.vdi_no_cursor_warp' in constructor
+    assert 'read_pointer_warp_enabled(self.settings)' in constructor
+    assert 'self.vdi_no_cursor_warp = not self.pointer_warp_enabled' in constructor
     handler = method('app.py', 'Launcher', 'set_vdi_no_cursor_warp')
     assert "setValue('vdi_no_cursor_warp', self.vdi_no_cursor_warp)" in handler
     assert 'view.cancel_bookmark_pointer_follow()' in handler
     assert 'self._classic_wheel_follow_pending = None' in handler
-    assert 'Citrix / VDI互換：マウスポインター自動移動OFF' in constructor
+    assert "self.theme_menu.addMenu('マウスポインター自動移動')" in constructor
+    assert "'OFF（仮想環境等の非対応環境用）'" in constructor
+    assert 'self.set_pointer_warp_enabled(value)' in constructor
 
 
 def test_all_warp_locations_are_guarded_by_vdi_mode():
@@ -49,8 +51,8 @@ def test_all_warp_locations_are_guarded_by_vdi_mode():
 
 def test_middle_follows_selection_when_client_pointer_does_not_move():
     body = method('expanded_view.py', 'ExpandedLauncherView', 'wheel_middle_at_edge')
-    assert 'self._middle_vdi_anchor_pos == cursor_global' in body
-    assert 'tree.currentItem() if following' in body
+    assert 'pointer_off = not getattr(' in body
+    assert 'monotonic_edge_anchor(current_index, hover_index, movement)' in body
     assert 'self._middle_vdi_anchor_pos = cursor_global' in body
     assert 'self._middle_vdi_anchor_pos = None' in body
 

@@ -37,7 +37,7 @@ from files_list_search_history import FilesListSearchHistory
 from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
-from wheel_adaptive import wheel_steps, can_follow_at_edge
+from wheel_adaptive import wheel_steps, can_follow_at_edge, monotonic_edge_anchor
 from navigation_wrap import move_tree_selection
 from list_wheel_parity import (
     LIST_WHEEL_MATCH_REMOTE, LIST_WHEEL_HYBRID_ENABLED,
@@ -1269,7 +1269,11 @@ class ExpandedLauncherView(QWidget):
         self._middle_follow_scheduled = False
         self._middle_warp_global = None
         self._middle_back_hold = EdgeWheelHold()
-        self.wheel_zone_navigation = WheelZoneNavigation()
+        # Public UI: disable ALL wheel-edge jumps between areas, both with
+        # pointer auto-move ON and OFF.  Keep in-area wheels, pointer-origin
+        # selection, manual/keyboard navigation and shuriken intact.
+        # This also disables the post-jump wheel-input lock (empty swings).
+        self.wheel_zone_navigation = WheelZoneNavigation(enabled=False)
         self._favorite_popup_wheel_delta = 0
         self._favorite_popup_warp_generation = 0
         self._favorite_path_wheel_delta = 0
@@ -3062,6 +3066,68 @@ class ExpandedLauncherView(QWidget):
             QTimer.singleShot(120, release_guard)
         return True
 
+    def _dismiss_middle_rename_on_outside_click(self, obj, event):
+        """Commit Files List rename on a click outside its editing row.
+
+        The kana companion temporarily suppresses native FocusOut so Windows
+        IME can compose text. This must *not* trap the rename editor when the
+        user clicks the blank 1.5-column lane, another List row or a different
+        Launch control. A click in the editing row itself keeps editing.
+        Kana/Remote Tool windows are intentionally excluded.
+        """
+        if (event.type() != QEvent.Type.MouseButtonPress or
+                event.button() not in (Qt.MouseButton.LeftButton,
+                                       Qt.MouseButton.RightButton)):
+            return
+        panel = getattr(self, 'middle', None)
+        if panel is None:
+            return
+        tree = panel.tree
+        if tree.state() != QAbstractItemView.State.EditingState:
+            return
+        editor = tree.findChild(QLineEdit, 'inlineRenameEditor')
+        if editor is None or not isinstance(obj, QWidget):
+            return
+        # Kana and Remote are separate Tool windows. Their controls (including
+        # Send) must never terminate the editor just by taking focus.
+        if obj.window() is not self.launcher:
+            return
+        if obj is editor or editor.isAncestorOf(obj):
+            return
+        if (obj is tree.viewport() and
+                tree.itemAt(event.position().toPoint()) is tree.currentItem()):
+            return
+        # The outside click should only dismiss this edit. Temporarily block
+        # SelectedClicked to prevent the SAME click from starting a fresh edit
+        # when it lands on an already-selected other file row.
+        previous_triggers = tree.editTriggers()
+        tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        if not self.commit_remote_inline_rename():
+            tree.setEditTriggers(previous_triggers)
+            return
+        companion = getattr(self.launcher, '_remote_kana_companion', None)
+        if companion is not None:
+            companion.forget_closed_inline_editor(editor)
+        # Re-arm after the mouse release, not between press and release.
+        # Qt may invoke SelectedClicked while handling mouseReleaseEvent.
+        self._middle_rename_restore_triggers = previous_triggers
+        self._middle_rename_wait_release = True
+
+    def _restore_middle_rename_triggers_on_release(self, event):
+        if not getattr(self, '_middle_rename_wait_release', False):
+            return
+        if event.type() != QEvent.Type.MouseButtonRelease:
+            return
+        self._middle_rename_wait_release = False
+        triggers = self._middle_rename_restore_triggers
+        self._middle_rename_restore_triggers = None
+        # Run after Qt processes release to avoid a second SelectedClicked edit.
+        def restore():
+            panel = getattr(self, 'middle', None)
+            if panel is not None and triggers is not None:
+                panel.tree.setEditTriggers(triggers)
+        QTimer.singleShot(0, restore)
+
     def finish_inline_rename(self, item, column):
         """Commit a real filesystem rename, rejecting invalid/colliding names."""
         if column != 0:
@@ -3625,6 +3691,10 @@ class ExpandedLauncherView(QWidget):
             QCursor.setPos(destination)
 
     def eventFilter(self, obj, event):
+        # The application-wide filter also receives clicks in the blank 1.5
+        # lane, which Qt's inline editor does not see while kana holds focus.
+        self._dismiss_middle_rename_on_outside_click(obj, event)
+        self._restore_middle_rename_triggers_on_release(event)
         # Stop a wheel-armed shuriken BEFORE a normal Files List click or
         # right-click menu is dispatched. Never swallow the actual click.
         if (getattr(self, 'middle', None) is not None
@@ -3717,6 +3787,16 @@ class ExpandedLauncherView(QWidget):
             if is_warp_generated_mouse_move((position.x(), position.y()), warp):
                 event.accept()
                 return True
+        if (getattr(self, 'middle', None) is not None
+                and obj is self.middle.tree.viewport()
+                and event.type() == QEvent.Type.MouseMove
+                and self._middle_vdi_anchor_pos is not None
+                and not getattr(self.launcher, 'pointer_warp_enabled', True)):
+            # A genuine mouse move chooses a new physical anchor. Ignore
+            # synthetic/hover notifications at the unchanged screen position.
+            position = event.globalPosition().toPoint()
+            if position != self._middle_vdi_anchor_pos:
+                self._middle_vdi_anchor_pos = None
         if (getattr(self, 'right', None) is not None
                 and obj is self.right.tree.viewport()
                 and event.type() == QEvent.Type.MouseMove):
@@ -3940,22 +4020,40 @@ class ExpandedLauncherView(QWidget):
             if hold is not None:
                 hold.reset()
             return False
-        # Anchor to the *item under the mouse*, not a stale keyboard current
-        # item. It can differ after many normal wheel scroll events.
+        # Normally the cursor's hovered item anchors the first edge step.
+        # With pointer-warp OFF, however, Qt can scroll the viewport again
+        # while selecting a row; a later wheel event sees the same physical
+        # pointer over an *earlier* item. Restarting from that hover made a
+        # down-wheel selection run UP 5-6 rows, over and over. Guard the
+        # requested navigation direction even if a scroll/reset invalidates
+        # the previous VDI anchor. This doesn't touch the fast scrollbar or
+        # the autonomous shuriken animation at all.
         hovered = tree.itemAt(cursor_local)
-        # In Citrix the actual client pointer stays fixed. Once we start
-        # advancing at a scroll edge, use the *selected row* as anchor, not
-        # the same row permanently sitting under the stationary cursor.
         cursor_global = QCursor.pos()
-        following = (not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True) and
-                     self._middle_vdi_anchor_pos == cursor_global)
-        current = (tree.currentItem() if following else
-                   hovered if hovered is not None else tree.currentItem())
-        if current is None:
-            return True
-        index = tree.indexOfTopLevelItem(current)
-        if index < 0:
-            return True
+        pointer_off = not getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', True)
+        selected = tree.currentItem()
+        if pointer_off:
+            current_index = (tree.indexOfTopLevelItem(selected)
+                             if selected is not None else None)
+            hover_index = (tree.indexOfTopLevelItem(hovered)
+                           if hovered is not None else None)
+            # Keep the 1-row precision once an edge-follow run has started.
+            # If Qt resets the anchor while moving the scrollbar, fall back
+            # to a directional guard rather than the older hovered row.
+            if (getattr(self, '_middle_vdi_anchor_pos', None) == cursor_global
+                    and current_index is not None and current_index >= 0):
+                index = current_index
+            else:
+                index = monotonic_edge_anchor(current_index, hover_index, movement)
+            if index is None:
+                return True
+        else:
+            current = hovered if hovered is not None else selected
+            if current is None:
+                return True
+            index = tree.indexOfTopLevelItem(current)
+            if index < 0:
+                return True
         target = root_wheel_target(index, movement, tree.topLevelItemCount())
         # Count only extra upward input AFTER the first row has become current.
         # The last wheel event used to *reach* row 0 is never counted.

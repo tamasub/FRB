@@ -36,7 +36,8 @@ def test_one_row_header_moves_original_navigation_and_page_widgets():
 
 
 def test_settings_mode_menu_reuses_existing_toggle():
-    assert "self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')" in APP
+    assert "self.compact_mode_action = QAction('Compact表示へ切り替え', self)" in APP
+    assert "self.theme_menu.addAction('Compact表示へ切り替え')" not in APP
     assert 'self.compact_mode_action.triggered.connect(self.toggle_expanded_view)' in APP
     assert "'Compact表示へ切り替え' if self.view_mode == 'expanded'" in APP
     assert "else 'Files／Browser表示へ切り替え'" in APP

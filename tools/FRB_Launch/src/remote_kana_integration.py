@@ -128,6 +128,21 @@ class RemoteKanaIntegration:
                 and not delta.isNull()):
             self.window.move(self.window.pos() + delta)
 
+    def forget_closed_inline_editor(self, editor):
+        """An outside click finished a rename; kana must not send to it again.
+
+        The kana companion remains visible and may capture another text field
+        on its next explicit focus change. This does not hide the keyboard.
+        """
+        target = self.target
+        if (target is None or target.widget_ref is None or
+                target.widget_ref() is not editor):
+            return
+        target.release_inline_editor()
+        self.target = None
+        if self.window is not None:
+            self.window.send_button.setToolTip('送信先未選択：入力欄を選んでください')
+
     def _mark_hidden(self):
         # Re-enable native delegate focus-out when the companion closes.
         # Leave the inline rename text/editor untouched: Enter/Escape in the

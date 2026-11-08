@@ -220,7 +220,7 @@ class MousePointerRodPad(QFrame):
         self._cancel_pending_native_click()
         self._update_windows_watchdog()
         self.setToolTip(
-            ('Windows実験：青い部分で照準、左クリックで先端にOSクリック。'
+            ('Windowsマウス方式：青い部分で照準、左クリックで先端にOSクリック。'
              'ダブルクリック可。カーソルは元の位置へ復帰。右クリック無効。'
              if self._windows_click_mode else
              '青い部分：方向／ホイール15px、押しながら60px／左クリックでカレント指定。'
@@ -763,7 +763,7 @@ class MousePointerRodPad(QFrame):
             painter.setPen(QColor('#365d53' if is_light else '#d9eee3'))
             painter.drawText(QRectF(6, 5, self.width() - 12, 12),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                             'ワープ差し棒 ～ぐりぐりスピナー～  実験' if self._smart_mode else 'マウス差し棒  実験')
+                             'ワープ差し棒 ～ぐりぐりスピナー～' if self._smart_mode else 'マウス差し棒')
             painter.drawText(QRectF(6, 19, self.width() - 12, 12),
                              Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                              f'長さ：{round(self._length)} px')

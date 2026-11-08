@@ -181,15 +181,38 @@ class RemoteKanaTarget:
         self.api = api
         self._inline_focus_guard = None
         self._selection = None
+        self._selection_signal = None
         self.last_send_replaced = False
         if widget is not None:
             self.remember_selection()
+            # A user can click inside the filename *after* opening FRBかな.
+            # Listen for explicit selection/caret changes while that editor
+            # has focus so its original all-stem selection cannot go stale.
+            signal = getattr(widget, 'selectionChanged', None)
+            if signal is not None and callable(getattr(signal, 'connect', None)):
+                signal.connect(self._remember_focused_selection)
+                self._selection_signal = signal
+
+    def _remember_focused_selection(self):
+        widget = self.widget_ref() if self.widget_ref else None
+        if widget is not None and getattr(widget, 'hasFocus', lambda: True)():
+            self.remember_selection()
 
     def remember_selection(self):
-        """Remember only a real selection while a text editor owns focus."""
+        """Refresh the REAL selection, including deliberate deselection.
+
+        The rename editor initially selects the entire stem. If its user then
+        clicks inside the name to place a caret, the old stem selection must
+        be discarded before kana steals focus. Otherwise Send restores that
+        obsolete selection and replaces the whole filename.
+        """
         widget = self.widget_ref() if self.widget_ref else None
         if widget is None:
+            self._selection = None
             return
+        # A caret without an active selection is itself meaningful input.
+        # Don't retain a previous selection just because there is no new one.
+        self._selection = None
         from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QTextEdit, QComboBox
         if isinstance(widget, QComboBox):
             widget = widget.lineEdit()
@@ -239,7 +262,14 @@ class RemoteKanaTarget:
         self._inline_focus_guard = guard  # Keep the Python QObject alive.
 
     def release_inline_editor(self):
-        """Restore the normal Qt focus-out behavior when FRBかな is hidden."""
+        """Release editor focus guard and selection observer when target ends."""
+        signal = self._selection_signal
+        self._selection_signal = None
+        if signal is not None:
+            try:
+                signal.disconnect(self._remember_focused_selection)
+            except (RuntimeError, TypeError):
+                pass  # Editor destroyed or already disconnected.
         guard = self._inline_focus_guard
         self._inline_focus_guard = None
         if guard is None:

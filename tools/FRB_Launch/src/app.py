@@ -40,6 +40,7 @@ from bookmark_cursor_follow import cursor_target
 from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from webview_routes import bookmark_web_url
+from registered_url_route import registered_embedded_url
 from webview_settings import read_webview_settings
 from search_history import SearchHistory, normalize_keyword
 from session_search_history import SessionSearchHistory, SESSION_HISTORY
@@ -94,6 +95,9 @@ from log_retention import cleanup as cleanup_diagnostics
 from logging.handlers import RotatingFileHandler
 from runtime_paths import launch_home, bundled_studio_root
 from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
+from pointer_warp_policy import (read_pointer_warp_enabled, should_show_pointer_warp_notice,
+                                 NOTICE_DISMISSED_KEY)
+from pointer_warp_notice import PointerWarpNotice
 from desktop_double_click import DesktopDoubleClick
 from launch_remote import LaunchRemote
 from remote_kana_integration import RemoteKanaIntegration
@@ -2904,11 +2908,15 @@ class Launcher(QWidget):
         self.mouse_pointer_rod_windows_mode = str(self.settings.value(
             'experiment_mouse_pointer_rod_windows', 'false')).strip().lower() in (
                 'true', '1', 'yes', 'on')
-        # Opt-in SMART Rod: change tip Y, solve new angle/length, and move the
-        # physical aiming cursor inside blue. Independent of Windows clicks.
+        # Legacy setting preserved internally. The public UI only exposes
+        # Warp Rod, so an enabled legacy plain rod is upgraded to Y-follow.
         self.mouse_pointer_rod_smart_mode = str(self.settings.value(
             'experiment_mouse_pointer_rod_smart', 'false')).strip().lower() in (
                 'true', '1', 'yes', 'on')
+        if self.mouse_pointer_rod_mode and not self.mouse_pointer_rod_smart_mode:
+            self.mouse_pointer_rod_smart_mode = True
+            self.settings.setValue('experiment_mouse_pointer_rod_smart', True)
+            self.settings.sync()
         self._remote_15_alignment_pending = False
         self.remote_window = None
         self._shuriken_wheel_gate = WheelShurikenGate()
@@ -2929,11 +2937,11 @@ class Launcher(QWidget):
             if self.settings.contains(obsolete_key):
                 self.settings.remove(obsolete_key)
         self.settings.sync()
-        # Citrix/VDI can show a server-side cursor distinct from the real
-        # client pointer. Leave normal desktops unchanged unless opted in.
-        self.vdi_no_cursor_warp = str(self.settings.value(
-            'vdi_no_cursor_warp', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
-        self.pointer_warp_enabled = not self.vdi_no_cursor_warp
+        # Release policy: system-pointer movement must be enabled explicitly.
+        # Respect previously saved on/off choices, but default NEW installs OFF.
+        self.pointer_warp_enabled = read_pointer_warp_enabled(self.settings)
+        self.vdi_no_cursor_warp = not self.pointer_warp_enabled  # legacy QSettings key
+        self._pointer_warp_notice = None
         # Search-only sort state; non-search lists keep their configured order
         # and drag-to-reorder behavior.  A value of -1 means unsorted.
         sort_col = str(self.settings.value('result_sort_column', -1))
@@ -3146,20 +3154,29 @@ class Launcher(QWidget):
         # A future all-area interaction mode selector can live here, but
         # Bookmarks is not treated as a special case anymore.
         self.theme_menu.addSeparator()
-        self.vdi_no_cursor_warp_action = self.theme_menu.addAction(
-            'Citrix / VDI互換：マウスポインター自動移動OFF')
-        self.vdi_no_cursor_warp_action.setCheckable(True)
-        self.vdi_no_cursor_warp_action.setChecked(self.vdi_no_cursor_warp)
-        self.vdi_no_cursor_warp_action.setToolTip(
-            '仮想デスクトップで二重カーソルが出る場合に使用。'
-            'ホイール選択は維持、クリック位置は移動しません。')
-        self.vdi_no_cursor_warp_action.triggered.connect(self.set_vdi_no_cursor_warp)
+        self.pointer_warp_menu = self.theme_menu.addMenu('マウスポインター自動移動')
+        self.pointer_warp_menu.setToolTipsVisible(True)
+        self.pointer_warp_mode_group = QActionGroup(self)
+        self.pointer_warp_mode_group.setExclusive(True)
+        self.pointer_warp_mode_actions = {}
+        for enabled, title, tip in (
+                (True, 'ON', 'マウスカーソルを選択位置へ自動移動させます。明示的に選んだ場合のみ有効。'),
+                (False, 'OFF（仮想環境等の非対応環境用）',
+                 '自動移動なし。Citrix / VDI等でもホイール選択を使えます。')):
+            action = self.pointer_warp_menu.addAction(title)
+            action.setCheckable(True)
+            action.setChecked(self.pointer_warp_enabled == enabled)
+            action.setToolTip(tip)
+            self.pointer_warp_mode_group.addAction(action)
+            action.triggered.connect(
+                lambda checked=False, value=enabled: self.set_pointer_warp_enabled(value))
+            self.pointer_warp_mode_actions[enabled] = action
         self.theme_menu.addSeparator()
         outside_menu = self.theme_menu.addMenu('Launch外をクリックしたとき')
         self.outside_mode_group = QActionGroup(self)
         self.outside_mode_group.setExclusive(True)
         self.outside_mode_actions = {}
-        for value, title in ((True, 'Launchを隠す（従来）'),
+        for value, title in ((True, 'Launchを隠す'),
                              (False, 'Launchを表示したまま')):
             action = outside_menu.addAction(title)
             action.setCheckable(True)
@@ -3168,15 +3185,16 @@ class Launcher(QWidget):
             action.triggered.connect(
                 lambda checked=False, enabled=value: self.set_dismiss_on_outside_click(enabled))
             self.outside_mode_actions[value] = action
-        folder_menu = self.theme_menu.addMenu('フォルダーを開くクリック操作')
+        folder_menu = self.theme_menu.addMenu('Files Listでフォルダーを開く操作')
         self.folder_mode_group = QActionGroup(self)
         self.folder_mode_group.setExclusive(True)
         self.folder_mode_actions = {}
-        for value, title in (('single', 'シングルクリック（従来）'),
+        for value, title in (('single', 'シングルクリック'),
                              ('double', 'ダブルクリック')):
             action = folder_menu.addAction(title)
             action.setCheckable(True)
-            action.setToolTip('Files第1列とブックマークはシングルクリックです。Files第2列のみ切替対象です。')
+            action.setToolTip('Files List（第2列）のフォルダーを開くクリック方法です。'
+                              'Files Exp（第1列）とブックマークには影響しません。')
             self.folder_mode_group.addAction(action)
             action.setChecked(self.folder_open_mode == value)
             action.triggered.connect(
@@ -3188,50 +3206,55 @@ class Launcher(QWidget):
         self.remote_mode_action.setCheckable(True)
         self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
-        self.mouse_pointer_rod_smart_action = self.theme_menu.addAction(
-            '実験：ワープ差し棒 － ぐりぐりスピナー（上下追従）')
-        self.mouse_pointer_rod_smart_action.setCheckable(True)
-        self.mouse_pointer_rod_smart_action.setChecked(self.mouse_pointer_rod_smart_mode)
-        self.mouse_pointer_rod_smart_action.setEnabled(self.mouse_pointer_rod_mode)
-        self.mouse_pointer_rod_smart_action.setToolTip(
-            '青い操作エリアでホイールを回すと、差し棒の先端がX固定で上下移動し、'
-            '実カーソルも新しい差し棒の角度へ追従します。'
-            '青エリア外・中央ぐりぐりへは移動しません。'
-            'OFFで従来の棒の伸縮へ戻ります。')
-        self.mouse_pointer_rod_smart_action.triggered.connect(
-            self.set_mouse_pointer_rod_smart_mode)
         self.remote_15_action = self.theme_menu.addAction(
-            '実験：リモコンウィンドウ 1.5列表示')
+            'リモコンウィンドウを1.5列に表示')
         self.remote_15_action.setCheckable(True)
         self.remote_15_action.setChecked(self.remote_15_mode)
         self.remote_15_action.setToolTip(
-            'Filesの第1列と第2列の間に配置場所を確保し、別WindowのRemoteを前面に表示します。'
-            'Remoteの検索結果選択・実行は従来のままです。')
+            'Filesの第1列と第2列の間にリモコンの表示場所を確保します。'
+            'リモコンの検索結果選択・実行の動作は変わりません。')
         self.remote_15_action.triggered.connect(self.set_remote_15_mode)
-        self.mouse_pointer_rod_action = self.theme_menu.addAction(
-            '実験：マウス差し棒（Mouse Pointer Rod）モード')
-        self.mouse_pointer_rod_action.setCheckable(True)
-        self.mouse_pointer_rod_action.setChecked(self.mouse_pointer_rod_mode)
-        self.mouse_pointer_rod_action.setToolTip(
-            'Remote下部で角度を調整、ぐりぐりホイールで長さを調整します。'
-            '実験：操作エリアの左クリックでFiles List/Exp行を直接選択。OSクリック送信なし。')
-        self.mouse_pointer_rod_action.triggered.connect(self.set_mouse_pointer_rod_mode)
-        self.mouse_pointer_rod_windows_action = self.theme_menu.addAction(
-            '実験：マウス差し棒 Windowsマウス方式')
-        self.mouse_pointer_rod_windows_action.setCheckable(True)
-        self.mouse_pointer_rod_windows_action.setChecked(self.mouse_pointer_rod_windows_mode)
-        self.mouse_pointer_rod_windows_action.setEnabled(self.mouse_pointer_rod_mode)
-        self.mouse_pointer_rod_windows_action.setToolTip(
-            '差し棒の青い部分のクリックをWindowsの実マウスクリックへ切替。'
-            'カーソルを先端へ一瞬移動して戻します。Windows限定の実験です。'
-            'OFFで従来のFiles List/Exp直接操作へ戻ります。')
-        self.mouse_pointer_rod_windows_action.triggered.connect(
-            self.set_mouse_pointer_rod_windows_mode)
+
+        # Warp Rod is the ONLY public rod family. The old plain-rod engine
+        # remains internally for compatibility, but is not a menu option.
+        # Preserve existing QSettings keys across upgrades.
+        self.mouse_pointer_rod_menu = self.theme_menu.addMenu(
+            'ワープ差し棒 ～ぐりぐりスピナー～（上下追従）')
+        self.mouse_pointer_rod_menu.setToolTipsVisible(True)
+        self.mouse_pointer_rod_choice_group = QActionGroup(self)
+        self.mouse_pointer_rod_choice_group.setExclusive(True)
+        self.mouse_pointer_rod_choice_actions = {}
+        for choice, label, tip in (
+                ('off', '使用しない',
+                 '差し棒を表示せず、通常のぐりぐり操作を使います。'),
+                ('direct', 'Files List / Exp を直接選択',
+                 '差し棒の青い操作エリアから、Files List / Expの行を直接選びます。'
+                 'Windowsへのクリック送信は行いません。'),
+                ('windows', 'Windowsマウス方式',
+                 'クリック時だけOSのマウスポインターを差し棒の先端へ移動し、'
+                 'Windowsクリックを送って元の位置へ戻します。')):
+            action = self.mouse_pointer_rod_menu.addAction(label)
+            action.setCheckable(True)
+            action.setToolTip(tip)
+            self.mouse_pointer_rod_choice_group.addAction(action)
+            action.triggered.connect(
+                lambda checked=False, key=choice: self.select_mouse_pointer_rod_choice(key))
+            self.mouse_pointer_rod_choice_actions[choice] = action
+        # Preserve attribute names used by related logic but not their old
+        # two-toggle meaning: these are now mutually exclusive choices.
+        self.mouse_pointer_rod_action = self.mouse_pointer_rod_choice_actions['direct']
+        self.mouse_pointer_rod_windows_action = self.mouse_pointer_rod_choice_actions['windows']
+        # No separate checkbox for Y-follow: selecting either rod click mode
+        # enables the Warp Rod automatically. This internal reference is kept
+        # for legacy setters; there is deliberately no visible QAction.
+        self.mouse_pointer_rod_smart_action = None
+        self._sync_mouse_pointer_rod_menu()
         self.theme_menu.addSeparator()
-        self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')
+        # Keep Compact switching available from the existing header button,
+        # but HIDE its duplicated context-menu item for the public release.
+        self.compact_mode_action = QAction('Compact表示へ切り替え', self)
         self.compact_mode_action.setToolTip('Compact表示とFiles／Browser表示を切り替え')
         self.compact_mode_action.triggered.connect(self.toggle_expanded_view)
-        self.theme_menu.addSeparator()
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
             lambda checked=False: self.launch_configuration_studio(page_properties=True))
@@ -4322,27 +4345,62 @@ class Launcher(QWidget):
             self.remote_window.virtual_context_requested.connect(self.show_virtual_launch_context)
         return self.remote_window
 
+    def _sync_mouse_pointer_rod_menu(self):
+        """Show only the exclusive Warp Rod click-mode choices."""
+        actions = getattr(self, 'mouse_pointer_rod_choice_actions', None)
+        if actions:
+            selected = ('off' if not self.mouse_pointer_rod_mode else
+                        'windows' if self.mouse_pointer_rod_windows_mode else 'direct')
+            # Check the selected action first: exclusive QActionGroup does not
+            # allow the only selected action to become temporarily unchecked.
+            actions[selected].setChecked(True)
+            for key, action in actions.items():
+                if key != selected:
+                    action.setChecked(False)
+        smart = getattr(self, 'mouse_pointer_rod_smart_action', None)
+        if smart is not None:
+            smart.setEnabled(self.mouse_pointer_rod_mode)
+            smart.setChecked(self.mouse_pointer_rod_smart_mode)
+
+    def select_mouse_pointer_rod_choice(self, choice):
+        """Select a Warp Rod mode using the three existing saved keys.
+
+        Direct/Windows BOTH require Y-follow. OFF hides the rod without
+        clearing the saved adapter preference or the internal legacy engine.
+        """
+        if choice not in ('off', 'direct', 'windows'):
+            return
+        wants_enabled = choice != 'off'
+        wants_windows = choice == 'windows'
+        # The public menu no longer offers the old plain-rod (non-follow)
+        # behavior. A selection always opts into Warp Rod follow.
+        if wants_enabled and not self.mouse_pointer_rod_smart_mode:
+            self.set_mouse_pointer_rod_smart_mode(True)
+        if wants_enabled and not self.mouse_pointer_rod_mode:
+            self.set_mouse_pointer_rod_mode(True)
+        if self.mouse_pointer_rod_windows_mode != wants_windows:
+            self.set_mouse_pointer_rod_windows_mode(wants_windows)
+        if not wants_enabled and self.mouse_pointer_rod_mode:
+            self.set_mouse_pointer_rod_mode(False)
+        self._sync_mouse_pointer_rod_menu()
+
     def set_mouse_pointer_rod_mode(self, checked):
-        """Enable the rod surface; the chosen click adapter stays independent."""
+        """Enable the rod surface; preserve the independent click adapter."""
         self.mouse_pointer_rod_mode = bool(checked)
         self.settings.setValue('experiment_mouse_pointer_rod',
                                self.mouse_pointer_rod_mode)
         self.settings.sync()
-        self.mouse_pointer_rod_action.setChecked(self.mouse_pointer_rod_mode)
-        windows_action = getattr(self, 'mouse_pointer_rod_windows_action', None)
-        if windows_action is not None:
-            windows_action.setEnabled(self.mouse_pointer_rod_mode)
-        smart_action = getattr(self, 'mouse_pointer_rod_smart_action', None)
-        if smart_action is not None:
-            smart_action.setEnabled(self.mouse_pointer_rod_mode)
+        sync = getattr(self, '_sync_mouse_pointer_rod_menu', None)
+        if callable(sync):
+            sync()
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_mouse_pointer_rod_enabled(self.mouse_pointer_rod_mode)
         self.footer.setText(
-            ('マウス差し棒：Windowsクリック実験（カーソルを先端へ移動→復帰）。'
+            ('ワープ差し棒：Windowsマウス方式（先端でクリック→カーソル復帰）。'
              if getattr(self, 'mouse_pointer_rod_windows_mode', False) else
-             'マウス差し棒：List/Expの行を直接選択（OSクリック送信なし）。')
-            if checked else 'マウス差し棒：OFF（通常のぐりぐり操作に戻しました）。')
+             'ワープ差し棒：Files List / Expの行を直接選択。')
+            if checked else 'ワープ差し棒：使用しない（通常のぐりぐり操作）。')
 
     def set_mouse_pointer_rod_windows_mode(self, checked):
         """Hot-switch only the blue-pad click adapter; no change to ぐりぐり."""
@@ -4350,14 +4408,15 @@ class Launcher(QWidget):
         self.settings.setValue('experiment_mouse_pointer_rod_windows',
                                self.mouse_pointer_rod_windows_mode)
         self.settings.sync()
-        self.mouse_pointer_rod_windows_action.setChecked(
-            self.mouse_pointer_rod_windows_mode)
+        sync = getattr(self, '_sync_mouse_pointer_rod_menu', None)
+        if callable(sync):
+            sync()
         remote = getattr(self, 'remote_window', None)
         if remote is not None:
             remote.set_mouse_pointer_rod_windows_mode(self.mouse_pointer_rod_windows_mode)
         self.footer.setText(
-            'マウス差し棒：Windowsマウス方式（実験・カーソル瞬間移動あり）。'
-            if checked else 'マウス差し棒：従来方式（Files List/Exp直接操作）。')
+            'ワープ差し棒：Windowsマウス方式（先端でクリック→カーソル復帰）。'
+            if checked else 'ワープ差し棒：Files List / Exp直接操作。')
 
     def set_mouse_pointer_rod_smart_mode(self, checked):
         """Toggle only rod geometry / cursor-follow, not the click adapter."""
@@ -4372,8 +4431,8 @@ class Launcher(QWidget):
         if remote is not None:
             remote.set_mouse_pointer_rod_smart_mode(self.mouse_pointer_rod_smart_mode)
         self.footer.setText(
-            'スマート マウス差し棒：先端X固定で上下追従、実カーソルも青エリア内で追従。'
-            if checked else 'スマート マウス差し棒：OFF（従来の長さ調整に戻しました）。')
+            'ワープ差し棒：先端X固定で上下追従、実カーソルも青エリア内で追従。'
+            if checked else 'ワープ差し棒：OFF（棒の長さ調整に復帰）。')
 
     def set_remote_15_mode(self, checked):
         """Reversible overlay experiment; existing Remote commands stay intact."""
@@ -5882,9 +5941,20 @@ class Launcher(QWidget):
         view = self.expanded_view
         if getattr(stopped_tree, 'deliberate_blank_selection', False):
             return
-        handoff_current_at_scroll_stop(
+        handed_off = handoff_current_at_scroll_stop(
             stopped_tree, view.row_data,
             QItemSelectionModel.SelectionFlag.NoUpdate)
+        # With system-pointer movement OFF, the mouse stays at a fixed screen
+        # coordinate while the shuriken moves the List underneath it.  The
+        # landing just explicitly made the edge row current; keep that row as
+        # the next wheel-follow anchor. Otherwise wheel_middle_at_edge would
+        # start over from the row beneath the stationary mouse (typically 5-6
+        # rows above the end), making the current seem to loop backwards.
+        if handed_off is not None and not self.pointer_warp_enabled:
+            viewport = stopped_tree.viewport()
+            cursor = QCursor.pos()
+            if viewport.rect().contains(viewport.mapFromGlobal(cursor)):
+                view._middle_vdi_anchor_pos = cursor
 
     def shuriken_items(self, hand_index=1):
         """Use authored Launch JSON; one hand_index identifies one Remote button."""
@@ -6388,16 +6458,20 @@ class Launcher(QWidget):
             if is_double_click_folder(self.folder_open_mode)
             else 'フォルダーのシングルクリック移動を有効にしました。')
 
-    def set_vdi_no_cursor_warp(self, enabled):
-        """Opt-in no-warp navigation for Citrix and other remote desktops.
+    def set_pointer_warp_enabled(self, enabled):
+        """Only an explicit menu selection enables movement of the OS pointer."""
+        self.set_vdi_no_cursor_warp(not bool(enabled))
 
-        A remote process cannot guarantee moving the actual client cursor:
-        keep wheel selection/focus, but never create a second fake pointer.
-        """
+    def set_vdi_no_cursor_warp(self, enabled):
+        """Keep the legacy inverse setting key for existing installations."""
         self.vdi_no_cursor_warp = bool(enabled)
         self.pointer_warp_enabled = not self.vdi_no_cursor_warp
         self.settings.setValue('vdi_no_cursor_warp', self.vdi_no_cursor_warp)
         self.settings.sync()
+        for warp_enabled, action in getattr(self, 'pointer_warp_mode_actions', {}).items():
+            action.setChecked(self.pointer_warp_enabled == warp_enabled)
+        if self.pointer_warp_enabled:
+            self.close_pointer_warp_notice()
         view = getattr(self, 'expanded_view', None)
         if view is not None:
             view.cancel_bookmark_pointer_follow()
@@ -6407,8 +6481,37 @@ class Launcher(QWidget):
             view._middle_vdi_anchor_pos = None
         self._classic_wheel_follow_pending = None
         self.footer.setText(
-            'Citrix / VDI互換：カーソル移動OFF。ホイールで選択しEnterで実行できます。'
-            if enabled else '通常モード：マウスポインター追従を有効にしました。')
+            'マウスポインター自動移動OFF。ホイールで選択しEnterで実行できます。'
+            if enabled else 'マウスポインター自動移動をONにしました。')
+
+    def maybe_show_pointer_warp_notice(self):
+        """Show a clickable startup balloon only while the opt-in setting is OFF."""
+        if not should_show_pointer_warp_notice(self.settings, self.pointer_warp_enabled):
+            return
+        if self._pointer_warp_notice is None:
+            self._pointer_warp_notice = PointerWarpNotice(
+                self.open_pointer_warp_settings, self.suppress_pointer_warp_notice)
+        self._pointer_warp_notice.show_near_taskbar()
+
+    def close_pointer_warp_notice(self):
+        notice = getattr(self, '_pointer_warp_notice', None)
+        if notice is not None:
+            notice.close()
+
+    def suppress_pointer_warp_notice(self):
+        self.settings.setValue(NOTICE_DISMISSED_KEY, True)
+        self.settings.sync()
+        self.close_pointer_warp_notice()
+
+    def open_pointer_warp_settings(self):
+        """Open the regular user setting; never turn ON merely by clicking a notice."""
+        if not self.isVisible() or self.isMinimized():
+            self.summon()
+        else:
+            self.raise_()
+            self.activateWindow()
+        self.open_theme_menu()
+        self.theme_menu.setActiveAction(self.pointer_warp_menu.menuAction())
 
     def set_color_theme(self, theme):
         resolved = normalize_theme(theme)
@@ -9306,7 +9409,11 @@ class Launcher(QWidget):
                 self.webview_settings.get('mode') != 'embedded' or
                 row.get('_indexed_file') or row.get('_browse_file')):
             return False
-        # Reuse the established URL resolver: it only accepts an Open URL.
+        # Search results obey the same policy as authored Open actions:
+        # an explicit external-browser choice must not be hijacked.
+        steps = row.get('launch_actions') or []
+        if len(steps) != 1 or not registered_embedded_url(steps[0]):
+            return False
         url = bookmark_web_url(row)
         if not url:
             return False
@@ -9317,7 +9424,7 @@ class Launcher(QWidget):
             self.set_view_mode('expanded')
         self.search.clear()
         if self.expanded_view.isVisible() and self.expanded_view.show_web_url(
-                url, new_tab=getattr(self.expanded_view, 'bookmark_new_tab', True)):
+                url, new_tab=True):
             return True
         self.search.setText(prior_query)
         return False
@@ -12122,6 +12229,43 @@ class Launcher(QWidget):
             ex.values['studio_root'] = bundled
         return ex
 
+    def open_registered_step_in_browser(self, step):
+        """Run a plain authored HTTP(S) Open in a NEW embedded Browser tab.
+
+        Explicit Chrome/Edge destinations and all non-URL operations retain
+        their existing execution path. Resolve/validate BEFORE changing UI.
+        """
+        if self.webview_settings.get('mode') != 'embedded':
+            return False
+        url = registered_embedded_url(step)
+        if not url:
+            return False
+        options = getattr(self, 'expanded_options', {}) or {}
+        browser_page = options.get('page_id')
+        page_index = next((i for i, page in enumerate(self.pages)
+                           if page.get('page_id') == browser_page), None)
+        if page_index is None:
+            return False  # No Files/Browser workspace is configured.
+        view = self.expanded_view
+        if not view._ensure_web_view():
+            return False  # Qt WebEngine unavailable; use original URL opener.
+        # Browser lives in the expanded Files page, not in the classic menu.
+        if self.page_id != browser_page:
+            self.switch_page(page_index)
+        elif self.stack or self.selection is not None:
+            self.stack = []
+            self.selection = None
+            self.checked.clear()
+            self.render()
+        if self.view_mode != 'expanded':
+            self.set_view_mode('expanded')
+        if self.search.text():
+            self.search.clear()
+        self.update_expanded_visibility()
+        if not view.isVisible():
+            return False
+        return bool(view.show_web_url(url, new_tab=True))
+
     def execute(self,row,values=None):
         DIAG.info('ITEM id=%s title=%s busy=%s',row.get('item_id'),row.get('title'),self.busy)
         if self.busy:return
@@ -12141,6 +12285,14 @@ class Launcher(QWidget):
                 # Studio-managed JSON opens via --open-json instead of the OS
                 # file association. Authored Run/browser actions remain intact.
                 self.queue.extend(file_index.route_registered_open_step(step, studio_root))
+            # A user-authored URL without an explicit external destination
+            # opens in a NEW Launch Browser tab. Never dismiss Launch first;
+            # its Browser needs to be visible. Multi-step commands retain the
+            # established queue semantics (no silent action reordering).
+            if (len(self.queue) == 1 and
+                    self.open_registered_step_in_browser(self.queue[0])):
+                self.queue.clear()
+                return
             self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue))
             hide_after_launch = getattr(self, 'dismiss_on_outside_click', True)
             if should_start_before_dismiss(self.queue):
@@ -12275,6 +12427,9 @@ def main():
     # delayed on-screen warm-up, this avoids shifting the first-use flash
     # from the Browser click to the already-visible Files screen.
     window.prepare_browser_before_first_show()
+    # Independent of the main window's initial hidden/tray state. Do not
+    # show the notice again within this process unless explicitly requested.
+    QTimer.singleShot(1500, window.maybe_show_pointer_warp_notice)
     # CLaunch-style: double-click empty desktop wallpaper to open the launcher.
     # Keep a strong reference for the whole Qt event loop and release on exit.
     # Desktop double-click support is optional: a Windows API/COM error must
@@ -12383,6 +12538,11 @@ def main():
             return False
 
     def dismiss_from_outside_click():
+        # This non-modal notification is part of FRB Launch's own UI, even
+        # though it is displayed in a separate Tool window.
+        notice = getattr(window, '_pointer_warp_notice', None)
+        if notice is not None and notice.isVisible() and notice.frameGeometry().contains(QCursor.pos()):
+            return
         # The native hook sees desktop/other-app clicks even when a no-focus
         # Remote Tool window generates no Qt activation change.  One rule:
         # Remote and Launcher now share ONE persisted outside-click policy.

@@ -46,8 +46,10 @@ def test_endpoint_follows_length_and_angle_not_app_specific_widgets():
 def test_settings_toggle_is_opt_in_persisted_and_reversible():
     src = (ROOT / 'src' / 'app.py').read_text('utf-8')
     assert "'experiment_mouse_pointer_rod', 'false'" in src
-    assert '実験：マウス差し棒（Mouse Pointer Rod）モード' in src
-    assert "self.mouse_pointer_rod_action.triggered.connect(self.set_mouse_pointer_rod_mode)" in src
+    # Public menu now exposes three exclusive modes under one submenu.
+    assert "self.theme_menu.addMenu('マウス差し棒')" in src
+    assert "self.mouse_pointer_rod_choice_group.setExclusive(True)" in src
+    assert "self.select_mouse_pointer_rod_choice(key)" in src
     launcher = next(n for n in ast.parse(src).body
                     if isinstance(n, ast.ClassDef) and n.name == 'Launcher')
     setter = next(n for n in launcher.body if isinstance(n, ast.FunctionDef)
