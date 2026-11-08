@@ -16,8 +16,12 @@ except Exception:  # Qt-free tests may not provide QtGui.
     QPixmap = None
 
 from shuriken_assets import resource_root
-from shuriken_scroll_model import (TICK_MS, ARRIVAL_DECEL_START, plan_flick,
+from shuriken_scroll_model import (TICK_MS, ARRIVAL_DECEL_START, ScrollFlight, plan_flick,
                                    plan_full_range_flight, eased_displacement)
+from guriguri_shuriken_auto import (AUTO_SHURIKEN_INITIAL_SPEED,
+                                    AUTO_SHURIKEN_REVERSE_STOP_NOTCHES,
+                                    WHEEL_ACCEL_FACTOR, WHEEL_DECEL_FACTOR,
+                                    MIN_CRUISE_RATE, MAX_CRUISE_RATE)
 
 ICON_PATH = resource_root(__file__) / 'assets' / 'remote_shuriken_scroll.png'
 ICON_MAX_WIDTH = 42
@@ -28,13 +32,9 @@ ICON_MAX_HEIGHT = 26
 # preplanned end point or moves the selected file item.
 HOLD_TO_STOP_S = 0.52
 TAP_SLOW_FACTOR = 0.43
-MIN_CRUISE_RATE = 0.12
 HELD_SLOW_FACTOR = 0.22
 # Each physical mouse-wheel notch changes the virtual flight clock only.
 # 'DOWN' increases scrollbar value (same direction as an upward flick).
-WHEEL_ACCEL_FACTOR = 1.45
-WHEEL_DECEL_FACTOR = 0.68
-MAX_CRUISE_RATE = 4.0
 
 
 class ShurikenScrollPad(QFrame):
@@ -50,12 +50,17 @@ class ShurikenScrollPad(QFrame):
         self.setToolTip('手裏剣スクロール：シュッ→滑走／ぐりぐり順方向=加速・逆方向=減速／短押し=減速・長押し=停止（Files List）')
 
         self.target_provider = None  # Wired by Remote, returns active list tree or None.
+        self.auto_target_provider = None  # Wheel-only Files List target, even without visible Remote.
+        self.auto_end_callback = None  # Re-arm guard when wheel flight ends.
         self._pressed = False
         self._braking_press = False
         self._samples = []
         self._flight = None
         self._flight_target = None
         self._flight_bounds = None
+        self._auto_wheel_flight = False
+        self._auto_wheel_source = None
+        self._reverse_notches = 0
         self._flight_start_time = 0.0
         self._last_tick_time = 0.0
         self._flight_elapsed_s = 0.0
@@ -113,6 +118,8 @@ class ShurikenScrollPad(QFrame):
 
     def _target(self):
         provider = self.target_provider
+        if self._auto_wheel_flight and self._auto_wheel_source == 'list':
+            provider = self.auto_target_provider
         return provider() if callable(provider) else None
 
     def _apply_icon_pixmap(self):
@@ -187,13 +194,65 @@ class ShurikenScrollPad(QFrame):
         direction = 1 if command == 'DOWN' else -1
         flight_direction = 1 if self._flight.distance_px > 0 else -1
         if direction == flight_direction:
+            self._reverse_notches = 0
             self._cruise_rate = min(MAX_CRUISE_RATE,
                                     max(MIN_CRUISE_RATE, self._cruise_rate * WHEEL_ACCEL_FACTOR))
         else:
             self._cruise_rate = max(MIN_CRUISE_RATE,
                                     self._cruise_rate * WHEEL_DECEL_FACTOR)
+            if self._auto_wheel_flight:
+                self._reverse_notches += 1
+                if self._reverse_notches >= AUTO_SHURIKEN_REVERSE_STOP_NOTCHES:
+                    self._settle()
+                    return True
         self._update_feedback()
         return True
+
+    def start_from_wheel(self, signed_direction, *, source='list'):
+        """Start the EXISTING full-range shuriken from sustained fast wheel.
+
+        +1 = wheel UP = scrollbar UP, -1 = wheel DOWN = scrollbar DOWN.
+        Does not fake a pointer flick or change selected files. The original
+        physical button remains a manual fallback for this experiment.
+        """
+        if self._flight is not None or signed_direction not in (-1, 1):
+            return False
+        self._auto_wheel_flight = True
+        self._auto_wheel_source = source
+        target = self._target()
+        if target is None:
+            self._auto_wheel_flight = False
+            self._auto_wheel_source = None
+            return False
+        bar = target.verticalScrollBar()
+        if bar is None:
+            self._auto_wheel_flight = False
+            self._auto_wheel_source = None
+            return False
+        # Existing gesture planner uses positive delta for scrollbar DOWN.
+        gesture = ScrollFlight(-signed_direction * 200, 0.9,
+                               AUTO_SHURIKEN_INITIAL_SPEED)
+        flight = plan_full_range_flight(
+            gesture, bar.value(), bar.minimum(), bar.maximum(), bar.pageStep())
+        if flight is None:
+            self._auto_wheel_flight = False
+            self._auto_wheel_source = None
+            return False
+        self._begin_flight(target, bar, flight)
+        return True
+
+    def _begin_flight(self, target, bar, flight):
+        self._flight = flight
+        self._flight_target = target
+        self._flight_bounds = (bar.minimum(), bar.maximum())
+        self._flight_start_time = time.monotonic()
+        self._last_tick_time = self._flight_start_time
+        self._flight_elapsed_s = 0.0
+        self._cruise_rate = 1.0
+        self._reverse_notches = 0
+        self._last_displacement = 0
+        self._timer.start()
+        self._update_feedback()
 
     def mousePressEvent(self, event):
         if event.button() != Qt.MouseButton.LeftButton:
@@ -260,16 +319,9 @@ class ShurikenScrollPad(QFrame):
                         flight = plan_full_range_flight(
                             gesture, bar.value(), lower, upper, bar.pageStep())
                         if flight is not None:
-                            self._flight = flight
-                            self._flight_target = target
-                            self._flight_bounds = (lower, upper)
-                            self._flight_start_time = time.monotonic()
-                            self._last_tick_time = self._flight_start_time
-                            self._flight_elapsed_s = 0.0
-                            self._cruise_rate = 1.0
-                            self._last_displacement = 0
-                            self._timer.start()
-                            self._update_feedback()
+                            self._auto_wheel_flight = False
+                            self._auto_wheel_source = None
+                            self._begin_flight(target, bar, flight)
         event.accept()
 
     def _scroll_tick(self):
@@ -325,10 +377,14 @@ class ShurikenScrollPad(QFrame):
         # the Remote or losing the Files List target MUST NOT touch selection.
         settled_target = (self._flight_target if settle and self._flight is not None
                           and self._target() is self._flight_target else None)
+        was_auto = self._auto_wheel_flight
         self._timer.stop()
         self._flight = None
         self._flight_target = None
         self._flight_bounds = None
+        self._auto_wheel_flight = False
+        self._auto_wheel_source = None
+        self._reverse_notches = 0
         self._flight_start_time = 0.0
         self._last_tick_time = 0.0
         self._flight_elapsed_s = 0.0
@@ -338,6 +394,8 @@ class ShurikenScrollPad(QFrame):
         self._pressed = False
         self._samples = []
         self._update_feedback()
+        if was_auto and callable(self.auto_end_callback):
+            self.auto_end_callback()
         if settled_target is not None:
             self.flight_settled.emit(settled_target)
 

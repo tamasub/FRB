@@ -646,6 +646,12 @@ class _SeparatedFileTree(ExternalFileDragTree):
             event.accept()
 
     def mousePressEvent(self, event):
+        # Freeze automatic shuriken before a normal List click is handled.
+        # Manual Remote shuriken and other tree columns are unaffected.
+        stop_auto = getattr(self, 'shuriken_stop_on_action', None)
+        if (callable(stop_auto) and event.button() in
+                (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton)):
+            stop_auto()
         if (self.selectionMode() == QAbstractItemView.SelectionMode.ExtendedSelection
                 and event.button() == getattr(Qt.MouseButton, 'LeftButton', None)
                 and event.modifiers() == Qt.KeyboardModifier.NoModifier
@@ -1612,6 +1618,7 @@ class ExpandedLauncherView(QWidget):
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
+        self.middle.tree.shuriken_stop_on_action = self.launcher.stop_auto_shuriken_on_list_click
         # List-only experiment (settings in list_wheel_parity.py):
         # A) Fast Remote cadence + scrollbar-first/edge-follow hybrid (default)
         # B) Fast Remote current-only (previous successful version)
@@ -3618,6 +3625,14 @@ class ExpandedLauncherView(QWidget):
             QCursor.setPos(destination)
 
     def eventFilter(self, obj, event):
+        # Stop a wheel-armed shuriken BEFORE a normal Files List click or
+        # right-click menu is dispatched. Never swallow the actual click.
+        if (getattr(self, 'middle', None) is not None
+                and obj is self.middle.tree.viewport()
+                and event.type() == QEvent.Type.MouseButtonPress
+                and event.button() in (Qt.MouseButton.LeftButton,
+                                       Qt.MouseButton.RightButton)):
+            self.launcher.stop_auto_shuriken_on_list_click()
         self._dismiss_middle_search_history_on_outside_click(obj, event)
         if (getattr(self, 'middle', None) is not None
                 and obj is self.middle.tree.viewport()
@@ -3797,6 +3812,12 @@ class ExpandedLauncherView(QWidget):
             self._middle_parity_pixel_remainder, angle, pixels)
         if not steps:
             return True  # 高精度ホイールの端数は保留（Qtへ二重送信しない）。
+
+        # Shuriken owns its activation and flight input; the ordinary
+        # scrollbar-first hybrid is untouched until a fast gesture arms it.
+        auto_handler = getattr(getattr(self, 'launcher', None), 'shuriken_wheel_list_input', None)
+        if callable(auto_handler) and auto_handler(steps, source='list'):
+            return True
 
         bar = tree.verticalScrollBar()
         before = bar.value()

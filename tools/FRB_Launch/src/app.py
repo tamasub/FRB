@@ -23,6 +23,7 @@ from remote_context_wheel import RemoteContextWheel
 from rod_foreground import foreground_owned_by_process
 from shuriken_model import configured_entries
 from shuriken_scroll_handoff import handoff_current_at_scroll_stop
+from guriguri_shuriken_auto import WheelShurikenGate, AUTO_SHURIKEN_ENABLED
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
@@ -2910,6 +2911,7 @@ class Launcher(QWidget):
                 'true', '1', 'yes', 'on')
         self._remote_15_alignment_pending = False
         self.remote_window = None
+        self._shuriken_wheel_gate = WheelShurikenGate()
         self._remote_area = None
         # Sole operating target for the two Files columns. Search popups and
         # filesystem refreshes must NOT silently change this value.
@@ -5745,6 +5747,68 @@ class Launcher(QWidget):
         self.remote_focus_area('files_exp')
         return True
 
+    def auto_shuriken_scroll_files_list_target(self):
+        """Actual Files List only; independent of Remote visibility/target.
+
+        This is deliberately stricter than a generic QScrollBar lookup:
+        no modal, OS context menu, editing, hidden window or other workspace.
+        """
+        if not self.isVisible() or self.isMinimized():
+            return None
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if (getattr(self, '_remote_text_dialog', None) is not None
+                or getattr(self, '_remote_confirmation', None) is not None
+                or (menu_wheel is not None and menu_wheel.active
+                    and menu_wheel.root.isVisible())
+                or QApplication.activePopupWidget() is not None):
+            return None
+        view = self.expanded_view
+        if not view.isVisible() or view._workspace_mode != 'files':
+            return None
+        tree = view.middle.tree
+        if (not tree.isVisible() or not tree.topLevelItemCount()
+                or tree.state() == QAbstractItemView.State.EditingState):
+            return None
+        return tree if tree.verticalScrollBar() is not None else None
+
+    def shuriken_wheel_list_input(self, steps, *, source='list'):
+        """Interpret fast repeated Files List wheel as entry to existing shuriken.
+
+        Return True if the wheel event belongs to a running/new flight;
+        otherwise leave it untouched for the original hybrid/cursor path.
+        """
+        if not steps or not AUTO_SHURIKEN_ENABLED:
+            return False
+        target = self.auto_shuriken_scroll_files_list_target()
+        if target is None:
+            self._shuriken_wheel_gate.reset()
+            return False
+        remote = self.remote_window
+        pad = getattr(remote, 'scroll_pad', None) if remote is not None else None
+        if pad is not None and pad._flight is not None:
+            # Flight owns the entire physical event, including any later
+            # invalidation. Never leak brake steps to logical row navigation.
+            for _ in range(min(abs(int(steps)), 5)):
+                if pad._flight is not None:
+                    pad.wheel_while_flying('UP' if steps > 0 else 'DOWN')
+            return True
+        direction = self._shuriken_wheel_gate.feed(steps, source=source)
+        if not direction:
+            return False
+        remote = self.ensure_remote_window()  # Hidden Remote is fine: no button required.
+        pad = remote.scroll_pad
+        return bool(pad.start_from_wheel(direction, source=source))
+
+    def stop_auto_shuriken_on_list_click(self):
+        """Clicking a file brakes the automatic flight BEFORE Qt activates it."""
+        remote = self.remote_window
+        pad = getattr(remote, 'scroll_pad', None) if remote is not None else None
+        if (pad is not None and getattr(pad, '_auto_wheel_flight', False)
+                and pad._flight is not None):
+            pad._settle()
+            return True
+        return False
+
     def remote_scroll_files_list_target(self):
         """Return current Files List tree only while scroll animation is safe.
 
@@ -5786,10 +5850,16 @@ class Launcher(QWidget):
                     and menu_wheel.root.isVisible())):
             return
         view = self.expanded_view
-        if (not view.isVisible() or view._workspace_mode != 'files'
-                or getattr(self, '_remote_area', None) != 'directory'):
+        if not view.isVisible() or view._workspace_mode != 'files':
             return
         tree = view.middle.tree
+        remote = getattr(self, 'remote_window', None)
+        pad = getattr(remote, 'scroll_pad', None) if remote is not None else None
+        is_auto = (pad is not None and getattr(pad, '_auto_wheel_flight', False)
+                   and getattr(pad, '_flight_target', None) is tree
+                   and self.auto_shuriken_scroll_files_list_target() is tree)
+        if (getattr(self, '_remote_area', None) != 'directory' and not is_auto):
+            return
         if (not tree.isVisible()
                 or tree.state() == QAbstractItemView.State.EditingState):
             return
@@ -5806,7 +5876,8 @@ class Launcher(QWidget):
         unchanged (notably any pending Git-commit target). This is NOT a
         click or a file-selection event.
         """
-        if stopped_tree is not self.remote_scroll_files_list_target():
+        if (stopped_tree is not self.remote_scroll_files_list_target()
+                and stopped_tree is not self.auto_shuriken_scroll_files_list_target()):
             return
         view = self.expanded_view
         if getattr(stopped_tree, 'deliberate_blank_selection', False):

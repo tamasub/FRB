@@ -202,6 +202,16 @@ class WheelPad(QFrame):
         scroll_pad = getattr(remote, 'scroll_pad', None)
         flight_owned_wheel = (scroll_pad is not None
                               and getattr(scroll_pad, '_flight', None) is not None)
+        # Fast wheel over Remote ぐりぐり while targeting Files List may arm
+        # the SAME shuriken engine as a physical wheel over the List itself.
+        # During a flight, keep the original wheel_while_flying owner below.
+        launcher = getattr(remote, 'launcher', None)
+        auto_input = getattr(launcher, 'shuriken_wheel_list_input', None)
+        if (not flight_owned_wheel and steps and callable(auto_input)
+                and getattr(launcher, '_remote_area', None) == 'directory'
+                and auto_input(max(-5, min(5, steps)), source='remote')):
+            event.accept()
+            return
         for _ in range(min(abs(steps), 5)):
             direction = 'UP' if steps > 0 else 'DOWN'
             if flight_owned_wheel:
@@ -456,6 +466,7 @@ class LaunchRemote(QWidget):
         flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
                  Qt.WindowType.WindowDoesNotAcceptFocus)
         super().__init__(launcher, flags)
+        self.launcher = launcher  # WheelPad's auto-shuriken route.
         self.setObjectName('launchRemoteWindow')
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
         # Transparent window corners; the antialiased panel is drawn in paintEvent.
@@ -650,6 +661,8 @@ class LaunchRemote(QWidget):
         # A flight is bound to this exact Files List tree. Switching tabs,
         # opening a dialog or changing the Remote target stops it safely.
         self.scroll_pad.target_provider = launcher.remote_scroll_files_list_target
+        self.scroll_pad.auto_target_provider = launcher.auto_shuriken_scroll_files_list_target
+        self.scroll_pad.auto_end_callback = lambda: launcher._shuriken_wheel_gate.reset(cooldown=True)
         self.scroll_pad.scroll_requested.connect(launcher.remote_scroll_files_list)
         self.scroll_pad.flight_settled.connect(launcher.remote_scroll_files_list_settle)
         root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
