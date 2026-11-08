@@ -12,3 +12,14 @@ def launch_home(binary_root):
     if not (home/'config/frb_launch_sample_data_v0_1.json').is_file():
         raise RuntimeError('Launch設定が見つかりません: '+str(home/'config/frb_launch_sample_data_v0_1.json'))
     return home
+
+
+def bundled_studio_root(launch_home_dir):
+    """Resolve a sibling Studio from the *installed* Launch location.
+
+    None means standalone/developer Launch: retain its existing configured
+    studio_root value. Never consult the process working directory.
+    """
+    candidate = Path(launch_home_dir) / 'Studio'
+    exe = candidate / 'NativeShell' / '_publish' / 'FRBStudio.NativeShell.exe'
+    return str(candidate.resolve()) if exe.is_file() else None

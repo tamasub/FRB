@@ -40,6 +40,9 @@ if errorlevel 1 goto fail
 .venv\Scripts\python.exe src\prepare_launch_home.py --link
 if errorlevel 1 goto fail
 copy /Y README.md dist\FRBLaunch\README.md
+if errorlevel 1 goto fail
+> "dist\FRBLaunch\portable_studio_ready.txt" echo bundled_studio_root_v1
+if errorlevel 1 goto fail
 if not "%FRB_ENV_REFRESH%"=="1" start "" explorer.exe "%~dp0dist\FRBLaunch"
 echo Build complete: dist\FRBLaunch\FRBLaunch.exe
 if not "%FRB_ENV_REFRESH%"=="1" pause

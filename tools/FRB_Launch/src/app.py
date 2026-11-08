@@ -90,7 +90,7 @@ from studio_theme_launch import studio_launch_arguments
 from launch_diagnostics import make_logger, wifi_transcript_arguments
 from log_retention import cleanup as cleanup_diagnostics
 from logging.handlers import RotatingFileHandler
-from runtime_paths import launch_home
+from runtime_paths import launch_home, bundled_studio_root
 from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
 from desktop_double_click import DesktopDoubleClick
 from launch_remote import LaunchRemote
@@ -11985,6 +11985,13 @@ class Launcher(QWidget):
     def expander(self, values=None):
         ex=Expander(self.data,QApplication.clipboard().text(),values or {})
         ex.values.update(launch_data=str(CONFIG),launch_dir=str(ROOT),launch_home=str(LAUNCH_HOME),launch_scripts=str(LAUNCH_HOME/'scripts'))
+        # Portable distribution: the bundled Studio always takes priority.
+        # Do NOT persist a build-machine absolute path in the Launch JSON.
+        # This covers the context settings menu, authored Run actions, and
+        # Studio-managed file routes, all of which share Expander values.
+        bundled = bundled_studio_root(LAUNCH_HOME)
+        if bundled is not None:
+            ex.values['studio_root'] = bundled
         return ex
 
     def execute(self,row,values=None):
