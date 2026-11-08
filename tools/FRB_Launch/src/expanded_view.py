@@ -39,7 +39,10 @@ from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from wheel_adaptive import wheel_steps, can_follow_at_edge
 from navigation_wrap import move_tree_selection
-from list_wheel_parity import LIST_WHEEL_MATCH_REMOTE, consume_remote_like_wheel
+from list_wheel_parity import (
+    LIST_WHEEL_MATCH_REMOTE, LIST_WHEEL_HYBRID_ENABLED,
+    LIST_WHEEL_SCROLL_PIXELS_PER_NOTCH,
+    consume_remote_like_wheel, plan_hybrid_scroll)
 from wheel_edge_hold import EdgeWheelHold
 from wheel_zone_navigation import WheelZoneNavigation
 from workspace_tab_geometry import workspace_tab_line_segments
@@ -1609,10 +1612,15 @@ class ExpandedLauncherView(QWidget):
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
-        # First-step A/B experiment: match the fast Remote ぐりぐり List cursor.
-        # Toggle in src/list_wheel_parity.py; OFF restores the WAN hybrid exactly.
+        # List-only experiment (settings in list_wheel_parity.py):
+        # A) Fast Remote cadence + scrollbar-first/edge-follow hybrid (default)
+        # B) Fast Remote current-only (previous successful version)
+        # C) Qt native scrollbar-first WAN (original fallback)
         if LIST_WHEEL_MATCH_REMOTE:
-            self.middle.tree.remote_parity_wheel_callback = self.wheel_middle_like_remote_button
+            if LIST_WHEEL_HYBRID_ENABLED:
+                self.middle.tree.remote_parity_wheel_callback = self.wheel_middle_fast_hybrid
+            else:
+                self.middle.tree.remote_parity_wheel_callback = self.wheel_middle_like_remote_button
         # The header Back button is an explicit, non-scrolling Wheel Tab zone.
         # Never synthesize its click; a sustained UP gesture goes to Files last.
         self.middle.back.installEventFilter(self)
@@ -3763,6 +3771,51 @@ class ExpandedLauncherView(QWidget):
                 return True
         return super().eventFilter(obj, event)
 
+    def wheel_middle_fast_hybrid(self, event):
+        """Files List: Remoteのノッチ応答 + スクロール優先 + 旧WANの端追従。
+
+        スクロール中は正式な currentItem を変更しない。「相手が
+        ポインターの下へ来る」状態を維持する。スクロールできなくなった
+        入力だけ既存の wheel_middle_at_edge に渡し、従来どおり
+        ホバー行を起点に追従する（フォルダーを勝手に開かない）。
+        """
+        if (not self.isVisible() or self._workspace_mode != 'files'
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton
+                or self.middle.tree.state() == QAbstractItemView.State.EditingState):
+            return False
+        tree = self.middle.tree
+        if not tree.topLevelItemCount():
+            return False
+        angle, pixels = event.angleDelta().y(), event.pixelDelta().y()
+        if not angle and not pixels:
+            return False
+        (self._middle_parity_angle_remainder,
+         self._middle_parity_pixel_remainder,
+         steps) = consume_remote_like_wheel(
+            self._middle_parity_angle_remainder,
+            self._middle_parity_pixel_remainder, angle, pixels)
+        if not steps:
+            return True  # 高精度ホイールの端数は保留（Qtへ二重送信しない）。
+
+        bar = tree.verticalScrollBar()
+        before = bar.value()
+        per_notch = (LIST_WHEEL_SCROLL_PIXELS_PER_NOTCH
+                     or max(1, bar.singleStep()))
+        after, remaining = plan_hybrid_scroll(
+            before, bar.minimum(), bar.maximum(), steps, per_notch)
+        if after != before:
+            bar.setValue(after)  # 1イベント1回のみ。currentItemを変えない。
+            # 旧WANの「実際にスクロールした場合」の後処理をそのまま利用。
+            self.wheel_middle_at_edge(event, before, bar.value())
+        if remaining:
+            # 旧WANの「スクロールできない端でだけ追従」を再利用する。
+            # 同一イベントで端に到達しても、残ったノッチ分を引き継ぐ。
+            # 既存処理の符号は +下 / -上、Remoteノッチは +上 / -下。
+            at = bar.value()
+            self.wheel_middle_at_edge(event, at, at, movement_override=-remaining)
+        return True
+
     def wheel_middle_like_remote_button(self, event):
         """Experimental Files List wheel: follow Remote ぐりぐり current steps.
 
@@ -3809,7 +3862,8 @@ class ExpandedLauncherView(QWidget):
                 QTimer.singleShot(0, self.follow_middle_pointer)
         return True
 
-    def wheel_middle_at_edge(self, event, scroll_before, scroll_after):
+    def wheel_middle_at_edge(self, event, scroll_before, scroll_after,
+                             movement_override=None):
         """WAN fallback: native scroll first, cursor-follow at a real edge.
 
         No click, folder preview/expansion, activation, or file operations.
@@ -3842,8 +3896,14 @@ class ExpandedLauncherView(QWidget):
             return False
         angle = event.angleDelta().y()
         pixels = event.pixelDelta().y()
-        pending, movement = wheel_steps(self._wheel_middle_delta, angle, pixels)
-        self._wheel_middle_delta = pending
+        if movement_override is None:
+            pending, movement = wheel_steps(self._wheel_middle_delta, angle, pixels)
+            self._wheel_middle_delta = pending
+        else:
+            # Fast hybrid already converted the physical wheel to Remote
+            # notches. Do not count those notches again in the old WAN.
+            self._wheel_middle_delta = 0
+            movement = movement_override
         if not movement:
             return bool(angle or pixels)  # Incomplete high-res wheel step.
         scrollbar = tree.verticalScrollBar()
