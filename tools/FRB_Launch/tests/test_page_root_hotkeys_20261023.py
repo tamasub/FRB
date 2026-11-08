@@ -18,15 +18,18 @@ def sample():
     return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8-sig'))
 
 
-def test_four_root_hotkeys_and_normal_open_are_independent():
+def test_root_hotkeys_and_normal_open_are_independent():
     config = validate(sample())
     assert config['launch_hotkey'] == 'Ctrl+Shift+;'
-    assert dict(menu_shortcuts(config)) == {
-        'studio_app': 'Ctrl+Shift+S',
-        'zip': 'Ctrl+Shift+Z',
-        'folders': 'Ctrl+Shift+F',
-        '__browser_bookmarks_root': 'Ctrl+Shift+B',
-    }
+    registered = dict(menu_shortcuts(config))
+    # The authored sample has evolved from Studio root to Dates/Mail roots;
+    # assert stable public roots without pinning the entire mutable sample.
+    assert registered['zip'] == 'Ctrl+Shift+Z'
+    assert registered['folders'] == 'Ctrl+Shift+F'
+    assert registered['__browser_bookmarks_root'] == 'Ctrl+Shift+B'
+    assert registered['mail'] == 'Ctrl+Shift+M'
+    assert len(set(registered.values())) == len(registered)
+    assert config['launch_hotkey'] not in registered.values()
 
 
 def test_key_normalization_and_collision_detection():

@@ -38,6 +38,8 @@ from combo_chevron_icon import combo_chevron_icon
 from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from wheel_adaptive import wheel_steps, can_follow_at_edge
+from navigation_wrap import move_tree_selection
+from list_wheel_parity import LIST_WHEEL_MATCH_REMOTE, consume_remote_like_wheel
 from wheel_edge_hold import EdgeWheelHold
 from wheel_zone_navigation import WheelZoneNavigation
 from workspace_tab_geometry import workspace_tab_line_segments
@@ -618,12 +620,19 @@ class _SeparatedFileTree(ExternalFileDragTree):
         self.remote_logical_active = False
         self.remote_highlight_mode = False
         self.adaptive_wheel_callback = None  # Only enabled on Files middle pane.
+        self.remote_parity_wheel_callback = None  # Experimental List-only A/B switch.
         # The outline remembers the previous row without selecting it. A real
         # blank click intentionally leaves the middle pane with no selection.
         self.deliberate_blank_selection = False
         self.blank_clicked = None
 
     def wheelEvent(self, event):
+        # List-only experiment: the same current-row navigation as the Remote
+        # ぐりぐり button. All other trees keep their existing native WAN flow.
+        remote_parity = self.remote_parity_wheel_callback
+        if remote_parity is not None and remote_parity(event):
+            event.accept()
+            return
         # Preserve native smooth scrolling first; only the actual change in
         # scrollbar position may trigger WAN's cursor-follow fallback.
         scrollbar = self.verticalScrollBar()
@@ -1245,6 +1254,8 @@ class ExpandedLauncherView(QWidget):
         self._bookmark_scroll_hover_scheduled = False
         self._bookmark_hover_item = None
         self._wheel_middle_delta = 0
+        self._middle_parity_angle_remainder = 0
+        self._middle_parity_pixel_remainder = 0
         self._middle_follow_pending = None
         self._middle_follow_scheduled = False
         self._middle_warp_global = None
@@ -1598,6 +1609,10 @@ class ExpandedLauncherView(QWidget):
         # WAN: only this pane measures actual native scroll movement before
         # using wheel steps to move the current row and the mouse cursor.
         self.middle.tree.adaptive_wheel_callback = self.wheel_middle_at_edge
+        # First-step A/B experiment: match the fast Remote ぐりぐり List cursor.
+        # Toggle in src/list_wheel_parity.py; OFF restores the WAN hybrid exactly.
+        if LIST_WHEEL_MATCH_REMOTE:
+            self.middle.tree.remote_parity_wheel_callback = self.wheel_middle_like_remote_button
         # The header Back button is an explicit, non-scrolling Wheel Tab zone.
         # Never synthesize its click; a sustained UP gesture goes to Files last.
         self.middle.back.installEventFilter(self)
@@ -3748,6 +3763,52 @@ class ExpandedLauncherView(QWidget):
                 return True
         return super().eventFilter(obj, event)
 
+    def wheel_middle_like_remote_button(self, event):
+        """Experimental Files List wheel: follow Remote ぐりぐり current steps.
+
+        This deliberately bypasses *native* List scrolling while the mode is
+        enabled, to compare the two input paths at the same one-row-per-notch
+        semantics. The original scroll-then-follow hybrid is the OFF fallback.
+        Other panes, popup context menus, and the Remote wheel are untouched.
+        """
+        if (not self.isVisible() or self._workspace_mode != 'files'
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier
+                or QApplication.mouseButtons() != Qt.MouseButton.NoButton
+                or self.middle.tree.state() == QAbstractItemView.State.EditingState):
+            return False  # Preserve Qt's normal modifiers/editors.
+        tree = self.middle.tree
+        if not tree.topLevelItemCount():
+            return False
+        angle, pixels = event.angleDelta().y(), event.pixelDelta().y()
+        if not angle and not pixels:
+            return False
+        (self._middle_parity_angle_remainder,
+         self._middle_parity_pixel_remainder,
+         steps) = consume_remote_like_wheel(
+            self._middle_parity_angle_remainder,
+            self._middle_parity_pixel_remainder, angle, pixels)
+        if not steps:
+            return True  # A high-resolution partial notch: do not native-scroll.
+
+        # Same direct row-selection helper as Launcher.remote_command for List.
+        # Do not go via remote_command: it may be owned by a popup/menu instead.
+        self.ensure_middle_current_selection()
+        item = None
+        for _ in range(abs(steps)):
+            item = move_tree_selection(tree, -1 if steps > 0 else 1)
+        if item is None:
+            return True
+        # Direct mouse-wheel use, unlike Remote pad navigation, can follow the
+        # selected row with the pointer. The existing coalesced follower guards
+        # against stale targets, mouse buttons and pointer movement elsewhere.
+        tree.setFocus(Qt.FocusReason.MouseFocusReason)
+        if getattr(self.launcher, 'pointer_warp_enabled', True):
+            self._middle_follow_pending = item
+            if not self._middle_follow_scheduled:
+                self._middle_follow_scheduled = True
+                QTimer.singleShot(0, self.follow_middle_pointer)
+        return True
+
     def wheel_middle_at_edge(self, event, scroll_before, scroll_after):
         """WAN fallback: native scroll first, cursor-follow at a real edge.
 
@@ -4724,7 +4785,13 @@ class ExpandedLauncherView(QWidget):
                 QTimer.singleShot(0, lambda n=virtual: self.show_virtual_launch_directory(n))
             return
         if row.get('item_kind') == 'directory':
-            self.launcher.execute(row)
+            if pane is self.middle:
+                # Enter on a List folder descends INSIDE the same List column.
+                # navigate_middle schedules refresh after the key event and
+                # restores List focus; do not open Windows Explorer here.
+                self.navigate_middle(row)
+            else:
+                self.launcher.execute(row)  # Other columns retain old behavior.
         elif row.get('item_kind') == 'category':
             if pane is self.left:
                 self.choose_files(item, 0)

@@ -537,3 +537,30 @@ html:has(> body.frb-page-json-object[data-studio-shell="minimal"][data-studio-th
 body.frb-page-json-object[data-studio-shell="minimal"][data-studio-theme="launch-light"] {
   color-scheme:light; scrollbar-color:#a8bfb0 #e8efe9; scrollbar-width:thin;
 }
+
+/* 2026-11-08: Full-text search (?) help body contrast (not the ? trigger).
+   Base Markdown heading/code styles use hard-coded light-theme colors. */
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel {
+  background:#25343a; color:#e5ebf3; border-color:#6a858c; color-scheme:dark;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel :is(h1,h2,h3,h4,h5,h6,p,li,th,td) {
+  color:#e5ebf3;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel .md-table-scroll th {
+  background:#334b52;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel .md-table-scroll td {
+  background:#25343a; border-bottom-color:#536870;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel :is(code,code.md-inline-code) {
+  background:#152b36; color:#d9edff; border-color:#526a7a;
+}
+body.frb-page-json-object:is([data-studio-theme="dark"],[data-studio-theme="launch-dark"])
+  #searchSection .studio-smart-search-help-panel blockquote {
+  background:#2b414a; color:#d1e3e5; border-color:#638d9c;
+}

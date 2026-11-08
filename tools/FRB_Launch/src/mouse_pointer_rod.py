@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt, QEvent, QTimer, QPoint, QPointF, QRectF
 from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QFont
 from PySide6.QtWidgets import QApplication, QFrame, QWidget, QMenu
 
+from rod_foreground import foreground_owned_by_process
 from mouse_pointer_rod_model import (
     DEFAULT_DIRECTION, DEFAULT_LENGTH, NORMAL_WHEEL_STEP_PX,
     FAST_WHEEL_STEP_PX, direction_from_pointer, length_after_wheel,
@@ -191,6 +192,10 @@ class MousePointerRodPad(QFrame):
         self._native_hover_watchdog = QTimer(self)
         self._native_hover_watchdog.setInterval(95)
         self._native_hover_watchdog.timeout.connect(self._watch_windows_hover)
+        # Topmost transparent overlay must not outlive Launch foreground focus.
+        self._foreground_watchdog = QTimer(self)
+        self._foreground_watchdog.setInterval(100)
+        self._foreground_watchdog.timeout.connect(self._watch_foreground)
         self._wheel_angle_remainder = 0
         self._wheel_pixel_remainder = 0
         self._left_pressed = False
@@ -439,8 +444,20 @@ class MousePointerRodPad(QFrame):
                 (self._wheel_pad is None or
                  not self._wheel_pad.geometry().contains(local_point)))
 
+    def _launch_has_foreground(self):
+        owned = foreground_owned_by_process()
+        if owned is None:
+            return QApplication.applicationState() == Qt.ApplicationState.ApplicationActive
+        return owned
+
+    def _watch_foreground(self):
+        if not self._launch_has_foreground():
+            self._cancel_pending_native_click()
+            self._stop_aiming()
+
     def _cursor_on_blue(self):
         return (self._enabled and self.isVisible() and
+                self._launch_has_foreground() and
                 self._in_blue(self.mapFromGlobal(QCursor.pos())))
 
     def _sync_hover(self):
@@ -541,7 +558,8 @@ class MousePointerRodPad(QFrame):
         super().leaveEvent(event)
 
     def _dispatch_tip_action(self, action):
-        if not self._enabled:
+        foreground_check = getattr(self, '_launch_has_foreground', None)
+        if not self._enabled or (callable(foreground_check) and not foreground_check()):
             return False
         remote = self.parentWidget()
         launcher = remote.parent() if remote is not None else None
@@ -707,11 +725,14 @@ class MousePointerRodPad(QFrame):
     def showEvent(self, event):
         super().showEvent(event)
         self._update_windows_watchdog()
+        if self._enabled:
+            self._foreground_watchdog.start()
         QTimer.singleShot(0, self._sync_hover)
 
     def hideEvent(self, event):
         self._cancel_pending_native_click()
         self._native_hover_watchdog.stop()
+        self._foreground_watchdog.stop()
         self._native_warp_guard = False
         self._smart_expected_cursor = None
         self._double_pending = False

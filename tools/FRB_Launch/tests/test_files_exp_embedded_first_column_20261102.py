@@ -103,10 +103,10 @@ def test_embedded_mode_prevents_remote_companion_window_and_keeps_folder_sync():
     assert 'panel.refresh_directory_branch(str(folder))' in APP
 
 
-def test_state_and_modes_are_reversible_not_destructive():
-    assert "'experiment_files_exp_embedded'" in APP
-    assert "'実験：Files Expを第1列に表示'" in APP
-    assert 'self.files_exp_embedded_action.setChecked(' in APP
+def test_fixed_embedded_exp_keeps_tree_state_without_obsolete_toggle():
+    assert 'self.files_exp_embedded_mode = True' in APP
+    assert "'実験：Files Expを第1列に表示'" not in APP
+    assert 'self.files_exp_embedded_action.setChecked(' not in APP
     assert "'files_exp_embedded/tree_state_v1'" in TREE
     assert "'remote_files_exp/tree_state_v1'" in TREE
     assert 'def reset_to_roots' in TREE

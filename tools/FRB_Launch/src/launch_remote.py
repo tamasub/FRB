@@ -512,6 +512,7 @@ class LaunchRemote(QWidget):
                                     'CLOSE', width=22, height=22, role='icon'))
         self.more_menu = QMenu(self)
         self.more_menu.setObjectName('remoteMoreMenu')
+        launcher._wire_hybrid_context_menu(self.more_menu)
         self.more_settings_action = self.more_menu.addAction('設定')
         self.more_category_action = self.more_menu.addAction('検索履歴カテゴリーを追加')
         self.more_favorite_action = self.more_menu.addAction('現在のフォルダーをお気に入り登録')
@@ -609,6 +610,9 @@ class LaunchRemote(QWidget):
         row_quick.addWidget(self.kana_button)
         root.addLayout(row_quick)
         self.pad = WheelPad(self, compact=True)
+        # The pad can be reparented into the pointing-rod wrapper; retain the
+        # real Launch as the one source of truth for the flick guide theme.
+        self.pad.launcher = launcher
         # With the two Files target buttons removed, the ぐりぐり hold menu
         # also offers the path BACK from Browser to Files Exp/List.  The
         # actual REMOTE_TARGET_* dispatcher preserves Files' current row.
@@ -1115,6 +1119,12 @@ class LaunchRemote(QWidget):
     def apply_theme(self, theme):
         """Follow the Launch appearance palette, including live theme changes."""
         self.files_exp_theme = theme
+        # An already-open flick guide must follow theme changes immediately.
+        for control, attribute in ((getattr(self, 'shuriken_button', None), '_preview'),
+                                   (getattr(self, 'pad', None), '_target_preview')):
+            preview = getattr(control, attribute, None)
+            if preview is not None:
+                preview.set_theme(theme)
         rod = getattr(self, 'pointer_rod', None)
         if rod is not None:
             rod.set_theme(theme_family(theme))

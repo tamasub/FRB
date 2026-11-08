@@ -74,6 +74,12 @@ class FakeMenu:
     def mapToGlobal(self, point):
         return point
 
+    def frameGeometry(self):
+        return NS(contains=lambda point: point in ('over-menu', 'submenu-area'))
+
+    def findChildren(self, cls):
+        return []
+
     def popup(self, point):
         self.visible = True
         self.popup_positions.append(point)
@@ -116,6 +122,7 @@ def harness(monkeypatch):
     core.Qt = NS(MouseButton=NS(LeftButton=1))
     gui.QCursor = NS(pos=lambda: 'outside')
     widgets.QApplication = NS(instance=lambda: app)
+    widgets.QMenu = FakeMenu
     for name, module in [('PySide6', pyqt), ('PySide6.QtCore', core),
                          ('PySide6.QtGui', gui), ('PySide6.QtWidgets', widgets)]:
         monkeypatch.setitem(__import__('sys').modules, name, module)
@@ -224,6 +231,10 @@ def test_popup_grab_wheel_redirected_by_pointer_position(harness):
             return self.which
         def accept(self):
             self.accepted = True
+        def angleDelta(self):
+            return NS(y=lambda: -120)
+        def pixelDelta(self):
+            return NS(y=lambda: 0)
     def emit_remote_wheel(event):
         controller.command('DOWN')
         event.accept()
@@ -232,17 +243,23 @@ def test_popup_grab_wheel_redirected_by_pointer_position(harness):
     assert controller.eventFilter(menu, event) is True
     assert event.accepted
     assert menu.activeAction() is b
-    # Ordinary wheel events *over the menu itself* retain native QMenu handling.
+    # The user can keep the cursor at the original right-click menu location:
+    # the SAME QAction cursor moves WITHOUT visiting the Remote pad.
     event = FakeEvent('wheel', point='over-menu')
+    assert controller.eventFilter(menu, event) is True
+    assert event.accepted
+    assert menu.activeAction() is a  # b -> a (wrap)
+    # But a wheel outside the menu/pad is never stolen from Files scrolling.
+    event = FakeEvent('wheel', point='files-outside')
     assert controller.eventFilter(menu, event) is False
-    assert menu.activeAction() is b
+    assert menu.activeAction() is a
     press = FakeEvent('press')
     release = FakeEvent('release')
     assert controller.eventFilter(menu, press) is True
     assert controller.eventFilter(menu, release) is True
     harness.drain()
-    assert b.trigger_calls == 1
-    assert a.trigger_calls == 0
+    assert a.trigger_calls == 1
+    assert b.trigger_calls == 0
 
 
 def test_popup_grab_does_not_route_clicks_to_retired_arrow_buttons(harness):
@@ -315,12 +332,14 @@ def test_files_exp_context_starts_on_back_even_when_qt_hovered_files_list(harnes
     assert menu.activeAction() is forward
 
 
-def test_other_context_keeps_qt_native_initial_selection(harness):
+def test_hybrid_context_begins_on_first_action_not_native_hover(harness):
+    # Public-release hybrid policy: a normal right-click shares the same
+    # first-row current that the original ぐりぐり context menu uses.
     back, forward, files = (FakeAction(s) for s in ('戻る', '進む', 'Filesリスト'))
     menu, _controller = harness.new_menu(back, forward, files)
     menu.setActiveAction(files)
     harness.drain()
-    assert menu.activeAction() is files
+    assert menu.activeAction() is back
 
 
 def test_open_with_submenu_launches_app_even_after_native_popup_closed(harness):

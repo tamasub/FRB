@@ -42,8 +42,9 @@ class Widget:
         self.events.append(('enabled', enabled))
 
 
-def test_experiment_action_and_legacy_rename_are_separate():
-    assert "'実験：Files ルート非表示'" in APP
+def test_fixed_files_exp_drops_obsolete_toggle_but_keeps_desktop_option():
+    assert "'実験：Files ルート非表示'" not in APP
+    assert 'self.files_root_hidden_mode = True' in APP
     assert "'デスクトップダブルクリックでリモコンを表示'" in APP
     assert "'実験：デスクトップダブルクリックでリモコンを表示'" not in APP
     assert "'experiment_files_root_hidden'" in APP

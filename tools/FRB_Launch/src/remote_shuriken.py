@@ -54,6 +54,11 @@ class ShurikenPreview(QWidget):
         self.circle_center = QPointF(self.CANVAS_WIDTH / 2, self.CANVAS_HEIGHT / 2)
         self.entries = []
         self.selected_id = ''
+        self._theme = 'light'
+
+    def set_theme(self, theme):
+        self._theme = theme_family(theme)
+        self.update()
 
     def present(self, button, entries, selected):
         """Show the complete circle ABOVE the shuriken button, not at cursor."""
@@ -62,6 +67,15 @@ class ShurikenPreview(QWidget):
             return
         self.entries = list(entries)
         self.selected_id = selected.item_id if selected is not None else ''
+        # The 1st-hand button and Exp/List selector both use this preview.
+        launcher = getattr(button, 'launcher', None)
+        remote = button.parentWidget()
+        # A WheelPad may be physically reparented inside the blue pointing
+        # rod. Its immediate parent then has no theme and used to fall back
+        # to light even when Launch/Remote were dark.
+        current_theme = (getattr(launcher, 'color_theme', None)
+                         or getattr(remote, 'files_exp_theme', 'light'))
+        self.set_theme(current_theme)
         button_top = button.mapToGlobal(QPoint(button.width() // 2, 0))
         cx = button_top.x()
         cy = button_top.y() - self.GAP_ABOVE_BUTTON - self.RADIUS
@@ -98,9 +112,13 @@ class ShurikenPreview(QWidget):
         painter.setFont(font)
         metrics = QFontMetrics(font)
 
-        # One round menu guide. The ring NEVER grows to fit a long label.
-        painter.setPen(QPen(QColor(154, 196, 119, 210), 1.2))
-        painter.setBrush(QColor(228, 244, 215, 255))  # Solid circular background.
+        # One round menu guide, using Remote's live light/dark palette.
+        dark = self._theme == 'dark'
+        painter.setPen(QPen(QColor('#667f82' if dark else '#9ac477'), 1.2))
+        if dark:
+            painter.setBrush(QColor('#25343a'))
+        else:
+            painter.setBrush(QColor(228, 244, 215, 255))  # Original light canvas.
         painter.drawEllipse(QRectF(-radius, -radius, radius * 2, radius * 2))
 
         count = len(self.entries)
@@ -111,7 +129,7 @@ class ShurikenPreview(QWidget):
         max_text_width = min(230, self.width() - 20)
 
         # Draw dividers from the same geometry used by choose_entry().
-        painter.setPen(QPen(QColor(159, 195, 133, 185), 1.0))
+        painter.setPen(QPen(QColor('#52696f' if dark else '#9fc385'), 1.0))
         if horizontal_pair:
             painter.drawLine(QPointF(0, -radius), QPointF(0, radius))
         elif triad:
@@ -136,15 +154,21 @@ class ShurikenPreview(QWidget):
         # The same origin is visible for 2-, 3- and 4-menu guides.
         # Paint it *after* dividers to hide crossings in the center.
         if 2 <= count <= 4:
-            painter.setPen(QPen(QColor('#385e56'), 1.2))
-            painter.setBrush(QColor('#ffffff'))
+            painter.setPen(QPen(QColor('#a2bdb6' if dark else '#385e56'), 1.2))
+            if dark:
+                painter.setBrush(QColor('#192a30'))
+            else:
+                painter.setBrush(QColor('#ffffff'))  # Keep the established light center.
             painter.drawEllipse(QPointF(0, 0), self.CURRENT_RADIUS, self.CURRENT_RADIUS)
 
             # The model owns the marker location, including the idle center.
             marker_x, marker_y = current_indicator_position(
                 self.entries, self.selected_id, self.MARKER_DISTANCE)
-            painter.setPen(QPen(QColor('#426d59'), 1.0))
-            painter.setBrush(QColor('#aed2a0'))
+            painter.setPen(QPen(QColor('#96c79f' if dark else '#426d59'), 1.0))
+            if dark:
+                painter.setBrush(QColor('#7fb78d'))
+            else:
+                painter.setBrush(QColor('#aed2a0'))  # Original light indicator.
             painter.drawEllipse(QPointF(marker_x, marker_y),
                                 self.MARKER_RADIUS, self.MARKER_RADIUS)
 
@@ -188,7 +212,10 @@ class ShurikenPreview(QWidget):
             # For the general 5+ fallback retain the original row highlight.
             if active and count > 4:
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(150, 203, 121, 125))
+                if dark:
+                    painter.setBrush(QColor('#547e67'))
+                else:
+                    painter.setBrush(QColor(150, 203, 121, 125))
                 painter.drawEllipse(QPointF(mark_x, mark_y),
                                     self.CURRENT_RADIUS, self.CURRENT_RADIUS)
 
@@ -197,16 +224,16 @@ class ShurikenPreview(QWidget):
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor(181, 214, 160, alpha))
                 painter.drawRoundedRect(shadow, 8, 8)
-            painter.setPen(QPen(QColor(130, 179, 105, 210) if active
-                                else QColor(150, 190, 129, 170), 1.0))
-            painter.setBrush(QColor(220, 243, 204, 227) if active
-                             else QColor(236, 248, 228, 208))
+            painter.setPen(QPen(QColor('#86b69a' if dark else '#82b369') if active
+                                else QColor('#59767a' if dark else '#96be81'), 1.0))
+            painter.setBrush(QColor('#426351' if dark else '#dcf3cc') if active
+                             else QColor('#2d454b' if dark else '#ecf8e4'))
             painter.drawRoundedRect(text_rect, 7, 7)
             available_text_width = max(12, int(text_draw_rect.width()) - 2)
             if metrics.horizontalAdvance(caption) > available_text_width:
                 caption = metrics.elidedText(caption, Qt.TextElideMode.ElideRight,
                                              available_text_width)
-            painter.setPen(QColor('#254c35'))
+            painter.setPen(QColor('#eff7f2' if dark else '#254c35'))
             painter.drawText(text_draw_rect, draw_flags, caption)
         painter.end()
 

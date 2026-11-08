@@ -79,9 +79,13 @@ def test_restored_position_and_height_survive_automatic_placement():
     assert 'self._manual_height = False' in reset
 
 
-def test_mode_off_restores_legacy_height_and_following():
+def test_retired_mode_toggle_cannot_disable_embedded_exp():
     toggle = method_source('app.py', 'Launcher', 'set_files_root_hidden_mode')
-    assert 'remote.leave_files_grid_alignment()' in toggle
+    assert 'self._apply_files_first_column_mode()' in toggle
+    contract = method_source('app.py', 'Launcher', '_apply_files_first_column_mode')
+    assert 'self.files_root_hidden_mode = True' in contract
+    assert 'self.files_exp_embedded_mode = True' in contract
+    # Preserve old positioning helpers for existing callers; no UI mode-off switch.
     restore = method_source('launch_remote.py', 'LaunchRemote', 'leave_files_grid_alignment')
     assert "'remote_files_exp/height'" in restore
     assert 'self.position_files_exp()' in restore

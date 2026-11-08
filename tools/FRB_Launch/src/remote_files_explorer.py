@@ -160,6 +160,31 @@ class FilesExpWheelTree(QTreeView):
         Inline QLineEdit rename editors continue to own their text keys.
         """
         panel = self.parentWidget()
+        # Enter in Exp means "open this folder here": expand the branch
+        # and navigate its contents, as the existing Remote centre click does.
+        # Keep the focus in Exp so keyboard-only users can continue browsing.
+        if (event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                and getattr(panel, '_rename_in_progress', None) is None
+                and self.state() != QAbstractItemView.State.EditingState):
+            activate = getattr(panel, 'remote_activate_current', None)
+            if callable(activate) and activate():
+                event.accept()
+                return
+        # In the fixed two-column layout, Exp → commits the selected folder
+        # to List and transfers the REAL keyboard focus to column two. The
+        # standard QTreeView Right behavior (expand branch in place) made it
+        # impossible to navigate the two columns without a mouse.
+        if (getattr(panel, '_embedded', False)
+                and event.key() == Qt.Key.Key_Right
+                and event.modifiers() == Qt.KeyboardModifier.NoModifier
+                and getattr(panel, '_rename_in_progress', None) is None
+                and self.state() != QAbstractItemView.State.EditingState):
+            launcher = getattr(panel, '_launcher', None)
+            if (launcher is not None and launcher.remote_exp_right_to_list()):
+                launcher.expanded_view.focus_panel(launcher.expanded_view.middle)
+                event.accept()
+                return
         handler = getattr(panel, 'handle_tree_shortcut', None)
         if callable(handler) and handler(event.key(), event.modifiers()):
             event.accept()

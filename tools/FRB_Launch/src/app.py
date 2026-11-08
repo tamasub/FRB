@@ -20,6 +20,7 @@ from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
 from remote_text_dialog import RemoteTextDialog
 from remote_context_wheel import RemoteContextWheel
+from rod_foreground import foreground_owned_by_process
 from shuriken_model import configured_entries
 from shuriken_scroll_handoff import handoff_current_at_scroll_stop
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
@@ -2882,14 +2883,14 @@ class Launcher(QWidget):
         # Opt-in experiment: desktop double-click opens a pointer-side remote.
         self.remote_on_desktop_double_click = str(self.settings.value(
             'desktop_remote_enabled', 'false')).lower() in ('true', '1', 'yes', 'on')
-        # UI-only A/B experiment: retain all Files/Bookmarks data and old
-        # splitter widths; only disable their redundant visual/navigation lanes.
-        self.files_root_hidden_mode = str(self.settings.value(
-            'experiment_files_root_hidden', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
-        self.files_exp_embedded_mode = str(self.settings.value(
-            'experiment_files_exp_embedded', 'false')).strip().lower() in ('true', '1', 'yes', 'on')
-        if self.files_exp_embedded_mode:
-            self.files_root_hidden_mode = True  # Remote operates column 2 only.
+        # Public operating contract: Files column 1 always embeds Files Exp.
+        # Retire both legacy experiment switches, including persisted overrides.
+        self.files_root_hidden_mode = True
+        self.files_exp_embedded_mode = True
+        for retired_key in ('experiment_files_root_hidden',
+                            'experiment_files_exp_embedded'):
+            if self.settings.contains(retired_key):
+                self.settings.remove(retired_key)
         self.remote_15_mode = str(self.settings.value(
             'experiment_remote_15_column', 'false')).strip().lower() in (
                 'true', '1', 'yes', 'on')
@@ -3124,6 +3125,7 @@ class Launcher(QWidget):
         self.save_history_button.clicked.connect(lambda checked=False: self.remember_search())
         self.layout_search_inner_controls()
         self.theme_menu = QMenu(self)
+        self._wire_hybrid_context_menu(self.theme_menu)
         heading = self.theme_menu.addAction('外観テーマ')
         heading.setEnabled(False)
         self.theme_action_group = QActionGroup(self)
@@ -3184,8 +3186,6 @@ class Launcher(QWidget):
         self.remote_mode_action.setCheckable(True)
         self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
-        self.files_root_hidden_action = self.theme_menu.addAction('実験：Files ルート非表示')
-        self.files_root_hidden_action.setCheckable(True)
         self.mouse_pointer_rod_smart_action = self.theme_menu.addAction(
             '実験：ワープ差し棒 － ぐりぐりスピナー（上下追従）')
         self.mouse_pointer_rod_smart_action.setCheckable(True)
@@ -3198,19 +3198,6 @@ class Launcher(QWidget):
             'OFFで従来の棒の伸縮へ戻ります。')
         self.mouse_pointer_rod_smart_action.triggered.connect(
             self.set_mouse_pointer_rod_smart_mode)
-        self.files_root_hidden_action.setChecked(self.files_root_hidden_mode)
-        self.files_root_hidden_action.setToolTip(
-            'Files第1列・Browserブックマーク列・リモコンTab/BackTabを隠す。'
-            'Filesは第2列固定。チェック解除で元に戻せます。')
-        self.files_root_hidden_action.triggered.connect(self.set_files_root_hidden_mode)
-        self.files_exp_embedded_action = self.theme_menu.addAction(
-            '実験：Files Expを第1列に表示')
-        self.files_exp_embedded_action.setCheckable(True)
-        self.files_exp_embedded_action.setChecked(self.files_exp_embedded_mode)
-        self.files_exp_embedded_action.setToolTip(
-            '従来の第1列は残したままFiles Expのツリーを組み込む。'
-            'Remoteは第2列操作を維持し、単独のFiles Expウィンドウを表示しません。')
-        self.files_exp_embedded_action.triggered.connect(self.set_files_exp_embedded_mode)
         self.remote_15_action = self.theme_menu.addAction(
             '実験：リモコンウィンドウ 1.5列表示')
         self.remote_15_action.setCheckable(True)
@@ -3238,8 +3225,6 @@ class Launcher(QWidget):
             'OFFで従来のFiles List/Exp直接操作へ戻ります。')
         self.mouse_pointer_rod_windows_action.triggered.connect(
             self.set_mouse_pointer_rod_windows_mode)
-        self.files_root_hidden_action.setChecked(
-            self.files_root_hidden_mode and not self.files_exp_embedded_mode)
         self.theme_menu.addSeparator()
         self.compact_mode_action = self.theme_menu.addAction('Compact表示へ切り替え')
         self.compact_mode_action.setToolTip('Compact表示とFiles／Browser表示を切り替え')
@@ -3321,6 +3306,15 @@ class Launcher(QWidget):
         buttons = QHBoxLayout(self.selection_tools); buttons.setContentsMargins(0,0,0,0)
         for title, callback in [('全選択 (Ctrl+A)', lambda:self.select_all(True)), ('全解除 (Ctrl+Shift+A)', lambda:self.select_all(False)), ('戻る (←)', self.go_back)]:
             button = QPushButton(title); button.clicked.connect(callback); buttons.addWidget(button)
+        # Keep Send directly next to Back: the right edge of a wide Files
+        # window is too far away from the other recipient controls.
+        # The existing F12 command is also a visible affordance for people
+        # who don't know Launch's keyboard shortcuts (e.g. email recipients).
+        self.selection_send_button = QPushButton('送信 (F12)', self.selection_tools)
+        self.selection_send_button.setToolTip('選択した宛先を送信します（F12と同じ操作）')
+        self.selection_send_button.clicked.connect(self.confirm_selection)
+        self.selection_send_button.setEnabled(False)
+        buttons.addWidget(self.selection_send_button)
         buttons.addStretch()
         self.selection_tools.hide()
         # Retain the old mode action widget internally for compatibility with
@@ -3536,6 +3530,7 @@ class Launcher(QWidget):
         QTimer.singleShot(delay * 1000, self.auto_refresh_file_index)
         QTimer.singleShot(0,self.refresh_apps)
         self.registered_key = ''
+        self._registered_hotkey_hwnd = 0
         self.registered_menu_hotkeys = {}
         self.register_key()
         # Studio may save new shortcuts while Launch is hidden. A new key
@@ -3720,30 +3715,16 @@ class Launcher(QWidget):
                             ('有効（ダブルクリックで表示）' if checked else '無効'))
 
     def set_files_root_hidden_mode(self, checked):
-        """Old single-column mode stays reversible; uncheck restores legacy."""
-        self.files_exp_embedded_mode = False
-        self.files_root_hidden_mode = bool(checked)
+        """Deprecated caller compatibility: Exp is permanently column 1."""
         self._apply_files_first_column_mode()
-        if not checked:
-            remote = getattr(self, 'remote_window', None)
-            if remote is not None:
-                remote.leave_files_grid_alignment()
 
     def set_files_exp_embedded_mode(self, checked):
-        """Swap the visible old first-column content for the live Exp tree."""
-        self.files_exp_embedded_mode = bool(checked)
-        self.files_root_hidden_mode = bool(checked)
+        """Deprecated caller compatibility: Exp is permanently column 1."""
         self._apply_files_first_column_mode()
 
     def _apply_files_first_column_mode(self):
-        self.settings.setValue('experiment_files_root_hidden',
-                               self.files_root_hidden_mode)
-        self.settings.setValue('experiment_files_exp_embedded',
-                               self.files_exp_embedded_mode)
-        self.settings.sync()
-        self.files_root_hidden_action.setChecked(
-            self.files_root_hidden_mode and not self.files_exp_embedded_mode)
-        self.files_exp_embedded_action.setChecked(self.files_exp_embedded_mode)
+        self.files_root_hidden_mode = True
+        self.files_exp_embedded_mode = True
         view = getattr(self, 'expanded_view', None)
         if view is not None:
             view.apply_files_root_hidden_mode()
@@ -5288,6 +5269,7 @@ class Launcher(QWidget):
                 point.setY(rect.bottom() + 1 - size.height())
             point.setX(max(rect.left(), min(point.x(), rect.right() + 1 - size.width())))
             point.setY(max(rect.top(), min(point.y(), rect.bottom() + 1 - size.height())))
+        self._wire_hybrid_context_menu(menu)
         menu.popup(point)
 
     def remote_context_menu(self):
@@ -5467,6 +5449,38 @@ class Launcher(QWidget):
         return self._enable_remote_context_wheel_for_menu(
             getattr(self, '_launch_context_menu', None))
 
+    def _wire_hybrid_context_menu(self, menu):
+        """Any pointer-opened Qt menu shares the real ぐりぐり QAction cursor.
+
+        This does not append actions or change native mouse click behavior.
+        The adapter captures wheels over the Remote pad OR opened QMenu,
+        so the cursor can stay at the actual right-click location.
+        A zero-tick delay lets the native popup become visible first.
+        """
+        if menu is None or getattr(menu, '_frb_hybrid_wired', False):
+            return
+        menu._frb_hybrid_wired = True
+        # Qt.Popup grabs all mouse input, including wheel events physically
+        # over the separate Remote/ぐりぐり window.  Unlike the original
+        # Remote-pad menu this breaks menus opened on Files or Settings.
+        # The existing Page and Files history menus use a non-grabbing Tool
+        # window. Reuse that known working pattern for every hybrid menu;
+        # RemoteContextWheel supplies outside-click dismissal.
+        if hasattr(menu, 'setWindowFlags'):
+            flags = (Qt.WindowType.Tool |
+                     Qt.WindowType.FramelessWindowHint |
+                     Qt.WindowType.WindowStaysOnTopHint)
+            menu.setWindowFlags(flags)
+            menu._frb_non_grabbing = True
+            # Open With / Settings may have nested menus. Their native Popup
+            # grab would otherwise recreate the same lost-wheel problem.
+            # Discover the QMenu children without rewriting their QAction logic.
+            for child in menu.findChildren(QMenu):
+                child.setWindowFlags(flags)
+        menu.aboutToShow.connect(
+            lambda m=menu: QTimer.singleShot(
+                0, lambda target=m: self._enable_remote_context_wheel_for_menu(target)))
+
     def _enable_remote_context_wheel_for_menu(self, menu):
         if menu is None or not menu.isVisible():
             return False
@@ -5629,6 +5643,7 @@ class Launcher(QWidget):
         page_id = str(identity.get('page_id') or '')
         item_id = str(identity.get('item_id') or '')
         menu = QMenu(self)
+        self._wire_hybrid_context_menu(menu)
         menu.addSection('Launch JSON（参照専用）')
         reference = menu.addAction('JSON参照IDをコピー')
         reference.setEnabled(bool(item_id))
@@ -6778,6 +6793,10 @@ class Launcher(QWidget):
         if self.data is not None:self.reload()
         self.update_window_shape()
         super().showEvent(event)
+        # The first Show/Window flag transition may replace the original HWND.
+        # RegisterHotKey is bound to an HWND, not a Python Launcher instance.
+        if hasattr(self, 'registered_key'):
+            QTimer.singleShot(0, self._ensure_launcher_hotkey)
         if getattr(self, 'remote_15_mode', False):
             self.queue_remote_15_alignment(show=True)
 
@@ -7245,22 +7264,32 @@ class Launcher(QWidget):
             '<span style="color:#e64040; font-weight:600;">❌ '
             + html_escape(str(message)) + '</span>')
 
+    def _ensure_launcher_hotkey(self):
+        if (hasattr(self, 'registered_key') and
+                int(self.winId()) != getattr(self, '_registered_hotkey_hwnd', 0)):
+            self.register_key()
+
     def register_key(self):
         """Register the normal opener plus all enabled Page-root item keys."""
         hwnd = int(self.winId())
         key = (self.data or {}).get('launch_hotkey', 'Ctrl+Shift+;')
-        if key != self.registered_key:
-            windows.unhotkey(hwnd)
+        prior_hwnd = getattr(self, '_registered_hotkey_hwnd', 0)
+        if key != self.registered_key or hwnd != prior_hwnd:
+            if prior_hwnd:
+                windows.unhotkey(prior_hwnd)
             try:
                 windows.hotkey(hwnd, key)
                 self.registered_key = key
+                self._registered_hotkey_hwnd = hwnd
+                DIAG.info('LAUNCH_HOTKEY registered key=%s hwnd=%s', key, hwnd)
             except Exception as exc:
                 self.registered_key = ''
-                self.error(exc)
+                self._registered_hotkey_hwnd = 0
+                self.error('起動ショートカット登録失敗: ' + str(exc))
         # A reload is atomic for the document, but Windows may reserve an
         # individual shortcut. Keep the working hotkeys and warn for failures.
         for key_id in self.registered_menu_hotkeys:
-            windows.unhotkey(hwnd, key_id)
+            windows.unhotkey(prior_hwnd or hwnd, key_id)
         self.registered_menu_hotkeys = {}
         for index, (item_id, shortcut) in enumerate(menu_shortcuts({
                 **self.data, 'items': self.authored_items})):
@@ -7528,7 +7557,19 @@ class Launcher(QWidget):
             self.activateWindow()
             return
         if self.isVisible():
-            if getattr(self, '_cloud_link_handoff', False):
+            # A visible *background* normal window is not an open launcher
+            # from the user's point of view. The global hotkey must summon
+            # it, not hide it behind Chrome/Explorer.
+            foreground_owned = foreground_owned_by_process()
+            if foreground_owned is False:
+                before = windows.foreground()
+                self.show_launcher_normal_or_saved()
+                self.raise_()
+                self.activateWindow()
+                self.restore_keyboard_focus(
+                    expected_foreground=(before, windows.foreground()),
+                    reason='hotkey_reveal')
+            elif getattr(self, '_cloud_link_handoff', False):
                 self.finish_cloud_link_handoff()
                 self.raise_()
                 self.activateWindow()
@@ -8052,6 +8093,7 @@ class Launcher(QWidget):
         self.hide_root_left_feedback()
         self.hover_timer.stop();self.pending_menu_item=None
         self.selection_tools.setVisible(self.selection is not None)
+        self.selection_send_button.setEnabled(bool(self.selection and self.checked))
         query=self.search.text().strip()
         self.set_list_column_mode(bool(query))
         self.list.setHeaderHidden(not bool(query))
@@ -8149,6 +8191,7 @@ class Launcher(QWidget):
             if item.checkState(0)==Qt.CheckState.Checked:self.checked.add(key)
             else:self.checked.discard(key)
             self.footer.setText(f'↑↓ 移動  →/Space 選択  ← 戻る  F12 入力  {len(self.checked)}件')
+            self.selection_send_button.setEnabled(bool(self.checked))
 
     def select_all(self, selected):
         if not self.selection:return
@@ -10177,7 +10220,18 @@ class Launcher(QWidget):
                 self.dismiss()
         elif key == Qt.Key.Key_Left:
             if pane is view.middle:
-                target = view.navigate_left_from_middle()
+                # Fixed Exp column: List ← first lands on its first row,
+                # then the next ← hands off to the same Exp selection used
+                # by the physical Remote.  Do not navigate visit history or
+                # strand keyboard focus on the hidden legacy Files pane.
+                if (getattr(self, 'files_exp_embedded_mode', False)
+                        and self.remote_list_left_to_exp()):
+                    panel = self._current_remote_files_exp()
+                    if panel is not None:
+                        panel.tree.setFocus(Qt.FocusReason.TabFocusReason)
+                    target = 'files_exp'
+                else:
+                    target = view.navigate_left_from_middle()
                 # The Remote can remain open while the user uses the real
                 # keyboard. Keep its independent routing target in sync.
                 remote = getattr(self, 'remote_window', None)
@@ -11105,6 +11159,7 @@ class Launcher(QWidget):
             self._on_file_context_action_triggered(m, action))
         if getattr(self, '_remote_pad_context_active', False):
             self._prepend_remote_pad_navigation(menu)
+        self._wire_hybrid_context_menu(menu)
         menu.popup(global_pos)
         return True
 
@@ -11253,6 +11308,7 @@ class Launcher(QWidget):
                     menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
                 if getattr(self, '_remote_pad_context_active', False):
                     self._prepend_remote_pad_navigation(menu)
+                self._wire_hybrid_context_menu(menu)
                 menu.popup(global_pos)
                 return True
             try:
@@ -11362,6 +11418,7 @@ class Launcher(QWidget):
             menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
         if getattr(self, '_remote_pad_context_active', False):
             self._prepend_remote_pad_navigation(menu)
+        self._wire_hybrid_context_menu(menu)
         menu.popup(global_pos)
         return True
 

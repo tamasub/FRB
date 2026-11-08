@@ -114,7 +114,8 @@ def test_editor_enter_must_not_execute_directory_or_file():
         tree = FakeTree()
         middle = SimpleNamespace(tree=tree)
         view = SimpleNamespace(middle=middle, left=object(),
-                               choose_middle=lambda item, col: executed.append('choose_middle'),
+                               choose_middle=lambda item, col, **kwargs: executed.append('choose_middle'),
+                               navigate_middle=lambda row: executed.append('navigate_middle'),
                                row_data=lambda i: {'item_kind': 'directory'},
                                launcher=SimpleNamespace(execute=lambda r: executed.append('execute'),
                                                         activate=lambda r: executed.append('activate')))
@@ -125,7 +126,7 @@ def test_editor_enter_must_not_execute_directory_or_file():
         assert executed == []
         tree._rename_enter_guard = False
         action(view, middle, object())
-        assert executed == (['execute'] if function == 'enter_row' else ['choose_middle'])
+        assert executed == (['navigate_middle'] if function == 'enter_row' else ['choose_middle'])
 
 
 def test_normal_expanded_enter_dispatch_remains_in_place():
