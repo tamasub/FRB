@@ -123,6 +123,39 @@ def virtual_item_identity(node):
             for key in ('source', 'page_id', 'item_id', 'parent_item_id', 'node_id')}
 
 
+
+def virtual_studio_target(identity, pages, authored_items):
+    """Resolve Properties only for real, enabled Studio-owned Page/items.
+
+    Files Exp also projects bookmarks/apps from runtime catalogs. Those are
+    deliberately not editable, even when their IDs resemble user items.
+    Never trust a node ID copied from a displayed QStandardItem by itself.
+    """
+    if not isinstance(identity, dict) or identity.get('source') != 'launch_json':
+        return None
+    page_id = str(identity.get('page_id') or '')
+    item_id = str(identity.get('item_id') or '')
+    page = next((p for p in (pages or ()) if isinstance(p, dict)
+                 and str(p.get('page_id') or '') == page_id
+                 and p.get('enabled', True)), None)
+    if page is None:
+        return None
+    node_id = str(identity.get('node_id') or '')
+    if not item_id:
+        return ({'kind': 'page', 'page_id': page_id}
+                if node_id == f'page:{page_id}' else None)
+    if node_id != f'item:{page_id}:{item_id}':
+        return None
+    for row in (authored_items or ()):
+        if (isinstance(row, dict) and row.get('enabled', True)
+                and str(row.get('page_id') or '') == page_id
+                and str(row.get('item_id') or '') == item_id
+                and not row.get('_installed_app')
+                and not row.get('_browser_bookmark')):
+            return {'kind': 'item', 'page_id': page_id, 'item_id': item_id}
+    return None
+
+
 def virtual_exp_folders(node):
     """Only menu groups (never executable leaves) belong in Files Exp."""
     return [child for child in (node or {}).get('children', ())

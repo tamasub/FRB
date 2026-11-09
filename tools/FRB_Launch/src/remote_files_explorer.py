@@ -476,6 +476,20 @@ class RemoteFilesExplorer(QWidget):
             'item_kind': 'directory', 'icon_key': 'folder.yellow'})
             if launcher is not None else style.standardIcon(QStyle.StandardPixmap.SP_DirIcon))
         self._pc_icon = style.standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        # Blue-violet folders are authored/virtual Launch JSON; real Windows
+        # directories keep their existing gold folder icon. Page emojis stay
+        # iconless as before, so their titles do not appear twice.
+        virtual_pix = QPixmap(48, 48)
+        virtual_pix.setDevicePixelRatio(2)
+        virtual_pix.fill(Qt.GlobalColor.transparent)
+        virtual_painter = QPainter(virtual_pix)
+        virtual_painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        virtual_painter.setPen(Qt.PenStyle.NoPen)
+        virtual_painter.setBrush(QColor('#8675d6'))
+        virtual_painter.drawRoundedRect(2, 7, 20, 14, 3, 3)
+        virtual_painter.drawRoundedRect(3, 4, 9, 7, 2, 2)
+        virtual_painter.end()
+        self._virtual_folder_icon = QIcon(virtual_pix)
         self._virtual_file_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         self.apply_theme(theme)
 
@@ -506,7 +520,7 @@ class RemoteFilesExplorer(QWidget):
         # Page roots already show the user-selected Page emoji in their title.
         # The extra yellow folder duplicates that identity; keep it only for
         # actual virtual subfolders (and keep Qt's disclosure arrow intact).
-        icon = QIcon() if node['kind'] == 'page' else self._folder_icon
+        icon = QIcon() if node['kind'] == 'page' else self._virtual_folder_icon
         item = QStandardItem(icon, node['title'])
         item.setEditable(False)
         item.setDragEnabled(False)
@@ -515,7 +529,7 @@ class RemoteFilesExplorer(QWidget):
         item.setData(icon, _NORMAL_ICON_ROLE)
         item.setData(False, _LOADED_ROLE)
         identity = virtual_item_identity(node)
-        item.setToolTip('Launch JSON / ' + node['title'] + '\n' +
+        item.setToolTip('Launch JSON（仮想メニュー）/ ' + node['title'] + '\n' +
                         '参照: ' + str(identity['node_id']))
         if virtual_exp_folders(node):
             item.appendRow(QStandardItem(''))

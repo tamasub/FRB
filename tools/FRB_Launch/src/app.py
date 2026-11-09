@@ -71,7 +71,8 @@ from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
-from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node
+from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node, virtual_studio_target
+from registered_folder_route import embedded_folder_target
 from context_menu_icons import context_action_icon
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
@@ -5719,39 +5720,49 @@ class Launcher(QWidget):
         return True
 
     def show_virtual_launch_context(self, identity, point):
-        """Read-only virtual item context: Studio mutation actions come later.
+        """Offer Studio Properties for authored virtual Page/item identities.
 
-        Keep this disjoint from the real filesystem context menu. Copying a
-        JSON identity does not copy, cut or move any underlying file.
+        These nodes are JSON projections, NOT real filesystem folders. Only
+        authoritative, currently enabled Studio-owned records may open the
+        editor. Dynamic bookmark/app entries remain reference-only.
         """
         from launch_virtual_tree import virtual_item_identity
         if not isinstance(identity, dict) or identity.get('source') != 'launch_json':
             return
-        page_id = str(identity.get('page_id') or '')
         item_id = str(identity.get('item_id') or '')
+        target = virtual_studio_target(identity, self.pages, self.authored_items)
         menu = QMenu(self)
         self._wire_hybrid_context_menu(menu)
-        menu.addSection('Launch JSON（参照専用）')
+        menu.addSection('Launch JSON（Studio管理）' if target else 'Launch JSON（参照専用）')
+        if target is not None:
+            properties_action = menu.addAction('プロパティ')
+            properties_action.setIcon(context_action_icon('properties'))
+            if target['kind'] == 'page':
+                properties_action.triggered.connect(
+                    lambda checked=False, pid=target['page_id']:
+                    QTimer.singleShot(0, lambda: self.launch_configuration_studio(
+                        page_properties=True, page_id=pid)))
+            else:
+                properties_action.triggered.connect(
+                    lambda checked=False, iid=target['item_id']:
+                    QTimer.singleShot(0, lambda: self.launch_configuration_studio(
+                        item_id=iid)))
         reference = menu.addAction('JSON参照IDをコピー')
         reference.setEnabled(bool(item_id))
+        def copy_identity(checked=False):
+            if item_id:
+                import json
+                QApplication.clipboard().setText(json.dumps(
+                    virtual_item_identity(identity), ensure_ascii=False))
+        reference.triggered.connect(copy_identity)
         if getattr(self, '_remote_pad_context_active', False):
-            # Non-blocking popup: the Remote can still drive its real QActions.
-            def copy_identity(checked=False):
-                if item_id:
-                    import json
-                    QApplication.clipboard().setText(json.dumps(
-                        virtual_item_identity(identity), ensure_ascii=False))
-            reference.triggered.connect(copy_identity)
+            # Non-blocking popup: Remote owns selection/focus independently.
             self._prepend_remote_pad_navigation(menu)
             self._launch_context_menu = menu
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
             menu.popup(point)
         else:
-            chosen = menu.exec(point)
-            if chosen is reference and item_id:
-                import json
-                QApplication.clipboard().setText(json.dumps(
-                    virtual_item_identity(identity), ensure_ascii=False))
+            menu.exec(point)
 
     def remote_exp_right_to_list(self):
         """Exp → List: explicitly commit Exp and hand off the controller.
@@ -10960,7 +10971,7 @@ class Launcher(QWidget):
         return super().eventFilter(obj,event)
 
     def launch_configuration_studio(self, *, item_id=None, new_category=False,
-                                    page_properties=False):
+                                    page_properties=False, page_id=None):
         """Open the authored Launch DataJSON.  UI never edits the JSON itself."""
         if not self.data:
             return
@@ -10970,12 +10981,13 @@ class Launcher(QWidget):
             self.error('Studioくんが見つかりません: ' + str(exe))
             return
         args = ['--open-json=' + str(CONFIG)]
+        target_page_id = str(page_id if page_id is not None else self.page_id)
         if new_category:
-            args.append('--launch-new-category=' + str(self.page_id))
+            args.append('--launch-new-category=' + target_page_id)
         elif page_properties:
-            # Page is a virtual group header in Studio's ordinary item grid,
-            # NOT a menu item and NOT the separate Page editor.
-            args.append('--launch-page-id=' + str(self.page_id))
+            # Files Exp Page root may be on a different Page from current tab.
+            # Studio treats Page as a virtual group header in its item grid.
+            args.append('--launch-page-id=' + target_page_id)
         elif item_id:
             args.append('--launch-item-id=' + str(item_id))
         else:
@@ -12343,6 +12355,15 @@ class Launcher(QWidget):
             if (len(self.queue) == 1 and
                     self.open_registered_step_in_browser(self.queue[0])):
                 self.queue.clear()
+                return
+            # A single authored Open of a *folder* is navigation within the
+            # Launch Files workspace, not Windows Explorer. Resolve after
+            # expansion, before dismiss/busy/OS dispatch; multi-step jobs and
+            # explicit external-browser actions keep their original meaning.
+            folder_target = embedded_folder_target(self.queue)
+            if folder_target is not None:
+                self.queue.clear()
+                self.open_search_folder_in_launch(folder_target)
                 return
             self.busy=True;DIAG.info('QUEUE steps=%s',len(self.queue))
             hide_after_launch = getattr(self, 'dismiss_on_outside_click', True)

@@ -28,6 +28,12 @@
       "sort_order": 20,
       "enabled": true,
       "icon_key": "🪟"
+    },
+    {
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "sort_order": 40,
+      "title": "💟 お気に入り",
+      "enabled": true
     }
   ],
   "items": [
@@ -56,11 +62,11 @@
       "item_id": "mail",
       "page_id": "work",
       "parent_item_id": "",
-      "title": "メール宛先",
+      "title": "メール宛先／😀絵文字",
       "description": "組織別の宛先を選択",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 60,
+      "sort_order": 70,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -157,7 +163,7 @@
       "description": "日付を展開して入力",
       "item_kind": "command",
       "icon_key": "calendar",
-      "sort_order": 30,
+      "sort_order": 20,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -171,6 +177,40 @@
         {
           "launch_action_type": "ClipboardCopy",
           "launch_text": "%today:yyyy/MM/dd%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "today_datetime",
+      "page_id": "work",
+      "parent_item_id": "dates",
+      "title": "今日の日時 yyyyMMdd_hhmmss",
+      "description": "現在日時を年月日_時分秒の形式（24時間表記）でコピー",
+      "item_kind": "command",
+      "icon_key": "calendar",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "ClipboardCopy",
+          "launch_text": "%now:yyyyMMdd_HHmmss%",
           "launch_target": "",
           "launch_program": "",
           "launch_arguments": [],
@@ -259,7 +299,7 @@
       "description": "Spaceで選択、F12で宛先を入力",
       "item_kind": "selection",
       "icon_key": "mail",
-      "sort_order": 10,
+      "sort_order": 20,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "sales",
@@ -392,7 +432,7 @@
       "description": "スピーカーとイヤフォン",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 50,
+      "sort_order": 40,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -651,7 +691,7 @@
       "description": "特殊フォルダーと各種場所",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 60,
+      "sort_order": 50,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -845,7 +885,7 @@
       "description": "shell:Startup",
       "item_kind": "command",
       "icon_key": "folder.yellow",
-      "sort_order": 60,
+      "sort_order": 70,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -879,7 +919,7 @@
       "description": "Windowsの設定を開く",
       "item_kind": "command",
       "icon_key": "settings",
-      "sort_order": 70,
+      "sort_order": 60,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1139,7 +1179,7 @@
       "description": "起動できるアプリを名前順で表示",
       "item_kind": "category",
       "icon_key": "category.blue",
-      "sort_order": 40,
+      "sort_order": 30,
       "enabled": true,
       "keywords": [
         "アプリケーション",
@@ -1156,8 +1196,8 @@
       "title": "コントロールパネル",
       "description": "Windows設定（ms-settings:）",
       "item_kind": "category",
-      "icon_key": "category.blue",
-      "sort_order": 30,
+      "icon_key": "folder.yellow",
+      "sort_order": 20,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1449,7 +1489,7 @@
       "description": "ms-settings:printers",
       "item_kind": "command",
       "icon_key": "settings",
-      "sort_order": 100,
+      "sort_order": 90,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1809,7 +1849,7 @@
       "title": "F:\\",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 50,
       "enabled": true,
       "keywords": [
@@ -2044,7 +2084,7 @@
       "description": "Spaceで選択、F12で宛先を入力",
       "item_kind": "selection",
       "icon_key": "mail",
-      "sort_order": 20,
+      "sort_order": 30,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "se",
@@ -2103,7 +2143,7 @@
       "description": "shell:My Music",
       "item_kind": "command",
       "icon_key": "folder.yellow",
-      "sort_order": 70,
+      "sort_order": 90,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2137,7 +2177,7 @@
       "description": "shell:My Pictures",
       "item_kind": "command",
       "icon_key": "folder.yellow",
-      "sort_order": 80,
+      "sort_order": 100,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2171,7 +2211,7 @@
       "description": "shell:Personal",
       "item_kind": "command",
       "icon_key": "folder.yellow",
-      "sort_order": 65,
+      "sort_order": 80,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2205,7 +2245,7 @@
       "description": "shell:AppsFolder",
       "item_kind": "command",
       "icon_key": "folder.yellow",
-      "sort_order": 90,
+      "sort_order": 110,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2284,31 +2324,6 @@
       "launch_context_app": "",
       "launch_context_url_pattern": "",
       "launch_actions": []
-    },
-    {
-      "page_id": "work",
-      "parent_item_id": "928afb99-5394-4bf6-8c53-6333874421ff",
-      "item_id": "8edd6e83-3251-4f4c-90e0-d4d45d9e185c",
-      "title": "README_ZipClipboardPaste_20261024.md",
-      "description": "",
-      "item_kind": "command",
-      "icon_key": "file",
-      "sort_order": 10,
-      "enabled": true,
-      "keywords": [],
-      "launch_selection_group_id": "",
-      "launch_selection_value_field": "",
-      "launch_selection_separator": "",
-      "launch_selection_result_name": "",
-      "launch_browse_target": "",
-      "launch_context_app": "",
-      "launch_context_url_pattern": "",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\_tmp\\README_ZipClipboardPaste_20261024.md"
-        }
-      ]
     },
     {
       "item_id": "bc7c281c-7842-4166-bb49-e960e43fa51a",
@@ -2575,6 +2590,161 @@
           "launch_target": "%launch_home%\\backup_frb_launch_config_log.bat"
         }
       ]
+    },
+    {
+      "page_id": "work",
+      "parent_item_id": "928afb99-5394-4bf6-8c53-6333874421ff",
+      "item_id": "d337a881-435f-4e8a-8083-52bca2dd112d",
+      "title": "AI協働：Python製ランチャー「FRB Launch」の独自UI機能14選 ～ぐりぐり・とんとん・ごちゃまぜの操作革命～",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/659b0b74c5cacbba701f",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "parent_item_id": "2e652411-ae80-415c-89f2-57f0efc0fa74",
+      "item_id": "e2c59b4f-fc26-4b4b-af53-01978c2c1c26",
+      "title": "FRB_Launch_release_test_area",
+      "description": "F:\\FRB\\tools\\FRB_Launch_release_test_area",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "F:\\FRB\\tools\\FRB_Launch_release_test_area",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch_release_test_area"
+        }
+      ]
+    },
+    {
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "parent_item_id": "",
+      "item_id": "2e652411-ae80-415c-89f2-57f0efc0fa74",
+      "title": "サンプル",
+      "description": "",
+      "item_kind": "category",
+      "icon_key": "folder.yellow",
+      "sort_order": 20,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": []
+    },
+    {
+      "item_id": "ccda24f0-4a18-4c29-b70d-506072380c69",
+      "page_id": "work",
+      "parent_item_id": "mail",
+      "title": "🤪 絵文字一覧",
+      "description": "Spaceで絵文字グループを選択、F12で送信（各行の絵文字をまとめて送る）",
+      "item_kind": "selection",
+      "icon_key": "folder.yellow",
+      "sort_order": 10,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "絵文字",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "\\n",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "SendKey",
+          "launch_text": "%recipients%",
+          "launch_target": "",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "ca340202-a5c3-40c3-8a8e-1c555faf2aba",
+      "title": "絵文字一覧サイト Let's EMOJI",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 70,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://lets-emoji.com/emojilist/emojilist-1/",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
     }
   ],
   "launch_variables": [
@@ -2732,6 +2902,294 @@
       "description": "sato@example.invalid",
       "choice_id": "import_mail_000009",
       "sort_order": 20
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "😋顔",
+      "value": "😀😃😄😆😅🤣🫠😇🥰🤩",
+      "description": "😀😃😄😆😅🤣🫠😇🥰🤩",
+      "choice_id": "😋_copy_1",
+      "sort_order": 20
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "💓ハート",
+      "value": "💘💖💓💞💟🩷🧡💛💚💙🤎🖤🩵💜🩶🤍",
+      "description": "💘💖💓💞💟🩷🧡💛💚💙🤎🖤🩵💜🩶🤍",
+      "choice_id": "💓_copy_1",
+      "sort_order": 20
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "😆笑い・爆笑",
+      "value": "😂🤣😆😄😁😹😸😝😜🤪😎🥳",
+      "description": "😂🤣😆😄😁😹😸😝😜🤪😎🥳",
+      "choice_id": "frb_emoji_palette_01",
+      "sort_order": 30
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🥹感謝・ほっこり",
+      "value": "😊☺️😌🥹🥰🤗🙏🫶💕💐🌷",
+      "description": "😊☺️😌🥹🥰🤗🙏🫶💕💐🌷",
+      "choice_id": "frb_emoji_palette_02",
+      "sort_order": 40
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "😮驚き・発見",
+      "value": "😮😲😳🤯😱🫢👀💡✨🌟😯🔍",
+      "description": "😮😲😳🤯😱🫢👀💡✨🌟😯🔍",
+      "choice_id": "frb_emoji_palette_03",
+      "sort_order": 50
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "💦困った・汗",
+      "value": "😅💦😓😥😰😵‍💫😖😬🥲🙃🤦",
+      "description": "😅💦😓😥😰😵‍💫😖😬🥲🙃🤦",
+      "choice_id": "frb_emoji_palette_04",
+      "sort_order": 60
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🤔考える・疑問",
+      "value": "🤔🧐🤨🙄😶💭🧠❓❔🤷📝",
+      "description": "🤔🧐🤨🙄😶💭🧠❓❔🤷📝",
+      "choice_id": "frb_emoji_palette_05",
+      "sort_order": 70
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "👍いいね・応援",
+      "value": "👍👏🙌💪✊👊🤝👌✌️🙆🤗🥇",
+      "description": "👍👏🙌💪✊👊🤝👌✌️🙆🤗🥇",
+      "choice_id": "frb_emoji_palette_06",
+      "sort_order": 80
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "👋手・ジェスチャー",
+      "value": "👋🖐️✋🫲🫱🫵👆👇👈👉☝️🤞🤟🤘",
+      "description": "👋🖐️✋🫲🫱🫵👆👇👈👉☝️🤞🤟🤘",
+      "choice_id": "frb_emoji_palette_07",
+      "sort_order": 90
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🎉お祝い・達成",
+      "value": "🎉🎊🥳🎂🎁🏆🏅🥇💯🎯🙌🍾",
+      "description": "🎉🎊🥳🎂🎁🏆🏅🥇💯🎯🙌🍾",
+      "choice_id": "frb_emoji_palette_08",
+      "sort_order": 100
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🔥熱量・勢い",
+      "value": "🔥💥⚡🚀💪💯✨🌟🌈🎯🧨💫",
+      "description": "🔥💥⚡🚀💪💯✨🌟🌈🎯🧨💫",
+      "choice_id": "frb_emoji_palette_09",
+      "sort_order": 110
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "✅OK・NG・状態",
+      "value": "✅☑️✔️❌✖️⭕🚫⚠️❗‼️❓🆗🆕🔒",
+      "description": "✅☑️✔️❌✖️⭕🚫⚠️❗‼️❓🆗🆕🔒",
+      "choice_id": "frb_emoji_palette_10",
+      "sort_order": 120
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "➡️矢印・方向",
+      "value": "➡️⬅️⬆️⬇️↗️↘️↖️↙️↔️↕️🔁🔄⏩⏪",
+      "description": "➡️⬅️⬆️⬇️↗️↘️↖️↙️↔️↕️🔁🔄⏩⏪",
+      "choice_id": "frb_emoji_palette_11",
+      "sort_order": 130
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🔴色・図形",
+      "value": "🔴🟠🟡🟢🔵🟣⚫⚪🟥🟧🟨🟩🟦🟪🔶🔷",
+      "description": "🔴🟠🟡🟢🔵🟣⚫⚪🟥🟧🟨🟩🟦🟪🔶🔷",
+      "choice_id": "frb_emoji_palette_12",
+      "sort_order": 140
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🕒日時・予定",
+      "value": "📅🗓️🕒⏰⏱️⌛⏳🔔📌📍🗒️📆",
+      "description": "📅🗓️🕒⏰⏱️⌛⏳🔔📌📍🗒️📆",
+      "choice_id": "frb_emoji_palette_13",
+      "sort_order": 150
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "📁ファイル・文書",
+      "value": "📁📂🗂️📄📃📝📋📎🗃️🗄️📚📖📑",
+      "description": "📁📂🗂️📄📃📝📋📎🗃️🗄️📚📖📑",
+      "choice_id": "frb_emoji_palette_14",
+      "sort_order": 160
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "💻パソコン・開発",
+      "value": "💻🖥️⌨️🖱️📱⚙️🔧🛠️🔩🔌💾💿🧩",
+      "description": "💻🖥️⌨️🖱️📱⚙️🔧🛠️🔩🔌💾💿🧩",
+      "choice_id": "frb_emoji_palette_15",
+      "sort_order": 170
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🤖AI・アイデア",
+      "value": "🤖🧠💡✨🪄🗣️💬🔮🧩🚀🔍📚",
+      "description": "🤖🧠💡✨🪄🗣️💬🔮🧩🚀🔍📚",
+      "choice_id": "frb_emoji_palette_16",
+      "sort_order": 180
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🧪研究・計測",
+      "value": "🧪🔬📊📈📉📐📏⚖️🧮⏱️📡🌡️🧭",
+      "description": "🧪🔬📊📈📉📐📏⚖️🧮⏱️📡🌡️🧭",
+      "choice_id": "frb_emoji_palette_17",
+      "sort_order": 190
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🎣釣り・海",
+      "value": "🎣🐟🐠🐡🦈🦑🦀🐙🪼🌊⛵🛥️",
+      "description": "🎣🐟🐠🐡🦈🦑🦀🐙🪼🌊⛵🛥️",
+      "choice_id": "frb_emoji_palette_18",
+      "sort_order": 200
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🌤️天気・自然",
+      "value": "☀️🌤️⛅🌧️☔🌈🌙⭐🌸🍀🌿🌲🍁❄️",
+      "description": "☀️🌤️⛅🌧️☔🌈🌙⭐🌸🍀🌿🌲🍁❄️",
+      "choice_id": "frb_emoji_palette_19",
+      "sort_order": 210
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🐱動物・生き物",
+      "value": "🐶🐱🐻🐼🐰🦊🐧🐸🐢🦋🐝🐬🦉🐦",
+      "description": "🐶🐱🐻🐼🐰🦊🐧🐸🐢🦋🐝🐬🦉🐦",
+      "choice_id": "frb_emoji_palette_20",
+      "sort_order": 220
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🍣食事・飲み物",
+      "value": "🍣🍙🍜🍱🍕🍔🥐🍰🍫🍓🍺☕🍵🥤",
+      "description": "🍣🍙🍜🍱🍕🍔🥐🍰🍫🍓🍺☕🍵🥤",
+      "choice_id": "frb_emoji_palette_21",
+      "sort_order": 230
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🎵音・音楽",
+      "value": "🎵🎶🎼🎧🎤🔊🔉🔇🎹🎸🥁🎷🎺",
+      "description": "🎵🎶🎼🎧🎤🔊🔉🔇🎹🎸🥁🎷🎺",
+      "choice_id": "frb_emoji_palette_22",
+      "sort_order": 240
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🚗移動・乗り物",
+      "value": "🚗🚕🚌🚆🚅✈️🚢🚲🛵🚀🚁🚶",
+      "description": "🚗🚕🚌🚆🚅✈️🚢🚲🛵🚀🚁🚶",
+      "choice_id": "frb_emoji_palette_23",
+      "sort_order": 250
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "💬会話・連絡",
+      "value": "💬🗨️🗣️📣📢✉️📧📩📨📞☎️📮",
+      "description": "💬🗨️🗣️📣📢✉️📧📩📨📞☎️📮",
+      "choice_id": "frb_emoji_palette_24",
+      "sort_order": 260
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🎄季節・イベント",
+      "value": "🎍🌸🌻🎃🎄🎅🎂🎁🎀🎆🎇🎐🏮",
+      "description": "🎍🌸🌻🎃🎄🎅🎂🎁🎀🎆🎇🎐🏮",
+      "choice_id": "frb_emoji_palette_25",
+      "sort_order": 270
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "⚠️注意・トラブル",
+      "value": "⚠️🚨🚧❗❌🛑🔥💥⛔🔒🔐🆘",
+      "description": "⚠️🚨🚧❗❌🛑🔥💥⛔🔒🔐🆘",
+      "choice_id": "frb_emoji_palette_26",
+      "sort_order": 280
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🛠️道具・作業",
+      "value": "🛠️🔧🔨🪛🔩⚙️🧰🪚📏📐🖊️✂️",
+      "description": "🛠️🔧🔨🪛🔩⚙️🧰🪚📏📐🖊️✂️",
+      "choice_id": "frb_emoji_palette_27",
+      "sort_order": 290
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🏠場所・施設",
+      "value": "🏠🏡🏢🏭🏫🏥🏦🏪🏬🏝️🏖️🏞️",
+      "description": "🏠🏡🏢🏭🏫🏥🏦🏪🏬🏝️🏖️🏞️",
+      "choice_id": "frb_emoji_palette_28",
+      "sort_order": 300
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "📊分析・データ",
+      "value": "📊📈📉🗃️🧾📑📋🔎🔍🎯💡🧠",
+      "description": "📊📈📉🗃️🧾📑📋🔎🔍🎯💡🧠",
+      "choice_id": "frb_emoji_palette_29",
+      "sort_order": 310
+    },
+    {
+      "group_id": "絵文字",
+      "enabled": true,
+      "title": "🌟飾り・キラキラ",
+      "value": "✨🌟⭐💫🌠🌈🎀🪄💎🌸💐🌀",
+      "description": "✨🌟⭐💫🌠🌈🎀🪄💎🌸💐🌀",
+      "choice_id": "frb_emoji_palette_30",
+      "sort_order": 320
     }
   ],
   "bookmark_category_initialized": true,
