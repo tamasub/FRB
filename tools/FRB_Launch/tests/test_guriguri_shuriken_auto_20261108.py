@@ -140,7 +140,7 @@ def test_auto_at_edge_cannot_launch_and_invalid_target_cancels_without_settle():
     assert pad.flight_settled.emitted == []
 
 
-def test_integration_preserves_legacy_button_and_gates_correct_lists():
+def test_integration_hides_dedicated_scroll_button_and_keeps_auto_engine():
     app = (ROOT/'src/app.py').read_text('utf-8')
     remote = (ROOT/'src/launch_remote.py').read_text('utf-8')
     view = (ROOT/'src/expanded_view.py').read_text('utf-8')
@@ -149,7 +149,8 @@ def test_integration_preserves_legacy_button_and_gates_correct_lists():
     assert "auto_input(max(-5, min(5, steps)), source='remote')" in remote
     assert "auto_handler(steps, source='list')" in view
     assert 'self.scroll_pad = ShurikenScrollPad(self)' in remote
-    assert 'root.addWidget(self.scroll_pad' in remote  # manual fallback preserved
+    assert 'root.addWidget(self.scroll_pad' not in remote  # dedicated button retired
+    assert 'self.scroll_pad.hide()' in remote  # automatic engine retained
     assert 'self.middle.tree.shuriken_stop_on_action' in view
     assert 'self._auto_wheel_flight' in (ROOT/'src/remote_shuriken_scroll.py').read_text('utf-8')
 

@@ -665,7 +665,10 @@ class LaunchRemote(QWidget):
         self.scroll_pad.auto_end_callback = lambda: launcher._shuriken_wheel_gate.reset(cooldown=True)
         self.scroll_pad.scroll_requested.connect(launcher.remote_scroll_files_list)
         self.scroll_pad.flight_settled.connect(launcher.remote_scroll_files_list_settle)
-        root.addWidget(self.scroll_pad, 0, Qt.AlignmentFlag.AlignHCenter)
+        # Public release: remove the dedicated 手裏剣スクロール button.
+        # Keep this QWidget/TIMER alive but invisible as the auto-wheel engine.
+        # DO NOT remove: fast Files List/ぐりぐり wheel depends on scroll_pad.
+        self.scroll_pad.hide()
 
         # Visual order while the experiment is ON:
         # BLUE (aim, green pivot directly ABOVE native ぐりぐり) ->

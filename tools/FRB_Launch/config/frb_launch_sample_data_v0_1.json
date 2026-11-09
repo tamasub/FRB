@@ -12,19 +12,22 @@
       "page_id": "work",
       "title": "💼 My Work",
       "sort_order": 10,
-      "enabled": true
+      "enabled": true,
+      "icon_key": "💼"
     },
     {
       "page_id": "frb",
       "title": "🎣 FRB実験xxx",
       "sort_order": 30,
-      "enabled": true
+      "enabled": true,
+      "icon_key": "🎣"
     },
     {
       "page_id": "windows",
       "title": "🪟 Windows",
       "sort_order": 20,
-      "enabled": true
+      "enabled": true,
+      "icon_key": "🪟"
     }
   ],
   "items": [

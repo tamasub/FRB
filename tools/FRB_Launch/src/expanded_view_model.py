@@ -36,6 +36,15 @@ def page_roots(items, page_id):
 
 def expanded_targets(items, options):
     roots = page_roots(items, options['page_id'])
+    # Files is a system-owned panel anchor, not a user menu item. Ignore its
+    # enabled flag ONLY here; the authored JSON is never modified.
+    special = next((row for row in items
+                    if row.get('item_id') == options['files_item_id']
+                    and row.get('page_id') == options['page_id']
+                    and not row.get('parent_item_id')), None)
+    if special is not None and all(row.get('item_id') != special.get('item_id') for row in roots):
+        roots.append(special)
+        roots.sort(key=lambda row: (row.get('sort_order', 0), row.get('title', '')))
     by_id = {row.get('item_id'): row for row in roots}
     left = by_id.get(options['files_item_id'])
     right = by_id.get(options['bookmarks_item_id'])

@@ -19,6 +19,7 @@ from expanded_left_navigation import matching_first_row
 from popup_sizing import popup_available_height, popup_tree_height
 from system_drives import drive_rows, pc_preview_row
 from expanded_view_model import toolbar_roots, root_wheel_target
+from page_presentation import page_display_title
 from expanded_selection import context_paths, physical_paths
 from middle_selection_guard import repair_middle_selection, row_key
 from clipboard_paste import clipboard_sources
@@ -2249,11 +2250,12 @@ class ExpandedLauncherView(QWidget):
             # Launch Page buttons live alongside the two workspaces rather
             # than up in the title header or on the remote control. Unlike
             # QTabBar selection, they open the same Page cascade as Remote.
-            for page in list(getattr(self.launcher, 'pages', ()))[:3]:
+            for page in ([] if getattr(self.launcher, 'hide_page_buttons', True)
+                         else list(getattr(self.launcher, 'pages', ()))):
                 page_id = str(page.get('page_id') or '')
                 if not page_id:
                     continue
-                button = QPushButton(str(page.get('title') or 'Page'), self.root_widget)
+                button = QPushButton(page_display_title(page), self.root_widget)
                 button.setObjectName('expandedPageButton')
                 button.setFixedHeight(30)
                 button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -3310,11 +3312,10 @@ class ExpandedLauncherView(QWidget):
                 # Hidden header tabs are not a keyboard landing zone anymore.
                 (buttons[-1] if last else buttons[0]).setFocus(
                     Qt.FocusReason.TabFocusReason)
-            else:
-                tabs = self.launcher.tabs
-                if position != 'current':
-                    tabs.setCurrentIndex(tabs.count() - 1 if last else 0)
-                tabs.setFocus(Qt.FocusReason.TabFocusReason)
+            elif self.isVisible():
+                # No hidden Page tabs as keyboard destinations in public mode.
+                (self.browser_mode_tab if last else self.files_mode_tab).setFocus(
+                    Qt.FocusReason.TabFocusReason)
         elif target == 'roots':
             if not self.isVisible() or not self.root_buttons:
                 return

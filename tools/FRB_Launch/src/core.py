@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from search_matching import matches_search_text, matches_choice_search
 from menu_hotkeys import menu_shortcuts
+from page_presentation import page_display_title
 
 TYPES = {'SendKey', 'ClipboardCopy', 'Open', 'Run'}
 
@@ -199,7 +200,7 @@ def searchable_rows(data, query, bookmark_browser=None):
             chain.append(parent['title']); p = parent.get('parent_item_id')
         if hidden:
             continue
-        path = ' / '.join([pages[row['page_id']]['title']] + list(reversed(chain)))
+        path = ' / '.join([page_display_title(pages[row['page_id']])] + list(reversed(chain)))
         if row.get('_browser_bookmark'):
             # Bookmark UI displays titles and hides URLs in a tooltip. Both
             # remain useful to search; internal action/metadata must not match.
@@ -240,7 +241,7 @@ def searchable_rows(data, query, bookmark_browser=None):
             parent_id = parent.get('parent_item_id')
         if hidden:
             continue
-        path = ' / '.join([page['title']] + list(reversed(chain)) + [owner['title']])
+        path = ' / '.join([page_display_title(page)] + list(reversed(chain)) + [owner['title']])
         for choice in data.get('launch_choices', []):
             if choice.get('group_id') != owner.get('launch_selection_group_id') or not choice.get('enabled', True):
                 continue

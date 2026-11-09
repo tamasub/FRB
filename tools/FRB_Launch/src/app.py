@@ -64,6 +64,7 @@ from launch_appearance import (normalize_theme, theme_palette, theme_family, ava
     LIGHT_HISTORY_QSS, LIGHT_MENU_QSS, LIGHT_CASCADE_TREE_QSS,
     LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss, CONTEXT_MENU_SPACING_QSS)
 from page_tab_focus import FocusPageTabBar
+from page_presentation import page_display_title
 from combo_chevron_icon import combo_chevron_icon
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
@@ -2888,6 +2889,9 @@ class Launcher(QWidget):
         # Opt-in experiment: desktop double-click opens a pointer-side remote.
         self.remote_on_desktop_double_click = str(self.settings.value(
             'desktop_remote_enabled', 'false')).lower() in ('true', '1', 'yes', 'on')
+        # Public release: historic Page shortcut trio is opt-in, not default.
+        self.hide_page_buttons = str(self.settings.value(
+            'hide_page_buttons', 'true')).lower() in ('true', '1', 'yes', 'on')
         # Public operating contract: Files column 1 always embeds Files Exp.
         # Retire both legacy experiment switches, including persisted overrides.
         self.files_root_hidden_mode = True
@@ -2948,10 +2952,16 @@ class Launcher(QWidget):
         self.result_sort_column = int(sort_col) if sort_col in ('0', '1') else -1
         self.result_sort_desc = str(self.settings.value('result_sort_desc', 'false')).lower() in ('true', '1')
         self.page_id = self.settings.value('page', 'work')
-        self.view_mode = str(self.settings.value('view_mode', 'classic')).lower()
+        # New public installs start with the permanent Files Exp/List.
+        # A prior explicit Compact choice in state.ini is still honored.
+        self.view_mode = str(self.settings.value('view_mode', 'expanded')).lower()
         if self.view_mode not in ('classic', 'expanded'):
             self.view_mode = 'classic'
         self.expanded_options = self._read_expanded_options()
+        if self.view_mode == 'expanded':
+            # The Files workspace is the public default regardless of which
+            # Compact Page was selected in a previous session.
+            self.page_id = self.expanded_options['page_id']
         self.bookmark_browser = str(self.settings.value('bookmark_browser', 'chrome')).lower()
         if self.bookmark_browser not in browser_bookmarks.BROWSERS:self.bookmark_browser = 'chrome'
         self.bookmark_signature = None
@@ -3206,6 +3216,12 @@ class Launcher(QWidget):
         self.remote_mode_action.setCheckable(True)
         self.remote_mode_action.setChecked(self.remote_on_desktop_double_click)
         self.remote_mode_action.triggered.connect(self.set_desktop_remote_enabled)
+        self.hide_page_buttons_action = self.theme_menu.addAction('Pageボタンを非表示')
+        self.hide_page_buttons_action.setCheckable(True)
+        self.hide_page_buttons_action.setChecked(self.hide_page_buttons)
+        self.hide_page_buttons_action.setToolTip(
+            'Files・Browserの右横にあるPageショートカットを隠します。Pageデータは削除されません。')
+        self.hide_page_buttons_action.triggered.connect(self.set_hide_page_buttons)
         self.remote_15_action = self.theme_menu.addAction(
             'リモコンウィンドウを1.5列に表示')
         self.remote_15_action.setCheckable(True)
@@ -3728,6 +3744,13 @@ class Launcher(QWidget):
         self.footer.setText(
             'Launch外をクリックすると隠します。' if enabled
             else '通常ウィンドウとして表示します。他のアプリの背面へ移動でき、最小化も使えます。')
+
+    def set_hide_page_buttons(self, checked):
+        self.hide_page_buttons = bool(checked)
+        self.settings.setValue('hide_page_buttons', self.hide_page_buttons)
+        self.settings.sync()
+        # Rebuild only the presentation; do not change Page data/selection.
+        self.update_expanded_visibility()
 
     def set_desktop_remote_enabled(self, checked):
         """Opt-in, persisted independently from the existing window modes."""
@@ -4800,7 +4823,9 @@ class Launcher(QWidget):
             elif area == 'search':
                 self.search.setFocus(Qt.FocusReason.OtherFocusReason)
             elif area == 'pages':
-                self.tabs.setFocus(Qt.FocusReason.OtherFocusReason)
+                (view.files_mode_tab if self.hide_page_buttons else
+                 (view.workspace_page_buttons[0] if view.workspace_page_buttons
+                  else view.files_mode_tab)).setFocus(Qt.FocusReason.OtherFocusReason)
             elif area == 'breadcrumb':
                 view.address_bar.begin_edit()
             elif area == 'roots':
@@ -6976,6 +7001,11 @@ class Launcher(QWidget):
 
     def changeEvent(self, event):
         super().changeEvent(event)
+        if (event.type() == QEvent.Type.ActivationChange and self.isActiveWindow()
+                and self.data is not None):
+            # Studio edits can happen while normal Launch remains visible.
+            # Re-stat on return, rather than retaining a stale Page caption.
+            QTimer.singleShot(0, self.reload)
         if event.type() == QEvent.Type.WindowStateChange and hasattr(self, 'maximize_button'):
             self.update_header_icons()
 
@@ -7494,7 +7524,7 @@ class Launcher(QWidget):
             self.tabs.blockSignals(True)
             while self.tabs.count():self.tabs.removeTab(0)
             self.pages=sorted([p for p in fresh['pages'] if p.get('enabled',True)],key=lambda p:p.get('sort_order',0))
-            for p in self.pages:self.tabs.addTab(p['title'])
+            for p in self.pages:self.tabs.addTab(page_display_title(p))
             ids=[p['page_id'] for p in self.pages]
             if self.page_id not in ids:self.page_id=ids[0]
             self.tabs.setCurrentIndex(ids.index(self.page_id));self.tabs.blockSignals(False)
@@ -10244,7 +10274,9 @@ class Launcher(QWidget):
         if target == 'search':
             self.search.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'pages':
-            self.tabs.setFocus(Qt.FocusReason.TabFocusReason)
+            (view.files_mode_tab if self.hide_page_buttons else
+             (view.workspace_page_buttons[0] if view.workspace_page_buttons
+              else view.files_mode_tab)).setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'workspace_files':
             view.files_mode_tab.setFocus(Qt.FocusReason.TabFocusReason)
         elif target == 'workspace_browser':
@@ -12438,6 +12470,11 @@ def main():
     def open_from_desktop(click=None):
         DIAG.info('DESKTOP_OPEN_CALLBACK visible_before=%s minimized=%s',
                   window.isVisible(), window.isMinimized())
+        # An unchanged visible Launch will not receive another showEvent.
+        # Picking it up from the desktop should still reflect Studio edits.
+        reload_current = getattr(window, 'reload', None)
+        if callable(reload_current):
+            reload_current()
         source_foreground = windows.foreground()
         was_hidden = not window.isVisible() or window.isMinimized()
         if was_hidden:
@@ -12575,6 +12612,7 @@ def main():
                                          or remote_page_popup_visible()
                                          or (launcher_surface_visible()
                                              and window.dismiss_on_outside_click)),
+            defer_wallpaper_outside=lambda: window.remote_on_desktop_double_click,
         )
         DIAG.info('DESKTOP_DOUBLE_CLICK_HOOK active=%s', desktop_click.start())
     except Exception:

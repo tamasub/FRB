@@ -97,10 +97,15 @@ class DesktopDoubleClick:
     RPC_E_CHANGED_MODE = -2147417850  # COM is already initialized as MTA.
 
     def __init__(self, on_double_click, logger=None, on_outside_click=None,
-                 is_launcher_visible=None):
+                 is_launcher_visible=None, defer_wallpaper_outside=None):
         self.on_double_click = on_double_click
         self.on_outside_click = on_outside_click
         self.is_launcher_visible = is_launcher_visible
+        # With desktop-to-Remote enabled, one desktop click must not hide
+        # Launch before the second click can form the opening gesture.
+        self.defer_wallpaper_outside = defer_wallpaper_outside
+        self._deferred_outside_serial = 0
+        self._deferred_outside_pending = False
         self.logger = logger
         self.process_id = os.getpid()
         self.hook = None
@@ -286,6 +291,9 @@ class DesktopDoubleClick:
     def _verify_and_open(self, click):
         try:
             if self._empty_wallpaper(click.x, click.y, click.view):
+                # A validated double-click wins over the pending SINGLE-click
+                # dismiss. The Remote must summon on the very first gesture.
+                self._cancel_deferred_outside()
                 if self.logger:
                     self.logger.info("DESKTOP_OPEN_REQUEST view=%s", click.view)
                 # Carry the verified click's desktop view and Win32 timestamp.
@@ -311,6 +319,43 @@ class DesktopDoubleClick:
         # All our top-level menus and controls share this process id.
         return self._external_pid(pid.value, self.process_id)
 
+    def _cancel_deferred_outside(self):
+        self._deferred_outside_serial = getattr(self, '_deferred_outside_serial', 0) + 1
+        self._deferred_outside_pending = False
+
+    def _finish_deferred_outside(self, serial):
+        if not self._deferred_outside_pending or serial != self._deferred_outside_serial:
+            return
+        self._cancel_deferred_outside()
+        if not self.is_launcher_visible or not self.is_launcher_visible():
+            return
+        # No second click arrived. Preserve normal "outside click hides Launch"
+        # behavior, but only after the desktop double-click window has passed.
+        self.pair.previous = None
+        self.raw_pair.previous = None
+        if self.logger:
+            self.logger.info('DESKTOP_SINGLE_CLICK_OUTSIDE_HIDE')
+        if self.on_outside_click:
+            self.on_outside_click()
+
+    def _defer_desktop_click(self, point):
+        if (not callable(self.defer_wallpaper_outside)
+                or not self.defer_wallpaper_outside()):
+            return False
+        hwnd = self.user.WindowFromPoint(point)
+        if not self._view_at(hwnd):
+            return False
+        if not self._deferred_outside_pending:
+            self._deferred_outside_pending = True
+            self._deferred_outside_serial += 1
+            serial = self._deferred_outside_serial
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(self.pair.interval_ms + 20,
+                              lambda seq=serial: self._finish_deferred_outside(seq))
+            if self.logger:
+                self.logger.info('DESKTOP_OUTSIDE_DEFERRED_FOR_DOUBLE_CLICK')
+        return True
+
     def _mouse(self, code, message, param):
         try:
             if code >= 0 and message in (
@@ -321,16 +366,23 @@ class DesktopDoubleClick:
                             and self.is_launcher_visible is not None
                             and self.is_launcher_visible()
                             and self._outside_own_process(info.pt)):
-                        # Use the visibility state at mouse DOWN: the desktop
-                        # opening gesture itself must never close the new window.
-                        self.outside_guard.closed_on(info.time)
-                        self.pair.previous = None
-                        self.raw_pair.previous = None
-                        if self.logger:
-                            self.logger.info('OUTSIDE_CLICK_DETECTED x=%s y=%s',
-                                             info.pt.x, info.pt.y)
-                        from PySide6.QtCore import QTimer
-                        QTimer.singleShot(0, self.on_outside_click)
+                        # Wallpaper is both an outside-click destination and
+                        # the desktop-to-Remote trigger. Wait one double-click
+                        # interval before treating it as a SINGLE outside click.
+                        # Other-app clicks and right-clicks still dismiss now.
+                        if (message == self.WM_LBUTTONDOWN
+                                and self._defer_desktop_click(info.pt)):
+                            pass
+                        else:
+                            self._cancel_deferred_outside()
+                            self.outside_guard.closed_on(info.time)
+                            self.pair.previous = None
+                            self.raw_pair.previous = None
+                            if self.logger:
+                                self.logger.info('OUTSIDE_CLICK_DETECTED x=%s y=%s',
+                                                 info.pt.x, info.pt.y)
+                            from PySide6.QtCore import QTimer
+                            QTimer.singleShot(0, self.on_outside_click)
                 elif self.outside_guard.blocks_open(info.time):
                     # The second UP of a double-click outside an open launcher
                     # must not reopen it immediately after it was dismissed.

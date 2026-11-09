@@ -5,11 +5,11 @@ never mutated here; future Studio copy/cut/paste must use an explicit changeset
 against that identity, not filesystem operations or an in-memory UI row.
 """
 
-PAGE_NAMES = (('work', 'My Work'), ('windows', 'Windows'), ('frb', 'FRB実験'))
+from page_presentation import ordered_pages, page_display_title
 
 
-def virtual_launch_pages(pages, authored_items, runtime_items=()):
-    """Return the three ordered enabled page trees from *authored* Launch JSON.
+def virtual_launch_pages(pages, authored_items, runtime_items=(), *, system_files_item_id='folders'):
+    """Return ordered enabled Page trees from *authored* Launch JSON.
 
     A row is a folder when it has enabled children, or is an explicit category;
     all executable terminal rows are virtual files. Missing/disabled parents
@@ -20,15 +20,18 @@ def virtual_launch_pages(pages, authored_items, runtime_items=()):
     marked launch_source=installed_apps. Project those same rows into the
     virtual Files List, but never treat them as Studio-authored JSON items.
     """
-    present = {str(p.get('page_id')) for p in (pages or ())
-               if isinstance(p, dict) and p.get('enabled', True)}
     result = []
-    for page_id, label in PAGE_NAMES:
-        if page_id not in present:
+    for page in ordered_pages(pages):
+        page_id = str(page.get('page_id') or '')
+        if not page_id:
             continue
+        label = page_display_title(page)
+        # The Files item is a SYSTEM anchor for Exp/List. It is never also
+        # listed under My Work (including when its JSON enabled=false).
         rows = [r for r in (authored_items or ())
                 if isinstance(r, dict) and r.get('enabled', True)
                 and not r.get('shuriken_only', False)
+                and str(r.get('item_id')) != system_files_item_id
                 and str(r.get('page_id')) == page_id and r.get('item_id')]
         app_categories = {str(r['item_id']) for r in rows
                           if r.get('item_kind') == 'category'

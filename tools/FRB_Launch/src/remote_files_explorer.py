@@ -503,7 +503,10 @@ class RemoteFilesExplorer(QWidget):
         """Exp projects *folders only*: executable leaves belong to List."""
         if node['kind'] == 'file':
             return None
-        icon = self._folder_icon
+        # Page roots already show the user-selected Page emoji in their title.
+        # The extra yellow folder duplicates that identity; keep it only for
+        # actual virtual subfolders (and keep Qt's disclosure arrow intact).
+        icon = QIcon() if node['kind'] == 'page' else self._folder_icon
         item = QStandardItem(icon, node['title'])
         item.setEditable(False)
         item.setDragEnabled(False)
@@ -685,7 +688,9 @@ class RemoteFilesExplorer(QWidget):
                 for page in virtual_launch_pages(
                         getattr(launcher, 'pages', ()),
                         getattr(launcher, 'authored_items', ()),
-                        (getattr(launcher, 'data', None) or {}).get('items', ())):
+                        (getattr(launcher, 'data', None) or {}).get('items', ()),
+                        system_files_item_id=(getattr(launcher, 'expanded_options', {})
+                                              or {}).get('files_item_id', 'folders')):
                     self._append_virtual(parent, page)
             for root in roots:
                 path = root['path']

@@ -48,3 +48,13 @@ Launchに登録したHTTP(S) URL（単一の `Open` アクション）は、ブ�
 
 ## Compact表示
 Compact/Files切替は画面の切替ボタンから従来どおり使えます。配布版では、コンテキストメニューから重複した「Compact表示へ切り替え」項目を非表示にしました。
+
+
+## 公開版のPageとFiles設定（2026-11-09）
+
+FRB Launchは、初期状態で**Files Exp / Files List**を備えます。
+Studioの「Page」編集画面で**タイトル／Pageアイコン**を変更でき、Launch側のタブやFiles ExpのPage表示に反映されます。
+設定メニューの **「Pageボタンを非表示」** は初期ONです。必要な場合だけチェックを外すとFiles / Browserの右横にPageボタンを再表示できます。
+設定JSONのFiles行はシステム用のExp/List枠として扱い、`enabled=false` にしてもFiles画面は消えません。My Work配下への二重表示もしません。
+専用「手裏剣スクロール」ボタンは表示しませんが、**ぐりぐり高速回転から起動する自動手裏剣**は引き続き利用できます。
+詳しい互換・実機確認事項は `docs/FRBLaunch_PublicReleasePolish_20261109.md` を参照してください。
