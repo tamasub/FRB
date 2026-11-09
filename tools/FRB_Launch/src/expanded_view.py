@@ -230,27 +230,19 @@ class _WorkspaceTopRightOutline(QWidget):
 class _BackLaneWidget(QWidget):
     """Fixed-width operation lane at the LEFT of the Files second-column grid.
 
-    The separator covers the full grid height (including its final row), and
-    the lane remains outside the QTreeWidget viewport, so it cannot select a
-    file or become an accidental paste/rename target.
+    Public-release polish removed the old right-edge separator so the lane and
+    the lower blank Files List viewport read as one L-shaped area.  The lane
+    still remains outside the QTreeWidget viewport, so it cannot select a file
+    or become an accidental paste/rename target.
     """
 
     def __init__(self, view, parent=None):
         super().__init__(parent)
         self.view = view
-        self.line_color = QColor('#cbdcd1')
-        self.line_width = 0.65
 
     def paintEvent(self, event):
+        # Intentionally blank: keep the lane visually merged with Files List.
         super().paintEvent(event)
-        if self.height() <= 0:
-            return
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        painter.setPen(QPen(self.line_color, self.line_width))
-        x = self.width() - 0.5  # Separator between lane and the file grid.
-        painter.drawLine(QPointF(x, 0), QPointF(x, self.height()))
-        painter.end()
 
 
 class _FilesHistoryButton(QToolButton):
@@ -1598,7 +1590,14 @@ class ExpandedLauncherView(QWidget):
         self.middle_empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.middle_empty_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.middle_empty_label.hide()
+        self.middle_parent_return_hint = QLabel('～とんとん親帰り／カレントフォルダー操作 エリア～', self.middle.tree.viewport())
+        self.middle_parent_return_hint.setObjectName('filesListParentReturnHint')
+        self.middle_parent_return_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.middle_parent_return_hint.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.middle_parent_return_hint.hide()
         self.middle.tree.viewport().installEventFilter(self)
+        self.middle.tree.verticalScrollBar().valueChanged.connect(
+            lambda *_: self._position_middle_parent_return_hint())
         # Only the directory-content column is multi-select. Qt supplies
         # Ctrl+click, Shift+click, Ctrl+A, and Shift+Up/Down natively.
         self.middle.tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -2160,6 +2159,9 @@ class ExpandedLauncherView(QWidget):
         self.middle_empty_label.setStyleSheet(
             f'QLabel#filesListEmptyLabel {{ background:transparent;'
             f' color:{"#8e918d" if light else "#abb0aa"};font-size:12px; }}')
+        self.middle_parent_return_hint.setStyleSheet(
+            f'QLabel#filesListParentReturnHint {{ background:transparent;'
+            f' color:{"#adb4af" if light else "#87928b"};font-size:12px; }}')
         self.favorite_dropdown.setIcon(combo_chevron_icon(theme_family(theme)))
         self.address_bar._position_dropdown()
         self.shared_icon.setPixmap(header_icon('folder', theme_family(theme)).pixmap(28, 28))
@@ -2504,6 +2506,32 @@ class ExpandedLauncherView(QWidget):
         label.setGeometry(0, min(28, max(0, viewport.height() - height)),
                           viewport.width(), height)
 
+    def _position_middle_parent_return_hint(self):
+        label = getattr(self, 'middle_parent_return_hint', None)
+        if label is None:
+            return
+        viewport = self.middle.tree.viewport()
+        count = self.middle.tree.topLevelItemCount()
+        if viewport.width() <= 0 or viewport.height() <= 0:
+            label.hide()
+            return
+        if count > 0:
+            last = self.middle.tree.topLevelItem(count - 1)
+            rect = self.middle.tree.visualItemRect(last)
+            content_bottom = max(0, rect.bottom() + 1)
+        else:
+            content_bottom = 0
+        blank_top = min(viewport.height(), content_bottom + 10)
+        blank_height = viewport.height() - blank_top
+        hint_height = 24
+        if blank_height < hint_height + 8:
+            label.hide()
+            return
+        y = blank_top + max(0, (blank_height - hint_height) // 2)
+        label.setGeometry(0, y, viewport.width(), hint_height)
+        label.show()
+        label.raise_()
+
     def _update_middle_empty_label(self):
         label = getattr(self, 'middle_empty_label', None)
         if label is None:
@@ -2521,6 +2549,7 @@ class ExpandedLauncherView(QWidget):
             label.raise_()
         else:
             label.hide()
+        self._position_middle_parent_return_hint()
 
     def _fill_middle_from_current(self):
         virtual = getattr(self, '_virtual_directory_node', None)
@@ -3709,6 +3738,7 @@ class ExpandedLauncherView(QWidget):
                 and obj is self.middle.tree.viewport()
                 and event.type() == QEvent.Type.Resize):
             self._position_middle_empty_label()
+            self._position_middle_parent_return_hint()
         if (obj is getattr(self, 'remote_15_lane', None) and
                 event.type() in (QEvent.Type.Resize, QEvent.Type.Move,
                                  QEvent.Type.Show)):

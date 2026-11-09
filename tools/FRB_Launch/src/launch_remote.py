@@ -393,7 +393,7 @@ class UpDoubleClickBand(QFrame):
         self._single_click_timer.setSingleShot(True)
         self._single_click_timer.timeout.connect(
             lambda: self.command.emit('REMOTE_FOLDER_DESELECT') if self._list_is_active() else None)
-        self._caption = QLabel('（List カレントフォルダー操作）', self)
+        self._caption = QLabel('～とんとん親帰り／ \n カレントフォルダー操作 エリア～', self)
         self._caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._caption.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         layout = QHBoxLayout(self)

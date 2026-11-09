@@ -147,11 +147,61 @@ Compact表示へ切り替え　・・・・　コンテキストメニュー非�
 所長：まっ、師匠は忘れっぽいので、自分が言ったいい言葉とかもすぐ忘れてしまうんですけどねっ💦
 
 
+妖艶ぅ～
+
+マウスホイールのぐりぐりとクリックだけで操作しています。マウス移動なし！！
+
+
+AI協働：Python製ランチャー「FRB Launch」の独自UI機能14選 ～ぐりぐり・とんとん・ごちゃまぜの操作革命～　その1：ワープ差し棒
+
+https://qiita.com/tamasub/items/659b0b74c5cacbba701f
+
+https://zenn.dev/frb_tamasub/articles/ai-collaboration14-frb-launch-warp
+
+
+■ FRB ワープ差し棒！ 通称「ぐりぐりスピナー」
+https://youtu.be/cR0Xrp9nBgE
+
+
+■ FRB ぐりぐり追従スクロールハイブリッド方式　通称：ハイブリッド方式　コードネーム：Wheel Adaptive Navigation（WAN）
+https://youtu.be/SyadxvHePII
+
+■ FRB ぐりぐり追従スクロールハイブリッド方式　With 手裏剣スクロール　　通称：ハイブリッド方式　コードネーム：Wheel Adaptive Navigation（WAN）
+https://youtu.be/hiOgvz-5Lg0
+
+
+■ FRB ぐりぐりクリックRunner
+
+
+■ FRB ぐりぐりボタンセレクター
+
+
+■ FRB 手裏剣メニュー ～ポケモンボール風UI～
+
+■ FRB かなフリック
+
+■ FRB ぐりぐりボタン
+
+■ FRB リモコン ～ FRB Remote ～
+
+■ FRB ごちゃまぜサーチ　～ごちゃまぜ整理棚付き～　技術分類：統合検索（Unified Search）
+
+FRB Launchに登録されたアプリ、ファイル、フォルダー、アクションなど、異なる種類の対象を一つの検索窓から横断的に探し、選択・実行できる検索機能。
+ファイルやアプリなどに別名を付与していれば、別名でも検索が可能である。
+
+■ FRB とんとん親帰り　コードネーム：Double-Click Parent Navigation
+ダブルクリックで、ひとつ上のフォルダーへ帰る操作方式。
+
+■ FRB ぱんくず履歴 ～足あと帳付き～
+
+■ FRB Files Exp
+エクスプローラー風ツリービューのインデントを作者の好みにチューニング
+
+■ FRB Files List  ・・・ 事実上のFRB Launchのお局様　これないと FRB Launchは存在できない。
 
 
 
-
-
+https://youtu.be/K-1_rAXfikQ
 
 
 
