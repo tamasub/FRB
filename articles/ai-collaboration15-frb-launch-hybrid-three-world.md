@@ -373,7 +373,11 @@ GitHub上にも配布媒体を登録する予定で、Vectorなどへの登録�
 - [前回・第5回：「ワープ差し棒」誕生！〜ぐりぐりを進化させたら、ぐりぐりしなくなった話〜](https://zenn.dev/frb_tamasub/articles/ai-collaboration14-frb-launch-warp)
 - [第3回：エクスプローラーに魂を吹き込む手裏剣の話](https://zenn.dev/frb_tamasub/articles/ai-collaboration12-shuriken-press-conference)
 - [第1回：世界標準規格の野望・第2弾 — みんなも、ぐりぐりしてみませんか？](https://zenn.dev/frb_tamasub/articles/ai-collaboration10-frb-launch-guriguri)
+
 - [FRB Launch ソース（GitHub）](https://github.com/tamasub/FRB/tree/main/tools)
+
+- [AI協働：Python製ランチャー「FRB Launch」の独自UI機能14選 ～ぐりぐり・とんとん・ごちゃまぜの操作革命～](https://qiita.com/tamasub/items/659b0b74c5cacbba701f)
+  
 
 ※FRB Launch / FRB Remoteは個人開発中のソフトウェアです。本記事の名称・操作体験・将来構想は、公式規格の制定や一般環境での動作保証を意味するものではありません。
 
