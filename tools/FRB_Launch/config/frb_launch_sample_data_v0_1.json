@@ -17,7 +17,7 @@
     },
     {
       "page_id": "frb",
-      "title": "🎣 FRB実験xxx",
+      "title": "🎣 FRB実験",
       "sort_order": 30,
       "enabled": true,
       "icon_key": "🎣"
@@ -2467,6 +2467,112 @@
           "launch_failure_policy": "stop",
           "launch_result_name": "",
           "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "5c57e0a1-18c0-4e1c-b527-ff513f46670d",
+      "title": "作者公開URL：hatenaブログ",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://tamasub364.hatenablog.com/",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "eeccaa38-c00c-4f7b-80ac-298eda6ed4dd",
+      "title": "作者公開URL：noteブログ",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 60,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://note.com/juicy_roses3305",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "item_id": "launch_user_backup_zip",
+      "page_id": "work",
+      "parent_item_id": "zip",
+      "title": "FRB Launch 設定・ログ バックアップ",
+      "description": "設定JSON・動作状態・ログ・履歴を _Backups に日時付きZIPで保存",
+      "item_kind": "command",
+      "icon_key": "archive",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [
+        "バックアップ",
+        "設定",
+        "ログ",
+        "ZIP"
+      ],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "value",
+      "launch_selection_separator": "; ",
+      "launch_selection_result_name": "recipients",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "%launch_home%\\backup_frb_launch_config_log.bat"
         }
       ]
     }
