@@ -40,6 +40,7 @@ from reorderable_tree import ReorderablePopupTree
 from bookmark_cursor_follow import cursor_target, is_warp_generated_mouse_move
 from wheel_adaptive import wheel_steps, can_follow_at_edge, monotonic_edge_anchor
 from navigation_wrap import move_tree_selection
+from shuriken_trace import trace as shuriken_trace, bar_state as shuriken_bar_state
 from list_wheel_parity import (
     LIST_WHEEL_MATCH_REMOTE, LIST_WHEEL_HYBRID_ENABLED,
     LIST_WHEEL_SCROLL_PIXELS_PER_NOTCH,
@@ -3905,22 +3906,32 @@ class ExpandedLauncherView(QWidget):
         入力だけ既存の wheel_middle_at_edge に渡し、従来どおり
         ホバー行を起点に追従する（フォルダーを勝手に開かない）。
         """
+        shuriken_trace = globals().get('shuriken_trace', lambda *a, **kw: None)
+        shuriken_bar_state = globals().get('shuriken_bar_state', lambda *a, **kw: {})
         if (not self.isVisible() or self._workspace_mode != 'files'
                 or event.modifiers() != Qt.KeyboardModifier.NoModifier
                 or QApplication.mouseButtons() != Qt.MouseButton.NoButton
                 or self.middle.tree.state() == QAbstractItemView.State.EditingState):
+            shuriken_trace('list_wheel_skip', reason='view_modifier_button_or_edit',
+                           view_visible=self.isVisible(), workspace=self._workspace_mode)
             return False
         tree = self.middle.tree
         if not tree.topLevelItemCount():
+            shuriken_trace('list_wheel_skip', reason='empty_list')
             return False
         angle, pixels = event.angleDelta().y(), event.pixelDelta().y()
         if not angle and not pixels:
+            shuriken_trace('list_wheel_skip', reason='zero_delta')
             return False
         (self._middle_parity_angle_remainder,
          self._middle_parity_pixel_remainder,
          steps) = consume_remote_like_wheel(
             self._middle_parity_angle_remainder,
             self._middle_parity_pixel_remainder, angle, pixels)
+        shuriken_trace('list_wheel', angle=angle, pixels=pixels, steps=steps,
+                       pointer_warp=getattr(getattr(self, 'launcher', None), 'pointer_warp_enabled', None),
+                       **shuriken_bar_state(tree.verticalScrollBar(),
+                                           row_count=tree.topLevelItemCount()))
         if not steps:
             return True  # 高精度ホイールの端数は保留（Qtへ二重送信しない）。
 
@@ -3928,6 +3939,7 @@ class ExpandedLauncherView(QWidget):
         # scrollbar-first hybrid is untouched until a fast gesture arms it.
         auto_handler = getattr(getattr(self, 'launcher', None), 'shuriken_wheel_list_input', None)
         if callable(auto_handler) and auto_handler(steps, source='list'):
+            shuriken_trace('list_wheel_owned_by_flight', steps=steps)
             return True
 
         bar = tree.verticalScrollBar()
@@ -3936,6 +3948,8 @@ class ExpandedLauncherView(QWidget):
                      or max(1, bar.singleStep()))
         after, remaining = plan_hybrid_scroll(
             before, bar.minimum(), bar.maximum(), steps, per_notch)
+        shuriken_trace('list_wheel_hybrid', steps=steps, from_pos=before,
+                       target_pos=after, remaining=remaining, per_notch=per_notch)
         if after != before:
             bar.setValue(after)  # 1イベント1回のみ。currentItemを変えない。
             # 旧WANの「実際にスクロールした場合」の後処理をそのまま利用。

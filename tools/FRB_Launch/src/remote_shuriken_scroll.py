@@ -7,6 +7,7 @@ slows the flight, a hold stops it; either real landing hands off the visible
 current row. No fake wheel, keyboard or cursor warp.
 """
 import time
+from shuriken_trace import trace as shuriken_trace, bar_state as shuriken_bar_state
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel
@@ -68,6 +69,7 @@ class ShurikenScrollPad(QFrame):
         self._brake_press_time = 0.0
         self._last_displacement = 0
         self._display_status = 'idle'
+        self._trace_last_tick = 0.0  # Observation only; never controls animation.
         self._timer = QTimer(self)
         self._timer.setInterval(TICK_MS)
         self._timer.timeout.connect(self._scroll_tick)
@@ -215,17 +217,25 @@ class ShurikenScrollPad(QFrame):
         Does not fake a pointer flick or change selected files. The original
         physical button remains a manual fallback for this experiment.
         """
+        shuriken_trace('start_request', direction=signed_direction, source=source,
+                       active=self._flight is not None)
         if self._flight is not None or signed_direction not in (-1, 1):
+            shuriken_trace('start_reject', reason='active_or_invalid_direction',
+                           direction=signed_direction, source=source)
             return False
         self._auto_wheel_flight = True
         self._auto_wheel_source = source
         target = self._target()
         if target is None:
+            shuriken_trace('start_reject', reason='target_provider_none',
+                           direction=signed_direction, source=source)
             self._auto_wheel_flight = False
             self._auto_wheel_source = None
             return False
         bar = target.verticalScrollBar()
         if bar is None:
+            shuriken_trace('start_reject', reason='no_scrollbar',
+                           direction=signed_direction, source=source)
             self._auto_wheel_flight = False
             self._auto_wheel_source = None
             return False
@@ -234,7 +244,17 @@ class ShurikenScrollPad(QFrame):
                                AUTO_SHURIKEN_INITIAL_SPEED)
         flight = plan_full_range_flight(
             gesture, bar.value(), bar.minimum(), bar.maximum(), bar.pageStep())
+        shuriken_trace('start_plan', direction=signed_direction, source=source,
+                       initial_speed=AUTO_SHURIKEN_INITIAL_SPEED,
+                       plan_ok=flight is not None,
+                       distance=flight.distance_px if flight is not None else None,
+                       duration=round(flight.duration_s, 3) if flight is not None else None,
+                       **shuriken_bar_state(bar,
+                           row_count=target.topLevelItemCount() if hasattr(target, 'topLevelItemCount') else None))
         if flight is None:
+            shuriken_trace('start_reject', reason='plan_none', direction=signed_direction,
+                           source=source, position=bar.value(), maximum=bar.maximum(),
+                           minimum=bar.minimum())
             self._auto_wheel_flight = False
             self._auto_wheel_source = None
             return False
@@ -242,6 +262,13 @@ class ShurikenScrollPad(QFrame):
         return True
 
     def _begin_flight(self, target, bar, flight):
+        shuriken_trace('flight_begin', auto=self._auto_wheel_flight,
+                       source=self._auto_wheel_source,
+                       distance=flight.distance_px,
+                       duration=round(flight.duration_s, 3),
+                       input_speed=flight.input_speed_px_s,
+                       **shuriken_bar_state(bar,
+                           row_count=target.topLevelItemCount() if hasattr(target, 'topLevelItemCount') else None))
         self._flight = flight
         self._flight_target = target
         self._flight_bounds = (bar.minimum(), bar.maximum())
@@ -252,6 +279,7 @@ class ShurikenScrollPad(QFrame):
         self._reverse_notches = 0
         self._last_displacement = 0
         self._timer.start()
+        self._trace_last_tick = 0.0
         self._update_feedback()
 
     def mousePressEvent(self, event):
@@ -332,6 +360,7 @@ class ShurikenScrollPad(QFrame):
         # Never scroll a different list if the user changes workspace,
         # current Remote target, closes a dialog, or hides the list mid-flight.
         if self._target() is not self._flight_target:
+            shuriken_trace('flight_interrupted', reason='target_changed_or_hidden')
             self._stop()
             return
         # If Files List contents were replaced during a flight, stop rather
@@ -339,6 +368,9 @@ class ShurikenScrollPad(QFrame):
         bar = self._flight_target.verticalScrollBar()
         if (bar is None or self._flight_bounds is None
                 or (bar.minimum(), bar.maximum()) != self._flight_bounds):
+            shuriken_trace('flight_interrupted', reason='scrollbar_bounds_changed',
+                           expected_bounds=self._flight_bounds,
+                           **shuriken_bar_state(bar))
             self._stop()
             return
         now = time.monotonic()
@@ -356,12 +388,24 @@ class ShurikenScrollPad(QFrame):
         position = round(eased_displacement(flight, elapsed))
         delta = position - self._last_displacement
         self._last_displacement = position
+        before = bar.value()
         if delta:
             self.scroll_requested.emit(delta)
+        # Sample after the connected slot has actually updated the scrollbar.
+        # 350ms cadence avoids perturbing the 16ms animation timer.
+        if now - self._trace_last_tick >= 0.35:
+            self._trace_last_tick = now
+            shuriken_trace('flight_tick', elapsed_ms=round(elapsed * 1000, 1),
+                           rate=round(rate, 4), requested_delta=delta,
+                           from_pos=before, to_pos=bar.value(),
+                           distance=flight.distance_px, duration=round(flight.duration_s, 3),
+                           **shuriken_bar_state(bar))
         # Reaching the edge is a legitimate end; a short click slows the
         # journey, while a held click is the deliberate full stop.
         edge = self._flight_bounds[1] if flight.distance_px > 0 else self._flight_bounds[0]
         if elapsed >= flight.duration_s or bar.value() == edge:
+            shuriken_trace('flight_arrival', reason=('edge' if bar.value() == edge else 'time'),
+                           elapsed_ms=round(elapsed * 1000, 1), position=bar.value(), edge=edge)
             self._settle()
         else:
             self._update_feedback()
@@ -373,6 +417,15 @@ class ShurikenScrollPad(QFrame):
         self._finish(settle=True)
 
     def _finish(self, *, settle):
+        target = self._flight_target
+        bar = target.verticalScrollBar() if target is not None else None
+        shuriken_trace('flight_finish', settle=settle,
+                       auto=self._auto_wheel_flight, source=self._auto_wheel_source,
+                       flight_active=self._flight is not None,
+                       distance=self._flight.distance_px if self._flight is not None else None,
+                       rate=round(self._cruise_rate, 4),
+                       elapsed_ms=round(self._flight_elapsed_s * 1000, 1),
+                       **shuriken_bar_state(bar))
         # A genuine landing/long brake transfers the logical current. Hiding
         # the Remote or losing the Files List target MUST NOT touch selection.
         settled_target = (self._flight_target if settle and self._flight is not None

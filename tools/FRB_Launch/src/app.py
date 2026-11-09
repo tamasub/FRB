@@ -23,6 +23,7 @@ from remote_context_wheel import RemoteContextWheel
 from rod_foreground import foreground_owned_by_process
 from shuriken_model import configured_entries
 from shuriken_scroll_handoff import handoff_current_at_scroll_stop
+from shuriken_trace import trace as shuriken_trace, bar_state as shuriken_bar_state
 from guriguri_shuriken_auto import WheelShurikenGate, AUTO_SHURIKEN_ENABLED
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
@@ -5861,27 +5862,45 @@ class Launcher(QWidget):
         Return True if the wheel event belongs to a running/new flight;
         otherwise leave it untouched for the original hybrid/cursor path.
         """
+        shuriken_trace = globals().get('shuriken_trace', lambda *a, **kw: None)
+        shuriken_bar_state = globals().get('shuriken_bar_state', lambda *a, **kw: {})
         if not steps or not AUTO_SHURIKEN_ENABLED:
+            shuriken_trace('input_skip', reason='zero_or_disabled', source=source, steps=steps)
             return False
         target = self.auto_shuriken_scroll_files_list_target()
         if target is None:
+            view = getattr(self, 'expanded_view', None)
+            shuriken_trace('input_no_target', source=source, steps=steps,
+                           launch_visible=self.isVisible(), minimized=self.isMinimized(),
+                           view_visible=view.isVisible() if view is not None else None,
+                           workspace=getattr(view, '_workspace_mode', None))
             self._shuriken_wheel_gate.reset()
             return False
         remote = self.remote_window
         pad = getattr(remote, 'scroll_pad', None) if remote is not None else None
+        shuriken_trace('input_target', source=source, steps=steps,
+                       pointer_warp=getattr(self, 'pointer_warp_enabled', None),
+                       flight_active=bool(pad is not None and pad._flight is not None),
+                       **shuriken_bar_state(target.verticalScrollBar(),
+                                           row_count=(target.topLevelItemCount() if hasattr(target, 'topLevelItemCount') else None)))
         if pad is not None and pad._flight is not None:
             # Flight owns the entire physical event, including any later
             # invalidation. Never leak brake steps to logical row navigation.
             for _ in range(min(abs(int(steps)), 5)):
                 if pad._flight is not None:
                     pad.wheel_while_flying('UP' if steps > 0 else 'DOWN')
+            shuriken_trace('input_flight_wheel', source=source, steps=steps)
             return True
         direction = self._shuriken_wheel_gate.feed(steps, source=source)
         if not direction:
             return False
+        shuriken_trace('input_gate_fired', source=source, steps=steps, direction=direction)
         remote = self.ensure_remote_window()  # Hidden Remote is fine: no button required.
         pad = remote.scroll_pad
-        return bool(pad.start_from_wheel(direction, source=source))
+        started = bool(pad.start_from_wheel(direction, source=source))
+        shuriken_trace('input_start_return', source=source, started=started,
+                       direction=direction)
+        return started
 
     def stop_auto_shuriken_on_list_click(self):
         """Clicking a file brakes the automatic flight BEFORE Qt activates it."""

@@ -5,6 +5,7 @@
 """
 from collections import deque
 import time
+from shuriken_trace import trace
 
 # ======= 調整パラメータ（実験中はここだけ） =======
 AUTO_SHURIKEN_ENABLED = True          # False で自動起動だけ OFF（手裏剣ボタンは維持）
@@ -61,14 +62,20 @@ class WheelShurikenGate:
         no synthetic events and no transition on idle/zero-step input.
         """
         if not AUTO_SHURIKEN_ENABLED or not steps:
+            trace('gate_reject', reason='disabled_or_zero', steps=steps, source=source)
             return 0
         t = time.monotonic() if now is None else float(now)
         if t < self._cooldown_until:
+            trace('gate_reject', reason='cooldown', steps=steps, source=source,
+                  remaining_ms=round((self._cooldown_until - t) * 1000, 1))
             return 0
         direction = 1 if steps > 0 else -1
         max_gap = AUTO_SHURIKEN_MAX_GAP_MS / 1000.0
         if (self._samples and (t - self._samples[-1][0] > max_gap
                                or t < self._samples[-1][0])) or (direction != self._direction or source != self._source):
+            trace('gate_reset', reason=('direction_or_source' if direction != self._direction
+                  or source != self._source else 'gap_or_clock'), source=source,
+                  steps=steps, previous_events=len(self._samples))
             self.reset()
         self._direction, self._source = direction, source
         self._samples.append((t, abs(int(steps))))
@@ -95,6 +102,12 @@ class WheelShurikenGate:
                      and len(self._samples) >= AUTO_SHURIKEN_SUSTAINED_MIN_EVENTS
                      and notches >= AUTO_SHURIKEN_SUSTAINED_MIN_NOTCHES
                      and span >= AUTO_SHURIKEN_SUSTAINED_MIN_SPAN_MS / 1000.0)
+        trace('gate_result', source=source, steps=steps, direction=direction,
+              samples=len(self._samples), notches=notches,
+              span_ms=round(span * 1000, 1),
+              rate_nps=round(notches / max(span, 0.001), 2),
+              fast_burst=fast_burst, sustained=sustained,
+              fired=bool(fast_burst or sustained))
         if fast_burst or sustained:
             self.reset(cooldown=True, now=t)
             return direction
