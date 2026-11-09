@@ -712,6 +712,25 @@ class MiniJapaneseInputWindow(QWidget):
         self._ensure_editor_focus()
         request_ime_mode(mode, self.ime_sender, self._editor_is_focused)
 
+    def restore_ime_on_show(self):
+        """A fresh kana opening explicitly requests Japanese IME each time.
+
+        The launcher search intentionally uses half-width English. Reopening
+        this separate Tool must not inherit that mode. Do not reissue IME
+        commands during active composition or when our window lacks focus.
+        """
+        if (not self.isVisible() or not self._native_mode or
+                self.input_mode != 'kana' or self.output.is_composing or
+                self.model.has_preedit):
+            return
+        try:
+            if not self.output.hasFocus():
+                self._ensure_editor_focus()
+            if self._editor_is_focused():
+                self._set_windows_ime_mode('kana')
+        except Exception as exc:
+            self.status.setText(f'日本語IME切替を確認してください ({exc})')
+
     def _select_input_mode(self, mode: str):
         if mode not in MODES or self._mode_changing:
             return

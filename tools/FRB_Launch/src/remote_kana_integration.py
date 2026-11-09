@@ -29,9 +29,9 @@ class RemoteKanaIntegration:
         """
         if self.window is None or not self.window.isVisible():
             return
-        if (self.target is not None and self.target.widget_ref is not None and
-                self.target.widget_ref() is old):
-            self.target.remember_selection()
+        # focusChanged is emitted AFTER FocusOut. Qt may already have erased
+        # the visible selection by this point; never overwrite the snapshot
+        # saved by selectionChanged/cursorPositionChanged while focused.
         if (new is None or self.window is new or self.window.isAncestorOf(new)
                 or not widget_is_text_target(new)):
             return
@@ -68,6 +68,27 @@ class RemoteKanaIntegration:
             self._focus_tracking_connected = True
         return self.window
 
+    def _capture_active_rename(self):
+        """Find a still-live Files rename editor after a non-focusing menu click.
+
+        A Remote context/menu action can own Qt's reported focus even though
+        the Files delegate still has an active inline rename. Only an actual
+        EditingState and an existing QLineEdit qualify (not a selected row).
+        """
+        from PySide6.QtWidgets import QAbstractItemView, QLineEdit
+        panels = [getattr(getattr(self.launcher, 'expanded_view', None), 'middle', None),
+                  getattr(getattr(self.launcher, 'remote_window', None),
+                          'files_exp_panel', None)]
+        for panel in panels:
+            tree = getattr(panel, 'tree', None)
+            if tree is None or tree.state() != QAbstractItemView.State.EditingState:
+                continue
+            for name in ('inlineRenameEditor', 'filesExpRenameEditor'):
+                editor = tree.findChild(QLineEdit, name)
+                if editor is not None and editor.isVisible() and widget_is_text_target(editor):
+                    return RemoteKanaTarget.from_widget(editor)
+        return None
+
     def toggle(self):
         if self.window is not None and self.window.isVisible():
             self.hide()
@@ -75,6 +96,20 @@ class RemoteKanaIntegration:
         # Capture before the IME keyboard is focused; otherwise a Send click
         # would accidentally target the keyboard's OWN text editor.
         self.target = RemoteKanaTarget.capture(excluded_window=self.window)
+        if self.target.external is None:
+            # A menu click can leave QApplication.focusWidget() pointing to a
+            # stale search box. A live Files rename editor is a stronger,
+            # explicit destination than that stale focus widget.
+            live_rename = self._capture_active_rename()
+            if live_rename is not None:
+                old_widget = (self.target.widget_ref() if self.target.widget_ref
+                              is not None else None)
+                new_widget = live_rename.widget_ref()
+                if old_widget is new_widget:
+                    live_rename.release_inline_editor()
+                else:
+                    self.target.release_inline_editor()
+                    self.target = live_rename
         try:
             window = self._create_window()
         except Exception:
@@ -93,6 +128,10 @@ class RemoteKanaIntegration:
         QTimer.singleShot(30, self.reposition)
         window.activateWindow()
         window.output.setFocus(Qt.FocusReason.OtherFocusReason)
+        # Search history starts with IME OFF; the user explicitly opened a
+        # kana keyboard. Re-assert kana after Windows has settled Tool focus,
+        # on every reopen (not only on the keyboard's first creation).
+        QTimer.singleShot(110, window.restore_ime_on_show)
 
     def reposition(self):
         if self.window is None or not self.window.isVisible():

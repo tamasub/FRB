@@ -24,12 +24,12 @@ def widget_is_text_target(widget) -> bool:
     return False
 
 
-def insert_into_widget(widget, text: str, selection=None) -> bool:
+def insert_into_widget(widget, text: str, selection=None, caret=None) -> bool:
     """Replace an existing selection; otherwise insert at the current caret.
 
-    Some Qt controls drop their visible selection on FocusOut. Restore only
-    an explicitly captured selection, and only if the destination text is
-    unchanged since capture (never replace unrelated or newly edited text).
+    Some Qt controls drop their visible selection/caret on FocusOut. Restore
+    the last user-edited selection OR caret only while the underlying text
+    remains unchanged. Never replace text changed in the meantime.
     """
     from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QTextEdit, QComboBox
     if isinstance(widget, QComboBox):
@@ -38,6 +38,10 @@ def insert_into_widget(widget, text: str, selection=None) -> bool:
         if (selection and selection[0] == 'line' and
                 widget.selectionStart() < 0 and widget.text() == selection[1]):
             widget.setSelection(selection[2], selection[3])
+        elif (caret and caret[0] == 'line' and not selection and
+                widget.selectionStart() < 0 and widget.text() == caret[1] and
+                callable(getattr(widget, 'setCursorPosition', None))):
+            widget.setCursorPosition(caret[2])
         replaced = widget.selectionStart() >= 0
         widget.insert(text)  # Qt replaces the selected range, if any.
         return replaced
@@ -48,6 +52,10 @@ def insert_into_widget(widget, text: str, selection=None) -> bool:
                 widget.document().revision() == selection[1]):
             cursor.setPosition(selection[2])
             cursor.setPosition(selection[3], cursor.MoveMode.KeepAnchor)
+        elif (caret and caret[0] == 'document' and not selection and
+                not cursor.hasSelection() and
+                widget.document().revision() == caret[1]):
+            cursor.setPosition(caret[2])
         replaced = cursor.hasSelection()
         cursor.insertText(text)
         widget.setTextCursor(cursor)
@@ -181,7 +189,9 @@ class RemoteKanaTarget:
         self.api = api
         self._inline_focus_guard = None
         self._selection = None
+        self._caret = None
         self._selection_signal = None
+        self._caret_signal = None
         self.last_send_replaced = False
         if widget is not None:
             self.remember_selection()
@@ -192,8 +202,14 @@ class RemoteKanaTarget:
             if signal is not None and callable(getattr(signal, 'connect', None)):
                 signal.connect(self._remember_focused_selection)
                 self._selection_signal = signal
+            # Moving a caret without selecting characters is also intentional.
+            caret_signal = getattr(widget, 'cursorPositionChanged', None)
+            if (caret_signal is not None and caret_signal is not signal and
+                    callable(getattr(caret_signal, 'connect', None))):
+                caret_signal.connect(self._remember_focused_selection)
+                self._caret_signal = caret_signal
 
-    def _remember_focused_selection(self):
+    def _remember_focused_selection(self, *_args):
         widget = self.widget_ref() if self.widget_ref else None
         if widget is not None and getattr(widget, 'hasFocus', lambda: True)():
             self.remember_selection()
@@ -213,15 +229,20 @@ class RemoteKanaTarget:
         # A caret without an active selection is itself meaningful input.
         # Don't retain a previous selection just because there is no new one.
         self._selection = None
+        self._caret = None
         from PySide6.QtWidgets import QLineEdit, QPlainTextEdit, QTextEdit, QComboBox
         if isinstance(widget, QComboBox):
             widget = widget.lineEdit()
         if isinstance(widget, QLineEdit):
+            position = getattr(widget, 'cursorPosition', None)
+            if callable(position):
+                self._caret = ('line', widget.text(), position())
             start = widget.selectionStart()
             if start >= 0 and widget.selectedText():
                 self._selection = ('line', widget.text(), start, len(widget.selectedText()))
         elif isinstance(widget, (QPlainTextEdit, QTextEdit)):
             cursor = widget.textCursor()
+            self._caret = ('document', widget.document().revision(), cursor.position())
             if cursor.hasSelection():
                 self._selection = ('document', widget.document().revision(),
                                    cursor.selectionStart(), cursor.selectionEnd())
@@ -265,6 +286,13 @@ class RemoteKanaTarget:
         """Release editor focus guard and selection observer when target ends."""
         signal = self._selection_signal
         self._selection_signal = None
+        caret_signal = self._caret_signal
+        self._caret_signal = None
+        if caret_signal is not None:
+            try:
+                caret_signal.disconnect(self._remember_focused_selection)
+            except (RuntimeError, TypeError):
+                pass
         if signal is not None:
             try:
                 signal.disconnect(self._remember_focused_selection)
@@ -319,9 +347,11 @@ class RemoteKanaTarget:
             widget = self.widget_ref()
             if widget is None or not widget_is_text_target(widget):
                 raise RuntimeError('送信先の入力欄が閉じられました')
-            replaced = insert_into_widget(widget, text, self._selection)
+            replaced = insert_into_widget(widget, text, self._selection, self._caret)
             self.last_send_replaced = replaced
-            self._selection = None  # Second Send must insert, not replace again.
+            # Second Send must insert after the FIRST Send. In particular, do
+            # not restore the former selected filename stem a second time.
+            self.remember_selection()
             return True
         if self.external is not None:
             if self.api is None or not self.api.restore(self.external):
