@@ -56,7 +56,8 @@ def test_one_hand_uses_same_choice_for_visual_eye_and_release():
     assert 'self._selected_entry = choose_entry(' in view
     assert 'self._preview.present(self, self._entries, self._selected_entry)' in view
     assert 'chosen = self._selected_entry' in view
-    assert 'self.triggered.emit(chosen.item_id)' in view
+    assert 'self._pending_confirmation = FirstHandConfirmation(' in view
+    assert 'self.triggered.emit(approved)' in view
 
 
 def test_other_counts_keep_current_clockwise_mapping():

@@ -4267,7 +4267,15 @@ class Launcher(QWidget):
             except RuntimeError:
                 pass  # C++ QMenu already deleted; Python wrapper was stale.
 
-    def hide_remote(self):
+    def first_hand_confirmation_pending(self):
+        hand = getattr(getattr(self, 'remote_window', None), 'shuriken_button', None)
+        return getattr(hand, '_pending_confirmation', None) is not None
+
+    def hide_remote(self, *, force=False):
+        # The OK/Cancel gate is a true interaction lock. Native tool-window
+        # deactivation, outside clicks and transient relayout must not close it.
+        if not force and self.first_hand_confirmation_pending():
+            return
         companion = getattr(self, '_remote_kana_companion', None)
         if companion is not None:
             companion.hide()
@@ -6106,6 +6114,14 @@ class Launcher(QWidget):
 
     def remote_command(self, command):
         """Direct Qt widget/model commands, NEVER SendKeys or QKeyEvent injection."""
+        # The central ぐりぐり also emits semantic UP/DOWN/CLICK. While a
+        # first-hand confirmation is visible those commands belong solely to
+        # its Cancel/OK gate. They must NEVER reach the Files Exp current.
+        hand = getattr(getattr(self, 'remote_window', None), 'shuriken_button', None)
+        if (getattr(hand, '_pending_confirmation', None) is not None
+                and not command.startswith('SHURIKEN_ITEM:')):
+            hand.confirmation_remote_command(command)
+            return
         # Wheel/arrow/menu actions cancel a pending Exp pad click. In
         # particular the native DOUBLE_CLICK must never run the first CLICK.
         if command.startswith('SHURIKEN_ITEM:'):
@@ -7953,7 +7969,9 @@ class Launcher(QWidget):
         DIAG.info('KEYBOARD_FOCUS reason=%s success=%s before=%s after=%s restored_area=%s',
                   reason, active, before, windows.foreground(), self._last_focus_area)
 
-    def dismiss(self):
+    def dismiss(self, *, force=False):
+        if not force and self.first_hand_confirmation_pending():
+            return
         # Capture the Remote's logical Files column BEFORE hide_remote() removes
         # its selection highlighting.  Mouse-only operation does not always
         # send a native Qt focusChanged signal to the selected Files row.
@@ -7964,7 +7982,10 @@ class Launcher(QWidget):
             if remote_area is not None:
                 self._last_focus_area = remote_area
             self.save_last_current()
-        self.hide_remote()
+        if force:
+            self.hide_remote(force=True)
+        else:
+            self.hide_remote()
         self.finish_cloud_link_handoff()
         # Never carry a half-finished double-click into the next summon.
         # Delayed delete callbacks must not resurrect a previously hidden UI.
@@ -8030,6 +8051,12 @@ class Launcher(QWidget):
                 or (context is not None and context.isVisible())):
             return
         if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
+            # Showing/clicking a non-activating confirmation Tool may briefly
+            # deactivate Launch. Do not interpret that as the user's answer.
+            if (getattr(getattr(getattr(self, 'remote_window', None),
+                                'shuriken_button', None), '_pending_confirmation', None)
+                    is not None):
+                return
             if getattr(self, 'dismiss_on_outside_click', True):
                 hide_remote = getattr(self, 'hide_remote', None)
                 if callable(hide_remote):
@@ -12597,7 +12624,7 @@ class Launcher(QWidget):
             self.apps_proc.kill();self.apps_proc.wait();self.apps_output.unlink(missing_ok=True)
         for hotkey_id in self.registered_menu_hotkeys:
             windows.unhotkey(int(self.winId()), hotkey_id)
-        windows.unhotkey(int(self.winId()));self.dismiss();self.tray.hide();QApplication.quit()
+        windows.unhotkey(int(self.winId()));self.dismiss(force=True);self.tray.hide();QApplication.quit()
 
 
 def main():
@@ -12761,6 +12788,11 @@ def main():
         if (getattr(window, '_filesystem_dialog_depth', 0)
                 or getattr(window, '_cloud_link_handoff', False)
                 or QApplication.activeModalWidget() is not None):
+            return
+        # Native hook does not recognize the floating OK/Cancel Tool as part
+        # of the Remote rectangle. Confirmation is locked until a response.
+        hand = getattr(getattr(window, 'remote_window', None), 'shuriken_button', None)
+        if getattr(hand, '_pending_confirmation', None) is not None:
             return
         if remote_visible():
             if window.dismiss_on_outside_click:

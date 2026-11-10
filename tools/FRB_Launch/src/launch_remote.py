@@ -175,6 +175,15 @@ class WheelPad(QFrame):
         super().hideEvent(event)
 
     def wheelEvent(self, event):
+        # Confirmation must own the ぐりぐり wheel, regardless of the
+        # current Exp/List target. Never leak an UP/DOWN to Files here.
+        owner = self.parentWidget()
+        remote = getattr(owner, '_remote', None) or owner
+        hand = getattr(remote, 'shuriken_button', None)
+        if getattr(hand, '_pending_confirmation', None) is not None:
+            hand.wheelEvent(event)
+            event.accept()
+            return
         # Works both for native pad events and button wheel forwarding.
         # Ctrl+wheel changes ONLY the Remote background transparency.
         parent_method = getattr(self, 'parentWidget', None)
@@ -634,7 +643,8 @@ class LaunchRemote(QWidget):
             and launcher.expanded_view.isVisible()
             and launcher.expanded_view._workspace_mode in ('files', 'browser')
             and getattr(launcher, '_remote_text_dialog', None) is None
-            and getattr(launcher, '_remote_confirmation', None) is None)
+            and getattr(launcher, '_remote_confirmation', None) is None
+            and getattr(self.shuriken_button, '_pending_confirmation', None) is None)
         self.pad.command.connect(self.command.emit)
         # No old ←/→ buttons: the ぐりぐり alone occupies this center row.
         # The hold selector chooses a COLUMN, never a first/next row.
@@ -824,6 +834,12 @@ class LaunchRemote(QWidget):
                  (Qt.WindowType.WindowStaysOnTopHint
                   if auto_dismiss else Qt.WindowType(0)))
         if self.windowFlags() == flags:
+            return
+        # setWindowFlags temporarily hides the entire native Remote, which
+        # also hides the owned confirmation Tool window. Defer flag changes
+        # until the first-hand OK/Cancel response completes.
+        hand = getattr(self, 'shuriken_button', None)
+        if getattr(hand, '_pending_confirmation', None) is not None:
             return
         visible, pos = self.isVisible(), self.pos()
         self._window_mode_transition = True
@@ -1060,6 +1076,15 @@ class LaunchRemote(QWidget):
     def eventFilter(self, obj, event):
         if (event.type() == QEvent.Type.Wheel
                 and (obj is self or (isinstance(obj, QWidget) and obj.window() is self))):
+            # This filter is installed on EVERY Remote child. In the former
+            # implementation it intercepted the first-hand button's wheel
+            # and sent it to Exp before ShurikenButton.wheelEvent could run.
+            # While confirming, the first-hand gate is the exclusive owner.
+            hand = getattr(self, 'shuriken_button', None)
+            if getattr(hand, '_pending_confirmation', None) is not None:
+                hand.wheelEvent(event)
+                event.accept()
+                return True
             if (getattr(self, '_files_operating_target', None) == 'files_exp'
                     and (obj is self.up_band or obj is self.up_band._caption)):
                 event.accept()  # List-only blank band's wheel is also inert in Exp.

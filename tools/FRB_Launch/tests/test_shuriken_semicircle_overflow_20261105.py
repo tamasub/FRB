@@ -18,9 +18,9 @@ def sample():
             'shuriken_git_commit_filename': 'down'}
     for row in data['items']:
         if row.get('item_id') in keep:
+            row['shuriken_enabled'] = True
+            row['shuriken_order'] = (list(keep).index(row['item_id']) + 1) * 10
             row['shuriken_direction'] = keep[row['item_id']]
-            if row['item_id'] == 'shuriken_git_commit_filename':
-                row['shuriken_order'] = 30
         elif row.get('shuriken_enabled'):
             row['shuriken_enabled'] = False
     return data
@@ -101,15 +101,15 @@ def test_ui_release_respects_the_last_painted_eye():
     src = preview_source()
     section = src[src.index('class ShurikenButton('):]
     release = section[section.index('    def mouseReleaseEvent('):section.index('    def hideEvent(')]
-    poll = section[section.index('    def _poll_drag('):section.index('    def _cancel_drag(')]
-    assert 'self._release_candidate = True' in release
-    assert 'self._finish_drag()' in poll
-    finish = src[src.index('    def _finish_drag('):src.index('    def mouseMoveEvent(', src.index('    def _finish_drag('))]
-    assert 'chosen = self._selected_entry' in finish
-    assert 'self.triggered.emit(chosen.item_id)' in finish
+    assert 'chosen = self._selected_entry' in release
+    assert 'self._commit_first_hand_confirmation(clicked_inside=inside)' in release
+    assert 'self.triggered.emit(approved)' in section  # centralized confirmation gate
     assert 'chosen = choose_entry(self._entries, dx, dy)' not in release
-    assert 'self._preview.hide()' in finish
-    assert 'if chosen is not None and self._active_confirmation() is None:' in finish
+    assert 'self._close_first_hand_confirmation()' in release
+    assert 'if chosen is not None and self._active_confirmation() is None:' in release
+    # Rebase policy: timer-based release confirmation was a post-10:38 regression.
+    assert '_release_candidate' not in section
+    assert 'def _poll_drag(' not in section
 
 
 def test_preview_does_not_capture_mouse_or_activate_window():

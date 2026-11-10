@@ -103,6 +103,7 @@ class Preview:
     def __init__(self, *args):
         self.present = Mock()
         self.hide = Mock()
+        self.set_confirmation = Mock()
 
 
 @pytest.fixture
@@ -166,11 +167,11 @@ def test_normal_shuriken_flick_remains_intact_outside_confirmation(module):
     assert button._preview.present.call_count == 1
     button.mouseMoveEvent(DummyEvent(global_y=50))  # Draw UP eye first.
     button.mouseReleaseEvent(DummyEvent(global_y=50))  # -50px = UP
+    # First flick proposes but never executes or closes the Pokeball.
     button.triggered.emit.assert_not_called()
-    for _ in range(button.RELEASE_CONFIRM_SAMPLES):
-        button._poll_drag()
-    button.triggered.emit.assert_called_once_with('zip')
-    button._preview.hide.assert_called_once_with()
+    assert button._pending_confirmation.candidate_id == 'zip'
+    assert button._pending_confirmation.choice == 'cancel'
+    button._preview.hide.assert_not_called()
     launcher.shuriken_items.assert_called_once_with(1)
 
 

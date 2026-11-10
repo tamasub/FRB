@@ -1,51 +1,123 @@
 """Mouse-only round flick guide for FRB Remote (no keyboard injection).
 
-Press: a fixed circle appears above the button. With two to four actions,
-a white center ring and one green indicator show the current gesture sector.
-Four actions use an X divider and cardinal kana-style flick directions.
-Release without movement cancels. Captions may overrun the constant circle.
+Press: a fixed circle appears above the first-hand button. Its eye shows
+one of the common 1–4 geometric sectors. Returning to center cancels.
+Releasing a chosen sector NEVER executes: the circle stays visible, and an
+in-place confirmation starts at Cancel. Wheel on the SAME first-hand button
+chooses Cancel/OK; a NEW click on that button confirms the chosen option.
+No independent confirmation popup captures the pointer.
 """
 import math
-import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QRectF, Signal, QTimer
-from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap, QCursor
+from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
+from first_hand_confirmation import FirstHandConfirmation
+from first_hand_trace import first_hand_trace
 from shuriken_model import (choose_entry, uses_three_sector_guide,
                             uses_four_sector_guide, uses_two_horizontal_sector_guide,
-                            two_horizontal_sector_slot, two_first_hand_sector_slot,
-                            three_sector_slot,
+                            two_horizontal_sector_slot, two_first_hand_sector_slot, three_sector_slot,
                             four_sector_slot, current_indicator_position,
                             THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
 from shuriken_assets import resource_root
-from first_hand_trace import first_hand_trace
 
 # Icon provided for the experiment; retain the same asset in the packaged app.
 ICON_PATH = resource_root(__file__) / 'assets' / 'remote_shuriken.png'
 
 
-def _physical_left_button_down():
-    """Query the real held state, not merely the last Qt event received.
+class ShurikenConfirmationHitLayer(QWidget):
+    """Real, clickable confirmation buttons over the mouse-transparent guide.
 
-    Windows can lose a widget's implicit mouse grab while the transparent
-    tool-window guide is visible. A synthetic/lost Qt release is not proof
-    that the user lifted their finger. Native GetAsyncKeyState remains valid
-    even when the original widget no longer receives move/release events.
+    The big Pokeball stays a passive Tool window so it cannot steal drags from
+    the small first-hand button. Only this 320x71 panel accepts clicks.
     """
-    if sys.platform == 'win32':
-        try:
-            import ctypes
-            return bool(ctypes.windll.user32.GetAsyncKeyState(0x01) & 0x8000)
-        except (AttributeError, OSError):
-            pass
-    try:
-        return bool(QApplication.mouseButtons() & Qt.MouseButton.LeftButton)
-    except (AttributeError, TypeError):
-        # Headless test doubles do not expose QApplication.mouseButtons().
-        return False
+
+    def __init__(self, preview, button):
+        flags = (Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint |
+                 Qt.WindowType.WindowDoesNotAcceptFocus)
+        super().__init__(button, flags)
+        self._preview = preview
+        self._button = button
+        self.setObjectName('firstHandConfirmationClicks')
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setFixedSize(320, 71)
+        # Draw visible, nontransparent QPushButtons. Fully transparent child
+        # surfaces in a layered Windows Tool window are not reliable hit areas.
+        self.cancel_button = QPushButton('キャンセル', self)
+        self.cancel_button.setObjectName('firstHandCancel')
+        self.cancel_button.setGeometry(24, 35, 127, 27)
+        self.cancel_button.setToolTip('一の手：キャンセル')
+        self.cancel_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.cancel_button.clicked.connect(
+            lambda _checked=False: button.confirm_from_overlay('cancel'))
+        self.ok_button = QPushButton('OK（実行）', self)
+        self.ok_button.setObjectName('firstHandOK')
+        self.ok_button.setGeometry(169, 35, 127, 27)
+        self.ok_button.setToolTip('一の手：OK（実行）')
+        self.ok_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.ok_button.clicked.connect(
+            lambda _checked=False: button.confirm_from_overlay('ok'))
+
+    def hideEvent(self, event):
+        if self._preview.confirmation is not None:
+            first_hand_trace('confirmation_buttons_hidden', reason='qt_hide')
+        super().hideEvent(event)
+
+    def wheelEvent(self, event):
+        # Rolling above the confirmation panel selects that confirmation too.
+        self._button.wheelEvent(event)
+        event.accept()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        dark = self._preview._theme == 'dark'
+        painter.setPen(QPen(QColor('#67927c' if dark else '#597d64'), 1.5))
+        painter.setBrush(QColor('#1b3439' if dark else '#f2fcf0'))
+        painter.drawRoundedRect(QRectF(0, 0, 320, 71), 10, 10)
+        font = QFont('Yu Gothic UI', 11)
+        font.setPixelSize(12)
+        painter.setFont(font)
+        pending = self._preview.confirmation
+        if pending is not None:
+            caption = '実行候補：' + pending.candidate_title
+            caption = QFontMetrics(font).elidedText(
+                caption, Qt.TextElideMode.ElideRight, 293)
+            painter.setPen(QColor('#e7f5ea' if dark else '#1f4932'))
+            painter.drawText(QRectF(13, 6, 294, 24),
+                             Qt.AlignmentFlag.AlignCenter, caption)
+        painter.end()
+
+    def show_at(self, preview):
+        self._preview = preview
+        pending = preview.confirmation
+        dark = preview._theme == 'dark'
+        for choice, button in (('cancel', self.cancel_button), ('ok', self.ok_button)):
+            selected = pending is not None and pending.choice == choice
+            background = ('#5e9d79' if dark else '#aad99b') if selected else ('#354950' if dark else '#ffffff')
+            foreground = '#0e2a1e' if selected else ('#e3f3e7' if dark else '#35533c')
+            button.setStyleSheet(
+                'QPushButton { background: ' + background + '; color: ' + foreground +
+                '; border: 1px solid #5c9878; border-radius: 6px; }'
+                'QPushButton:hover { border: 2px solid #326b53; }')
+        center = preview.circle_center
+        top_left = QPoint(round(center.x() - 160), round(center.y() - 151))
+        position = preview.mapToGlobal(top_left)
+        if not self.isVisible():
+            self.move(position)
+            # Showing a second native Tool window on EVERY wheel notch can
+            # produce a flash/reorder on Windows; show/raise only on recovery.
+            self.show()
+            self.raise_()
+        elif self.pos() != position:
+            # Reposition only if the Remote really moved, never per wheel step.
+            self.move(position)
+        self.update()
 
 
 class ShurikenPreview(QWidget):
@@ -56,7 +128,7 @@ class ShurikenPreview(QWidget):
     same angles, and the guide never follows the pointer.
     """
     CANVAS_WIDTH = 520        # Transparent window; NOT the circular guide size.
-    CANVAS_HEIGHT = 166
+    CANVAS_HEIGHT = 320
     RADIUS = 72               # Constant visual radius, independent of captions.
     GAP_ABOVE_BUTTON = 15     # Visible gap between ring and the button.
     CURRENT_RADIUS = 24       # White central origin ring (diameter 48 px).
@@ -78,8 +150,9 @@ class ShurikenPreview(QWidget):
         self.circle_center = QPointF(self.CANVAS_WIDTH / 2, self.CANVAS_HEIGHT / 2)
         self.entries = []
         self.selected_id = ''
+        self.confirmation = None  # Optional frozen candidate + wheel selection.
+        self._confirmation_hit_layer = None
         self._theme = 'light'
-        self._present_owner = None
 
     def set_theme(self, theme):
         self._theme = theme_family(theme)
@@ -92,13 +165,6 @@ class ShurikenPreview(QWidget):
             return
         self.entries = list(entries)
         self.selected_id = selected.item_id if selected is not None else ''
-        # During a held gesture ONLY repaint the eye. Re-moving a visible
-        # native Tool window on every sector change can disturb mouse capture
-        # and make the Pokeball briefly disappear on Windows.
-        if self.isVisible() and self._present_owner is button:
-            self.update()
-            return
-        self._present_owner = button
         # The 1st-hand button and Exp/List selector both use this preview.
         launcher = getattr(button, 'launcher', None)
         remote = button.parentWidget()
@@ -128,14 +194,37 @@ class ShurikenPreview(QWidget):
         self.move(int(canvas_x), int(canvas_y))
         self.circle_center = QPointF(cx - canvas_x, cy - canvas_y)
         if not self.isVisible():
-            first_hand_trace('preview_show')
             self.show()
         self.update()
 
+    def set_confirmation(self, confirmation):
+        """Overlay the confirmation without hiding, moving or re-opening the ring.
+
+        Both the green eye and displayed confirmation refer to the SAME frozen
+        item ID. The visual option only changes on the first-hand wheel.
+        """
+        if confirmation is not None and confirmation.candidate_id != self.selected_id:
+            raise ValueError('Preview eye and confirmation candidate must match')
+        self.confirmation = confirmation
+        self.update()
+        # Pure stand-ins used by the no-PySide6 tests have no native window;
+        # only real previews create the small interactive window.
+        if hasattr(self, '_confirmation_hit_layer'):
+            if confirmation is None:
+                if self._confirmation_hit_layer is not None:
+                    self._confirmation_hit_layer.hide()
+            else:
+                if self._confirmation_hit_layer is None:
+                    self._confirmation_hit_layer = ShurikenConfirmationHitLayer(
+                        self, self.parentWidget())
+                self._confirmation_hit_layer.show_at(self)
+
     def hideEvent(self, event):
-        # This also catches native/parent-triggered hides which did not pass
-        # through ShurikenButton._finish_drag / _cancel_drag.
-        first_hand_trace('preview_hide_event')
+        if self.confirmation is not None:
+            first_hand_trace('confirmation_preview_hidden', reason='qt_hide')
+        layer = getattr(self, '_confirmation_hit_layer', None)
+        if layer is not None:
+            layer.hide()
         super().hideEvent(event)
 
     def paintEvent(self, event):
@@ -190,8 +279,7 @@ class ShurikenPreview(QWidget):
                 half_width = math.sqrt(max(0.0, radius * radius - y * y))
                 painter.drawLine(QPointF(-half_width, y), QPointF(half_width, y))
 
-        # The same origin stays visible for every first-hand size (1..4)
-        # as well as the generic 2/4-menu guides.
+        # The same origin is visible for 2-, 3- and 4-menu guides.
         # Paint it *after* dividers to hide crossings in the center.
         if 1 <= count <= 4:
             painter.setPen(QPen(QColor('#a2bdb6' if dark else '#385e56'), 1.2))
@@ -215,17 +303,16 @@ class ShurikenPreview(QWidget):
         TEXT_SIDE_PADDING = 8
         for index, entry in enumerate(self.entries):
             if horizontal_pair:
-                if entry.hand_index == 1:
-                    text_anchor_x, text_cy, mark_x, mark_y, text_align = two_first_hand_sector_slot(entry)
-                else:
-                    text_anchor_x, text_cy, mark_x, mark_y, text_align = two_horizontal_sector_slot(entry)
+                text_anchor_x, text_cy, mark_x, mark_y, text_align = (
+                    two_first_hand_sector_slot(entry) if entry.hand_index == 1
+                    else two_horizontal_sector_slot(entry))
             elif triad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = three_sector_slot(entry)
             elif quad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
             else:
-                # Legacy vertical pair, plus a single-action full circle.
-                # Keep captions outside the current ring.
+                # Two entries remain vertically ordered: up then down.
+                # Keep their captions beyond the indicator, not on top of it.
                 text_anchor_x = mark_x = 0.0
                 if count == 1:
                     text_cy = -62.0
@@ -281,14 +368,38 @@ class ShurikenPreview(QWidget):
                                              available_text_width)
             painter.setPen(QColor('#eff7f2' if dark else '#254c35'))
             painter.drawText(text_draw_rect, draw_flags, caption)
+
+        # Confirmation lives IN THIS SAME preview, above the still-visible
+        # Pokeball. The original green eye remains frozen on the candidate.
+        confirmation = self.confirmation
+        if confirmation is not None:
+            panel = QRectF(-160, -151, 320, 71)
+            painter.setPen(QPen(QColor('#67927c' if dark else '#597d64'), 1.5))
+            painter.setBrush(QColor('#1b3439' if dark else '#f2fcf0'))
+            painter.drawRoundedRect(panel, 10, 10)
+            painter.setPen(QColor('#e7f5ea' if dark else '#1f4932'))
+            label = '実行候補：' + confirmation.candidate_title
+            label = metrics.elidedText(label, Qt.TextElideMode.ElideRight, 293)
+            painter.drawText(QRectF(-147, -145, 294, 24),
+                             Qt.AlignmentFlag.AlignCenter, label)
+            for choice, caption, rect in (
+                ('cancel', 'キャンセル', QRectF(-136, -116, 127, 27)),
+                ('ok', 'OK（実行）', QRectF(9, -116, 127, 27)),
+            ):
+                active = confirmation.choice == choice
+                painter.setPen(QPen(QColor('#5c9878' if dark else '#4f835c'), 1))
+                painter.setBrush(QColor('#5e9d79' if dark else '#aad99b') if active
+                                 else QColor('#354950' if dark else '#ffffff'))
+                painter.drawRoundedRect(rect, 6, 6)
+                painter.setPen(QColor('#0e2a1e' if active else '#e3f3e7'
+                                      if dark else '#35533c'))
+                painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, caption)
         painter.end()
 
 
 class ShurikenButton(QPushButton):
     triggered = Signal(str)  # item ID from the current main Launch JSON
-    DRAG_DEADZONE = 8
-    RELEASE_CONFIRM_SAMPLES = 5      # ~80 ms of continuous native button-up.
-    MISSING_RELEASE_CANCEL_SAMPLES = 95  # ~1.5s. Safety fallback, never execute.
+    DRAG_DEADZONE = 14
 
     def __init__(self, launcher, remote, hand_index=1):
         super().__init__('', remote)
@@ -296,7 +407,7 @@ class ShurikenButton(QPushButton):
         self.hand_index = int(hand_index)
         self.setObjectName('remoteShurikenButton')
         self.setProperty('role', 'quick')
-        self.setToolTip('手裏剣 1の手：押したまま方向へフリック、離して実行')
+        self.setToolTip('手裏剣 1の手：フリックで候補 → 同じボタンでホイール選択（キャンセル／OK）→ クリック確定')
         self.setFixedSize(50, 46)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -304,24 +415,161 @@ class ShurikenButton(QPushButton):
         self._drag_start = None
         self._entries = []
         self._selected_entry = None  # The action whose eye is currently painted.
-        self._no_button_samples = 0
-        self._release_candidate = False
-        self._release_samples = 0
         self._confirmation_on_press = None
-        # Poll independent of Qt mouseMove: a native transparent preview can
-        # temporarily interrupt delivery, particularly on vertical drags.
-        self._tracking_timer = QTimer(self)
-        self._tracking_timer.setInterval(16)
-        self._tracking_timer.timeout.connect(self._poll_drag)
+        self._pending_confirmation = None
+        self._confirmation_click_armed = False
+        self._confirmation_wheel_remainder = 0
+        # A Qt.Tool preview can be hidden independently of the pending
+        # confirmation (native activation, parent relayout, stacking). Keep
+        # the dialog's *state* until an explicit OK/Cancel response. This
+        # timer only restores visibility; it NEVER selects or executes.
+        self._confirmation_visibility_timer = QTimer(self)
+        self._confirmation_visibility_timer.setInterval(100)
+        self._confirmation_visibility_timer.timeout.connect(
+            self._ensure_confirmation_visibility)
         self._pixmap = QPixmap(str(ICON_PATH))
 
     def wheelEvent(self, event):
-        # The button inherits Remote's original wheel-navigation guarantee.
+        pending = self._pending_confirmation
+        if pending is not None:
+            # The FIRST-HAND button itself is the only wheel selector for
+            # its confirmation. Do not send any wheel to Files or the pad.
+            angle = event.angleDelta().y()
+            pixel = event.pixelDelta().y()
+            self._confirmation_wheel_remainder += angle if angle else pixel * (120.0 / 36.0)
+            if abs(self._confirmation_wheel_remainder) >= 120:
+                pending.wheel(1 if self._confirmation_wheel_remainder > 0 else -1)
+                self._confirmation_wheel_remainder = 0
+                if self._preview is not None:
+                    self._preview.set_confirmation(pending)
+            event.accept()
+            return
+        # Otherwise preserve the button's original Remote wheel navigation.
         pad = getattr(self.parentWidget(), 'pad', None)
         if pad is not None:
             pad.wheelEvent(event)
         else:
             event.ignore()
+
+    def confirmation_remote_command(self, command):
+        """One owner while first-hand confirmation is open; never navigate Exp.
+
+        The large ぐりぐり pad uses semantic UP/DOWN/CLICK commands, while a
+        physical wheel on the first-hand button comes through wheelEvent.
+        Both change/commit the SAME frozen candidate and painted option.
+        """
+        pending = self._pending_confirmation
+        if pending is None:
+            return False
+        if command in ('UP', 'DOWN'):
+            pending.wheel(1 if command == 'UP' else -1)
+            if self._preview is not None:
+                self._preview.set_confirmation(pending)
+        elif command in ('CLICK', 'ENTER'):
+            self._commit_first_hand_confirmation(clicked_inside=True)
+        elif command in ('CANCEL', 'ESCAPE'):
+            # Only an explicit cancellation response closes the confirmation.
+            self._close_first_hand_confirmation(reason='cancel_command')
+        # BACK, DOUBLE_CLICK and unrelated Remote commands must not dismiss
+        # a confirmation that has already been displayed.
+        # All commands are owned/consumed until confirmation is closed,
+        # including unexpected target/menu navigation requests.
+        return True
+
+    def confirm_from_overlay(self, choice):
+        """Real clicks on the painted Cancel/OK rectangles (not ghost Release)."""
+        pending = self._pending_confirmation
+        if pending is None or self._active_confirmation() is not None:
+            return
+        if choice == 'ok':
+            pending.wheel(-1)  # Explicit OK click is equivalent to a deliberate choice.
+        elif choice == 'cancel':
+            pending.wheel(1)
+        else:
+            return
+        self._commit_first_hand_confirmation(clicked_inside=True)
+
+    def _commit_first_hand_confirmation(self, *, clicked_inside):
+        pending = self._pending_confirmation
+        if pending is None:
+            return
+        if not clicked_inside:
+            # The original release outside this 50x46 button is NOT an
+            # OK/Cancel answer. Do not silently close the confirmation.
+            first_hand_trace('confirmation_commit_ignored', reason='release_outside')
+            return
+        if self._active_confirmation() is not None:
+            # A separate Launch dialog arriving asynchronously cannot silently
+            # dismiss the first-hand confirmation or execute the candidate.
+            first_hand_trace('confirmation_commit_blocked', reason='other_dialog')
+            return
+        approved = pending.commit(clicked_inside)
+        # Invariant: the marker, the confirmation, and the action ID are one.
+        if (approved is not None and (self._selected_entry is None
+                                     or self._selected_entry.item_id != approved
+                                     or (self._preview is not None
+                                         and hasattr(self._preview, 'selected_id')
+                                         and self._preview.selected_id != approved))):
+            # Never execute an action that differs from the on-screen eye.
+            # Keep the prompt alive so the mismatch can be observed/cancelled.
+            first_hand_trace('confirmation_commit_blocked', reason='eye_mismatch')
+            return
+        self._close_first_hand_confirmation(reason=('ok' if approved is not None else 'cancel'))
+        if approved is not None:
+            self.triggered.emit(approved)
+
+    def _close_first_hand_confirmation(self, *, reason='explicit_cancel'):
+        if self._pending_confirmation is not None:
+            first_hand_trace('confirmation_closed', reason=reason)
+        timer = getattr(self, '_confirmation_visibility_timer', None)
+        if timer is not None:
+            timer.stop()
+        self._pending_confirmation = None
+        self._confirmation_click_armed = False
+        self._confirmation_wheel_remainder = 0
+        self._drag_start = None
+        self._selected_entry = None
+        self._entries = []
+        if self._preview is not None:
+            self._preview.set_confirmation(None)
+            self._preview.hide()
+
+    def _ensure_confirmation_visibility(self):
+        """Restore lost native Tool surfaces without ending/changing a dialog.
+
+        This is a visibility safety net, not a replacement for blocking the
+        automatic dismissal paths in app.py. Never synthesize user input here.
+        """
+        pending = self._pending_confirmation
+        if pending is None:
+            return
+        preview = self._preview
+        chosen = self._selected_entry
+        if (preview is None or chosen is None or
+                chosen.item_id != pending.candidate_id):
+            first_hand_trace('confirmation_visibility_blocked', reason='candidate_mismatch')
+            return
+        selected = getattr(preview, 'selected_id', pending.candidate_id)
+        if selected != pending.candidate_id:
+            first_hand_trace('confirmation_visibility_blocked', reason='eye_mismatch')
+            return
+        # A genuinely hidden parent cannot host its owned Windows tool child.
+        # Keep the pending answer intact and restore when the parent returns.
+        parent = getattr(self, 'parentWidget', lambda: None)()
+        for owner in (parent, self.launcher):
+            visible = getattr(owner, 'isVisible', None)
+            if callable(visible) and not visible():
+                return
+        preview_visible = getattr(preview, 'isVisible', None)
+        if callable(preview_visible) and not preview_visible():
+            first_hand_trace('confirmation_preview_restore', reason='native_hidden')
+            preview.show()
+            preview.raise_()
+        layer = getattr(preview, '_confirmation_hit_layer', None)
+        layer_visible = getattr(layer, 'isVisible', None)
+        if layer is not None and callable(layer_visible) and not layer_visible():
+            first_hand_trace('confirmation_buttons_restore', reason='native_hidden')
+            preview.set_confirmation(pending)
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -351,10 +599,20 @@ class ShurikenButton(QPushButton):
         if event.button() != Qt.MouseButton.LeftButton:
             super().mousePressEvent(event)
             return
+        # The first-hand confirmation retains exclusive ownership until a
+        # deliberate answer, even if another Launch dialog appears temporarily.
+        if self._pending_confirmation is not None:
+            # Confirmation is operated on this SAME 50x46 button: wheel to
+            # choose, then a NEW press/release to commit. The original flick
+            # release can never be mistaken for the confirmation click.
+            self._confirmation_click_armed = True
+            super().mousePressEvent(event)
+            event.accept()
+            return
         self._confirmation_on_press = self._active_confirmation()
         if self._confirmation_on_press is not None:
-            # With a dialog open, this SAME button becomes its confirm button.
-            # Never show the shuriken guide or start a new background action.
+            # With a Launch-owned dialog open, this button confirms that
+            # dialog, but does not start an unrelated shuriken action.
             self._drag_start = None
             self._entries = []
             self._selected_entry = None
@@ -364,121 +622,32 @@ class ShurikenButton(QPushButton):
             return
         self._entries = self.launcher.shuriken_items(self.hand_index)
         self._drag_start = event.globalPosition().toPoint()
-        self._no_button_samples = 0
-        self._release_candidate = False
-        self._release_samples = 0
         self._selected_entry = None
-        first_hand_trace('press', count=len(self._entries))
         if self._preview is None:
             self._preview = ShurikenPreview(self)
         # PRESS only shows the guide; it must NOT preselect an action.
+        self._preview.set_confirmation(None)
         self._preview.present(self, self._entries, None)
         super().mousePressEvent(event)
-        # Start AFTER the button press, so a guide/window change cannot leave
-        # the session relying exclusively on Qt's implicit mouse grab.
-        self._tracking_timer.start()
-
-    def _update_drag(self, point):
-        if self._drag_start is None or self._release_candidate:
-            return
-        dx = point.x() - self._drag_start.x()
-        dy = point.y() - self._drag_start.y()
-        previous = self._selected_entry
-        self._selected_entry = choose_entry(
-            self._entries, dx, dy, min_release_distance=self.DRAG_DEADZONE)
-        # The popup is a native tool window. Don't re-move/re-show it on every
-        # pointer tick: only redraw when the actual highlighted item changes.
-        if self._selected_entry != previous:
-            first_hand_trace('eye_changed', dx=dx, dy=dy,
-                             slot=(self._entries.index(self._selected_entry) + 1)
-                             if self._selected_entry in self._entries else 0)
-            if self._preview is not None:
-                self._preview.present(self, self._entries, self._selected_entry)
-
-    def _poll_drag(self):
-        """Update current eye. A Qt release must be backed by persistent
-        native button-up before any action can execute. Preview visibility is
-        never coupled to momentary native-button sampling fluctuations.
-        """
-        if self._drag_start is None:
-            self._tracking_timer.stop()
-            return
-        held = _physical_left_button_down()
-        if self._release_candidate:
-            if held:
-                first_hand_trace('release_rejected_button_still_held',
-                                 samples=self._release_samples)
-                self._release_candidate = False
-                self._release_samples = 0
-                self._no_button_samples = 0
-                self._update_drag(QCursor.pos())
-                return
-            self._release_samples += 1
-            if self._release_samples >= self.RELEASE_CONFIRM_SAMPLES:
-                first_hand_trace('release_confirmed', samples=self._release_samples,
-                                 selected=bool(self._selected_entry))
-                self._finish_drag()
-            return
-        # Native GetAsyncKeyState is allowed to be temporarily out of sync
-        # with Qt without ending the gesture or making the guide blink.
-        self._update_drag(QCursor.pos())
-        if held:
-            if self._no_button_samples:
-                first_hand_trace('button_state_recovered',
-                                 missed_samples=self._no_button_samples)
-            self._no_button_samples = 0
-        else:
-            self._no_button_samples += 1
-            if self._no_button_samples == 1:
-                first_hand_trace('native_up_without_release')
-            if self._no_button_samples >= self.MISSING_RELEASE_CANCEL_SAMPLES:
-                first_hand_trace('cancel_missing_qt_release',
-                                 samples=self._no_button_samples)
-                self._cancel_drag(reason='missing_qt_release')
-
-    def _cancel_drag(self, reason='unknown'):
-        """Abort incomplete gesture without ever invoking its action."""
-        first_hand_trace('cancel_drag', reason=reason)
-        self._tracking_timer.stop()
-        self._drag_start = None
-        self._entries = []
-        self._selected_entry = None
-        self._no_button_samples = 0
-        self._release_candidate = False
-        self._release_samples = 0
-        if self._preview is not None:
-            self._preview.hide()
-        self.setDown(False)
-
-    def _finish_drag(self):
-        """Commit the painted choice once, only after confirmed button-up."""
-        if self._drag_start is None:
-            return
-        first_hand_trace('finish_drag', selected=bool(self._selected_entry))
-        self._tracking_timer.stop()
-        chosen = self._selected_entry  # The visible green eye is authoritative.
-        self._drag_start = None
-        self._entries = []
-        self._selected_entry = None
-        self._no_button_samples = 0
-        self._release_candidate = False
-        self._release_samples = 0
-        if self._preview is not None:
-            self._preview.hide()
-        # Reset QPushButton's pressed
-        # look without manufacturing a clicked() signal.
-        self.setDown(False)
-        if chosen is not None and self._active_confirmation() is None:
-            first_hand_trace('execute')
-            self.triggered.emit(chosen.item_id)
-        else:
-            first_hand_trace('cancel_no_choice')
 
     def mouseMoveEvent(self, event):
-        if self._drag_start is not None:
-            if not self._release_candidate and ((event.buttons() & Qt.MouseButton.LeftButton)
-                                               or _physical_left_button_down()):
-                self._update_drag(event.globalPosition().toPoint())
+        if self._pending_confirmation is not None:
+            # Keep the frozen candidate's marker and confirmation identical;
+            # incidental pointer movement must not change either.
+            event.accept()
+            return
+        if self._drag_start is not None and (event.buttons() & Qt.MouseButton.LeftButton):
+            point = event.globalPosition().toPoint()
+            dx, dy = point.x() - self._drag_start.x(), point.y() - self._drag_start.y()
+            # The guide stays ABOVE the button. The pointer only controls
+            # the current mark; two rows or three 120° wedges never move.
+            self._selected_entry = choose_entry(
+                self._entries, dx, dy,
+                min_release_distance=self.DRAG_DEADZONE)
+            if self._preview is not None:
+                # Draw exactly the committed choice; rendering and release
+                # never use separate thresholds or timing rules.
+                self._preview.present(self, self._entries, self._selected_entry)
             event.accept()
             return
         super().mouseMoveEvent(event)
@@ -496,39 +665,50 @@ class ShurikenButton(QPushButton):
                 controller.remote_command('CLICK')
             event.accept()
             return
+        if event.button() == Qt.MouseButton.LeftButton and self._pending_confirmation is not None:
+            armed = self._confirmation_click_armed
+            self._confirmation_click_armed = False
+            inside = self.rect().contains(event.position().toPoint())
+            super().mouseReleaseEvent(event)
+            if armed:
+                self._commit_first_hand_confirmation(clicked_inside=inside)
+            # A second ghost Release without a new Press is ignored.
+            event.accept()
+            return
         if event.button() == Qt.MouseButton.LeftButton and self._drag_start is not None:
-            if _physical_left_button_down():
-                # Ignore capture-loss releases while the physical button is held.
-                first_hand_trace('qt_release_ignored_held')
-                event.accept()
-                return
-            if hasattr(event, 'spontaneous') and not event.spontaneous():
-                # Qt-generated/reentrant releases must not execute actions.
-                first_hand_trace('qt_release_ignored_nonspontaneous')
-                event.accept()
-                return
-            if not self._release_candidate:
-                self._release_candidate = True
-                self._release_samples = 0
-                first_hand_trace('qt_release_candidate',
-                                 selected=bool(self._selected_entry))
-                # Freeze the eye in its last displayed position until release
-                # confirmation. No further hit-test is allowed at release.
-                self._tracking_timer.start()
+            # The displayed green eye is authoritative, even if the user
+            # stops moving for several seconds or releases very slowly.
+            # No separate release-time hit test may select an invisible
+            # action or cancel a visible one.
+            chosen = self._selected_entry
+            self._drag_start = None
+            super().mouseReleaseEvent(event)
+            if chosen is not None and self._active_confirmation() is None:
+                # This Release (even if Qt reports it spuriously) NEVER runs
+                # the action. It ONLY freezes the exact eye-visible item.
+                self._pending_confirmation = FirstHandConfirmation(
+                    candidate_id=chosen.item_id, candidate_title=chosen.title)
+                self._selected_entry = chosen
+                if self._preview is not None:
+                    # No new present()/show()/move(): the Pokeball remains
+                    # visible. The green eye and prompt carry the SAME ID.
+                    self._preview.set_confirmation(self._pending_confirmation)
+                first_hand_trace('confirmation_open', reason='first_hand_flick')
+                timer = getattr(self, '_confirmation_visibility_timer', None)
+                if timer is not None:
+                    timer.start()
+            else:
+                # Returning to the central cancel area closes normally.
+                self._close_first_hand_confirmation()
             event.accept()
             return
         super().mouseReleaseEvent(event)
 
     def hideEvent(self, event):
-        first_hand_trace('button_hide_event', active=self._drag_start is not None)
-        self._tracking_timer.stop()
-        self._no_button_samples = 0
-        self._release_candidate = False
-        self._release_samples = 0
         self._confirmation_on_press = None
-        self._drag_start = None
-        self._selected_entry = None
-        self._entries = []
-        if self._preview is not None:
-            self._preview.hide()
+        if self._pending_confirmation is not None:
+            # A transient parent/widget hide must NEVER count as an answer.
+            first_hand_trace('confirmation_owner_hidden', reason='qt_hide')
+        else:
+            self._close_first_hand_confirmation()
         super().hideEvent(event)

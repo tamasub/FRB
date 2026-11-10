@@ -55,12 +55,27 @@ def test_existing_four_cardinal_primitive_remains_usable():
         'up': 'a', 'right': 'b', 'down': 'c', 'left': 'd'}
 
 
-def test_live_first_hand_uses_three_sectors_from_priority():
-    entries = live_entries()
+def test_three_actions_have_three_sectors_from_priority():
+    import copy
+    data = json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf8'))
+    # The authored live count changes; construct exactly three actions.
+    enabled = [row for row in data['items'] if row.get('shuriken_enabled')]
+    for row in data['items']:
+        row['shuriken_enabled'] = False
+    for idx in range(3):
+        if idx < len(enabled):
+            row = enabled[idx]
+        else:
+            row = copy.deepcopy(enabled[0])
+            row['item_id'] = 'test_third_first_hand'
+            data['items'].append(row)
+        row['shuriken_enabled'] = True
+        row['shuriken_order'] = (idx+1)*10
+    entries = configured_entries(data, 1)
     assert len(entries) == 3
     assert uses_three_sector_guide(entries)
     assert [(e.order, e.direction) for e in entries] == [
-        (10, 'up_left'), (20, 'up_right'), (40, 'down')]
+        (10, 'up_left'), (20, 'up_right'), (30, 'down')]
 
 
 @pytest.mark.parametrize('dx,dy,expected', [
@@ -123,5 +138,8 @@ def test_preview_uses_model_dot_white_center_x_and_dialog_safety_remains():
     assert source.index('self.CURRENT_RADIUS, self.CURRENT_RADIUS)') < source.index('self.MARKER_RADIUS, self.MARKER_RADIUS)')
     assert 'self._preview.present(self, self._entries, None)' in source
     assert 'self._preview.present(self, self._entries, self._selected_entry)' in source
-    assert 'if chosen is not None and self._active_confirmation() is None:' in source
-    assert 'self.triggered.emit(chosen.item_id)' in source
+    # Candidate release is inert; only a new wheel-confirm click executes.
+    assert 'self._pending_confirmation = FirstHandConfirmation(' in source
+    assert 'self.triggered.emit(approved)' in source
+    assert 'pending.commit(clicked_inside)' in source
+    assert 'self._commit_first_hand_confirmation(clicked_inside=inside)' in source

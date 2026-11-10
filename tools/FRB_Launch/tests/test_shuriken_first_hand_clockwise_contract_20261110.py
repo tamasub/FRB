@@ -152,4 +152,5 @@ def test_circle_geometry_and_eye_authority_are_unchanged():
     assert 'two_first_hand_sector_slot(entry)' in source
     assert 'four_sector_slot(entry)' in source
     assert 'chosen = self._selected_entry' in source
-    assert 'self.triggered.emit(chosen.item_id)' in source
+    assert 'self.triggered.emit(approved)' in source
+    assert 'self._pending_confirmation = FirstHandConfirmation(' in source

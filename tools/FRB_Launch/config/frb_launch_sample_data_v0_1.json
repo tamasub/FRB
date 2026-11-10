@@ -1019,7 +1019,7 @@
       "sort_order": 20,
       "enabled": true,
       "shuriken_only": true,
-      "shuriken_enabled": true,
+      "shuriken_enabled": false,
       "shuriken_button_index": 1,
       "shuriken_direction": "down",
       "shuriken_order": 40,
@@ -1990,7 +1990,7 @@
           "launch_result_format": "none"
         }
       ],
-      "shuriken_enabled": true,
+      "shuriken_enabled": false,
       "shuriken_button_index": 1,
       "shuriken_direction": "left",
       "shuriken_order": 30
@@ -2398,7 +2398,7 @@
       "title": "FRB Launch Logフォルダー",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "archive",
+      "icon_key": "folder.purple",
       "sort_order": 40,
       "enabled": true,
       "keywords": [],

@@ -1,89 +1,38 @@
-"""Regression: preview changes never re-position an active tool window.
+"""The 10:38 preview is a separate transparent non-interactive tool window.
 
-Tests use tiny Qt stand-ins; Windows compositing still needs physical QA.
+Known remaining issue: occasional preview flicker in Windows. This test does not
+claim flicker has been fixed. Existing approved eye motion is more important.
 """
+from pathlib import Path
 from unittest.mock import Mock
-from test_shuriken_confirm_click_and_paint_20261105 import load_button_module, make_button, DummyEvent
-from shuriken_model import ShurikenEntry
+from test_shuriken_confirm_click_and_paint_20261105 import load_button_module, make_button, DummyEvent, Preview
+from shuriken_model import ShurikenEntry, current_indicator_position
 
 
-def point(x,y):
-    from types import SimpleNamespace
-    return SimpleNamespace(x=lambda:x, y=lambda:y)
+def test_preview_never_takes_focus_or_input():
+    source=(Path(__file__).resolve().parents[1]/'src/remote_shuriken.py').read_text('utf8')
+    assert 'Qt.WindowType.WindowTransparentForInput' in source
+    assert 'Qt.WindowType.WindowDoesNotAcceptFocus' in source
+    assert 'Qt.WidgetAttribute.WA_TransparentForMouseEvents' in source
+    assert 'Qt.WidgetAttribute.WA_ShowWithoutActivating' in source
 
 
-def test_visible_preview_eye_update_never_repositions_or_resurfaces_window():
-    mod = load_button_module()
-    preview = object.__new__(mod.ShurikenPreview)
-    owner=object()
-    preview._present_owner=owner
-    preview.entries=[]
-    preview.selected_id=''
-    preview.isVisible=lambda:True
-    preview.update=Mock()
-    preview.move=Mock(side_effect=AssertionError('visible preview must NOT move'))
-    preview.show=Mock(side_effect=AssertionError('visible preview must NOT show again'))
-    entry=ShurikenEntry('test','test',1,'up',10)
-    preview.present(owner,[entry],entry)
-    assert preview.selected_id=='test'
-    preview.update.assert_called_once_with()
-    preview.move.assert_not_called()
-    preview.show.assert_not_called()
-
-
-def test_spurious_native_button_up_does_not_close_preview_or_launch():
-    mod = load_button_module()
-    mod.ShurikenPreview = type('Preview', (), {
-        '__init__': lambda self,*a:(setattr(self,'present',Mock()),setattr(self,'hide',Mock())) and None})
+def test_preview_selection_tracks_last_move_without_triggering_action():
+    mod=load_button_module()
+    mod.ShurikenPreview=Preview
     button,launcher=make_button(mod)
-    down={'value':True}
-    mod._physical_left_button_down=lambda:down['value']
-    mod.QCursor.pos=lambda:point(100,60)
+    launcher.shuriken_items.return_value=[
+        ShurikenEntry('u','UP',1,'up',10), ShurikenEntry('r','RIGHT',1,'right',20),
+        ShurikenEntry('d','DOWN',1,'down',30), ShurikenEntry('l','LEFT',1,'left',40)]
     button.mousePressEvent(DummyEvent())
-    button._poll_drag()
-    assert button._selected_entry is not None
-    for _ in range(4):
-        down['value']=False
-        button._poll_drag()
-        down['value']=True
-        button._poll_drag()
-    assert button._drag_start is not None
-    assert button._preview.hide.call_count == 0
+    assert button._preview.present.call_count==1
+    for x,y,target in [(100,50,'u'),(100,150,'d'),(150,100,'r'),(50,100,'l')]:
+        button.mouseMoveEvent(DummyEvent(global_x=x,global_y=y))
+        assert button._selected_entry.item_id==target
+        assert current_indicator_position(button._entries,target)!=(0,0)
+        button.triggered.emit.assert_not_called()
+    assert button._preview.hide.call_count==0
+    button.mouseReleaseEvent(DummyEvent(global_x=50,global_y=100))
     button.triggered.emit.assert_not_called()
-
-
-def test_suspected_release_recovers_if_physical_press_continues():
-    mod=load_button_module()
-    mod.ShurikenPreview=type('Preview', (), {
-        '__init__':lambda self,*a:(setattr(self,'present',Mock()),setattr(self,'hide',Mock())) and None})
-    button,_=make_button(mod)
-    down={'value':True}
-    mod._physical_left_button_down=lambda:down['value']
-    mod.QCursor.pos=lambda:point(100,60)
-    button.mousePressEvent(DummyEvent())
-    button._poll_drag()
-    down['value']=False
-    button.mouseReleaseEvent(DummyEvent())
-    for _ in range(button.RELEASE_CONFIRM_SAMPLES-1):
-        button._poll_drag()
-    button.triggered.emit.assert_not_called()
-    down['value']=True
-    button._poll_drag()
-    assert not button._release_candidate
-    assert button._drag_start is not None
-    assert button._preview.hide.call_count == 0
-    button.triggered.emit.assert_not_called()
-
-
-def test_held_release_does_not_execute_and_traced_hides_are_explicit():
-    mod=load_button_module()
-    mod.ShurikenPreview=type('Preview', (), {
-        '__init__':lambda self,*a:(setattr(self,'present',Mock()),setattr(self,'hide',Mock())) and None})
-    button,_=make_button(mod)
-    mod._physical_left_button_down=lambda:True
-    button.mousePressEvent(DummyEvent())
-    button.mouseMoveEvent(DummyEvent(global_y=50))
-    button.mouseReleaseEvent(DummyEvent(global_y=50))
-    assert button._drag_start is not None
-    button.triggered.emit.assert_not_called()
-    assert button._preview.hide.call_count == 0
+    assert button._pending_confirmation.candidate_id == 'l'
+    button._preview.hide.assert_not_called()

@@ -8,6 +8,7 @@ Other consumers' two/four-sector primitives are preserved.
 """
 import math
 from dataclasses import dataclass
+from first_hand_variable import directions_for_count, choose_variable_entry, POSITIONS
 
 DIRECTION_ANGLES = {
     'center': None,
@@ -53,12 +54,7 @@ FOUR_SECTOR_LAYOUT = {
 
 # Launch-owned mapping by ACTIVE action count, independent of JSON directions.
 # The first item is the first position in each clockwise arrangement.
-FIRST_HAND_SLOTS = {
-    1: ('up',),
-    2: ('left', 'right'),
-    3: ('up_left', 'up_right', 'down'),
-    4: ('up', 'right', 'down', 'left'),
-}
+FIRST_HAND_SLOTS = POSITIONS
 
 
 
@@ -159,13 +155,10 @@ class ShurikenEntry:
 
 
 def configured_entries(data, hand_index=1):
-    """Resolve authored first-hand items to Launch-owned clockwise sectors.
+    """One shared first-hand priority layout for 1–4 active actions.
 
-    - Studio determines only enabled membership and priority (shuriken_order).
-    - An equal priority preserves the order of JSON registration.
-    - A saved legacy `shuriken_direction` is ignored, never used to position UI.
-    - First-hand has 1/2/3/4 sectors respectively; 5th+ is ignored.
-    - The established launch action/context payload is unchanged.
+    Studio authors membership and priority, never a flick direction.
+    Historical direction values never determine first-hand position.
     """
     try:
         hand_index = int(hand_index)
@@ -175,8 +168,7 @@ def configured_entries(data, hand_index=1):
         return []
     candidates = []
     for index, row in enumerate(data.get('items', [])):
-        if (not isinstance(row, dict) or not row.get('shuriken_enabled', False)
-                or not row.get('enabled', True)):
+        if not isinstance(row, dict) or not row.get('shuriken_enabled', False) or not row.get('enabled', True):
             continue
         try:
             button = int(row.get('shuriken_button_index') or 1)
@@ -190,14 +182,24 @@ def configured_entries(data, hand_index=1):
             continue
         candidates.append((order, index, item_id,
                            str(row.get('title') or item_id),
-                           str(row.get('shuriken_context_action_id') or '')))
+                           str(row.get('shuriken_context_action_id') or ''),
+                           str(row.get('shuriken_direction') or '').strip().lower()))
+    # Stable priority order; 5th and later are never executable.
     candidates.sort(key=lambda row: (row[0], row[1]))
     active = candidates[:MAX_ITEMS_PER_HAND]
     if not active:
         return []
-    slots = FIRST_HAND_SLOTS[len(active)]
-    return [ShurikenEntry(item_id, title, hand_index, slots[slot], order, context)
-            for slot, (order, _, item_id, title, context) in enumerate(active)]
+    if hand_index != 1:
+        # Other hands are unchanged; preserve valid declared compass positions.
+        return [ShurikenEntry(item_id, title, hand_index, direction, order, context)
+                for order, _, item_id, title, context, direction in active
+                if direction in DIRECTION_ANGLES]
+    # All active counts use the same Launch-owned clockwise direction catalog.
+    # Historical shuriken_direction stays in the file for backwards
+    # compatibility, but never changes 1st-hand placement or hit testing.
+    directions = directions_for_count(len(active))
+    return [ShurikenEntry(item_id, title, hand_index, directions[slot], order, context)
+            for slot, (order, _, item_id, title, context, _) in enumerate(active)]
 
 
 def direction_of(dx, dy, deadzone=14):
@@ -271,11 +273,10 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
     """
     if not entries or math.hypot(dx, dy) < min_release_distance:
         return None
-    # 1の手 with one action has its ONLY target above the center.
-    # In Qt coordinates negative dy means an upward flick; a downward or
-    # sideways drag must not select an action and move the green eye upward.
-    if len(entries) == 1 and entries[0].hand_index == 1:
-        return entries[0] if dy < 0 and -dy > abs(dx) else None
+    # All 1..4 first-hand layouts use the SAME purely geometric selector.
+    if entries[0].hand_index == 1 and 1 <= len(entries) <= 4:
+        if tuple(row.direction for row in entries) == directions_for_count(len(entries)):
+            return choose_variable_entry(entries, dx, dy, min_release_distance)
     if uses_two_horizontal_sector_guide(entries):
         # Exp/List selection is a cardinal horizontal flick ONLY. A diagonal
         # release or a click at the central ring must never switch columns.

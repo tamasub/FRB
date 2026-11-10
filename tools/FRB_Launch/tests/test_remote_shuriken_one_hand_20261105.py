@@ -1,5 +1,6 @@
 """Pure contract / integration tests for FRB Remote 手裏剣 1の手."""
 import json
+import copy
 from pathlib import Path
 import sys
 
@@ -22,25 +23,39 @@ def source(path):
     return (ROOT / path).read_text(encoding='utf-8')
 
 
-def test_user_config_registers_three_clockwise_actions_in_one_hand(data):
-    entries = configured_entries(data, 1)
-    assert len(entries) == 3
+def data_with_four(draft):
+    """Synthetic 4-item test scenario; never change user configuration JSON."""
+    draft=copy.deepcopy(draft)
+    eligible = {'zip_studio', 'launch_source_zip',
+                'faeee8f3-0b4a-4344-b5f1-594902740f42',
+                'shuriken_git_commit_filename'}
+    for row in draft['items']:
+        row['shuriken_enabled'] = row.get('item_id') in eligible
+    return draft
+
+
+def test_user_config_registers_four_1038_legacy_actions_in_one_hand(data):
+    entries = configured_entries(data_with_four(data), 1)
+    assert len(entries) == 4
     assert [x.item_id for x in entries] == [
-        'zip_studio', 'launch_source_zip', 'shuriken_git_commit_filename']
-    assert [x.direction for x in entries] == ['up_left', 'up_right', 'down']
+        'zip_studio', 'launch_source_zip', 'faeee8f3-0b4a-4344-b5f1-594902740f42', 'shuriken_git_commit_filename']
+    # Direction is determined ONLY by priority, even when legacy JSON differs.
+    assert [x.direction for x in entries] == ['up', 'right', 'down', 'left']
     assert entries[0].context_action_id == ''
     assert entries[1].context_action_id == ''
-    assert entries[2].context_action_id == 'git_commit_from_zip'
+    assert entries[2].context_action_id == ''
+    assert entries[3].context_action_id == 'git_commit_from_zip'
     assert configured_entries(data, 2) == []
     assert all(row.hand_index == 1 for row in entries)
 
 
-def test_buttons_cap_four_per_hand_and_keep_three_sectors_when_three_registered(data):
+def test_buttons_cap_four_and_use_cardinal_sectors_for_four_registered(data):
     assert MAX_ITEMS_PER_HAND == 4
-    rows = [r for r in data['items'] if r.get('shuriken_enabled')]
-    assert len(rows) == 3
-    assert all(len(sector_entries(configured_entries(data, 1), direction)) == 1
-               for direction in ('up_left', 'up_right', 'down'))
+    four=data_with_four(data)
+    rows = [r for r in four['items'] if r.get('shuriken_enabled')]
+    assert len(rows) == 4
+    assert all(len(sector_entries(configured_entries(four, 1), direction)) == 1
+               for direction in ('up', 'right', 'down', 'left'))
 
 
 @pytest.mark.parametrize('dx,dy,direction', [
@@ -71,15 +86,15 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
 
 
 
-def test_three_way_flicks_match_clockwise_labels_and_click_cancels(data):
-    entries = configured_entries(data, 1)
-    assert choose_entry(entries, -47, -47).item_id == 'zip_studio'
-    assert choose_entry(entries, 47, -47).item_id == 'launch_source_zip'
-    assert choose_entry(entries, 0, 47).item_id == 'shuriken_git_commit_filename'
+def test_four_way_flicks_match_verified_1038_labels_and_click_cancels(data):
+    entries = configured_entries(data_with_four(data), 1)
+    assert choose_entry(entries, 0, -47).item_id == 'zip_studio'
+    assert choose_entry(entries, 47, 0).item_id == 'launch_source_zip'
+    assert choose_entry(entries, 0, 47).item_id == 'faeee8f3-0b4a-4344-b5f1-594902740f42'
+    assert choose_entry(entries, -47, 0).item_id == 'shuriken_git_commit_filename' 
     assert choose_entry(entries, 0, 0) is None
-    assert choose_entry(entries, 0, 20) is None
-    # Straight up is the divider between the left/right top sectors.
-    assert choose_entry(entries, 0, -47) is None
+    assert choose_entry(entries, 0, 10) is None
+    assert choose_entry(entries, 47, 47) is None
 
 
 def test_ten_configured_actions_are_valid_but_only_first_four_visible(data):
@@ -113,6 +128,7 @@ def test_reject_unsupported_context_dispatch(data):
     draft = copy.deepcopy(data)
     row = next(x for x in draft['items'] if x.get('shuriken_context_action_id'))
     row['shuriken_context_action_id'] = 'delete'
+    row['shuriken_enabled'] = True
     with pytest.raises(ValueError, match='未対応の手裏剣'):
         validate(draft)
 
