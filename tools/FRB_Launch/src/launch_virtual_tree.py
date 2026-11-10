@@ -115,6 +115,62 @@ def virtual_launch_pages(pages, authored_items, runtime_items=(), *, system_file
     return result
 
 
+
+def virtual_exp_presentation(node, *, system_page_id='system',
+                             bookmarks_item_id='__browser_bookmarks_root',
+                             bookmark_label='🔖 ブックマーク'):
+    """Present System's bookmark category as a Page-level Files Exp root.
+
+    The authored page/item IDs, source rows and runtime bookmark identities are
+    untouched. This is a *view-only* alias, also used by List-to-Exp navigation
+    so the hidden System ancestor never resurfaces in breadcrumbs or lineage.
+    """
+    if not isinstance(node, dict) or str(node.get('page_id')) != system_page_id:
+        return node
+    bookmark_node_id = f'item:{system_page_id}:{bookmarks_item_id}'
+    lineage = tuple(node.get('lineage') or ())
+    if bookmark_node_id not in lineage:
+        return node
+    index = lineage.index(bookmark_node_id)
+    breadcrumbs = tuple(node.get('breadcrumbs') or ())
+    result = dict(node)
+    result['lineage'] = lineage[index:]
+    result['breadcrumbs'] = (bookmark_label,) + breadcrumbs[index + 1:]
+    if node.get('node_id') == bookmark_node_id:
+        result['title'] = bookmark_label
+        result['kind'] = 'page'  # presentation only; item identity remains intact
+    result['children'] = [virtual_exp_presentation(
+        child, system_page_id=system_page_id,
+        bookmarks_item_id=bookmarks_item_id,
+        bookmark_label=bookmark_label) for child in node.get('children', ())]
+    return result
+
+
+def virtual_exp_roots(pages, authored_items, runtime_items=(), *,
+                      system_page_id='system',
+                      system_files_item_id='folders',
+                      bookmarks_item_id='__browser_bookmarks_root'):
+    """Files Exp visual roots: normal Pages + a promoted bookmark Page alias.
+
+    The System Page is still a real editable Page in Studio, but not a visible
+    Files Exp row. The Files anchor is managed by the physical-root projection;
+    do not duplicate it as a virtual folder. Other Pages are unaffected.
+    """
+    result = []
+    for page in virtual_launch_pages(
+            pages, authored_items, runtime_items,
+            system_files_item_id=system_files_item_id):
+        if page['page_id'] != system_page_id:
+            result.append(page)
+            continue
+        for child in page['children']:
+            if child.get('item_id') == bookmarks_item_id:
+                result.append(virtual_exp_presentation(
+                    child, system_page_id=system_page_id,
+                    bookmarks_item_id=bookmarks_item_id))
+    return result
+
+
 def virtual_item_identity(node):
     """Future Studio changeset reference; never a physical file path."""
     if not isinstance(node, dict) or node.get('source') != 'launch_json':

@@ -182,7 +182,7 @@
             },
             {
               "field": "icon_key",
-              "caption": "アイコン",
+              "caption": "アイコン（絵柄で選択）",
               "type": "select",
               "grid": {
                 "visible": false
@@ -194,7 +194,7 @@
                 "visible": false
               },
               "valueVocabularyRef": "launch.icon_key",
-              "width": 139
+              "width": 210
             },
             {
               "field": "sort_order",
@@ -206,6 +206,77 @@
               "edit": {
                 "visible": false,
                 "readonly": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "shuriken_enabled",
+              "caption": "手裏剣・一の手に表示",
+              "type": "boolean",
+              "defaultValue": false,
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "shuriken_order",
+              "caption": "一の手：表示優先順（先頭4件・件数に応じて時計回り）",
+              "type": "number",
+              "defaultValue": 100,
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "shuriken_only",
+              "caption": "一の手専用（通常メニュー非表示）",
+              "type": "boolean",
+              "defaultValue": false,
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              }
+            },
+            {
+              "field": "shuriken_context_action_id",
+              "caption": "一の手：専用操作ID（特殊用途）",
+              "type": "text",
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
+              },
+              "grid": {
+                "visible": false
+              },
+              "edit": {
+                "visible": true
               },
               "search": {
                 "visible": false

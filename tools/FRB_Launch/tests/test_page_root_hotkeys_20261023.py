@@ -64,7 +64,9 @@ def test_disabled_root_shortcuts_are_not_registered():
     for page in config['pages']:
         if page['page_id'] == 'work':
             page['enabled'] = False
-    assert not menu_shortcuts(validate(config))
+    # The disabled Files root stays disabled; Browser remains on independent System.
+    assert dict(menu_shortcuts(validate(config))) == {
+        '__browser_bookmarks_root': 'Ctrl+Shift+B'}
 
 
 def test_empty_shortcuts_keep_backward_compatibility():

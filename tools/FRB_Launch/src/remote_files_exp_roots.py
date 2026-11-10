@@ -29,7 +29,13 @@ def registered_folder_roots(rows, expand):
             except (OSError, ValueError, TypeError, KeyError):
                 continue
             if isinstance(path, str) and path.strip():
-                roots.append({'label': label or path, 'path': path, 'pc': False})
+                root = {'label': label or path, 'path': path, 'pc': False}
+                # Only authored candidates carry a stable Studio reference.
+                # Dynamic runtime/physical rows have no JSON identity.
+                if row.get('page_id') and row.get('item_id'):
+                    root.update(page_id=str(row['page_id']),
+                                item_id=str(row['item_id']))
+                roots.append(root)
     return roots
 
 

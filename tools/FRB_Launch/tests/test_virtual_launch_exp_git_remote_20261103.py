@@ -82,7 +82,7 @@ def test_identity_does_not_include_mutable_source_row_or_physical_path():
 def test_exp_root_append_precedes_registered_pc_and_home_selects_visible_first_root():
     source = (SRC / 'remote_files_explorer.py').read_text(encoding='utf-8')
     roots = source.split('    def set_roots(', 1)[1].split('    def refresh_directory_branch(', 1)[0]
-    assert roots.index('virtual_launch_pages(') < roots.index('for root in roots:')
+    assert roots.index('virtual_exp_roots(') < roots.index('for root in roots:')
     home = source.split('    def select_first_root_for_home(', 1)[1].split('    def _index_path(', 1)[0]
     assert 'self.model.index(0, 0)' in home
     assert '_is_pc_index' not in home

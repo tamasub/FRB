@@ -14,7 +14,8 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
 from shuriken_model import (choose_entry, uses_three_sector_guide,
                             uses_four_sector_guide, uses_two_horizontal_sector_guide,
-                            two_horizontal_sector_slot, three_sector_slot,
+                            two_horizontal_sector_slot, two_first_hand_sector_slot,
+                            three_sector_slot,
                             four_sector_slot, current_indicator_position,
                             THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
@@ -151,9 +152,10 @@ class ShurikenPreview(QWidget):
                 half_width = math.sqrt(max(0.0, radius * radius - y * y))
                 painter.drawLine(QPointF(-half_width, y), QPointF(half_width, y))
 
-        # The same origin is visible for 2-, 3- and 4-menu guides.
+        # The same origin stays visible for every first-hand size (1..4)
+        # as well as the generic 2/4-menu guides.
         # Paint it *after* dividers to hide crossings in the center.
-        if 2 <= count <= 4:
+        if 1 <= count <= 4:
             painter.setPen(QPen(QColor('#a2bdb6' if dark else '#385e56'), 1.2))
             if dark:
                 painter.setBrush(QColor('#192a30'))
@@ -175,16 +177,22 @@ class ShurikenPreview(QWidget):
         TEXT_SIDE_PADDING = 8
         for index, entry in enumerate(self.entries):
             if horizontal_pair:
-                text_anchor_x, text_cy, mark_x, mark_y, text_align = two_horizontal_sector_slot(entry)
+                if entry.hand_index == 1:
+                    text_anchor_x, text_cy, mark_x, mark_y, text_align = two_first_hand_sector_slot(entry)
+                else:
+                    text_anchor_x, text_cy, mark_x, mark_y, text_align = two_horizontal_sector_slot(entry)
             elif triad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = three_sector_slot(entry)
             elif quad:
                 text_anchor_x, text_cy, mark_x, mark_y, text_align = four_sector_slot(entry)
             else:
-                # Two entries remain vertically ordered: up then down.
-                # Keep their captions beyond the indicator, not on top of it.
+                # Legacy vertical pair, plus a single-action full circle.
+                # Keep captions outside the current ring.
                 text_anchor_x = mark_x = 0.0
-                if count == 2:
+                if count == 1:
+                    text_cy = -62.0
+                    mark_y = -self.MARKER_DISTANCE
+                elif count == 2:
                     is_up = (entry.direction == 'up'
                              if {row.direction for row in self.entries} == {'up', 'down'}
                              else index == 0)
@@ -319,8 +327,8 @@ class ShurikenButton(QPushButton):
         if self._drag_start is not None and (event.buttons() & Qt.MouseButton.LeftButton):
             point = event.globalPosition().toPoint()
             dx, dy = point.x() - self._drag_start.x(), point.y() - self._drag_start.y()
-            # The guide stays ABOVE the button. The pointer only controls
-            # the current mark; two rows or three 120° wedges never move.
+            # The guide stays ABOVE the button. Pointer changes only the eye;
+            # one-to-four sectors use the same geometry for paint and hit-test.
             self._selected_entry = choose_entry(
                 self._entries, dx, dy,
                 min_release_distance=self.DRAG_DEADZONE)

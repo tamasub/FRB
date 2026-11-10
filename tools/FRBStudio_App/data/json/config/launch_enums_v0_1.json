@@ -14,80 +14,128 @@
           "items": [
             {
               "cd": "category.blue",
-              "name": "カテゴリー（青）",
+              "name": "🟦 📁 カテゴリー（青）",
               "sort_order": 10,
               "deprecated": false
             },
             {
               "cd": "folder.yellow",
-              "name": "フォルダー（黄）",
+              "name": "🟨 フォルダー（黄）",
               "sort_order": 20,
               "deprecated": false
             },
             {
+              "cd": "folder.blue",
+              "name": "🟦 フォルダー（青）",
+              "sort_order": 21,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.green",
+              "name": "🟩 フォルダー（緑）",
+              "sort_order": 22,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.red",
+              "name": "🟥 フォルダー（赤）",
+              "sort_order": 23,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.purple",
+              "name": "🟪 フォルダー（紫）",
+              "sort_order": 24,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.orange",
+              "name": "🟧 フォルダー（橙）",
+              "sort_order": 25,
+              "deprecated": false
+            },
+            {
+              "cd": "folder.gray",
+              "name": "⬜ フォルダー（灰）",
+              "sort_order": 28,
+              "deprecated": false
+            },
+            {
               "cd": "file",
-              "name": "ファイル",
+              "name": "📄 ファイル",
               "sort_order": 30,
               "deprecated": false
             },
             {
               "cd": "command",
-              "name": "実行項目",
+              "name": "▶️ 実行項目",
               "sort_order": 40,
               "deprecated": false
             },
             {
               "cd": "calendar",
-              "name": "日付",
+              "name": "📅 日付",
               "sort_order": 50,
               "deprecated": false
             },
             {
               "cd": "mail",
-              "name": "メール",
+              "name": "✉️ メール",
               "sort_order": 60,
               "deprecated": false
             },
             {
               "cd": "wifi",
-              "name": "Wi-Fi",
+              "name": "📶 Wi-Fi",
               "sort_order": 70,
               "deprecated": false
             },
             {
               "cd": "volume",
-              "name": "音声",
+              "name": "🔊 音声",
               "sort_order": 80,
               "deprecated": false
             },
             {
               "cd": "archive",
-              "name": "ZIP",
+              "name": "🗜️ ZIP",
               "sort_order": 90,
               "deprecated": false
             },
             {
               "cd": "globe",
-              "name": "Web",
+              "name": "🌐 Web",
               "sort_order": 100,
               "deprecated": false
             },
             {
               "cd": "settings",
-              "name": "設定",
+              "name": "⚙️ 設定",
               "sort_order": 110,
               "deprecated": false
             },
             {
               "cd": "message",
-              "name": "message（既存値）",
+              "name": "💬 message（既存値）",
               "sort_order": 120,
               "deprecated": false
             },
             {
               "cd": "app",
-              "name": "app（既存値）",
+              "name": "🖥️ app（既存値）",
               "sort_order": 130,
+              "deprecated": false
+            },
+            {
+              "cd": "folder",
+              "name": "🟨 📁 フォルダー（旧キー）",
+              "sort_order": 135,
+              "deprecated": false
+            },
+            {
+              "cd": "category",
+              "name": "🟦 📁 カテゴリー（旧キー）",
+              "sort_order": 140,
               "deprecated": false
             }
           ]

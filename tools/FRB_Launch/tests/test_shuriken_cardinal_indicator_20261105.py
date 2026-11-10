@@ -24,6 +24,16 @@ def live_entries():
         (ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf8')), 1)
 
 
+def legacy_four_entries():
+    """Four-sector geometry remains available to non-first-hand consumers."""
+    return [
+        ShurikenEntry('a', 'A', 1, 'up', 10),
+        ShurikenEntry('b', 'B', 1, 'right', 20),
+        ShurikenEntry('c', 'C', 1, 'down', 30),
+        ShurikenEntry('d', 'D', 1, 'left', 40),
+    ]
+
+
 def legacy_three_entries():
     return [
         ShurikenEntry('a', 'A', 1, 'up_left', 10),
@@ -37,35 +47,38 @@ def two_entries():
             ShurikenEntry('b', 'B', 1, 'down', 2)]
 
 
-def test_new_four_cardinal_actions_maintain_clockwise_old_order():
-    entries = live_entries()
+def test_existing_four_cardinal_primitive_remains_usable():
+    entries = legacy_four_entries()
     assert len(entries) == 4
     assert uses_four_sector_guide(entries)
     assert {e.direction: e.item_id for e in entries} == {
-        'up': 'zip_studio',
-        'right': 'launch_source_zip',
-        'down': 'shuriken_git_commit_filename',
-        'left': 'faeee8f3-0b4a-4344-b5f1-594902740f42',
-    }
-    assert sorted(e.order for e in entries) == [10, 20, 30, 40]
+        'up': 'a', 'right': 'b', 'down': 'c', 'left': 'd'}
+
+
+def test_live_first_hand_uses_three_sectors_from_priority():
+    entries = live_entries()
+    assert len(entries) == 3
+    assert uses_three_sector_guide(entries)
+    assert [(e.order, e.direction) for e in entries] == [
+        (10, 'up_left'), (20, 'up_right'), (40, 'down')]
 
 
 @pytest.mark.parametrize('dx,dy,expected', [
-    (0, -70, 'zip_studio'),
-    (70, 0, 'launch_source_zip'),
-    (0, 70, 'shuriken_git_commit_filename'),
-    (-70, 0, 'faeee8f3-0b4a-4344-b5f1-594902740f42'),
+    (0, -70, 'a'),
+    (70, 0, 'b'),
+    (0, 70, 'c'),
+    (-70, 0, 'd'),
     (0, 0, None),
     (0, -20, None),
     (50, -50, None), (50, 50, None), (-50, 50, None), (-50, -50, None),
 ])
 def test_four_compass_flick_and_boundary_cancel(dx, dy, expected):
-    choice = choose_entry(live_entries(), dx, dy)
+    choice = choose_entry(legacy_four_entries(), dx, dy)
     assert (choice.item_id if choice else None) == expected
 
 
 def test_idle_is_center_and_selection_dots_match_all_four_axes():
-    entries = live_entries()
+    entries = legacy_four_entries()
     assert current_indicator_position(entries, '') == (0, 0)
     assert current_indicator_position(entries, 'missing') == (0, 0)
     expected = {'up': (0, -42), 'right': (42, 0),
@@ -93,13 +106,13 @@ def test_two_and_three_have_center_origin_and_one_moving_dot():
         assert current_indicator_position(legacy_three_entries(), row.item_id) == pytest.approx(
             three_sector_slot(row)[2:4])
     assert current_indicator_position([]) is None
-    assert current_indicator_position([two_entries()[0]]) is None
+    assert current_indicator_position([two_entries()[0]]) == (0.0, 0.0)
 
 
 def test_preview_uses_model_dot_white_center_x_and_dialog_safety_remains():
     source = (ROOT/'src/remote_shuriken.py').read_text('utf8')
     assert 'current_indicator_position(' in source
-    assert '2 <= count <= 4' in source
+    assert '1 <= count <= 4' in source
     assert "painter.setBrush(QColor('#ffffff'))" in source
     assert "painter.setBrush(QColor('#aed2a0'))" in source
     assert 'CURRENT_RADIUS = 24' in source

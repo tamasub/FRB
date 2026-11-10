@@ -16,13 +16,13 @@ def sample():
     return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf8'))
 
 
-def test_sample_has_both_targets_and_all_work_roots():
+def test_sample_has_both_targets_on_system_page():
     items = sample()['items']
     options = normalize_options(json.loads((ROOT / 'config/expanded_view_options.json').read_text(encoding='utf8')))
     roots, left, right = expanded_targets(items, options)
     assert left['title'] == 'Files'
-    assert right['title'] == 'ブックマーク'
-    assert {'設定', 'ZIP', 'Files', 'ブックマーク', 'Quick', '日付・定型文', 'メール宛先'} <= {r['title'] for r in roots}
+    assert right['title'] == 'Browser'
+    assert {r['title'] for r in roots} == {'Files', 'Browser'}
     assert all(not row.get('parent_item_id') for row in roots)
 
 
@@ -45,7 +45,7 @@ def test_page_roots_sorts_and_excludes_subfolders():
     ({'available': False}, False),
 ])
 def test_activation_condition(kwargs, expected):
-    base = dict(view_mode='expanded', page_id='work', query='', stack=[],
+    base = dict(view_mode='expanded', page_id='system', query='', stack=[],
                 selection=None, options=normalize_options(None), available=True)
     base.update(kwargs)
     assert should_expand(**base) == expected

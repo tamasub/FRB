@@ -1,9 +1,10 @@
 """Pure, JSON-authored FRB Remote shuriken menu contract.
 
-A hand index identifies a BUTTON, not a radial sector. One button may have
-up to ten entries. Two actions use the up/down guide; three actions use three 120-degree
-sectors; four actions use cardinal up/right/down/left sectors separated by
-45-degree diagonal boundaries. Captions are not hit targets.
+A hand index identifies a BUTTON, not a radial sector. Studio only decides
+which first-hand actions and in what priority. Launch owns the direction and
+geometry for the actual number of actions (1..4), in clockwise order.
+Historical shuriken_direction values in JSON never affect the placement.
+Other consumers' two/four-sector primitives are preserved.
 """
 import math
 from dataclasses import dataclass
@@ -13,7 +14,7 @@ DIRECTION_ANGLES = {
     'right': 0, 'down_right': 45, 'down': 90, 'down_left': 135,
     'left': 180, 'up_left': -135, 'up': -90, 'up_right': -45,
 }
-MAX_ITEMS_PER_HAND = 10
+MAX_ITEMS_PER_HAND = 4
 
 # FRB three-action 120° circle, in Qt screen coordinates (y grows DOWN).
 # Each tuple contains (gesture angle, caption anchor x/y, text alignment),
@@ -34,9 +35,8 @@ THREE_SECTOR_DIVIDERS = (-90.0, 30.0, 150.0)
 # up_left -> up, up_right -> right, down_right -> down, down_left -> left.
 # The divider lines bisect the gaps at 45/135/225/315 degrees (an X).
 # Two target selectors use a vertical divider: LEFT = Exp, RIGHT = List.
-# Keep captions inside the ball, *above* the side markers so text stays
-# readable after the green eye moves. Keep the dot at +/-42 px unchanged.
-# This is intentionally separate from the older 2-item up/down shuriken.
+# This generic Exp/List geometry is deliberately preserved; first-hand's
+# two-item labels instead sit OUTSIDE the circle, like its three-item labels.
 TWO_HORIZONTAL_LAYOUT = {
     # Place the captions slightly below the center so the selector feels
     # connected to the Pokeball eye, not like distant outside labels.
@@ -51,6 +51,16 @@ FOUR_SECTOR_LAYOUT = {
     'left': (180.0, -54.0, 0.0, 'right'),
 }
 
+# Launch-owned mapping by ACTIVE action count, independent of JSON directions.
+# The first item is the first position in each clockwise arrangement.
+FIRST_HAND_SLOTS = {
+    1: ('up',),
+    2: ('left', 'right'),
+    3: ('up_left', 'up_right', 'down'),
+    4: ('up', 'right', 'down', 'left'),
+}
+
+
 
 def uses_two_horizontal_sector_guide(entries):
     """Whether 2 items represent the FRB Remote Exp/List selector."""
@@ -59,9 +69,10 @@ def uses_two_horizontal_sector_guide(entries):
 
 
 def uses_three_sector_guide(entries):
-    """True exactly when the buttons' three entries match the 3-way sketch."""
+    """True only when three actions use the 120-degree clockwise sketch."""
     return (len(entries) == 3
-            and {row.direction for row in entries} == set(THREE_SECTOR_LAYOUT))
+            and len({row.direction for row in entries}) == len(entries)
+            and {row.direction for row in entries}.issubset(THREE_SECTOR_LAYOUT))
 
 
 def uses_four_sector_guide(entries):
@@ -76,6 +87,18 @@ def two_horizontal_sector_slot(entry, radius=72.0, marker_distance=42.0):
     return (anchor_x, label_y,
             -marker_distance if entry.direction == 'left' else marker_distance,
             0.0, align)
+
+
+def two_first_hand_sector_slot(entry, radius=72.0, marker_distance=42.0):
+    """Outside-circle labels for 1の手's horizontal two-item selector.
+
+    The Exp/List selector has its own historic in-circle labels and stays
+    unchanged; both use the same left/right hit sectors and green eye.
+    """
+    anchor_x = -58.0 if entry.direction == 'left' else 58.0
+    marker_x = -marker_distance if entry.direction == 'left' else marker_distance
+    return (anchor_x, 0.0, marker_x, 0.0,
+            'right' if entry.direction == 'left' else 'left')
 
 
 def three_sector_slot(entry, radius=72.0, marker_distance=42.0):
@@ -101,6 +124,9 @@ def current_indicator_position(entries, selected_id='', marker_distance=42.0):
     origin. Choosing an entry moves the dot to the same sector the renderer
     and release hit-test use. Return None for unsupported guide sizes.
     """
+    if len(entries) == 1 and entries[0].hand_index == 1:
+        selected = entries[0].item_id == selected_id
+        return (0.0, -marker_distance) if selected else (0.0, 0.0)
     if not 2 <= len(entries) <= 4:
         return None
     selected = next((row for row in entries if row.item_id == selected_id), None)
@@ -133,33 +159,45 @@ class ShurikenEntry:
 
 
 def configured_entries(data, hand_index=1):
-    """Read existing Launch *items*; no second action registry or copied BATs."""
+    """Resolve authored first-hand items to Launch-owned clockwise sectors.
+
+    - Studio determines only enabled membership and priority (shuriken_order).
+    - An equal priority preserves the order of JSON registration.
+    - A saved legacy `shuriken_direction` is ignored, never used to position UI.
+    - First-hand has 1/2/3/4 sectors respectively; 5th+ is ignored.
+    - The established launch action/context payload is unchanged.
+    """
     try:
         hand_index = int(hand_index)
     except (ValueError, TypeError):
         return []
     if not isinstance(data, dict):
         return []
-    entries = []
-    for row in data.get('items', []):
-        if not isinstance(row, dict) or not row.get('shuriken_enabled', False) or not row.get('enabled', True):
+    candidates = []
+    for index, row in enumerate(data.get('items', [])):
+        if (not isinstance(row, dict) or not row.get('shuriken_enabled', False)
+                or not row.get('enabled', True)):
             continue
         try:
-            button = int(row.get('shuriken_button_index', 0))
-            order = int(row.get('shuriken_order', 100))
+            button = int(row.get('shuriken_button_index') or 1)
+            order = int(row.get('shuriken_order') if row.get('shuriken_order') is not None else 100)
         except (ValueError, TypeError):
             continue
-        direction = str(row.get('shuriken_direction', '')).strip().lower()
-        if button != hand_index or direction not in DIRECTION_ANGLES:
+        if button != hand_index:
             continue
-        item_id = str(row.get('item_id', '')).strip()
+        item_id = str(row.get('item_id') or '').strip()
         if not item_id:
             continue
-        entries.append(ShurikenEntry(item_id, str(row.get('title') or item_id), button,
-                                      direction, order, str(row.get('shuriken_context_action_id') or '')))
-    entries.sort(key=lambda row: (row.order, row.item_id))
-    # Never silently execute a hidden eleventh action.
-    return entries[:MAX_ITEMS_PER_HAND]
+        candidates.append((order, index, item_id,
+                           str(row.get('title') or item_id),
+                           str(row.get('shuriken_context_action_id') or '')))
+    candidates.sort(key=lambda row: (row[0], row[1]))
+    active = candidates[:MAX_ITEMS_PER_HAND]
+    if not active:
+        return []
+    slots = FIRST_HAND_SLOTS[len(active)]
+    return [ShurikenEntry(item_id, title, hand_index, slots[slot], order, context)
+            for slot, (order, _, item_id, title, context) in enumerate(active)]
 
 
 def direction_of(dx, dy, deadzone=14):
@@ -233,6 +271,9 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
     """
     if not entries or math.hypot(dx, dy) < min_release_distance:
         return None
+    # A single first-hand action owns the whole circle (no empty directions).
+    if len(entries) == 1 and entries[0].hand_index == 1:
+        return entries[0]
     if uses_two_horizontal_sector_guide(entries):
         # Exp/List selection is a cardinal horizontal flick ONLY. A diagonal
         # release or a click at the central ring must never switch columns.
@@ -246,7 +287,9 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
                                   + 180.0) % 360.0 - 180.0), index)
                             for index, e in enumerate(entries))
         nearest, index = candidates[0]
-        if len(candidates) > 1 and candidates[1][0] - nearest < 2.0:
+        # When fewer than three actions are registered, an empty wedge does
+        # not accidentally launch the nearest other action.
+        if nearest > 60.0 or (len(candidates) > 1 and candidates[1][0] - nearest < 2.0):
             return None
         return entries[index]
     if uses_four_sector_guide(entries):

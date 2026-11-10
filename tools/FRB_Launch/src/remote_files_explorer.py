@@ -24,8 +24,9 @@ from clipboard_paste import clipboard_sources, is_cut_clipboard
 from file_transfer_visual import transfer_state
 from pathlib import Path
 from system_drives import drive_rows
-from launch_virtual_tree import (virtual_launch_pages, virtual_item_identity,
+from launch_virtual_tree import (virtual_exp_roots, virtual_item_identity,
                                  virtual_exp_folders)
+from registered_root_studio import verified_registered_root
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
@@ -265,6 +266,7 @@ class RemoteFilesExplorer(QWidget):
     folder_selected = Signal(str)
     pc_selected = Signal()
     folder_context_requested = Signal(str, QPoint)
+    authored_root_context_requested = Signal(str, object, QPoint)
     folder_renamed = Signal(str, str)
     virtual_item_activated = Signal(object)
     virtual_folder_selected = Signal(object)
@@ -493,13 +495,16 @@ class RemoteFilesExplorer(QWidget):
         self._virtual_file_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         self.apply_theme(theme)
 
-    def _append_folder(self, parent, label, path, *, pc=False, missing=False):
-        item = QStandardItem(self._pc_icon if pc else self._folder_icon, label)
+    def _append_folder(self, parent, label, path, *, pc=False, missing=False,
+                       authored_identity=None, configured_icon=None):
+        folder_icon = (self._pc_icon if pc else configured_icon or self._folder_icon)
+        item = QStandardItem(folder_icon, label)
         item.setEditable(False)
         item.setDragEnabled(False)
         item.setDropEnabled(False)
-        item.setData({'path': path, 'pc': pc}, _DATA_ROLE)
-        item.setData(self._pc_icon if pc else self._folder_icon, _NORMAL_ICON_ROLE)
+        item.setData({'path': path, 'pc': pc,
+                      'studio_identity': authored_identity}, _DATA_ROLE)
+        item.setData(folder_icon, _NORMAL_ICON_ROLE)
         item.setData(False, _LOADED_ROLE)
         item.setToolTip('ドライブ一覧' if pc else str(path))
         if missing:
@@ -520,7 +525,14 @@ class RemoteFilesExplorer(QWidget):
         # Page roots already show the user-selected Page emoji in their title.
         # The extra yellow folder duplicates that identity; keep it only for
         # actual virtual subfolders (and keep Qt's disclosure arrow intact).
-        icon = QIcon() if node['kind'] == 'page' else self._virtual_folder_icon
+        configured = (node.get('row') or {}).get('icon_key')
+        # Page headings retain their already visible emoji. Categories like
+        # My Work → ZIP use their own Studio-selected icon_key, not one fixed
+        # purple glyph for every JSON folder.
+        icon = (QIcon() if node['kind'] == 'page' else
+                self._launcher.row_icon({'icon_key': configured})
+                if configured and self._launcher is not None else
+                self._virtual_folder_icon)
         item = QStandardItem(icon, node['title'])
         item.setEditable(False)
         item.setDragEnabled(False)
@@ -699,16 +711,35 @@ class RemoteFilesExplorer(QWidget):
             parent = self.model.invisibleRootItem()
             launcher = self._launcher
             if launcher is not None:
-                for page in virtual_launch_pages(
+                options = getattr(launcher, 'expanded_options', {}) or {}
+                for page in virtual_exp_roots(
                         getattr(launcher, 'pages', ()),
                         getattr(launcher, 'authored_items', ()),
                         (getattr(launcher, 'data', None) or {}).get('items', ()),
-                        system_files_item_id=(getattr(launcher, 'expanded_options', {})
-                                              or {}).get('files_item_id', 'folders')):
+                        system_page_id=options.get('page_id', 'system'),
+                        system_files_item_id=options.get('files_item_id', 'folders'),
+                        bookmarks_item_id=options.get('bookmarks_item_id',
+                                                      '__browser_bookmarks_root')):
                     self._append_virtual(parent, page)
             for root in roots:
                 path = root['path']
+                # Resolve the registered shortcut against the *authored* JSON.
+                # A generated filesystem child never receives Studio identity.
+                source = (verified_registered_root(
+                    root, getattr(launcher, 'pages', ()),
+                    getattr(launcher, 'authored_items', ()), expand)
+                    if launcher is not None and not root['pc'] else None)
+                identity = ({'source': 'launch_json',
+                             'page_id': source['page_id'],
+                             'item_id': source['item_id'],
+                             'node_id': f"item:{source['page_id']}:{source['item_id']}"}
+                            if source else None)
+                icon_key = source.get('icon_key', 'folder.yellow') if source else None
+                selected_icon = (launcher.row_icon({'icon_key': icon_key})
+                                 if launcher is not None and icon_key else None)
                 self._append_folder(parent, root['label'], path, pc=root['pc'],
+                                    authored_identity=identity,
+                                    configured_icon=selected_icon,
                                     missing=not root['pc'] and not os.path.isdir(path))
             self.tree.clearSelection()
             self.tree.setCurrentIndex(self.model.index(-1, 0))
@@ -1394,7 +1425,12 @@ class RemoteFilesExplorer(QWidget):
         self._selection_timer.stop()
         self.tree.setCurrentIndex(index)
         self._selection_timer.stop()
-        self.folder_context_requested.emit(path, self.tree.viewport().mapToGlobal(local_pos))
+        point = self.tree.viewport().mapToGlobal(local_pos)
+        identity = data.get('studio_identity') if isinstance(data, dict) else None
+        if identity:
+            self.authored_root_context_requested.emit(path, identity, point)
+        else:
+            self.folder_context_requested.emit(path, point)
 
     def _expand_index(self, index):
         """Populate only the opened branch. No filesystem write or navigation."""

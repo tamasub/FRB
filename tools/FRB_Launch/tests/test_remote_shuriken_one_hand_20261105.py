@@ -22,26 +22,25 @@ def source(path):
     return (ROOT / path).read_text(encoding='utf-8')
 
 
-def test_user_config_registers_four_real_actions_in_one_hand(data):
+def test_user_config_registers_three_clockwise_actions_in_one_hand(data):
     entries = configured_entries(data, 1)
-    assert len(entries) == 4
+    assert len(entries) == 3
     assert [x.item_id for x in entries] == [
-        'zip_studio', 'launch_source_zip',
-        'faeee8f3-0b4a-4344-b5f1-594902740f42', 'shuriken_git_commit_filename']
-    assert [x.direction for x in entries] == ['up', 'right', 'left', 'down']
+        'zip_studio', 'launch_source_zip', 'shuriken_git_commit_filename']
+    assert [x.direction for x in entries] == ['up_left', 'up_right', 'down']
     assert entries[0].context_action_id == ''
     assert entries[1].context_action_id == ''
-    assert entries[3].context_action_id == 'git_commit_from_zip'
+    assert entries[2].context_action_id == 'git_commit_from_zip'
     assert configured_entries(data, 2) == []
     assert all(row.hand_index == 1 for row in entries)
 
 
-def test_buttons_not_limited_to_four_or_one_per_sector(data):
-    assert MAX_ITEMS_PER_HAND >= 10
+def test_buttons_cap_four_per_hand_and_keep_three_sectors_when_three_registered(data):
+    assert MAX_ITEMS_PER_HAND == 4
     rows = [r for r in data['items'] if r.get('shuriken_enabled')]
-    assert len(rows) == 4
+    assert len(rows) == 3
     assert all(len(sector_entries(configured_entries(data, 1), direction)) == 1
-               for direction in ('up', 'right', 'down', 'left'))
+               for direction in ('up_left', 'up_right', 'down'))
 
 
 @pytest.mark.parametrize('dx,dy,direction', [
@@ -72,20 +71,18 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
 
 
 
-def test_four_way_blind_flicks_match_cardinal_labels_and_click_cancels(data):
+def test_three_way_flicks_match_clockwise_labels_and_click_cancels(data):
     entries = configured_entries(data, 1)
-    assert choose_entry(entries, 0, -47).item_id == 'zip_studio'
-    assert choose_entry(entries, 47, 0).item_id == 'launch_source_zip'
-    assert choose_entry(entries, -47, 0).item_id == 'faeee8f3-0b4a-4344-b5f1-594902740f42'
+    assert choose_entry(entries, -47, -47).item_id == 'zip_studio'
+    assert choose_entry(entries, 47, -47).item_id == 'launch_source_zip'
     assert choose_entry(entries, 0, 47).item_id == 'shuriken_git_commit_filename'
     assert choose_entry(entries, 0, 0) is None
     assert choose_entry(entries, 0, 20) is None
-    # Diagonal 45 degrees is a divider and cancels.
-    assert choose_entry(entries, 47, -47) is None
+    # Straight up is the divider between the left/right top sectors.
+    assert choose_entry(entries, 0, -47) is None
 
 
-
-def test_exactly_ten_actions_per_button_still_supported(data):
+def test_ten_configured_actions_are_valid_but_only_first_four_visible(data):
     import copy
     draft = copy.deepcopy(data)
     template = next(x for x in draft['items'] if x.get('shuriken_enabled'))
@@ -97,10 +94,10 @@ def test_exactly_ten_actions_per_button_still_supported(data):
         clone['shuriken_direction'] = directions[i]
         clone['shuriken_order'] = 100 + i
         draft['items'].append(clone)
-    assert len(configured_entries(validate(draft), 1)) == 10
+    assert len(configured_entries(validate(draft), 1)) == 4
 
 
-def test_reject_eleven_menu_items_same_button(data):
+def test_eleven_configured_menu_items_are_accepted_and_extra_ignored_after_four(data):
     import copy
     draft = copy.deepcopy(data)
     template = next(x for x in draft['items'] if x.get('shuriken_enabled'))
@@ -108,8 +105,7 @@ def test_reject_eleven_menu_items_same_button(data):
         clone = copy.deepcopy(template)
         clone['item_id'] = f'shuriken_extra_{i}'
         draft['items'].append(clone)
-    with pytest.raises(ValueError, match='最大10件'):
-        validate(draft)
+    assert len(configured_entries(validate(draft), 1)) == 4
 
 
 def test_reject_unsupported_context_dispatch(data):
@@ -151,7 +147,8 @@ def test_studio_can_edit_shuriken_properties():
     definition = json.loads(source('defs/launch/frb_launch_maintenance_view_def_v0_1.json'))
     fields = definition['views'][0]['sections'][1]['fields']
     indexed = {row['field']: row for row in fields}
-    for key in ('shuriken_enabled', 'shuriken_button_index', 'shuriken_direction',
-                'shuriken_order', 'shuriken_context_action_id'):
+    for key in ('shuriken_enabled', 'shuriken_order', 'shuriken_context_action_id'):
         assert indexed[key]['edit']['visible'] is True
+    assert indexed['shuriken_button_index']['edit']['visible'] is False
+    assert 'shuriken_direction' not in indexed
     assert indexed['shuriken_enabled']['type'] == 'boolean'

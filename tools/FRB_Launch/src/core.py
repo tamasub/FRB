@@ -56,12 +56,10 @@ def validate(data):
         if row.get('shuriken_enabled', False):
             # 1の手 is a BUTTON index. A button may have many directional items.
             index = row.get('shuriken_button_index')
-            if not isinstance(index, int) or isinstance(index, bool) or index < 1:
+            if index not in (None, '') and (not isinstance(index, int) or isinstance(index, bool) or index < 1):
                 raise ValueError('手裏剣ボタン番号は1以上の整数です')
-            if row.get('shuriken_direction') not in (
-                    'center', 'up', 'up_right', 'right', 'down_right', 'down',
-                    'down_left', 'left', 'up_left'):
-                raise ValueError('手裏剣の方向はcenterを含む9方向から選択してください')
+            # Legacy shuriken_direction remains loadable but is ignored.
+            # Active 1-4 clockwise sectors are determined by Launch itself.
             context = row.get('shuriken_context_action_id', '')
             if context and context != 'git_commit_from_zip':
                 raise ValueError('未対応の手裏剣コンテキスト操作です')
@@ -70,12 +68,8 @@ def validate(data):
         # A selection group may temporarily have no candidates while the user
         # imports a replacement CSV and assigns group_id values later.
         # Keep the item valid; the selection screen already handles 0 rows.
-    from collections import Counter
-    shuriken_counts = Counter(row.get('shuriken_button_index')
-                              for row in items.values()
-                              if row.get('shuriken_enabled') and row.get('enabled', True))
-    if any(n > 10 for n in shuriken_counts.values()):
-        raise ValueError('手裏剣メニューは1ボタンにつき最大10件です')
+    # The UI accepts any number of authored entries. The Launch model
+    # intentionally displays/executes at most four per hand.
     menu_shortcuts(data)  # Check root-only scope and duplicates before activation.
     return data
 

@@ -50,7 +50,8 @@ from wheel_zone_navigation import WheelZoneNavigation
 from workspace_tab_geometry import workspace_tab_line_segments
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from bookmark_menu import expanded_bookmark_rows
-from launch_virtual_tree import virtual_list_rows, virtual_lookup_node
+from launch_virtual_tree import (virtual_list_rows, virtual_lookup_node,
+                                 virtual_exp_presentation)
 from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
                                history_popup_qss, bookmark_section_colors)
 
@@ -1699,6 +1700,8 @@ class ExpandedLauncherView(QWidget):
             launcher.navigate_files_exp_pc)
         self.embedded_files_exp.folder_context_requested.connect(
             launcher.show_files_exp_folder_menu)
+        self.embedded_files_exp.authored_root_context_requested.connect(
+            launcher.show_files_exp_authored_root_menu)
         self.embedded_files_exp.folder_renamed.connect(
             launcher.on_files_exp_folder_renamed)
         self.embedded_files_exp.virtual_item_activated.connect(
@@ -2915,6 +2918,13 @@ class ExpandedLauncherView(QWidget):
         if (not isinstance(node, dict) or node.get('source') != 'launch_json'
                 or node.get('kind') == 'file'):
             return False
+        # The System Page is internal to Studio. Files Exp promotes its Browser
+        # category to a Page-level 「ブックマーク」 root without changing JSON IDs.
+        options = getattr(self.launcher, 'expanded_options', {}) or {}
+        node = virtual_exp_presentation(
+            node, system_page_id=options.get('page_id', 'system'),
+            bookmarks_item_id=options.get('bookmarks_item_id',
+                                          '__browser_bookmarks_root'))
         if (getattr(self, '_virtual_directory_node', None) is None or
                 self._virtual_directory_node.get('node_id') != node['node_id']):
             self._virtual_sort_custom = False

@@ -34,6 +34,13 @@
       "sort_order": 40,
       "title": "💟 お気に入り",
       "enabled": true
+    },
+    {
+      "page_id": "system",
+      "title": "⚙️ System",
+      "sort_order": 50,
+      "enabled": true,
+      "icon_key": "⚙️"
     }
   ],
   "items": [
@@ -81,7 +88,7 @@
     },
     {
       "item_id": "folders",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "",
       "title": "Files",
       "description": "実フォルダー・ファイルを展開",
@@ -327,12 +334,12 @@
     },
     {
       "item_id": "studio_dir",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "title": "FRB Studio_App",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 80,
       "enabled": true,
       "keywords": [],
@@ -399,7 +406,7 @@
           "launch_show_console": true
         }
       ],
-      "shuriken_enabled": true,
+      "shuriken_enabled": false,
       "shuriken_button_index": 1,
       "shuriken_direction": "up",
       "shuriken_order": 10
@@ -947,12 +954,12 @@
     },
     {
       "item_id": "frb_root_folder",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "title": "FRB  Root",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 60,
       "enabled": true,
       "keywords": [],
@@ -1789,7 +1796,7 @@
     },
     {
       "item_id": "b5d2a0e0-2e84-4524-86f4-ab053663e3cd",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "title": "PC",
       "description": "デバイスとドライブを表示",
@@ -1818,13 +1825,13 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "3602dda2-b6e9-4a04-859e-56de69037470",
       "title": "FRB_Launch",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 70,
       "enabled": true,
       "keywords": [],
@@ -1843,7 +1850,7 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "090c2b79-2581-42d8-9ac6-3ae17ececd99",
       "title": "F:\\",
@@ -1908,13 +1915,13 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "b43442c0-4da2-4cc3-85d6-e220b3d93aa4",
       "title": "FRB_docsExcel",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 90,
       "enabled": true,
       "keywords": [],
@@ -1939,7 +1946,7 @@
       "title": "FRB Main BackUp  ZIP保存",
       "description": "F:\\FRB ／　F:\\FRB_docsExcel",
       "item_kind": "command",
-      "icon_key": "file",
+      "icon_key": "archive",
       "sort_order": 30,
       "enabled": true,
       "keywords": [],
@@ -1964,7 +1971,7 @@
       "title": "archiveへ Zip保存",
       "description": "F:\\FRB_docsExcel\\設計書 ／　実験ログ",
       "item_kind": "command",
-      "icon_key": "file",
+      "icon_key": "archive",
       "sort_order": 40,
       "enabled": true,
       "keywords": [],
@@ -1983,7 +1990,7 @@
           "launch_result_format": "none"
         }
       ],
-      "shuriken_enabled": true,
+      "shuriken_enabled": false,
       "shuriken_button_index": 1,
       "shuriken_direction": "left",
       "shuriken_order": 30
@@ -2026,7 +2033,7 @@
     },
     {
       "item_id": "__browser_bookmarks_root",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "",
       "title": "ブックマーク",
       "description": "Chrome / Edge のブックマークを自動取得",
@@ -2111,13 +2118,13 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "f0628e81-c03f-4573-820c-4b56f8dcbe37",
       "title": "FRBStudio_App\\data\\json",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 100,
       "enabled": true,
       "keywords": [],
@@ -2273,12 +2280,12 @@
     },
     {
       "item_id": "389ab3f6-86b4-4657-a51c-16e53d38ffb3",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "title": "ダウンロード",
       "description": "%USERPROFILE%\\Downloads",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "folder.green",
       "sort_order": 20,
       "enabled": true,
       "keywords": [],
@@ -2327,12 +2334,12 @@
     },
     {
       "item_id": "bc7c281c-7842-4166-bb49-e960e43fa51a",
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "title": "ドキュメント",
       "description": "%USERPROFILE%\\Documents",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "folder.green",
       "sort_order": 30,
       "enabled": true,
       "keywords": [],
@@ -2360,13 +2367,13 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "bb603d03-fa7a-4659-b139-fca53e2f7a77",
       "title": "FRB_backups",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "category.blue",
       "sort_order": 110,
       "enabled": true,
       "keywords": [],
@@ -2385,13 +2392,13 @@
       ]
     },
     {
-      "page_id": "work",
+      "page_id": "system",
       "parent_item_id": "folders",
       "item_id": "307cecb5-28e8-4836-a9bc-bd3f44d36d81",
       "title": "FRB Launch Logフォルダー",
       "description": "",
       "item_kind": "directory",
-      "icon_key": "folder.yellow",
+      "icon_key": "archive",
       "sort_order": 40,
       "enabled": true,
       "keywords": [],
@@ -2417,7 +2424,7 @@
       "description": "",
       "item_kind": "command",
       "icon_key": "category.blue",
-      "sort_order": 30,
+      "sort_order": 60,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2451,11 +2458,11 @@
       "page_id": "frb",
       "parent_item_id": "",
       "item_id": "9c06b79a-572a-487a-afed-4dc98316870c",
-      "title": "作者公開URL：zennブログ",
+      "title": "作者公開URL：zennブログ  ～FRB Launch／FRB Studio／思考拡張／AI承認駆動開発",
       "description": "",
       "item_kind": "command",
       "icon_key": "category.blue",
-      "sort_order": 40,
+      "sort_order": 70,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2493,7 +2500,7 @@
       "description": "",
       "item_kind": "command",
       "icon_key": "category.blue",
-      "sort_order": 50,
+      "sort_order": 80,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2531,7 +2538,7 @@
       "description": "",
       "item_kind": "command",
       "icon_key": "category.blue",
-      "sort_order": 60,
+      "sort_order": 90,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2716,7 +2723,7 @@
       "description": "",
       "item_kind": "command",
       "icon_key": "category.blue",
-      "sort_order": 70,
+      "sort_order": 100,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2730,6 +2737,234 @@
         {
           "launch_action_type": "Open",
           "launch_target": "https://lets-emoji.com/emojilist/emojilist-1/",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "0fdd6bb8-bbdc-4166-983d-fed4eaddbcff",
+      "title": "作者公開URL：Qiita ブログ",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 40,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "a09505f8-972b-49cb-aa58-c8977f63bcd1",
+      "title": "作者公開URL：Qiita FRB ブログ － 釣り竿の「感度」を数値化する話 - FRB（Fishing Rod Benchmark）宣言　",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 50,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/2b6649748e1772b7eec1",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "7572ec1d-27ee-40a1-98e4-272a4391cd00",
+      "title": "作者公開URL：FRB Launch - Qiita － AI協働：Python製ランチャー「FRB Launch」の独自UI機能14選 ～ぐりぐり・とんとん・ごちゃまぜの操作革命～",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 30,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/659b0b74c5cacbba701f",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "e725279b-ce01-494c-8e24-f57caef94ea2",
+      "title": "作者公開URL：FRB Launch - GitHub.io",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 35,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://tamasub.github.io/FRB/tools/FRB_Launch/",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "26865805-e524-40bb-9098-7ce571e4ea6f",
+      "title": "作者公開URL：【窓の杜】Pocket Recorder With Humming To Midi",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 95,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://forest.watch.impress.co.jp/library/software/pocketreco/",
+          "launch_text": "",
+          "launch_program": "explorer.exe",
+          "launch_arguments": [
+            "ms-settings:network-wifi"
+          ],
+          "launch_working_directory": "",
+          "launch_browser": "",
+          "launch_wait_for_exit": false,
+          "launch_show_console": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ]
+    },
+    {
+      "page_id": "frb",
+      "parent_item_id": "",
+      "item_id": "af8a629a-4031-4951-bb27-14e48abe3b1c",
+      "title": "作者公開URL：FRB Vibration Music 〜 振動ログを音楽として聴く実験 〜",
+      "description": "",
+      "item_kind": "command",
+      "icon_key": "category.blue",
+      "sort_order": 92.5,
+      "enabled": true,
+      "keywords": [],
+      "launch_selection_group_id": "",
+      "launch_selection_value_field": "",
+      "launch_selection_separator": "",
+      "launch_selection_result_name": "",
+      "launch_browse_target": "",
+      "launch_context_app": "",
+      "launch_context_url_pattern": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://tamasub364.ikidane.com/",
           "launch_text": "",
           "launch_program": "explorer.exe",
           "launch_arguments": [

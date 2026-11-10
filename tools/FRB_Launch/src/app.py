@@ -28,6 +28,7 @@ from guriguri_shuriken_auto import WheelShurikenGate, AUTO_SHURIKEN_ENABLED
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
+from launch_icon_palette import studio_icon_emoji, folder_icon_color
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text, matches_choice_search
 from ime_input import initialize_halfwidth_english
@@ -178,16 +179,45 @@ DIAG.info('START root=%s config=%s', ROOT, CONFIG)
 
 
 def icon(kind):
-    pix = QPixmap(24,24); pix.fill(Qt.GlobalColor.transparent)
-    p = QPainter(pix); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    color = '#6ba7ff' if kind.startswith('category') else '#e9bb61' if kind.startswith('folder') else '#72d7c0'
-    p.setPen(Qt.PenStyle.NoPen); p.setBrush(QColor(color))
-    if 'folder' in kind or 'category' in kind:
-        p.drawRoundedRect(2,7,20,14,3,3); p.drawRoundedRect(3,4,9,7,2,2)
+    """Match the icon shown in Studio's ``launch.icon_key`` dropdown.
+
+    The older icon renderer abbreviated calendar/mail/wifi/archive to
+    D/@/W/Z inside green tiles.  That contradicted the Studio preview and
+    was especially confusing for configured Files Exp directory shortcuts.
+    """
+    emoji = studio_icon_emoji(kind)
+    if emoji:
+        # Match Studio's visible emoji (including variation selectors) rather
+        # than sketching a different letter/icon.  Keep a HiDPI source so the
+        # same QIcon stays sharp in Exp, the list and cascade views.
+        pix = QPixmap(48, 48)
+        pix.setDevicePixelRatio(2)
+        pix.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pix)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setFont(QFont('Segoe UI Emoji', 15))
+        painter.drawText(QRect(0, 0, 24, 24), Qt.AlignmentFlag.AlignCenter, emoji)
+        painter.end()
+        return QIcon(pix)
+
+    pix = QPixmap(24, 24)
+    pix.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pix)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    color = folder_icon_color(kind)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QColor(color or '#72d7c0'))
+    if color:
+        painter.drawRoundedRect(2, 7, 20, 14, 3, 3)
+        painter.drawRoundedRect(3, 4, 9, 7, 2, 2)
     else:
-        p.drawRoundedRect(3,3,18,18,5,5)
-        p.setPen(QColor('#17212b')); p.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, {'calendar':'D','mail':'@','wifi':'W','volume':'♪','archive':'Z','globe':'↗','settings':'⚙'}.get(kind,'›'))
-    p.end(); return QIcon(pix)
+        # Keep the old fallback for unknown/private icon keys.  All values
+        # offered by the Studio vocabulary now have a matching visual mark.
+        painter.drawRoundedRect(3, 3, 18, 18, 5, 5)
+        painter.setPen(QColor('#17212b'))
+        painter.drawText(pix.rect(), Qt.AlignmentFlag.AlignCenter, '›')
+    painter.end()
+    return QIcon(pix)
 
 
 def history_clock_icon():
@@ -3909,6 +3939,31 @@ class Launcher(QWidget):
             position, remote_folder_list=True,
             files_exp_rename_target=str(directory))
 
+    def show_files_exp_authored_root_menu(self, directory, identity, position):
+        """Same filesystem context menu, with Properties routed to Studio.
+
+        The target must still be an authored, enabled directory and its
+        configured physical path must match the actual clicked root. This
+        prevents a generated child or stale projected row from editing JSON.
+        """
+        from registered_root_studio import verified_registered_root
+        if not isinstance(identity, dict) or identity.get('source') != 'launch_json':
+            return self.show_files_exp_folder_menu(directory, position)
+        row = verified_registered_root({
+            'page_id': identity.get('page_id'), 'item_id': identity.get('item_id'),
+            'path': directory}, self.pages, self.authored_items,
+            self.expander().expand)
+        if row is None or identity.get('node_id') != (
+                f"item:{row['page_id']}:{row['item_id']}"):
+            return self.show_files_exp_folder_menu(directory, position)
+        if not self.navigate_files_exp_folder(directory):
+            return False
+        self.close_remote_folder_menu()
+        return self.show_expanded_background_paste_menu(
+            position, remote_folder_list=True,
+            files_exp_rename_target=str(directory),
+            studio_properties_item_id=str(row['item_id']))
+
     def on_files_exp_folder_renamed(self, old_path, new_path):
         """An inline Files Exp rename commits before breadcrumb navigation."""
         if not Path(new_path).is_dir():
@@ -4364,6 +4419,8 @@ class Launcher(QWidget):
             self.remote_window.files_exp_folder_selected.connect(self.navigate_files_exp_folder)
             self.remote_window.files_exp_pc_selected.connect(self.navigate_files_exp_pc)
             self.remote_window.files_exp_folder_context.connect(self.show_files_exp_folder_menu)
+            self.remote_window.files_exp_authored_root_context.connect(
+                self.show_files_exp_authored_root_menu)
             self.remote_window.files_exp_folder_renamed.connect(self.on_files_exp_folder_renamed)
             self.remote_window.virtual_item_activated.connect(self.activate_virtual_launch_item)
             self.remote_window.virtual_folder_selected.connect(self.navigate_virtual_launch_folder)
@@ -8264,7 +8321,7 @@ class Launcher(QWidget):
         self.mode_button.setIcon(view_mode_icon('classic' if showing_classic else 'expanded',
                                                 self.color_theme))
         self.mode_button.setToolTip(
-            '仕事Pageで展開ビューを使えます' if self.view_mode == 'expanded'
+            'Files／Browserの設定Pageで展開ビューを使えます' if self.view_mode == 'expanded'
             and self.page_id != self.expanded_options['page_id'] else
             '従来表示とFiles／ブックマーク同時表示を切替')
         self.compact_mode_action.setText(
@@ -8397,7 +8454,11 @@ class Launcher(QWidget):
             if self.list.order_enabled:self.list.order_rows=[row for row,path in pairs]
             for row,path in pairs:
                 title, desc = display_columns(row, path, selection=bool(self.selection))
-                q=QTreeWidgetItem([title,desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
+                # Selection mode uses a QLineEdit as the sole visible painter
+                # for column 1.  Keeping desc as QTreeWidgetItem text would
+                # paint a second, overlapping line of emojis beneath the
+                # transparent editor.  The source row and tooltip keep desc.
+                q=QTreeWidgetItem([title, '' if self.selection else desc]);q.setData(0,Qt.ItemDataRole.UserRole,row)
                 q.setToolTip(0,row['title']);q.setToolTip(1,row.get('description','') if row.get('_browser_bookmark') else desc)
                 q.setIcon(0,self.row_icon(row))
                 q.setForeground(1,QColor('#647f71' if self.color_theme == 'light' else '#a6b4c7'))
@@ -8405,6 +8466,27 @@ class Launcher(QWidget):
                     q.setFlags(q.flags()|Qt.ItemFlag.ItemIsUserCheckable)
                     q.setCheckState(0,Qt.CheckState.Checked if self.selection and row['choice_id'] in self.checked else Qt.CheckState.Unchecked)
                 self.list.addTopLevelItem(q)
+                if self.selection:
+                    # A read-only editor (not a label) lets users select just
+                    # part of a long emoji/text value and Ctrl+C/right-click
+                    # Copy, without editing Launch's JSON or checking the row.
+                    # Only the selection palette gets these editors: the normal
+                    # menu/search list keeps its native hover/reorder behavior.
+                    description = QLineEdit(desc, self.list)
+                    description.setObjectName('choiceDescriptionReadonly')
+                    description.setReadOnly(True)
+                    description.setFrame(False)
+                    description.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+                    description.setCursor(Qt.CursorShape.IBeamCursor)
+                    description.setToolTip(desc)
+                    description.setStyleSheet(
+                        'QLineEdit#choiceDescriptionReadonly {'
+                        'background:transparent; border:none; border-radius:0;'
+                        'margin:0; padding:0 2px;'
+                        'color:' + ('#47675a' if self.color_theme == 'light' else '#b4c9c5') + ';'
+                        'selection-background-color:#669dde;'
+                        'selection-color:#ffffff; }')
+                    self.list.setItemWidget(q, 1, description)
             # Sort only matched search results.  Ordinary groups retain their
             # persisted manual sort_order and mouse drag operations.
             if query:self.apply_search_sort()
@@ -8568,6 +8650,39 @@ class Launcher(QWidget):
     def navigate_home(self):
         if not self.data or not self.pages:
             return
+        # A selection palette (emoji / recipients) or a classic Page can hide
+        # the Files workspace even while Three-layer mode is selected. HOME
+        # still means Files Exp home, not Page[0] (ZIP / Quick). Restore the
+        # configured workspace Page before applying the existing HOME contract.
+        if getattr(self, 'view_mode', None) == 'expanded' and not self.expanded_view.isVisible():
+            options = self._read_expanded_options()
+            workspace_page = options.get('page_id')
+            page_index = next((i for i, page in enumerate(self.pages)
+                               if page.get('page_id') == workspace_page
+                               and page.get('enabled', True)), None)
+            if page_index is not None:
+                self._nav_before_change()
+                self._nav_restoring = True
+                try:
+                    self.hide_history_popup()
+                    if self.menu:
+                        self.menu.close()
+                    self.hover_timer.stop()
+                    self.pending_menu_item = None
+                    self.stack = []
+                    self.selection = None
+                    self.checked.clear()
+                    self._global_selection_query = None
+                    self._global_selection_choice_ids = None
+                    self.page_id = workspace_page
+                    self.tabs.blockSignals(True)
+                    self.tabs.setCurrentIndex(page_index)
+                    self.tabs.blockSignals(False)
+                    self.search.clear()
+                    self.render()
+                finally:
+                    self._nav_restoring = False
+                self._nav_after_change()
         if self.expanded_view.isVisible():
             # HOME contract (both Launch and Remote): close ALL Files Exp
             # branches, select the first visible Exp root, then show that
@@ -11269,7 +11384,8 @@ class Launcher(QWidget):
         return new_path
 
     def show_expanded_background_paste_menu(self, global_pos, *, remote_folder_list=False,
-                                            files_exp_rename_target=None):
+                                            files_exp_rename_target=None,
+                                            studio_properties_item_id=None):
         """One JSON-defined folder menu for the Files background and Remote.
 
         A Files Exp right-click binds EVERY action to its own folder, never
@@ -11355,6 +11471,18 @@ class Launcher(QWidget):
                     self.perform_filesystem_context_action('delete', p, 'folder'))
                 action.setEnabled(bool(remote_folder_list) and
                                   self.can_delete_remote_folder(target_directory))
+            elif action_id == 'properties' and studio_properties_item_id:
+                action = menu.addAction(
+                    definition['title'],
+                    lambda checked=False, iid=studio_properties_item_id:
+                    QTimer.singleShot(0, lambda: self.launch_configuration_studio(item_id=iid)))
+                # The root is also a real folder. Preserve Windows properties
+                # under an explicit name rather than silently removing them.
+                windows_action = menu.addAction(
+                    'Windowsのプロパティ',
+                    lambda checked=False, p=target_directory:
+                    self.perform_filesystem_context_action('properties', p, 'folder'))
+                windows_action.setIcon(context_action_icon('properties'))
             elif action_id in ('copy', 'cut'):
                 action = menu.addAction(
                     definition['title'],
@@ -12332,6 +12460,7 @@ class Launcher(QWidget):
     def execute(self,row,values=None):
         DIAG.info('ITEM id=%s title=%s busy=%s',row.get('item_id'),row.get('title'),self.busy)
         if self.busy:return
+        self._clipboard_job_title = str(row.get('title') or '')
         # In Three-layer mode, URLs (including deep bookmark menu actions)
         # open inside Launch. Files, scripts and classic-mode actions are intact.
         if self.open_bookmark_web_view(row):
@@ -12397,6 +12526,11 @@ class Launcher(QWidget):
             if kind in {'SendKey','ClipboardCopy'}:
                 if kind=='SendKey':windows.restore(self.target)
                 QApplication.clipboard().setText(step.get('launch_text',''))
+                # Report the completed clipboard write (not an unverified
+                # SendKeys paste) in the existing transient footer. Applies
+                # to dates/templates and recipient/emoji selection alike.
+                self.info_notice('クリップボードにコピーしました：' +
+                                 str(getattr(self, '_clipboard_job_title', '') or '選択した文字列'))
                 if kind=='SendKey':windows.paste(self.target)
             elif kind=='Open':
                 if step.get('launch_browser_profile'):self.open_target(step['launch_target'],step.get('launch_browser',''),step['launch_browser_profile'])

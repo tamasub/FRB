@@ -5,7 +5,7 @@ The view does not own menu data and must not hard-code folder/bookmark labels.
 
 DEFAULT_CONFIG = {
     'enabled': True,
-    'page_id': 'work',
+    'page_id': 'system',
     'files_item_id': 'folders',
     'bookmarks_item_id': '__browser_bookmarks_root',
 }

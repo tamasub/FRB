@@ -24,7 +24,7 @@ def test_two_panel_buttons_hidden_without_removing_config_or_data():
     roots, left, right = expanded_targets(config['items'], normalize_options(None))
     original_ids = [row['item_id'] for row in roots]
     visible = toolbar_roots(roots, left, right)
-    assert [row['title'] for row in visible] == ['ZIP', 'Quick', '日付・定型文', 'メール宛先']
+    assert visible == []  # System has only two protected panel anchors
     assert left['item_id'] in original_ids and right['item_id'] in original_ids
     assert len(config['items']) > len(visible)
     assert [row['item_id'] for row in roots] == original_ids  # no mutation
