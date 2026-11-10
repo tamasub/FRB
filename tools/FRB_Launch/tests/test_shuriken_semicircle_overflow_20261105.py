@@ -70,7 +70,8 @@ def test_ui_full_circle_is_fixed_above_button():
     assert 'cy = button_top.y() - self.GAP_ABOVE_BUTTON - self.RADIUS' in src
     assert 'painter.drawEllipse(QRectF(-radius, -radius, radius * 2, radius * 2))' in src
     assert 'band = (radius * 2.0) / count' in src
-    assert 'self._preview.present(self, self._entries, None)' in src
+    assert 'self._press_timer.start()' in src
+    assert 'self._update_first_hand_eye(self._last_drag_position or self._drag_start)' in src
     assert 'self._preview.present(self, self._entries, self._selected_entry)' in src
 
 
@@ -93,7 +94,10 @@ def test_ui_shows_white_origin_and_selection_indicator():
     assert src.index('self.CURRENT_RADIUS, self.CURRENT_RADIUS)') < src.index('self.MARKER_RADIUS, self.MARKER_RADIUS)')
     assert 'active = entry.item_id == self.selected_id' in src
     assert 'painter.drawEllipse(QPointF(marker_x, marker_y),' in src
-    assert "self.selected_id = selected.item_id if selected is not None else ''" in src
+    # Selection can change without native Qt.Tool reposition or show().
+    assert "new_selected_id = selected.item_id if selected is not None else ''" in src
+    assert 'self.selected_id = new_selected_id' in src
+    assert 'if self.pos() != new_position:' in src
 
 
 
@@ -101,14 +105,16 @@ def test_ui_release_respects_the_last_painted_eye():
     src = preview_source()
     section = src[src.index('class ShurikenButton('):]
     release = section[section.index('    def mouseReleaseEvent('):section.index('    def hideEvent(')]
-    assert 'chosen = self._selected_entry' in release
+    settle = section[section.index('    def _settle_first_hand_release('):section.index('    def wheelEvent(')]
+    assert 'self._release_timer.start()' in release
+    assert 'chosen = self._selected_entry' in settle
     assert 'self._commit_first_hand_confirmation(clicked_inside=inside)' in release
     assert 'self.triggered.emit(approved)' in section  # centralized confirmation gate
     assert 'chosen = choose_entry(self._entries, dx, dy)' not in release
-    assert 'self._close_first_hand_confirmation()' in release
-    assert 'if chosen is not None and self._active_confirmation() is None:' in release
-    # Rebase policy: timer-based release confirmation was a post-10:38 regression.
-    assert '_release_candidate' not in section
+    assert "self._close_first_hand_confirmation(reason='unselected_release')" in settle
+    assert 'if chosen is not None and self._active_confirmation() is None:' in settle
+    # Release settling is now an intentional debounce; it must never execute.
+    assert 'self.triggered.emit(' not in release
     assert 'def _poll_drag(' not in section
 
 

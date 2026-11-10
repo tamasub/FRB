@@ -839,7 +839,8 @@ class LaunchRemote(QWidget):
         # also hides the owned confirmation Tool window. Defer flag changes
         # until the first-hand OK/Cancel response completes.
         hand = getattr(self, 'shuriken_button', None)
-        if getattr(hand, '_pending_confirmation', None) is not None:
+        if (getattr(hand, '_pending_confirmation', None) is not None
+                or getattr(hand, '_drag_start', None) is not None):
             return
         visible, pos = self.isVisible(), self.pos()
         self._window_mode_transition = True

@@ -236,6 +236,22 @@
       "violation_action": "表示グループへの所属変更のために項目定義またはデータ構造を書き換えている場合は、責務を再分離し、外部の参照型グループ定義へ移す。既存の正本に生じた不要な変更は復元し、ViewDef差分として管理する。",
       "source_decision_log_ids": [],
       "notes": "通称「外からつまむ原則」。例：ViewDefのsection.fieldSetsで、既存のsection.fieldsをField ID / field_pathで後からグルーピングする。fieldGroupType（項目定義の再利用）とは別責務。2026-10-18のFRB Studio FieldSetサンプル確認を契機とした判断軸。"
+    },
+    {
+      "sort_order": 130,
+      "item_id": "decision_axis_drag_and_drop_long_press",
+      "item_type": "DECISION_AXIS",
+      "title": "マウスの「長押し」・「Drag＆Drop」など危険な操作は、入力イベントをそのまま確定処理に結びつけない",
+      "statement": "マウスの「長押し」・「Drag＆Drop」などはクリックイベントが安定しない危険な操作と認識する。\n危険な操作は、入力イベントをそのまま確定処理に結びつけない",
+      "reason": "",
+      "scope": "document",
+      "priority": "high",
+      "status": "DRAFT",
+      "evaluation_guidance": "",
+      "verification_method": "",
+      "violation_action": "",
+      "source_decision_log_ids": [],
+      "notes": ""
     }
   ],
   "rules": [

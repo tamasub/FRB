@@ -45,9 +45,23 @@ class FakeTimer:
     def __init__(self, *args):
         self.interval = 0
         self.active = False
+        self.single_shot = False
+        # Older tests model a completed normal gesture synchronously. Dedicated
+        # debounce tests disable this flag and fire the timer explicitly.
+        self.autofire = True
         self.timeout = NS(connect=lambda callback: setattr(self, 'callback', callback))
     def setInterval(self, interval): self.interval = interval
-    def start(self): self.active = True
+    def setSingleShot(self, single_shot): self.single_shot = bool(single_shot)
+    def start(self):
+        self.active = True
+        if self.single_shot and self.autofire:
+            self.fire()
+    def fire(self):
+        if not self.active:
+            return
+        if self.single_shot:
+            self.active = False
+        self.callback()
     def stop(self): self.active = False
 
 

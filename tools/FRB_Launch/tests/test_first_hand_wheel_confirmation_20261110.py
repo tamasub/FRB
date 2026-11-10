@@ -45,7 +45,12 @@ def make_flick(count, dx, dy):
     return button,launcher,chosen
 
 
-def click(button, x=20):
+def click(button, x=20, *, after_grace=True):
+    # Simulate the user's deliberate NEW click after the 250-ms guard,
+    # without sleeping in headless tests. Set False to test ghost clicks
+    # that arrive immediately after showing the confirmation.
+    if after_grace and button._pending_confirmation is not None:
+        button._confirmation_opened_at -= button.CONFIRM_CLICK_GRACE_SECONDS + .01
     button.mousePressEvent(DummyEvent(x=x))
     button.mouseReleaseEvent(DummyEvent(x=x))
 
@@ -71,12 +76,20 @@ def test_every_count_freezes_eye_candidate_without_executing(count,dx,dy,index):
     assert button._pending_confirmation.candidate_id == chosen.item_id
 
 
-def test_no_wheel_default_cancel_even_after_a_second_click():
-    button,_,_=make_flick(4,0,-45)
+def test_early_ghost_click_is_ignored_but_later_default_cancel_works():
+    button,_,chosen=make_flick(4,0,-45)
+    pending=button._pending_confirmation
+    # Ghost press/release in the initial grace period cannot dismiss Cancel.
+    click(button, after_grace=False)
+    assert button._pending_confirmation is pending
+    assert button._selected_entry is chosen
+    button.triggered.emit.assert_not_called()
+    button._preview.hide.assert_not_called()
+    # After the grace period, a NEW click must accept the initial Cancel
+    # without first forcing the wheel through OK (the reported regression).
     click(button)
     assert button._pending_confirmation is None
     button.triggered.emit.assert_not_called()
-    button._preview.hide.assert_called_once_with()
 
 
 def test_wheel_over_first_hand_button_selects_ok_and_separate_click_executes_once():

@@ -71,5 +71,6 @@ def test_paint_uses_same_geometry_as_model_and_does_not_preselect():
     assert 'uses_three_sector_guide(self.entries)' in source
     assert 'three_sector_slot(entry)' in source
     assert 'THREE_SECTOR_DIVIDERS' in source
-    assert 'self._preview.present(self, self._entries, None)' in source
+    assert 'self._press_timer.start()' in source
+    assert 'self._update_first_hand_eye(self._last_drag_position or self._drag_start)' in source
     assert 'CURRENT_RADIUS = 24' in source

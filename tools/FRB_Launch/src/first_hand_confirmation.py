@@ -1,8 +1,9 @@
 """Small, pure confirmation gate for the first-hand shuriken.
 
-Flicking only proposes a candidate. A physical wheel action on the SAME
-first-hand button selects Cancel/OK, and a separate button click commits.
-The initial option is always Cancel, so ghost Qt releases cannot execute.
+Flicking only proposes a candidate. The initial option is Cancel; after
+an initial time guard a NEW click on the first-hand button confirms it, even
+without a wheel move. Wheel DOWN explicitly chooses OK before execution.
+The time guard prevents immediate ghost Press/Release from closing the UI.
 """
 from dataclasses import dataclass
 

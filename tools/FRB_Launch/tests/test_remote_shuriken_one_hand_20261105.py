@@ -81,7 +81,9 @@ def test_fixed_circle_upper_lower_and_caption_overflow(data):
     assert 'painter.drawText(text_draw_rect,' in src
     assert 'painter.rotate(180)' not in src
     assert 'setPixelSize(self.LABEL_FONT_PX)' in src
-    assert 'self._preview.present(self, self._entries, None)' in src
+    # The preview now opens only after the 250-ms press qualification.
+    assert 'self._press_timer.start()' in src
+    assert 'self._update_first_hand_eye(self._last_drag_position or self._drag_start)' in src
     assert 'self._preview.present(self, self._entries, self._selected_entry)' in src
 
 

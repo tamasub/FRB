@@ -136,7 +136,8 @@ def test_preview_uses_model_dot_white_center_x_and_dialog_safety_remains():
     assert 'painter.drawLine(QPointF(-diagonal, -diagonal)' in source
     assert 'painter.drawLine(QPointF(-diagonal, diagonal)' in source
     assert source.index('self.CURRENT_RADIUS, self.CURRENT_RADIUS)') < source.index('self.MARKER_RADIUS, self.MARKER_RADIUS)')
-    assert 'self._preview.present(self, self._entries, None)' in source
+    assert 'self._press_timer.start()' in source
+    assert 'self._update_first_hand_eye(self._last_drag_position or self._drag_start)' in source
     assert 'self._preview.present(self, self._entries, self._selected_entry)' in source
     # Candidate release is inert; only a new wheel-confirm click executes.
     assert 'self._pending_confirmation = FirstHandConfirmation(' in source

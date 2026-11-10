@@ -4268,8 +4268,11 @@ class Launcher(QWidget):
                 pass  # C++ QMenu already deleted; Python wrapper was stale.
 
     def first_hand_confirmation_pending(self):
+        # Compatibility name for the interaction lock. The first-hand lock
+        # begins at Press, not only after the confirmation is painted.
         hand = getattr(getattr(self, 'remote_window', None), 'shuriken_button', None)
-        return getattr(hand, '_pending_confirmation', None) is not None
+        return (getattr(hand, '_pending_confirmation', None) is not None
+                or getattr(hand, '_drag_start', None) is not None)
 
     def hide_remote(self, *, force=False):
         # The OK/Cancel gate is a true interaction lock. Native tool-window
@@ -8053,9 +8056,9 @@ class Launcher(QWidget):
         if state == Qt.ApplicationState.ApplicationInactive and self.isVisible():
             # Showing/clicking a non-activating confirmation Tool may briefly
             # deactivate Launch. Do not interpret that as the user's answer.
-            if (getattr(getattr(getattr(self, 'remote_window', None),
-                                'shuriken_button', None), '_pending_confirmation', None)
-                    is not None):
+            hand = getattr(getattr(self, 'remote_window', None), 'shuriken_button', None)
+            if (getattr(hand, '_pending_confirmation', None) is not None
+                    or getattr(hand, '_drag_start', None) is not None):
                 return
             if getattr(self, 'dismiss_on_outside_click', True):
                 hide_remote = getattr(self, 'hide_remote', None)
@@ -12792,7 +12795,8 @@ def main():
         # Native hook does not recognize the floating OK/Cancel Tool as part
         # of the Remote rectangle. Confirmation is locked until a response.
         hand = getattr(getattr(window, 'remote_window', None), 'shuriken_button', None)
-        if getattr(hand, '_pending_confirmation', None) is not None:
+        if (getattr(hand, '_pending_confirmation', None) is not None
+                or getattr(hand, '_drag_start', None) is not None):
             return
         if remote_visible():
             if window.dismiss_on_outside_click:
