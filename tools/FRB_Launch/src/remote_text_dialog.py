@@ -30,6 +30,23 @@ class RemoteTextDialog:
         # Do not take editing focus until the user moves the Remote wheel/pad.
         self.selected = 'Cancel'
         self.remote_has_selected = False
+        self._background_wheel_angle = 0
+        self._background_wheel_pixel = 0
+
+    def background_wheel(self, event):
+        """The originating Files List wheel can select OK/Cancel too."""
+        angle = event.angleDelta().y()
+        pixel = event.pixelDelta().y()
+        if angle:
+            self._background_wheel_angle += angle
+            steps = int(self._background_wheel_angle / 120)
+            self._background_wheel_angle -= steps * 120
+        else:
+            self._background_wheel_pixel += pixel
+            steps = int(self._background_wheel_pixel / 36)
+            self._background_wheel_pixel -= steps * 36
+        for _ in range(min(abs(steps), 5)):
+            self.remote_command('UP' if steps > 0 else 'DOWN')
 
     def choose(self, name):
         if name not in self.buttons:
@@ -74,8 +91,13 @@ class RemoteTextDialog:
         remote = getattr(self.launcher, 'remote_window', None)
         label = getattr(remote, 'area_label', None)
         previous_text = label.text() if label is not None else None
-        guard = ConfirmationInputGuard(self.dialog, remote)
+        guard = ConfirmationInputGuard(self.dialog, remote, self)
         application = QApplication.instance()
+        # A context menu may still hold a wheel adapter for a queued QAction.
+        # Release it before the text prompt takes input ownership.
+        menu_wheel = getattr(self.launcher, '_remote_context_wheel', None)
+        if menu_wheel is not None:
+            menu_wheel.stop()
         application.installEventFilter(guard)
         try:
             self.dialog.setWindowModality(Qt.WindowModality.NonModal)

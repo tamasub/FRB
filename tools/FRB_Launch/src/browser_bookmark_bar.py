@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, QEvent, QPoint, QTimer
 from PySide6.QtWidgets import (QApplication, QScrollArea, QFrame, QWidget,
                               QHBoxLayout, QToolButton, QMenu)
 from PySide6.QtGui import QCursor
+from bookmark_cursor_follow import cursor_target, nearest_visible_button
 
 
 class HorizontalBookmarkBar(QScrollArea):
@@ -17,6 +18,7 @@ class HorizontalBookmarkBar(QScrollArea):
         # child registration, before the constructor reaches its final lines.
         # These fields must exist before installing the scroll-area widget.
         self._buttons = []
+        self._scroll_ready = False
         self._wheel_current = None
         self._wheel_edge_active = False
         self._wheel_pointer = None
@@ -34,17 +36,25 @@ class HorizontalBookmarkBar(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setMaximumHeight(52)
         self.setMinimumHeight(47)
+        # Clicking a blank part of the strip should still target this scroll
+        # area, not the desktop or a random underlying Files/Browser widget.
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.bookmark_strip_inner = QWidget(self)
         self.bookmark_strip_inner.setObjectName('launchWebBookmarkStripInner')
         self.bookmark_strip_row = QHBoxLayout(self.bookmark_strip_inner)
         self.bookmark_strip_row.setContentsMargins(4, 2, 4, 2)
         self.bookmark_strip_row.setSpacing(3)
         self.setWidget(self.bookmark_strip_inner)
+        # Wheel events over the blank strip child and viewport must be handled
+        # just like events over the hand-cursor bookmark buttons.
+        self.bookmark_strip_inner.installEventFilter(self)
+        self.viewport().installEventFilter(self)
         self._bookmark_bar_roots = []
         self._bookmark_bar_children = None
         self._bookmark_bar_open = None
         self._bookmark_bar_signature = None
         self._folder_menu = None
+        self._scroll_ready = True
 
     @staticmethod
     def _is_folder(row):
@@ -175,13 +185,56 @@ class HorizontalBookmarkBar(QScrollArea):
 
     def eventFilter(self, obj, event):
         # Guard events delivered during Qt initialization or shutdown.
-        if event.type() == QEvent.Type.Wheel and obj in getattr(self, '_buttons', ()):
+        if (getattr(self, '_scroll_ready', False) and
+                event.type() == QEvent.Type.Wheel and
+                (obj in getattr(self, '_buttons', ()) or
+                 obj is getattr(self, 'bookmark_strip_inner', None) or
+                 obj is self.viewport())):
             self._scroll_wheel(event, source=obj)
             return True
+        if (getattr(self, '_scroll_ready', False) and
+                event.type() == QEvent.Type.MouseButtonPress and
+                (obj is getattr(self, 'bookmark_strip_inner', None) or
+                 obj is self.viewport())):
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
         return super().eventFilter(obj, event)
 
     def wheelEvent(self, event):
         self._scroll_wheel(event)
+
+    def _button_rects_in_viewport(self):
+        """Geometry only; no QCursor movement from a hidden bookmark."""
+        viewport = self.viewport()
+        rects = []
+        for button in self._buttons:
+            if not button.isVisible():
+                rects.append(None)
+                continue
+            origin = viewport.mapFromGlobal(button.mapToGlobal(QPoint(0, 0)))
+            rects.append((origin.x(), origin.y(), button.width(), button.height()))
+        return rects
+
+    def _nearest_visible_button(self, pointer):
+        viewport = self.viewport()
+        local = viewport.mapFromGlobal(pointer)
+        match = nearest_visible_button(
+            (viewport.width(), viewport.height()),
+            self._button_rects_in_viewport(), (local.x(), local.y()))
+        if match is None:
+            return None
+        index, (x, y) = match
+        return self._buttons[index], viewport.mapToGlobal(QPoint(x, y))
+
+    def _button_visible_landing(self, button, pointer):
+        if button not in self._buttons or not button.isVisible():
+            return None
+        viewport = self.viewport()
+        local = viewport.mapFromGlobal(pointer)
+        rect = self._button_rects_in_viewport()[self._buttons.index(button)]
+        landing = cursor_target((viewport.width(), viewport.height()),
+                                rect, local.x()) if rect is not None else None
+        return (viewport.mapToGlobal(QPoint(*landing))
+                if landing is not None else None)
 
     def _scroll_wheel(self, event, source=None):
         """WAN hybrid: scroll normally, then follow the current at an edge.
@@ -215,6 +268,23 @@ class HorizontalBookmarkBar(QScrollArea):
         source_widget = source if source is not None else self
         pointer = source_widget.mapToGlobal(event.position().toPoint())
         viewport_point = self.viewport().mapFromGlobal(pointer)
+        if not self.viewport().rect().contains(viewport_point):
+            event.ignore()
+            return
+        # On blank space, hand the cursor to the nearest visible bookmark once
+        # at the beginning of a gesture (only when pointer-follow is enabled).
+        # Do NOT pick _buttons[0]/[-1]: those may be far outside the window.
+        if (self._wheel_pointer is None and not self._wheel_edge_active and
+                self.pointer_follow_enabled() and
+                self._button_under_global(pointer) is None and
+                QCursor.pos() == pointer):
+            nearest = self._nearest_visible_button(pointer)
+            if nearest is not None:
+                _, landing = nearest
+                if landing != pointer:
+                    QCursor.setPos(landing)
+                    pointer = landing
+                    viewport_point = self.viewport().mapFromGlobal(pointer)
         bar.setValue(before - delta)
         after = bar.value()
         if after != before:
@@ -232,16 +302,24 @@ class HorizontalBookmarkBar(QScrollArea):
             origin = (self._wheel_current if self._wheel_edge_active and
                       self._wheel_current in self._buttons else hovered)
             if origin is None:
-                origin = self._buttons[0 if delta < 0 else -1]
-            index = self._buttons.index(origin)
-            direction = -1 if delta > 0 else 1
-            steps = max(1, min(5, round(abs(angle) / 120) if angle
-                               else round(abs(pixel) / 85)))
-            target = self._buttons[max(0, min(len(self._buttons) - 1,
-                                             index + direction * steps))]
-            self._wheel_edge_active = True
-            self._set_wheel_current(target)
-            self._follow_wheel_pointer(target, pointer)
+                nearest = self._nearest_visible_button(pointer)
+                origin = nearest[0] if nearest is not None else None
+            if origin is not None:
+                index = self._buttons.index(origin)
+                direction = -1 if delta > 0 else 1
+                steps = max(1, min(5, round(abs(angle) / 120) if angle
+                                   else round(abs(pixel) / 85)))
+                target_index = max(0, min(len(self._buttons) - 1,
+                                          index + direction * steps))
+                # Keep the edge selector inside the actually visible strip.
+                # A hidden/offscreen button can never warp the OS cursor.
+                while target_index != index and self._button_visible_landing(
+                        self._buttons[target_index], pointer) is None:
+                    target_index -= direction
+                target = self._buttons[target_index]
+                self._wheel_edge_active = True
+                self._set_wheel_current(target)
+                self._follow_wheel_pointer(target, pointer)
         else:
             self._wheel_edge_active = False
         event.accept()
@@ -263,6 +341,12 @@ class HorizontalBookmarkBar(QScrollArea):
         if not self.viewport().rect().contains(self.viewport().mapFromGlobal(pointer)):
             return
         button = self._button_under_global(pointer)
+        if button is None and self.pointer_follow_enabled():
+            nearest = self._nearest_visible_button(pointer)
+            if nearest is not None:
+                button, landing = nearest
+                if QCursor.pos() == pointer and landing != pointer:
+                    QCursor.setPos(landing)
         if button is not None:
             self._set_wheel_current(button)
 
@@ -274,8 +358,13 @@ class HorizontalBookmarkBar(QScrollArea):
                 not self.pointer_follow_enabled() or
                 QCursor.pos() != original):
             return
-        point = button.mapToGlobal(button.rect().center())
-        if point != original:
+        # Always clamp to the visible intersection of the button/viewport.
+        # A button hidden by horizontal scrolling must NOT receive a warp.
+        if not self.viewport().rect().contains(
+                self.viewport().mapFromGlobal(original)):
+            return
+        point = self._button_visible_landing(button, original)
+        if point is not None and point != original:
             QCursor.setPos(point)
 
     def _set_wheel_current(self, button):

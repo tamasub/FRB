@@ -6142,12 +6142,14 @@ class Launcher(QWidget):
             return
         # Files List's Remote-opened context menu owns the wheel/pad while
         # visible. Its own QAction is the cursor; never navigate the List below.
-        menu_wheel = getattr(self, '_remote_context_wheel', None)
-        if menu_wheel is not None and menu_wheel.command(command):
-            return
+        # A confirmed question owns the wheel even when it was opened from
+        # a Files List right-click menu; a stale QMenu must never steal it.
         confirmation = getattr(self, '_remote_confirmation', None)
         if confirmation is not None:
             confirmation.remote_command(command)
+            return
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if menu_wheel is not None and menu_wheel.command(command):
             return
         if command == 'CLOSE':
             self.hide_remote()
@@ -7554,6 +7556,11 @@ class Launcher(QWidget):
         """
         if getattr(self, '_remote_confirmation', None) is not None:
             return QMessageBox.StandardButton.No  # Never nest approvals.
+        # Native and hybrid context menus must yield their wheel ownership
+        # before a potentially destructive confirmation opens.
+        menu_wheel = getattr(self, '_remote_context_wheel', None)
+        if menu_wheel is not None:
+            menu_wheel.stop()
         confirmation = RemoteConfirmation(self, title, message, informative)
         self._remote_confirmation = confirmation
         self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1

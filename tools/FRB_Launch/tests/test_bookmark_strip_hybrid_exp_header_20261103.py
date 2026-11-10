@@ -6,6 +6,7 @@ an explicit manual acceptance step.
 import ast
 from pathlib import Path
 from types import SimpleNamespace as NS
+from bookmark_cursor_follow import cursor_target, nearest_visible_button
 
 ROOT = Path(__file__).resolve().parents[1] / 'src'
 BOOKMARK = (ROOT / 'browser_bookmark_bar.py').read_text(encoding='utf-8')
@@ -42,6 +43,8 @@ class CoordHost:
     def mapToGlobal(self, pos): return P(pos.x()+self.left, pos.y())
     def mapFromGlobal(self, pos): return P(pos.x()-self.left, pos.y())
     def rect(self): return Rect(0, 400)
+    def width(self): return 400
+    def height(self): return 40
 
 
 class Button(CoordHost):
@@ -52,6 +55,8 @@ class Button(CoordHost):
     def isVisible(self): return True
     def rect(self): return Rect(0, 40)
     def geometry(self): return Rect(self.left, self.left+40)
+    def width(self): return 40
+    def height(self): return 27
     def setProperty(self,k,v): self.props[k]=v
     def style(self): return self._style
 
@@ -71,12 +76,12 @@ class Timer:
 
 
 class Event:
-    def __init__(self,angle, x=45, mods=0):
-        self.angle=angle; self.x=x;self.mods=mods;self.accepted=False
+    def __init__(self,angle, x=45, mods=0, y=10):
+        self.angle=angle; self.x=x;self.y=y;self.mods=mods;self.accepted=False
     def modifiers(self): return self.mods
     def angleDelta(self): return P(0,self.angle)
     def pixelDelta(self): return P(0,0)
-    def position(self): return P(self.x)
+    def position(self): return P(self.x, self.y)
     def accept(self): self.accepted=True
     def ignore(self): self.accepted=False
 
@@ -92,12 +97,15 @@ class Cursor:
 
 qt=NS(KeyboardModifier=NS(NoModifier=0), MouseButton=NS(NoButton=0))
 application=NS(mouseButtons=lambda:0)
-scope={'Qt':qt, 'QApplication':application,'QCursor':Cursor}
+scope={'Qt':qt, 'QApplication':application,'QCursor':Cursor, 'QPoint':P, 'cursor_target':cursor_target, 'nearest_visible_button':nearest_visible_button}
 wheel=extract(BOOKMARK,'HorizontalBookmarkBar','_scroll_wheel',scope)
 lookup=extract(BOOKMARK,'HorizontalBookmarkBar','_button_under_global',scope)
 settle=extract(BOOKMARK,'HorizontalBookmarkBar','_settle_wheel_current',scope)
 follow=extract(BOOKMARK,'HorizontalBookmarkBar','_follow_wheel_pointer',scope)
 select=extract(BOOKMARK,'HorizontalBookmarkBar','_set_wheel_current',scope)
+nearest=extract(BOOKMARK,'HorizontalBookmarkBar','_nearest_visible_button',scope)
+rects=extract(BOOKMARK,'HorizontalBookmarkBar','_button_rects_in_viewport',scope)
+landing=extract(BOOKMARK,'HorizontalBookmarkBar','_button_visible_landing',scope)
 
 
 class Demo(CoordHost):
@@ -121,6 +129,9 @@ class Demo(CoordHost):
     _settle_wheel_current=settle
     _follow_wheel_pointer=follow
     _set_wheel_current=select
+    _nearest_visible_button=nearest
+    _button_rects_in_viewport=rects
+    _button_visible_landing=landing
     def _open_bookmark_bar_row(self,row):self.opened.append(row)
     def _open_folder(self,row,button):self.opened.append(row)
 
@@ -148,14 +159,14 @@ def test_at_edge_wheel_moves_bookmark_current_and_pointer_when_enabled():
     d._scroll_wheel(evt)
     assert d._wheel_current is d._buttons[2]
     assert d._wheel_edge_active
-    assert Cursor.moved[-1]==P(110)
+    assert Cursor.moved[-1]==P(102, 13)
     assert not d.opened
     # A second notch goes to the next button using the existing current.
-    d._scroll_wheel(Event(-120,x=110))
+    d._scroll_wheel(Event(-120,x=102))
     assert d._wheel_current is d._buttons[3]
     assert not d.opened
     # Hard stop: never wrap to the first button.
-    d._scroll_wheel(Event(-120,x=155))
+    d._scroll_wheel(Event(-120,x=147))
     assert d._wheel_current is d._buttons[3]
 
 

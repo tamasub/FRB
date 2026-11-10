@@ -18,7 +18,7 @@ def _load_qt_free_bar():
     bar_node.body = [node for node in bar_node.body
                      if isinstance(node, ast.FunctionDef)
                      and node.name in ('__init__', 'eventFilter', '_settle_wheel_current')]
-    qt_event = SimpleNamespace(Type=SimpleNamespace(Wheel=17))
+    qt_event = SimpleNamespace(Type=SimpleNamespace(Wheel=17, MouseButtonPress=18))
     evt = SimpleNamespace(type=lambda: qt_event.Type.Wheel)
 
     class ScrollArea:
@@ -38,6 +38,14 @@ def _load_qt_free_bar():
             pass
         def setMinimumHeight(self, val):
             pass
+        def setFocusPolicy(self, value):
+            pass
+        def setFocus(self, reason):
+            self.focus_reason = reason
+        def viewport(self):
+            return self
+        def installEventFilter(self, obj):
+            pass
         def setWidget(self, widget):
             self.events_seen += 1
             self.eventFilter(widget, evt)  # event arrives *inside* Qt setup
@@ -48,6 +56,8 @@ def _load_qt_free_bar():
         def __init__(self, parent=None):
             pass
         def setObjectName(self, name):
+            pass
+        def installEventFilter(self, obj):
             pass
 
     class HBoxLayout:
@@ -68,7 +78,7 @@ def _load_qt_free_bar():
         'QScrollArea': ScrollArea,
         'QTimer': Timer,
         'QFrame': SimpleNamespace(Shape=SimpleNamespace(NoFrame=0)),
-        'Qt': SimpleNamespace(ScrollBarPolicy=SimpleNamespace(ScrollBarAlwaysOff=0, ScrollBarAsNeeded=1)),
+        'Qt': SimpleNamespace(ScrollBarPolicy=SimpleNamespace(ScrollBarAlwaysOff=0, ScrollBarAsNeeded=1), FocusPolicy=SimpleNamespace(ClickFocus=0), FocusReason=SimpleNamespace(MouseFocusReason=0)),
         'QWidget': Widget,
         'QHBoxLayout': HBoxLayout,
         'QEvent': qt_event,
@@ -103,3 +113,16 @@ def test_wheel_over_bookmark_button_routes_to_scroll():
     assert bar.eventFilter(button, wheel_event) is True
     assert called == [(wheel_event, button)]
     assert bar.eventFilter(object(), wheel_event) is False
+
+
+def test_wheel_on_blank_inner_and_viewport_is_handled_and_click_takes_focus():
+    bar_type, wheel_event = _load_qt_free_bar()
+    bar = bar_type()
+    called = []
+    bar._scroll_wheel = lambda ev, source=None: called.append((ev, source))
+    assert bar.eventFilter(bar.bookmark_strip_inner, wheel_event) is True
+    assert bar.eventFilter(bar.viewport(), wheel_event) is True
+    assert [target for _, target in called] == [bar.bookmark_strip_inner, bar.viewport()]
+    press = SimpleNamespace(type=lambda: 18)
+    assert bar.eventFilter(bar.bookmark_strip_inner, press) is False
+    assert bar.focus_reason == 0
