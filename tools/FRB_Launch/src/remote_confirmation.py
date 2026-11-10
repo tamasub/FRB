@@ -87,14 +87,16 @@ class ConfirmationInputGuard(QObject):
         The common input guard also serves Git's editable message prompt.
         A click inside its QLineEdit must NEVER be treated as confirmation.
         Check Qt ancestry because the event target can be an editor viewport.
+        A generic QAbstractScrollArea is NOT an editor: Qt can wrap a long
+        QMessageBox message in a scroll area. It must remain clickable after
+        a wheel selection, without moving the cursor outside the dialog.
         """
         current = obj
         while current is not None:
             try:
                 if any(current.inherits(name) for name in (
                         'QAbstractButton', 'QLineEdit', 'QTextEdit',
-                        'QPlainTextEdit', 'QAbstractScrollArea',
-                        'QAbstractSlider')):
+                        'QPlainTextEdit', 'QAbstractSlider')):
                     return True
             except (AttributeError, RuntimeError, TypeError):
                 pass
@@ -117,7 +119,17 @@ class ConfirmationInputGuard(QObject):
         elif kind == QEvent.Type.MouseButtonRelease:
             pending = self._click_press
             self._click_press = None
-            if (pending is not None and pending[0] == source and pending[1] is obj
+            # The contents of a long QMessageBox can be split into several
+            # Qt child widgets (labels, text containers, the box itself).
+            # Qt may deliver Press and Release to different children even when
+            # the pointer stays at the same screen coordinate. Identity of a
+            # *child* is not part of the user's click intent. For a dialog,
+            # both events have already been verified as belonging to this one
+            # question window by eventFilter(). Keep the strict same-widget
+            # rule for the Remote pad and the Files List.
+            same_target = (pending is not None and
+                           (pending[1] is obj if source != 'dialog' else True))
+            if (pending is not None and pending[0] == source and same_target
                     and self._left_button(event)
                     and monotonic() - pending[3] <= self.CLICK_MAX_HOLD_SECONDS
                     and self._within_click_slop(
@@ -157,11 +169,17 @@ class ConfirmationInputGuard(QObject):
             if kind in (QEvent.Type.MouseButtonPress,
                         QEvent.Type.MouseButtonRelease,
                         QEvent.Type.MouseButtonDblClick):
-                if not self._native_dialog_control(obj):
-                    # Dialog background/labels behave like the ぐりぐり pad,
-                    # BUT only after the user has deliberately turned the wheel.
-                    # Native Yes/No buttons remain natively clickable.
-                    return self._click_event('dialog', obj, event)
+                if self._native_dialog_control(obj):
+                    # A native button/editor gets the entire click; never
+                    # reinterpret its trailing Release as a dialog-surface
+                    # confirmation, even if a previous Press was armed.
+                    self._click_press = None
+                    return False
+                # A long QMessageBox may send Press and Release to different
+                # label/viewport children. Both are on this same question
+                # window; the screen-coordinate movement tolerance is still
+                # checked before an explicit choice can be confirmed.
+                return self._click_event('dialog', obj, event)
             return False
         if self.remote is not None and window is self.remote:
             return False  # Preserve normal Remote wheel and other controls.
