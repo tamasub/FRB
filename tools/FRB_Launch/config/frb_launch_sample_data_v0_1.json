@@ -406,7 +406,7 @@
           "launch_show_console": true
         }
       ],
-      "shuriken_enabled": false,
+      "shuriken_enabled": true,
       "shuriken_button_index": 1,
       "shuriken_direction": "up",
       "shuriken_order": 10

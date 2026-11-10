@@ -271,9 +271,11 @@ def choose_entry(entries, dx, dy, min_release_distance=27):
     """
     if not entries or math.hypot(dx, dy) < min_release_distance:
         return None
-    # A single first-hand action owns the whole circle (no empty directions).
+    # 1の手 with one action has its ONLY target above the center.
+    # In Qt coordinates negative dy means an upward flick; a downward or
+    # sideways drag must not select an action and move the green eye upward.
     if len(entries) == 1 and entries[0].hand_index == 1:
-        return entries[0]
+        return entries[0] if dy < 0 and -dy > abs(dx) else None
     if uses_two_horizontal_sector_guide(entries):
         # Exp/List selection is a cardinal horizontal flick ONLY. A diagonal
         # release or a click at the central ring must never switch columns.
