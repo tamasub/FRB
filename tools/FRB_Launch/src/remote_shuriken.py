@@ -6,10 +6,11 @@ Four actions use an X divider and cardinal kana-style flick directions.
 Release without movement cancels. Captions may overrun the constant circle.
 """
 import math
+import sys
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QRectF, Signal
-from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap
+from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QRectF, Signal, QTimer
+from PySide6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPixmap, QCursor
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton
 
 from shuriken_model import (choose_entry, uses_three_sector_guide,
@@ -20,9 +21,31 @@ from shuriken_model import (choose_entry, uses_three_sector_guide,
                             THREE_SECTOR_DIVIDERS)
 from launch_appearance import theme_family
 from shuriken_assets import resource_root
+from first_hand_trace import first_hand_trace
 
 # Icon provided for the experiment; retain the same asset in the packaged app.
 ICON_PATH = resource_root(__file__) / 'assets' / 'remote_shuriken.png'
+
+
+def _physical_left_button_down():
+    """Query the real held state, not merely the last Qt event received.
+
+    Windows can lose a widget's implicit mouse grab while the transparent
+    tool-window guide is visible. A synthetic/lost Qt release is not proof
+    that the user lifted their finger. Native GetAsyncKeyState remains valid
+    even when the original widget no longer receives move/release events.
+    """
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            return bool(ctypes.windll.user32.GetAsyncKeyState(0x01) & 0x8000)
+        except (AttributeError, OSError):
+            pass
+    try:
+        return bool(QApplication.mouseButtons() & Qt.MouseButton.LeftButton)
+    except (AttributeError, TypeError):
+        # Headless test doubles do not expose QApplication.mouseButtons().
+        return False
 
 
 class ShurikenPreview(QWidget):
@@ -33,7 +56,7 @@ class ShurikenPreview(QWidget):
     same angles, and the guide never follows the pointer.
     """
     CANVAS_WIDTH = 520        # Transparent window; NOT the circular guide size.
-    CANVAS_HEIGHT = 320
+    CANVAS_HEIGHT = 166
     RADIUS = 72               # Constant visual radius, independent of captions.
     GAP_ABOVE_BUTTON = 15     # Visible gap between ring and the button.
     CURRENT_RADIUS = 24       # White central origin ring (diameter 48 px).
@@ -56,6 +79,7 @@ class ShurikenPreview(QWidget):
         self.entries = []
         self.selected_id = ''
         self._theme = 'light'
+        self._present_owner = None
 
     def set_theme(self, theme):
         self._theme = theme_family(theme)
@@ -68,6 +92,13 @@ class ShurikenPreview(QWidget):
             return
         self.entries = list(entries)
         self.selected_id = selected.item_id if selected is not None else ''
+        # During a held gesture ONLY repaint the eye. Re-moving a visible
+        # native Tool window on every sector change can disturb mouse capture
+        # and make the Pokeball briefly disappear on Windows.
+        if self.isVisible() and self._present_owner is button:
+            self.update()
+            return
+        self._present_owner = button
         # The 1st-hand button and Exp/List selector both use this preview.
         launcher = getattr(button, 'launcher', None)
         remote = button.parentWidget()
@@ -97,8 +128,15 @@ class ShurikenPreview(QWidget):
         self.move(int(canvas_x), int(canvas_y))
         self.circle_center = QPointF(cx - canvas_x, cy - canvas_y)
         if not self.isVisible():
+            first_hand_trace('preview_show')
             self.show()
         self.update()
+
+    def hideEvent(self, event):
+        # This also catches native/parent-triggered hides which did not pass
+        # through ShurikenButton._finish_drag / _cancel_drag.
+        first_hand_trace('preview_hide_event')
+        super().hideEvent(event)
 
     def paintEvent(self, event):
         if not self.entries:
@@ -248,7 +286,9 @@ class ShurikenPreview(QWidget):
 
 class ShurikenButton(QPushButton):
     triggered = Signal(str)  # item ID from the current main Launch JSON
-    DRAG_DEADZONE = 14
+    DRAG_DEADZONE = 8
+    RELEASE_CONFIRM_SAMPLES = 5      # ~80 ms of continuous native button-up.
+    MISSING_RELEASE_CANCEL_SAMPLES = 95  # ~1.5s. Safety fallback, never execute.
 
     def __init__(self, launcher, remote, hand_index=1):
         super().__init__('', remote)
@@ -264,7 +304,15 @@ class ShurikenButton(QPushButton):
         self._drag_start = None
         self._entries = []
         self._selected_entry = None  # The action whose eye is currently painted.
+        self._no_button_samples = 0
+        self._release_candidate = False
+        self._release_samples = 0
         self._confirmation_on_press = None
+        # Poll independent of Qt mouseMove: a native transparent preview can
+        # temporarily interrupt delivery, particularly on vertical drags.
+        self._tracking_timer = QTimer(self)
+        self._tracking_timer.setInterval(16)
+        self._tracking_timer.timeout.connect(self._poll_drag)
         self._pixmap = QPixmap(str(ICON_PATH))
 
     def wheelEvent(self, event):
@@ -316,26 +364,121 @@ class ShurikenButton(QPushButton):
             return
         self._entries = self.launcher.shuriken_items(self.hand_index)
         self._drag_start = event.globalPosition().toPoint()
+        self._no_button_samples = 0
+        self._release_candidate = False
+        self._release_samples = 0
         self._selected_entry = None
+        first_hand_trace('press', count=len(self._entries))
         if self._preview is None:
             self._preview = ShurikenPreview(self)
         # PRESS only shows the guide; it must NOT preselect an action.
         self._preview.present(self, self._entries, None)
         super().mousePressEvent(event)
+        # Start AFTER the button press, so a guide/window change cannot leave
+        # the session relying exclusively on Qt's implicit mouse grab.
+        self._tracking_timer.start()
+
+    def _update_drag(self, point):
+        if self._drag_start is None or self._release_candidate:
+            return
+        dx = point.x() - self._drag_start.x()
+        dy = point.y() - self._drag_start.y()
+        previous = self._selected_entry
+        self._selected_entry = choose_entry(
+            self._entries, dx, dy, min_release_distance=self.DRAG_DEADZONE)
+        # The popup is a native tool window. Don't re-move/re-show it on every
+        # pointer tick: only redraw when the actual highlighted item changes.
+        if self._selected_entry != previous:
+            first_hand_trace('eye_changed', dx=dx, dy=dy,
+                             slot=(self._entries.index(self._selected_entry) + 1)
+                             if self._selected_entry in self._entries else 0)
+            if self._preview is not None:
+                self._preview.present(self, self._entries, self._selected_entry)
+
+    def _poll_drag(self):
+        """Update current eye. A Qt release must be backed by persistent
+        native button-up before any action can execute. Preview visibility is
+        never coupled to momentary native-button sampling fluctuations.
+        """
+        if self._drag_start is None:
+            self._tracking_timer.stop()
+            return
+        held = _physical_left_button_down()
+        if self._release_candidate:
+            if held:
+                first_hand_trace('release_rejected_button_still_held',
+                                 samples=self._release_samples)
+                self._release_candidate = False
+                self._release_samples = 0
+                self._no_button_samples = 0
+                self._update_drag(QCursor.pos())
+                return
+            self._release_samples += 1
+            if self._release_samples >= self.RELEASE_CONFIRM_SAMPLES:
+                first_hand_trace('release_confirmed', samples=self._release_samples,
+                                 selected=bool(self._selected_entry))
+                self._finish_drag()
+            return
+        # Native GetAsyncKeyState is allowed to be temporarily out of sync
+        # with Qt without ending the gesture or making the guide blink.
+        self._update_drag(QCursor.pos())
+        if held:
+            if self._no_button_samples:
+                first_hand_trace('button_state_recovered',
+                                 missed_samples=self._no_button_samples)
+            self._no_button_samples = 0
+        else:
+            self._no_button_samples += 1
+            if self._no_button_samples == 1:
+                first_hand_trace('native_up_without_release')
+            if self._no_button_samples >= self.MISSING_RELEASE_CANCEL_SAMPLES:
+                first_hand_trace('cancel_missing_qt_release',
+                                 samples=self._no_button_samples)
+                self._cancel_drag(reason='missing_qt_release')
+
+    def _cancel_drag(self, reason='unknown'):
+        """Abort incomplete gesture without ever invoking its action."""
+        first_hand_trace('cancel_drag', reason=reason)
+        self._tracking_timer.stop()
+        self._drag_start = None
+        self._entries = []
+        self._selected_entry = None
+        self._no_button_samples = 0
+        self._release_candidate = False
+        self._release_samples = 0
+        if self._preview is not None:
+            self._preview.hide()
+        self.setDown(False)
+
+    def _finish_drag(self):
+        """Commit the painted choice once, only after confirmed button-up."""
+        if self._drag_start is None:
+            return
+        first_hand_trace('finish_drag', selected=bool(self._selected_entry))
+        self._tracking_timer.stop()
+        chosen = self._selected_entry  # The visible green eye is authoritative.
+        self._drag_start = None
+        self._entries = []
+        self._selected_entry = None
+        self._no_button_samples = 0
+        self._release_candidate = False
+        self._release_samples = 0
+        if self._preview is not None:
+            self._preview.hide()
+        # Reset QPushButton's pressed
+        # look without manufacturing a clicked() signal.
+        self.setDown(False)
+        if chosen is not None and self._active_confirmation() is None:
+            first_hand_trace('execute')
+            self.triggered.emit(chosen.item_id)
+        else:
+            first_hand_trace('cancel_no_choice')
 
     def mouseMoveEvent(self, event):
-        if self._drag_start is not None and (event.buttons() & Qt.MouseButton.LeftButton):
-            point = event.globalPosition().toPoint()
-            dx, dy = point.x() - self._drag_start.x(), point.y() - self._drag_start.y()
-            # The guide stays ABOVE the button. Pointer changes only the eye;
-            # one-to-four sectors use the same geometry for paint and hit-test.
-            self._selected_entry = choose_entry(
-                self._entries, dx, dy,
-                min_release_distance=self.DRAG_DEADZONE)
-            if self._preview is not None:
-                # Draw exactly the committed choice; rendering and release
-                # never use separate thresholds or timing rules.
-                self._preview.present(self, self._entries, self._selected_entry)
+        if self._drag_start is not None:
+            if not self._release_candidate and ((event.buttons() & Qt.MouseButton.LeftButton)
+                                               or _physical_left_button_down()):
+                self._update_drag(event.globalPosition().toPoint())
             event.accept()
             return
         super().mouseMoveEvent(event)
@@ -354,26 +497,34 @@ class ShurikenButton(QPushButton):
             event.accept()
             return
         if event.button() == Qt.MouseButton.LeftButton and self._drag_start is not None:
-            # The displayed green eye is authoritative, even if the user
-            # stops moving for several seconds or releases very slowly.
-            # No separate release-time hit test may select an invisible
-            # action or cancel a visible one.
-            chosen = self._selected_entry
-            self._drag_start = None
-            self._entries = []
-            self._selected_entry = None
-            if self._preview is not None:
-                self._preview.hide()
-            super().mouseReleaseEvent(event)
-            if chosen is not None:
-                # A dialog that appeared mid-drag blocks new Launch actions.
-                if self._active_confirmation() is None:
-                    self.triggered.emit(chosen.item_id)
+            if _physical_left_button_down():
+                # Ignore capture-loss releases while the physical button is held.
+                first_hand_trace('qt_release_ignored_held')
+                event.accept()
+                return
+            if hasattr(event, 'spontaneous') and not event.spontaneous():
+                # Qt-generated/reentrant releases must not execute actions.
+                first_hand_trace('qt_release_ignored_nonspontaneous')
+                event.accept()
+                return
+            if not self._release_candidate:
+                self._release_candidate = True
+                self._release_samples = 0
+                first_hand_trace('qt_release_candidate',
+                                 selected=bool(self._selected_entry))
+                # Freeze the eye in its last displayed position until release
+                # confirmation. No further hit-test is allowed at release.
+                self._tracking_timer.start()
             event.accept()
             return
         super().mouseReleaseEvent(event)
 
     def hideEvent(self, event):
+        first_hand_trace('button_hide_event', active=self._drag_start is not None)
+        self._tracking_timer.stop()
+        self._no_button_samples = 0
+        self._release_candidate = False
+        self._release_samples = 0
         self._confirmation_on_press = None
         self._drag_start = None
         self._selected_entry = None

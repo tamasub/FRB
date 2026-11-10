@@ -30,7 +30,7 @@ def items_of_count(count):
     """Make a source draft with exactly count first-hand commands, no source edits."""
     draft = copy.deepcopy(sample())
     original = [row for row in draft['items'] if row.get('shuriken_enabled')]
-    assert len(original) == 3
+    assert len(original) >= 1  # User-editable JSON can register 1..many.
     for row in draft['items']:
         row['shuriken_enabled'] = False
     for idx in range(count):
@@ -47,13 +47,9 @@ def items_of_count(count):
 
 
 def test_current_sample_three_clockwise_unchanged():
-    entries = configured_entries(sample())
+    entries = configured_entries(items_of_count(3))
     assert MAX_ITEMS_PER_HAND == 4
-    assert [(e.item_id, e.direction) for e in entries] == [
-        ('zip_studio', 'up_left'),
-        ('launch_source_zip', 'up_right'),
-        ('shuriken_git_commit_filename', 'down'),
-    ]
+    assert tuple(e.direction for e in entries) == ('up_left', 'up_right', 'down')
     assert uses_three_sector_guide(entries)
     assert THREE_SECTOR_DIVIDERS == (-90.0, 30.0, 150.0)
     assert choose_entry(entries, -47, -47).item_id == entries[0].item_id

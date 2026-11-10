@@ -33,11 +33,22 @@ class DummyWidget:
     def setFixedSize(self, *args): pass
     def setFocusPolicy(self, *args): pass
     def setCursor(self, *args): pass
+    def setDown(self, *args): pass
     def mousePressEvent(self, event): self.base_press += 1
     def mouseReleaseEvent(self, event): self.base_release += 1
     def mouseMoveEvent(self, event): pass
     def hideEvent(self, event): self.base_hide += 1
     def rect(self): return NS(contains=lambda point: 0 <= point[0] < 50 and 0 <= point[1] < 46)
+
+
+class FakeTimer:
+    def __init__(self, *args):
+        self.interval = 0
+        self.active = False
+        self.timeout = NS(connect=lambda callback: setattr(self, 'callback', callback))
+    def setInterval(self, interval): self.interval = interval
+    def start(self): self.active = True
+    def stop(self): self.active = False
 
 
 class DummyEvent:
@@ -64,11 +75,13 @@ def load_button_module():
                                     WA_ShowWithoutActivating=2,
                                     WA_TransparentForMouseEvents=4))
     core.Signal = lambda *args: DummySignal()
+    core.QTimer = FakeTimer
     for name in ('QPoint', 'QPointF', 'QRect', 'QRectF'):
         setattr(core, name, type(name, (), {}))
     gui = ModuleType('PySide6.QtGui')
     for name in ('QPainter', 'QPen', 'QColor', 'QFont', 'QFontMetrics', 'QPixmap'):
         setattr(gui, name, type(name, (), {'__init__': lambda self, *a: None}))
+    gui.QCursor = NS(pos=lambda: NS(x=lambda: 100, y=lambda: 100))
     widgets = ModuleType('PySide6.QtWidgets')
     widgets.QApplication = DummyWidget
     widgets.QWidget = DummyWidget
@@ -153,6 +166,9 @@ def test_normal_shuriken_flick_remains_intact_outside_confirmation(module):
     assert button._preview.present.call_count == 1
     button.mouseMoveEvent(DummyEvent(global_y=50))  # Draw UP eye first.
     button.mouseReleaseEvent(DummyEvent(global_y=50))  # -50px = UP
+    button.triggered.emit.assert_not_called()
+    for _ in range(button.RELEASE_CONFIRM_SAMPLES):
+        button._poll_drag()
     button.triggered.emit.assert_called_once_with('zip')
     button._preview.hide.assert_called_once_with()
     launcher.shuriken_items.assert_called_once_with(1)

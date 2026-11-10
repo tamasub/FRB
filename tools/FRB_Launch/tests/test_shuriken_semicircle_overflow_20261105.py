@@ -99,12 +99,17 @@ def test_ui_shows_white_origin_and_selection_indicator():
 
 def test_ui_release_respects_the_last_painted_eye():
     src = preview_source()
-    release = src[src.index('    def mouseReleaseEvent('):src.index('    def hideEvent(')]
-    assert 'chosen = self._selected_entry' in release
+    section = src[src.index('class ShurikenButton('):]
+    release = section[section.index('    def mouseReleaseEvent('):section.index('    def hideEvent(')]
+    poll = section[section.index('    def _poll_drag('):section.index('    def _cancel_drag(')]
+    assert 'self._release_candidate = True' in release
+    assert 'self._finish_drag()' in poll
+    finish = src[src.index('    def _finish_drag('):src.index('    def mouseMoveEvent(', src.index('    def _finish_drag('))]
+    assert 'chosen = self._selected_entry' in finish
+    assert 'self.triggered.emit(chosen.item_id)' in finish
     assert 'chosen = choose_entry(self._entries, dx, dy)' not in release
-    assert 'self.triggered.emit(chosen.item_id)' in release
-    assert 'self._preview.hide()' in release
-    assert 'if chosen is not None:' in release
+    assert 'self._preview.hide()' in finish
+    assert 'if chosen is not None and self._active_confirmation() is None:' in finish
 
 
 def test_preview_does_not_capture_mouse_or_activate_window():

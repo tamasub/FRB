@@ -1990,7 +1990,7 @@
           "launch_result_format": "none"
         }
       ],
-      "shuriken_enabled": false,
+      "shuriken_enabled": true,
       "shuriken_button_index": 1,
       "shuriken_direction": "left",
       "shuriken_order": 30
