@@ -27,8 +27,9 @@ from system_drives import drive_rows
 from launch_virtual_tree import (virtual_exp_roots, virtual_item_identity,
                                  virtual_exp_folders, virtual_studio_target)
 from launch_menu_registration import mime_sources
-from launch_json_move import MOVE_MIME, encode_source, exp_folder_placement
-from registered_root_studio import verified_registered_root
+from launch_json_move import (MOVE_MIME, encode_source, decode_source,
+                              exp_folder_placement, registered_root_reorder_placement)
+from registered_root_studio import verified_registered_root, authored_files_root_identity
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
 _LOADED_ROLE = Qt.ItemDataRole.UserRole + 2
@@ -56,13 +57,15 @@ class FilesExpWheelTree(QTreeView):
         # An operating row always owns BOTH its green fill and green outline.
         # The same QModelIndex is an outline-only memory when List is active.
         self.current_outline_color = QColor('#8fc7ab')
+        self._active_registered_root_drag = None
 
     def _registration_target(self, pos, mime):
         panel = self.parentWidget()
         return panel.registration_target_at(pos, mime) if panel is not None else False
 
     def startDrag(self, supported_actions):
-        # Exp can drag authored JSON categories; physical folders stay immobile.
+        # Registered *root* folders are authored JSON items, even though they
+        # display physical paths. Their descendants remain strictly non-drag.
         panel = self.parentWidget()
         index = self.currentIndex()
         item = panel.model.itemFromIndex(index) if index.isValid() else None
@@ -70,13 +73,22 @@ class FilesExpWheelTree(QTreeView):
         node = data.get('virtual') if isinstance(data, dict) else None
         source = (panel._launcher.launch_json_move_source(node)
                   if panel is not None and panel._launcher is not None else None)
+        registered_root = (panel.registered_root_identity(item)
+                           if panel is not None and item is not None else None)
+        if source is None:
+            source = registered_root
         if source is None:
             return
         mime = QMimeData()
         mime.setData(MOVE_MIME, encode_source(*source))
         drag = QDrag(self)
         drag.setMimeData(mime)
-        drag.exec(Qt.DropAction.MoveAction, Qt.DropAction.MoveAction)
+        # Only a recognized, registered root origin gets root reorder targets.
+        self._active_registered_root_drag = registered_root if registered_root == source else None
+        try:
+            drag.exec(Qt.DropAction.MoveAction, Qt.DropAction.MoveAction)
+        finally:
+            self._active_registered_root_drag = None
 
     def _launch_move_target(self, event):
         panel = self.parentWidget()
@@ -139,7 +151,19 @@ class FilesExpWheelTree(QTreeView):
 
     def drawRow(self, painter, option, index):
         super().drawRow(painter, option, index)
-        if not option.rect.isValid() or index != self.currentIndex():
+        if not option.rect.isValid():
+            return
+        # Visual boundary above virtual PC; no model row, no hit-test change.
+        panel = self.parentWidget()
+        item = panel.model.itemFromIndex(index) if panel is not None else None
+        data = item.data(_DATA_ROLE) if item is not None else None
+        if (not index.parent().isValid() and isinstance(data, dict) and data.get('pc')):
+            painter.save()
+            painter.setPen(QPen(QColor('#b8c7bd'), 1))
+            y = option.rect.top() + 1
+            painter.drawLine(option.rect.left() + 8, y, option.rect.right() - 8, y)
+            painter.restore()
+        if index != self.currentIndex():
             return
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -601,7 +625,11 @@ class RemoteFilesExplorer(QWidget):
         folder_icon = (self._pc_icon if pc else configured_icon or self._folder_icon)
         item = QStandardItem(folder_icon, label)
         item.setEditable(False)
-        item.setDragEnabled(False)
+        # The only physical-path-looking draggable item is a *registered*
+        # Files root. It encodes JSON ID, not a path, and cannot be moved into
+        # any physical directory. Descendants and PC always stay immobile.
+        registered = bool(authored_identity and not pc)
+        item.setDragEnabled(registered)
         item.setDropEnabled(False)
         item.setData({'path': path, 'pc': pc,
                       'studio_identity': authored_identity}, _DATA_ROLE)
@@ -832,11 +860,22 @@ class RemoteFilesExplorer(QWidget):
                     root, getattr(launcher, 'pages', ()),
                     getattr(launcher, 'authored_items', ()), expand)
                     if launcher is not None and not root['pc'] else None)
+                # Verification for registered Files roots: the item must be
+                # an authored directory immediately below the Files anchor.
+                options = getattr(launcher, 'expanded_options', {}) or {} if launcher else {}
+                files_page = str(options.get('page_id') or 'system')
+                files_anchor = str(options.get('files_item_id') or 'folders')
+                authorized = bool(source and
+                                  str(source.get('page_id')) == files_page and
+                                  str(source.get('parent_item_id') or '') == files_anchor and
+                                  source.get('item_kind') == 'directory')
                 identity = ({'source': 'launch_json',
-                             'page_id': source['page_id'],
-                             'item_id': source['item_id'],
-                             'node_id': f"item:{source['page_id']}:{source['item_id']}"}
-                            if source else None)
+                             'page_id': files_page,
+                             'item_id': str(source['item_id']),
+                             'parent_item_id': files_anchor,
+                             'item_kind': 'directory',
+                             'node_id': f"item:{files_page}:{source['item_id']}"}
+                            if authorized else None)
                 icon_key = source.get('icon_key', 'folder.yellow') if source else None
                 selected_icon = (launcher.row_icon({'icon_key': icon_key})
                                  if launcher is not None and icon_key else None)
@@ -1511,16 +1550,57 @@ class RemoteFilesExplorer(QWidget):
             return False
         return walk(self.model.invisibleRootItem())
 
+    def registered_root_identity(self, item):
+        """Resolve a verified top-level Files shortcut, never physical child."""
+        if item is None or item.parent() is not None or self._launcher is None:
+            return None
+        opts = getattr(self._launcher, 'expanded_options', {}) or {}
+        identity = authored_files_root_identity(
+            item.data(_DATA_ROLE), str(opts.get('page_id') or 'system'),
+            str(opts.get('files_item_id') or 'folders'))
+        if identity is None:
+            return None
+        data = item.data(_DATA_ROLE)
+        # Require the current authored row still exists, not just old UI data.
+        return (identity if self._launcher.launch_json_move_source(
+            data['studio_identity']) == identity else None)
+
     def launch_move_target_at(self, local_pos, mime, sender):
-        """Only a verified authored category/Page; reject ALL physical rows."""
+        """JSON Move only: registered roots reorder; virtual folders reparent.
+
+        A real filesystem descendant (or PC) can NEVER be an origin or a
+        destination, regardless of its depth, name, icon or physical path.
+        """
         launcher = self._launcher
         if (launcher is None or not mime.hasFormat(MOVE_MIME) or
                 not launcher.launch_json_move_sender_valid(sender)):
             return None
+        source = decode_source(mime.data(MOVE_MIME))
         index = self.tree.indexAt(local_pos)
+        item = self.model.itemFromIndex(index) if index.isValid() else None
+        active_root = getattr(self.tree, '_active_registered_root_drag', None)
+        if active_root is not None:
+            # The source must be a root from THIS Exp tree, not another panel.
+            if sender is not self.tree or source != active_root:
+                return None
+            opts = getattr(launcher, 'expanded_options', {}) or {}
+            page = str(opts.get('page_id') or 'system')
+            parent = str(opts.get('files_item_id') or 'folders')
+            # Missing index = empty root space only; physical nodes are invalid.
+            target = self.registered_root_identity(item) if item is not None else None
+            if index.isValid() and target is None:
+                return None
+            fraction = 0.5
+            if index.isValid():
+                rect = self.tree.visualRect(index)
+                fraction = (local_pos.y() - rect.top()) / max(1, rect.height())
+            return registered_root_reorder_placement(
+                source, target, page_id=page, parent_id=parent,
+                fraction=fraction)
+        # All other virtual Move behavior is unchanged; registered real-path
+        # shortcuts are never targets for a virtual folder reparent.
         if not index.isValid():
-            return None  # Exp blank space is the Files anchor, not a Move target.
-        item = self.model.itemFromIndex(index)
+            return None
         data = item.data(_DATA_ROLE) if item is not None else None
         node = data.get('virtual') if isinstance(data, dict) else None
         if (not isinstance(node, dict) or

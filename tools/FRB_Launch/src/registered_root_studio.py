@@ -38,3 +38,26 @@ def verified_registered_root(root, pages, authored_items, expand):
             return None
         return row if isinstance(actual_path, str) and _windows_key(actual_path) == _windows_key(path) else None
     return None
+
+
+def authored_files_root_identity(data, page_id, files_item_id):
+    """Only a VERIFIED top-level registered folder has an Exp reorder ID.
+
+    Caller must already have verified its source path using
+    verified_registered_root() at model construction. No filesystem descendants,
+    PC pseudo-root, ordinary categories or runtime bookmark items qualify.
+    """
+    if not isinstance(data, dict) or data.get('pc') or not data.get('path'):
+        return None
+    identity = data.get('studio_identity')
+    if not isinstance(identity, dict):
+        return None
+    if (identity.get('source') != 'launch_json'
+            or identity.get('page_id') != page_id
+            or identity.get('parent_item_id') != files_item_id
+            or not identity.get('item_id')
+            or identity.get('item_kind') != 'directory'):
+        return None
+    if identity.get('node_id') != f"item:{page_id}:{identity['item_id']}":
+        return None
+    return (page_id, identity['item_id'])

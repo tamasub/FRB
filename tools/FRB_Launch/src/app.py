@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QT
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
+from app_version import APP_VERSION, APP_ABOUT_TEXT
 from remote_text_dialog import RemoteTextDialog
 from remote_context_wheel import RemoteContextWheel
 from rod_foreground import foreground_owned_by_process
@@ -3313,6 +3314,9 @@ class Launcher(QWidget):
         self.theme_studio_action = self.theme_menu.addAction('メニュー設定 (FRB Studio)')
         self.theme_studio_action.triggered.connect(
             lambda checked=False: self.launch_configuration_studio(page_properties=True))
+        self.theme_menu.addSeparator()
+        self.theme_about_action = self.theme_menu.addAction('バージョン情報...')
+        self.theme_about_action.triggered.connect(self.show_version_information)
         self.tabs = FocusPageTabBar(); self.tabs.setExpanding(False); self.tabs.setDrawBase(False)
         # Non-grabbing folder columns sometimes leave native keyboard focus on
         # the Page tabs; it must still be possible to start an IME composition.
@@ -3732,6 +3736,19 @@ class Launcher(QWidget):
                 position.setY(anchor.mapToGlobal(QPoint(0, -height - 3)).y())
             position.setY(max(area.top(), min(position.y(), area.bottom() - height + 1)))
         self.theme_menu.popup(position)
+
+    def show_version_information(self, checked=False):
+        """Display the one-source app version using the existing ぐりぐり selector.
+
+        This is information only: the confirmation adapter owns both the
+        native buttons and the Remote wheel/centre-click. It never changes
+        Launch settings or the user's menu JSON.
+        """
+        result = self.ask_remote_confirmation(
+            'バージョン情報', APP_ABOUT_TEXT,
+            yes_text='バージョンをコピー', no_text='閉じる', information=True)
+        if result == QMessageBox.StandardButton.Yes:
+            QApplication.clipboard().setText(APP_VERSION)
 
     def _apply_window_mode(self, initial=False):
         """Normal window for keep-visible; legacy Tool for auto-dismiss.
@@ -5912,11 +5929,11 @@ class Launcher(QWidget):
                     raise RegistrationError('動的項目または登録されていない項目には追加できません。')
                 page_id = target['page_id']
                 parent_id = target.get('item_id', '')
-                if target['kind'] == 'item':
-                    eligible_parent({'pages': self.pages, 'items': self.authored_items},
-                                    page_id, parent_id)
-                elif any(s['kind'] != 'directory' for s in sources):
-                    raise RegistrationError('Pageの直下にはフォルダーだけを登録できます。')
+                # An authored Page root is a valid JSON registration parent for
+                # files and URLs as well as folders. Files Exp ROOT (identity=None)
+                # remains directory-only, as enforced separately above.
+                eligible_parent({'pages': self.pages, 'items': self.authored_items},
+                                page_id, parent_id)
             if not page_id:
                 return False
             return self._registration_commit(page_id, parent_id, records_for_sources(sources))
@@ -7960,7 +7977,8 @@ class Launcher(QWidget):
         self.footer.setText('ℹ️ ' + str(message).replace('\n', ' / '))
 
     def ask_remote_confirmation(self, title, message, *, informative='',
-                                yes_text=None, no_text=None, rich_text=False, warning=False):
+                                yes_text=None, no_text=None, rich_text=False,
+                                warning=False, information=False):
         """Safety-first Yes/No used by all Launch-owned simple confirmations.
 
         The question stays mouse/keyboard accessible, while Remote wheel and
@@ -7975,7 +7993,8 @@ class Launcher(QWidget):
             menu_wheel.stop()
         confirmation = RemoteConfirmation(
             self, title, message, informative, yes_text=yes_text,
-            no_text=no_text, rich_text=rich_text, warning=warning)
+            no_text=no_text, rich_text=rich_text, warning=warning,
+            information=information)
         self._remote_confirmation = confirmation
         self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
         try:

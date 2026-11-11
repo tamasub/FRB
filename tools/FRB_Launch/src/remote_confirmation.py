@@ -219,10 +219,14 @@ class RemoteConfirmation:
     NO = QMessageBox.StandardButton.No
 
     def __init__(self, launcher, title, message, informative='', *,
-                 yes_text=None, no_text=None, rich_text=False, warning=False):
+                 yes_text=None, no_text=None, rich_text=False,
+                 warning=False, information=False):
         self.launcher = launcher
         self.dialog = QMessageBox(launcher)
-        self.dialog.setIcon(QMessageBox.Icon.Warning if warning else QMessageBox.Icon.Question)
+        icon = (QMessageBox.Icon.Warning if warning else
+                QMessageBox.Icon.Information if information else
+                QMessageBox.Icon.Question)
+        self.dialog.setIcon(icon)
         self.dialog.setWindowTitle(str(title))
         if rich_text:
             self.dialog.setTextFormat(Qt.TextFormat.RichText)

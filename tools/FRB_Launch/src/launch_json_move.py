@@ -85,3 +85,19 @@ def exp_folder_placement(node):
     if item_id and (node.get('row') or {}).get('item_kind') != 'category':
         return None
     return {'group_id': page_id, 'parent_id': item_id, 'position': 'end'}
+
+
+def registered_root_reorder_placement(source, target, *, page_id, parent_id,
+                                      fraction=0.5):
+    """Root-to-root reorder ONLY: no reparent, filesystem move or PC target."""
+    if not (isinstance(source, tuple) and len(source) == 2 and
+            source[0] == page_id and source[1]):
+        return None
+    if target is None:  # Files Exp blank background: append to Files roots.
+        return {'group_id': page_id, 'parent_id': parent_id, 'position': 'end'}
+    if not (isinstance(target, tuple) and len(target) == 2 and
+            target[0] == page_id and target[1]):
+        return None
+    return {'group_id': page_id, 'parent_id': parent_id,
+            'position': 'before' if fraction < 0.5 else 'after',
+            'anchor_id': target[1]}

@@ -5757,9 +5757,9 @@ class ExpandedLauncherView(QWidget):
         if not isinstance(virtual, dict) or virtual.get('runtime_catalog'):
             return False
         if virtual.get('kind') == 'page' and not virtual.get('item_id'):
-            entries = mime_sources(mime)
-            if not all(Path(e.get('value', '')).is_dir() for e in entries):
-                return False
+            # The List blank area of an authored Page accepts file/URL drops too.
+            # Only the *Files Exp root* is folder-only (a different drop target).
+            pass
         elif (virtual.get('row') or {}).get('item_kind') != 'category':
             return False
         return virtual_item_identity(virtual)

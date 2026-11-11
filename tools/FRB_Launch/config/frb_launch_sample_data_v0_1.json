@@ -346,7 +346,7 @@
       "description": "",
       "item_kind": "directory",
       "icon_key": "category.blue",
-      "sort_order": 80,
+      "sort_order": 90,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -1928,7 +1928,7 @@
       "description": "",
       "item_kind": "directory",
       "icon_key": "category.blue",
-      "sort_order": 90,
+      "sort_order": 100,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2131,7 +2131,7 @@
       "description": "",
       "item_kind": "directory",
       "icon_key": "category.blue",
-      "sort_order": 100,
+      "sort_order": 110,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2380,7 +2380,7 @@
       "description": "",
       "item_kind": "directory",
       "icon_key": "category.blue",
-      "sort_order": 110,
+      "sort_order": 120,
       "enabled": true,
       "keywords": [],
       "launch_selection_group_id": "",
@@ -2982,61 +2982,9 @@
       "shuriken_enabled": false
     },
     {
-      "title": "Audacity",
-      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-      "item_kind": "directory",
-      "icon_key": "folder.yellow",
-      "enabled": true,
-      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none"
-        }
-      ],
-      "parent_item_id": "928afb99-5394-4bf6-8c53-6333874421ff",
-      "page_id": "work",
-      "item_id": "52c09b5d-9d97-46f8-b9b1-7a7014ab86b0",
-      "sort_order": 30
-    },
-    {
-      "title": "Audacity",
-      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-      "item_kind": "directory",
-      "icon_key": "folder.yellow",
-      "enabled": true,
-      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Audacity",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none"
-        }
-      ],
-      "parent_item_id": "zip",
-      "page_id": "work",
-      "item_id": "223ed44f-9036-49ee-aa42-3ea2b5df5c3e",
-      "sort_order": 70
-    },
-    {
       "title": "zz",
       "item_kind": "category",
-      "icon_key": "category.blue",
+      "icon_key": "folder.pink",
       "enabled": true,
       "description": "zz",
       "launch_browse_target": "",
@@ -3346,32 +3294,6 @@
       "sort_order": 80
     },
     {
-      "title": "新しい フォルダー000",
-      "description": "C:\\Users\\tsub-\\Documents\\新しい フォルダー000",
-      "item_kind": "directory",
-      "icon_key": "folder.yellow",
-      "enabled": true,
-      "launch_browse_target": "C:\\Users\\tsub-\\Documents\\新しい フォルダー000",
-      "launch_actions": [
-        {
-          "launch_action_type": "Open",
-          "launch_target": "C:\\Users\\tsub-\\Documents\\新しい フォルダー000",
-          "launch_program": "",
-          "launch_arguments": [],
-          "launch_working_directory": "",
-          "launch_wait_for_exit": false,
-          "launch_timeout_ms": 30000,
-          "launch_failure_policy": "stop",
-          "launch_result_name": "",
-          "launch_result_format": "none"
-        }
-      ],
-      "parent_item_id": "folders",
-      "page_id": "system",
-      "item_id": "0b1dbc5b-6b8f-4421-b133-8ab2a35b0c0a",
-      "sort_order": 120
-    },
-    {
       "title": "cc",
       "item_kind": "category",
       "icon_key": "category.blue",
@@ -3387,7 +3309,7 @@
     {
       "title": "aaa",
       "item_kind": "category",
-      "icon_key": "category.blue",
+      "icon_key": "folder.gray",
       "enabled": true,
       "description": "",
       "launch_browse_target": "",
@@ -3396,6 +3318,292 @@
       "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
       "item_id": "9e9ad4f6-20ee-4935-bb81-0d6f00eb15dc",
       "sort_order": 10
+    },
+    {
+      "title": "Reflect",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Reflect",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Reflect",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Reflect",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "532cccac-f6dd-4e1f-a9a8-14e53c474c36",
+      "sort_order": 40
+    },
+    {
+      "title": "新しいフォルダー (3)",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\_tmp\\新しいフォルダー (3)",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\_tmp\\新しいフォルダー (3)",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\_tmp\\新しいフォルダー (3)",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "5482586e-3e07-4b48-86c0-564cc58376b2",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "cfd0af59-9120-430a-b3c4-41083d7f7135",
+      "sort_order": 10
+    },
+    {
+      "title": "pytest.ini",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\pytest.ini",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\pytest.ini",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "5482586e-3e07-4b48-86c0-564cc58376b2",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "c0c0f54f-158b-4bab-9caa-cf7d19cceaa4",
+      "sort_order": 20
+    },
+    {
+      "title": "open_apps_log.bat",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\open_apps_log.bat",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\open_apps_log.bat",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "7286bbb2-900a-4616-a8e7-fe01d01147f7",
+      "sort_order": 90
+    },
+    {
+      "title": "_make_launch_zip.bat",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\_make_launch_zip.bat",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\_make_launch_zip.bat",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "7b24abcd-77ef-49c4-8fc6-bbc49c2729a8",
+      "sort_order": 100
+    },
+    {
+      "title": "_build_windows.bat",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\_build_windows.bat",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\_build_windows.bat",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "663b4b94-defc-4dab-869d-e7b08839070d",
+      "sort_order": 110
+    },
+    {
+      "title": "launch_json_move.py",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\src\\launch_json_move.py",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\src\\launch_json_move.py",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "f8f6ca82-e9a5-434f-b1ea-94281b8cc618",
+      "sort_order": 120
+    },
+    {
+      "title": "registered_root_studio.py",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\src\\registered_root_studio.py",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\src\\registered_root_studio.py",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "64ffee3e-81e1-4868-9485-c3a0cc8b6451",
+      "sort_order": 130
+    },
+    {
+      "title": "experiments",
+      "description": "F:\\FRB\\tools\\FRB_Launch\\experiments",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "F:\\FRB\\tools\\FRB_Launch\\experiments",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB\\tools\\FRB_Launch\\experiments",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "ac6f0acf-e6dd-4ab2-a914-61d60705ccc5",
+      "sort_order": 50
+    },
+    {
+      "title": "Book1.xlsx",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Book1.xlsx",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Book1.xlsx",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "b3ff88c6-75af-4009-bfee-6de5805e265c",
+      "sort_order": 60
+    },
+    {
+      "title": "Book1 (1).xlsx",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Book1 (1).xlsx",
+      "item_kind": "command",
+      "icon_key": "file",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\Book1 (1).xlsx",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "2c4bfbf5-47a3-4e12-8158-233c1be2258e",
+      "sort_order": 70
     }
   ],
   "launch_variables": [

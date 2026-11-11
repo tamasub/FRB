@@ -9,6 +9,7 @@ import configparser
 import hashlib
 import json
 import os
+import ntpath
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 import shutil
@@ -174,11 +175,43 @@ def category_record(title):
             'description': '', 'launch_browse_target': '', 'launch_actions': []}
 
 
-def mime_sources(mime):
-    """Extract Windows/Chrome/embedded-browser drag payload without network IO.
+def _drop_uri_value(text):
+    """Convert a file URI or HTTP URL to an untrusted source path/URL.
 
-    Qt mimeData().urls() may contain local .url shortcuts or actual HTTP URLs.
-    Browser links can also arrive in text/uri-list, x-moz-url or text/plain.
+    Windows Explorer/OneDrive may give text/uri-list without QUrl.isLocalFile.
+    Existence and permission checks are deliberately deferred to normalize_sources.
+    """
+    candidate = str(text or '').strip().strip('\x00')
+    if _valid_http(candidate):
+        return candidate
+    parsed = urlparse(candidate)
+    if parsed.scheme.lower() != 'file':
+        return ''
+    # file:///C:/folder/name%20with%20space.xlsx or file://server/share/x.
+    local = unquote(parsed.path)
+    if len(local) >= 3 and local[0] == '/' and local[2] == ':':
+        local = local[1:]
+    if parsed.netloc and parsed.netloc.lower() != 'localhost':
+        local = '//'+parsed.netloc + local
+    return local if (ntpath.isabs(local) or os.path.isabs(local)) else ''
+
+
+def _drop_windows_paths(blob, encoding):
+    """Read standard OLE FileNameW/FileName null-separated absolute paths."""
+    try:
+        paths = bytes(blob).decode(encoding).split('\x00')
+    except (UnicodeError, LookupError):
+        return []
+    return [p for p in paths if p and (ntpath.isabs(p) or os.path.isabs(p))]
+
+
+def mime_sources(mime):
+    """Decode Explorer/OneDrive/Chromium drops, without changing real files.
+
+    QUrl conversion is not sufficient for every Windows native Explorer drag.
+    FileNameW/FileName or a raw uri-list may be present instead. Only absolute
+    filenames, file: URIs and validated http(s) URLs are eligible; the Add
+    request still checks existence, target category and Studio constraints.
     """
     entries = []
     if mime is None:
@@ -186,11 +219,52 @@ def mime_sources(mime):
     if mime.hasUrls():
         for url in mime.urls():
             if url.isLocalFile():
-                entries.append({'value': url.toLocalFile()})
-            elif _valid_http(url.toString()):
-                entries.append({'value': url.toString()})
-    # Chromium on Windows may use OLE's UniformResourceLocatorW rather than
-    # text/uri-list. Accept that standard clipboard representation as well.
+                path = str(url.toLocalFile() or '') or _drop_uri_value(url.toString())
+                if path:
+                    entries.append({'value': path})
+            else:
+                candidate = _drop_uri_value(url.toString())
+                if candidate:
+                    entries.append({'value': candidate})
+    # Prefer Qt's canonical CF_HDROP/local-URL paths.  Windows Explorer may
+    # expose the SAME files again as OLE FileNameW/FileName, sometimes as an
+    # 8.3 alias that does not resolve (notably under OneDrive).  Do not append
+    # those aliases when a higher-priority representation is available.
+    # Some drag providers expose a raw URI list while QMimeData.urls() is
+    # empty; use that before native filename formats for the same reason.
+    if not entries and mime.hasFormat('text/uri-list'):
+        try:
+            lines = bytes(mime.data('text/uri-list')).decode('utf-8-sig').splitlines()
+        except UnicodeError:
+            lines = []
+        for line in lines:
+            if not line.startswith('#'):
+                candidate = _drop_uri_value(line)
+                if candidate:
+                    entries.append({'value': candidate})
+
+    if not entries:
+        # Unicode FileNameW wins over ANSI FileName.  Never merge both: they
+        # are alternative representations of the same dropped files, not
+        # separate files.  ;index=N allows multiple native file descriptors.
+        native_formats = (mime.formats() if callable(getattr(mime, 'formats', None))
+                          else ())
+        for base, encoding in (
+            ('application/x-qt-windows-mime;value="FileNameW"', 'utf-16-le'),
+            ('application/x-qt-windows-mime;value="FileName"', 'mbcs' if os.name == 'nt' else 'cp1252'),
+        ):
+            formats = [fmt for fmt in native_formats if
+                       fmt == base or fmt.startswith(base + ';index=')]
+            if not formats and mime.hasFormat(base):
+                formats = [base]
+            fallback = []
+            for fmt in formats:
+                fallback.extend({'value': path} for path in
+                                _drop_windows_paths(mime.data(fmt), encoding))
+            if fallback:
+                entries.extend(fallback)
+                break
+    # Chromium sometimes uses URL-only native clipboard formats.
     for windows_format, encoding in (
         ('application/x-qt-windows-mime;value="UniformResourceLocatorW"', 'utf-16-le'),
         ('application/x-qt-windows-mime;value="UniformResourceLocator"', 'cp1252')):
@@ -220,9 +294,23 @@ def mime_sources(mime):
                     entry['title'] = caption
     if not entries and mime.hasText():
         lines = str(mime.text() or '').strip().splitlines()
-        if lines and _valid_http(lines[0]):
-            entries.append({'value': lines[0], 'title': lines[1] if len(lines) > 1 else ''})
-    return entries
+        if lines:
+            candidate = _drop_uri_value(lines[0])
+            if not candidate and (ntpath.isabs(lines[0]) or os.path.isabs(lines[0])):
+                candidate = lines[0]
+            if candidate:
+                entries.append({'value': candidate,
+                                'title': lines[1] if len(lines) > 1 and _valid_http(candidate) else ''})
+    # Dedupe data formats within one drag; normalize_sources separately checks
+    # distinct target values and never prohibits a duplicate registered path.
+    deduped = []
+    seen = set()
+    for entry in entries:
+        key = entry['value'].casefold()
+        if key not in seen:
+            deduped.append(entry)
+            seen.add(key)
+    return deduped
 
 
 def studio_core_root(launch_home, configured_root=''):

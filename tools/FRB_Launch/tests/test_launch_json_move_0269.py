@@ -86,7 +86,10 @@ def test_launch_disables_move_during_search_and_keeps_file_copy():
     assert 'virtual_studio_target(hovered' in source
     assert 'sender=event.source()' in source
     exp = (ROOT/'src/remote_files_explorer.py').read_text(encoding='utf-8')
-    assert 'item.setDragEnabled(False)' in exp  # physical nodes
+    # Authored Files Exp roots can reorder; descendants and PC remain static.
+    assert 'item.setDragEnabled(registered)' in exp
+    assert 'item.parent() is not None' in exp
+    assert 'source != active_root' in exp
     assert 'virtual_studio_target(node' in exp
     assert 'exp_folder_placement(node)' in exp
 
