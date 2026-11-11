@@ -96,7 +96,7 @@ class ConfirmationInputGuard(QObject):
             try:
                 if any(current.inherits(name) for name in (
                         'QAbstractButton', 'QLineEdit', 'QTextEdit',
-                        'QPlainTextEdit', 'QAbstractSlider')):
+                        'QPlainTextEdit', 'QAbstractSlider', 'QComboBox')):
                     return True
             except (AttributeError, RuntimeError, TypeError):
                 pass
@@ -146,6 +146,17 @@ class ConfirmationInputGuard(QObject):
         if kind not in self.BLOCKED or not isinstance(obj, QWidget):
             return False
         window = obj.window()
+        # Native combobox lists are separate Qt.Popup windows.  They still
+        # belong to the editable dialog, not to the blocked background Launch
+        # surface.  The icon chooser must allow both clicking the dropdown and
+        # selecting its popup row; the Remote button selector is unaffected.
+        try:
+            for combo in (widget for widget in self.question.findChildren(QWidget)
+                          if widget.inherits('QComboBox')):
+                if combo.view().isVisible() and window is combo.view().window():
+                    return False
+        except (AttributeError, RuntimeError):
+            pass
         pad = getattr(self.remote, 'pad', None)
         # QApplication-level filter runs before the pad's QWidget handler.
         # Consume BOTH press/release here and dispatch only once, rather than
@@ -161,6 +172,8 @@ class ConfirmationInputGuard(QObject):
             # often covers both the original Files List and the Remote pad.
             # Events received *on the question itself* must therefore be a
             # first-class input route, not handed to a passive QMessageBox.
+            if kind == QEvent.Type.Wheel and self._native_dialog_control(obj):
+                return False  # Icon combobox/description editor keep native wheel.
             if kind == QEvent.Type.Wheel and self.wheel_receiver is not None:
                 self._click_press = None  # Wheel-during-press cannot arm a click.
                 self.wheel_receiver.background_wheel(event)
@@ -205,15 +218,24 @@ class RemoteConfirmation:
     YES = QMessageBox.StandardButton.Yes
     NO = QMessageBox.StandardButton.No
 
-    def __init__(self, launcher, title, message, informative=''):
+    def __init__(self, launcher, title, message, informative='', *,
+                 yes_text=None, no_text=None, rich_text=False, warning=False):
         self.launcher = launcher
         self.dialog = QMessageBox(launcher)
-        self.dialog.setIcon(QMessageBox.Icon.Question)
+        self.dialog.setIcon(QMessageBox.Icon.Warning if warning else QMessageBox.Icon.Question)
         self.dialog.setWindowTitle(str(title))
+        if rich_text:
+            self.dialog.setTextFormat(Qt.TextFormat.RichText)
         self.dialog.setText(str(message))
         if informative:
             self.dialog.setInformativeText(str(informative))
         self.dialog.setStandardButtons(self.YES | self.NO)
+        if yes_text is not None:
+            self.dialog.button(self.YES).setText(yes_text)
+        if no_text is not None:
+            self.dialog.button(self.NO).setText(no_text)
+        self.yes_text = self.dialog.button(self.YES).text()
+        self.no_text = self.dialog.button(self.NO).text()
         self.dialog.setDefaultButton(self.NO)
         self.dialog.setEscapeButton(self.NO)
         # Critical: Qt.WindowModal would block the separate Remote as a child
@@ -276,7 +298,7 @@ class RemoteConfirmation:
         remote = getattr(self.launcher, 'remote_window', None)
         label = getattr(remote, 'area_label', None)
         if label is not None and remote.isVisible():
-            label.setText('確認応答：' + ('Yes' if answer == self.YES else 'No'))
+            label.setText('確認応答：' + (getattr(self, 'yes_text', 'Yes') if answer == self.YES else getattr(self, 'no_text', 'No')))
 
     def remote_command(self, command):
         if command in ('UP', 'DOWN'):

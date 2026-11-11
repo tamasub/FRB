@@ -3,8 +3,8 @@
 This is a QWidget INSIDE the main window (never a second Qt.Tool popup).
 All rows/actions are supplied by Launcher and use its existing menu data.
 """
-from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo, Signal
-from PySide6.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
+from PySide6.QtCore import Qt, QPoint, QPointF, QSize, QTimer, QEvent, QRectF, QFileInfo, Signal, QMimeData
+from PySide6.QtGui import QDrag, QBrush, QColor, QFont, QIcon, QPainter, QPainterPath, QPixmap, QLinearGradient, QPen, QPalette, QCursor
 from PySide6.QtWidgets import (QApplication, QFrame, QWidget, QHBoxLayout, QVBoxLayout, QLabel,
     QPushButton, QTreeWidget, QTreeWidgetItem, QHeaderView, QAbstractItemView,
     QScrollArea, QSplitter, QSizePolicy, QLineEdit, QStackedWidget, QToolButton, QMenu, QFileIconProvider, QStyledItemDelegate, QAbstractItemDelegate, QStyleOptionViewItem, QStyle)
@@ -30,7 +30,7 @@ from pathlib import Path
 import os
 from middle_folder_filter import SORT_LABELS, filter_sort_folder_rows, sort_mode_for_header
 from middle_column_presentation import (FILES_HEADERS, LAUNCH_HEADERS,
-    virtual_description, virtual_item_kind, virtual_sort_mode_for_header)
+    virtual_description, virtual_item_kind)
 from folder_sort_preferences import (DEFAULT_SORT, load_directory_sort,
                                      save_directory_sort)
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
@@ -52,8 +52,10 @@ from workspace_tab_geometry import workspace_tab_line_segments
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from bookmark_menu import expanded_bookmark_rows
 from launch_virtual_tree import (virtual_list_rows, virtual_lookup_node,
-                                 virtual_exp_presentation, virtual_item_identity)
+                                 virtual_exp_presentation, virtual_item_identity,
+                                 virtual_studio_target)
 from launch_menu_registration import mime_sources
+from launch_json_move import MOVE_MIME, encode_source, drop_placement
 from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
                                history_popup_qss, bookmark_section_colors)
 
@@ -630,7 +632,32 @@ class _SeparatedFileTree(ExternalFileDragTree):
         callback = getattr(self, 'launch_registration_resolver', None)
         return callback(event.position().toPoint(), event.mimeData()) if callable(callback) else False
 
+    def startDrag(self, supported_actions):
+        resolver = getattr(self, 'launch_move_source_resolver', None)
+        identity = resolver(self.currentItem()) if callable(resolver) else None
+        if identity is not None:
+            mime = QMimeData()
+            mime.setData(MOVE_MIME, encode_source(*identity))
+            drag = QDrag(self)
+            drag.setMimeData(mime)
+            drag.exec(Qt.DropAction.MoveAction, Qt.DropAction.MoveAction)
+            return
+        # Preserve existing COPY drags for real files; they are NEVER Move.
+        super().startDrag(supported_actions)
+
+    def _launch_move_target(self, event):
+        resolver = getattr(self, 'launch_move_drop_resolver', None)
+        return (resolver(event.position().toPoint(), event.mimeData(), event.source())
+                if callable(resolver) else None)
+
     def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            if self._launch_move_target(event) is not None:
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         if self._launch_drop_target(event) is not False:
             event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
@@ -638,6 +665,13 @@ class _SeparatedFileTree(ExternalFileDragTree):
             super().dragEnterEvent(event)
 
     def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            if self._launch_move_target(event) is not None:
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         if self._launch_drop_target(event) is not False:
             event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
@@ -645,6 +679,16 @@ class _SeparatedFileTree(ExternalFileDragTree):
             super().dragMoveEvent(event)
 
     def dropEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            placement = self._launch_move_target(event)
+            callback = getattr(self, 'launch_move_drop_handler', None)
+            if placement is not None and callable(callback) and callback(
+                    event.mimeData(), placement, sender=event.source()):
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         target = self._launch_drop_target(event)
         if target is False:
             event.ignore()
@@ -1439,6 +1483,9 @@ class ExpandedLauncherView(QWidget):
             lambda: (self._files_history_click_timer.stop(),
                      launcher.remote_search_result_double_click()))
         shared_layout.addWidget(self.files_history_button)
+        # Files header magnifier removed by request; do not remove the search
+        # engine, the Files List filter, or the history keyboard routes.
+        self.files_history_button.hide()
         self.address_bar = DirectoryAddressBar(self.go_to_directory, self.shared_header)
         shared_layout.addWidget(self.address_bar, 1)
         # Move the existing three-lines/density action to the breadcrumb's
@@ -1505,6 +1552,9 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
         self.middle.tree.launch_registration_resolver = self._middle_launch_drop_target
         self.middle.tree.launch_registration_handler = launcher.handle_launch_drop
+        self.middle.tree.launch_move_source_resolver = self._middle_launch_move_source
+        self.middle.tree.launch_move_drop_resolver = self._middle_launch_move_target
+        self.middle.tree.launch_move_drop_handler = launcher.launch_json_move_drop
         # Local, immediate filter; separate from global search and its file index.
         # Preserve the 3-column navigation and right-side chevrons unchanged.
         self._middle_query_directory = None
@@ -2464,17 +2514,18 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.header().setSortIndicator(column, direction)
 
     def _middle_header_clicked(self, logical_column):
+        # Launch JSON order is an editable setting, not an alternate view sort.
+        # Header sorting must never disguise the persisted sort_order while
+        # the user is dragging menu items into a new position.
         if getattr(self, '_virtual_directory_node', None) is not None:
-            mode = virtual_sort_mode_for_header(logical_column, self._middle_sort_mode)
-        else:
-            mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
+            return
+        mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
         if mode is not None:
-            if getattr(self, '_virtual_directory_node', None) is not None:
-                self._virtual_sort_custom = True
-                self.middle.tree.header().setSortIndicatorShown(True)
             self.set_middle_sort(mode)
 
     def set_middle_sort(self, mode):
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            return
         if mode not in SORT_LABELS:
             return
         self._middle_sort_mode = mode
@@ -2653,15 +2704,14 @@ class ExpandedLauncherView(QWidget):
         self._set_middle_columns_for_source(virtual is not None)
         if virtual is not None:
             rows = virtual_list_rows(virtual)
-            # The first view keeps the user's Studio/Launch JSON menu order.
-            # A click on a List column heading explicitly overrides that order.
+            # Studio-authored sort_order ALWAYS owns Launch JSON row order.
+            # Search filters may reduce the rows but cannot re-sort them.
             source_order = {row['_launch_virtual_node']['node_id']: i
                             for i, row in enumerate(rows)}
             rows = filter_sort_folder_rows(
                 rows, self.middle_search.text(), self._middle_sort_mode)
-            if not getattr(self, '_virtual_sort_custom', False):
-                rows.sort(key=lambda r: source_order[
-                    r['_launch_virtual_node']['node_id']])
+            rows.sort(key=lambda r: source_order[
+                r['_launch_virtual_node']['node_id']])
             self.middle.fill(rows, self.launcher.row_icon)
             self._queue_middle_selection_repair()
             self._update_middle_empty_label()
@@ -2724,8 +2774,7 @@ class ExpandedLauncherView(QWidget):
         self._set_middle_columns_for_source(virtual is not None)
         if virtual is not None:
             # This is a *display* breadcrumb, not an editable OS pathname.
-            self.middle.tree.header().setSortIndicatorShown(
-                getattr(self, '_virtual_sort_custom', False))
+            self.middle.tree.header().setSortIndicatorShown(False)
             self.middle.label.setText(virtual['title'])
             self.address_bar.set_directory(None, ' › '.join(
                 virtual.get('breadcrumbs') or (virtual['title'],)))
@@ -5652,6 +5701,42 @@ class ExpandedLauncherView(QWidget):
         """Use Launcher's existing menu content/actions; no new command logic."""
         self.launcher.open_expanded_cascade(row, widget, item)
 
+    def _middle_launch_move_source(self, item):
+        # Disabled during search: filtered row indices cannot define an
+        # unambiguous sibling order. Never drag runtime/physical rows as JSON.
+        if (self._workspace_mode != 'files' or
+                not isinstance(self._virtual_directory_node, dict) or
+                self.middle_search.text().strip() or
+                len(self.middle.tree.selectedItems()) > 1):
+            return None
+        node = (self.row_data(item) or {}).get('_launch_virtual_node') if item else None
+        return self.launcher.launch_json_move_source(node)
+
+    def _middle_launch_move_target(self, point, mime, sender):
+        if (self._workspace_mode != 'files' or
+                not isinstance(self._virtual_directory_node, dict) or
+                self.middle_search.text().strip() or
+                not mime.hasFormat(MOVE_MIME) or
+                not self.launcher.launch_json_move_sender_valid(sender)):
+            return None
+        current = self._virtual_directory_node
+        # Current directory must itself be a real JSON Page/category, not a
+        # projected physical directory or a dynamic bookmark/application.
+        if not virtual_studio_target(current, self.launcher.pages,
+                                     self.launcher.authored_items):
+            return None
+        item = self.middle.tree.itemAt(point)
+        hovered = (self.row_data(item) or {}).get('_launch_virtual_node') if item else None
+        if hovered is not None:
+            if not virtual_studio_target(hovered, self.launcher.pages,
+                                         self.launcher.authored_items):
+                return None
+            rect = self.middle.tree.visualItemRect(item)
+            fraction = (point.y() - rect.top()) / max(1, rect.height())
+        else:
+            fraction = 0.5
+        return drop_placement(current, hovered, fraction=fraction)
+
     def _middle_launch_drop_target(self, point, mime):
         """Only a visible authored category or blank space of that category."""
         if not mime_sources(mime) or self._workspace_mode != 'files':
@@ -5660,7 +5745,15 @@ class ExpandedLauncherView(QWidget):
         if not isinstance(current, dict):
             return False
         item = self.middle.tree.itemAt(point)
-        virtual = (self.row_data(item) or {}).get('_launch_virtual_node') if item else current
+        hovered = (self.row_data(item) or {}).get('_launch_virtual_node') if item else None
+        if hovered is not None and (not isinstance(hovered, dict)
+                                    or hovered.get('runtime_catalog')):
+            return False
+        # The mouse often lands on an existing file/link row rather than on
+        # blank space.  Add to that leaf's current category, never to the leaf.
+        virtual = (hovered if isinstance(hovered, dict) and
+                   (hovered.get('row') or {}).get('item_kind') == 'category'
+                   else current)
         if not isinstance(virtual, dict) or virtual.get('runtime_catalog'):
             return False
         if virtual.get('kind') == 'page' and not virtual.get('item_id'):

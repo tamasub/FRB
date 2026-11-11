@@ -2,6 +2,7 @@
 // Pure ChangeSet planner/executor: neither application-specific keys nor file IO.
 import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { isDeepStrictEqual } from 'node:util';
 const require = createRequire(import.meta.url);
 const StudioTreeModel = require('../../wwwroot/js/runtime/tree_model.js');
 
@@ -34,6 +35,38 @@ function getGroupIds(document, cfg){
   return new Set(rows.map(r=>String(r[cfg.groupIdField]??'')));
 }
 const safeId=v=>typeof v==='string' && v.trim().length>0;
+// Update accepts any JSON field path, independent of the calling application.
+// Single field names and RFC6901 pointers are accepted. Paths must already
+// exist through their parent; missing object leaf fields can be introduced.
+function updateField(row, path, value, protectedFields){
+  const tokens=typeof path==='string' && path.startsWith('/')
+    ? path.slice(1).split('/').map(t=>{
+        if(/~(?![01])/.test(t))fail('INVALID_FIELD_PATH',`不正なJSON Pointer: ${path}`);
+        return t.replace(/~1/g,'/').replace(/~0/g,'~');
+      })
+    : typeof path==='string' && /^[^./]+$/.test(path) ? [path] : [];
+  if(!tokens.length || tokens.some(t=>!t || ['__proto__','prototype','constructor'].includes(t)))
+    fail('INVALID_FIELD_PATH',`不正な変更項目: ${path}`);
+  if(protectedFields.has(tokens[0]))
+    fail('PROTECTED_FIELD',`識別子・親子・順序フィールドはUpdateできません: ${tokens[0]}`);
+  let dest=row;
+  for(let i=0;i<tokens.length-1;i++){
+    const token=tokens[i];
+    if(Array.isArray(dest)){
+      if(!/^(0|[1-9]\d*)$/.test(token) || Number(token)>=dest.length)
+        fail('INVALID_FIELD_PATH',`配列要素が存在しません: ${path}`);
+      dest=dest[Number(token)];
+    }else if(object(dest) && Object.hasOwn(dest,token))dest=dest[token];
+    else fail('INVALID_FIELD_PATH',`変更先の親がありません: ${path}`);
+  }
+  const last=tokens.at(-1);
+  if(Array.isArray(dest)){
+    if(!/^(0|[1-9]\d*)$/.test(last) || Number(last)>=dest.length)
+      fail('INVALID_FIELD_PATH',`配列要素が存在しません: ${path}`);
+    dest[Number(last)]=clone(value);
+  }else if(object(dest))dest[last]=clone(value);
+  else fail('INVALID_FIELD_PATH',`変更先はオブジェクトではありません: ${path}`);
+}
 function planChangeSet(document, request, view, createId){
   if(!object(document))fail('INVALID_DOCUMENT','JSON文書はオブジェクトが必要です');
   if(request?.schema_version!=='studio_changeset_v0_1')fail('INVALID_SCHEMA','ChangeSet Schemaが不正です');
@@ -43,12 +76,102 @@ function planChangeSet(document, request, view, createId){
   const pending=new Map();
   const planned=[];
   for(const op of request.operations){
-    if(!['add','delete'].includes(op?.operation))fail('UNSUPPORTED_OPERATION',`未対応の操作: ${op?.operation}`);
+    if(!['add','delete','update','move'].includes(op?.operation))fail('UNSUPPORTED_OPERATION',`未対応の操作: ${op?.operation}`);
     const section=sections.find(s=>s.id===op.section_id&&s.type==='grid');
     if(!section)fail('SECTION_NOT_FOUND',`Gridが見つかりません: ${op.section_id}`);
     const {key,rows}=resolveArray(document,section.dataPath);
     if(!pending.has(key))pending.set(key,clone(rows));
     const updated=pending.get(key), cfg=section.tree?.enabled?section.tree:null;
+    if(op.operation==='update'){
+      if(!Array.isArray(op.targets)||!op.targets.length||!op.targets.every(object))
+        fail('INVALID_TARGETS','update.targets[] は1件以上必要です');
+      const idField=cfg?.idField??section.keyField;
+      if(!idField)fail('UPDATE_KEY_REQUIRED','変更対象の一意ID定義が必要です');
+      if(cfg)validateTree(updated,cfg);
+      const protectedFields=new Set([idField,...(cfg?[cfg.parentField,cfg.orderField,cfg.groupField]:[])]);
+      const seen=new Set();
+      for(const target of op.targets){
+        if(!safeId(target.id))fail('INVALID_TARGETS','変更対象idが不正です');
+        if(seen.has(target.id))fail('DUPLICATE_TARGET',`変更対象が重複しています: ${target.id}`);
+        seen.add(target.id);
+        const index=updated.findIndex(r=>String(r[idField]??'')===target.id);
+        if(index<0)fail('TARGET_NOT_FOUND',`変更対象が見つかりません: ${target.id}`);
+        const before=clone(updated[index]);
+        if(cfg?.groupField){
+          if(!safeId(target.group_id))fail('GROUP_REQUIRED','変更対象のgroup_idが必要です');
+          if(String(before[cfg.groupField]??'')!==target.group_id)
+            fail('GROUP_MISMATCH',`指定されたgroup_idが対象と一致しません: ${target.id}`);
+        }
+        if(!Array.isArray(target.changes)||!target.changes.length||
+           !target.changes.every(c=>object(c)&&typeof c.path==='string'&&Object.hasOwn(c,'value')))
+          fail('INVALID_CHANGES','changes[] にはpathとvalueが必要です');
+        const changed=clone(before);
+        const paths=new Set();
+        for(const change of target.changes){
+          if(paths.has(change.path))fail('DUPLICATE_FIELD_PATH',`同一変更項目の重複: ${change.path}`);
+          paths.add(change.path);
+          updateField(changed,change.path,change.value,protectedFields);
+        }
+        updated[index]=changed;
+        planned.push({kind:'update',section_id:section.id,key,index,before,row:clone(changed)});
+      }
+      if(cfg)validateTree(updated,cfg);
+      continue;
+    }
+    if(op.operation==='move'){
+      if(!cfg)fail('MOVE_REQUIRES_TREE','MoveはTree定義のあるSectionのみ対応します');
+      if(!Array.isArray(op.targets)||op.targets.length!==1||!object(op.targets[0]))
+        fail('INVALID_TARGETS','Moveは一回に一つの登録アイテムを指定してください');
+      validateTree(updated,cfg);
+      const source=op.targets[0],placement=op.placement;
+      if(!safeId(source.id)||!safeId(source.group_id)||!object(placement))
+        fail('INVALID_TARGETS','移動元ID・group_id・placementが必要です');
+      const model=StudioTreeModel.build(updated,cfg);
+      const sourceNode=model.ids.get(source.id);
+      if(!sourceNode)fail('TARGET_NOT_FOUND',`移動元がありません: ${source.id}`);
+      if(String(sourceNode.row[cfg.groupField]??'')!==source.group_id)
+        fail('GROUP_MISMATCH','移動元のPageが一致しません');
+      const parentId=String(placement.parent_id??'');
+      const parent=parentId?model.ids.get(parentId):null;
+      if(parentId&&!parent)fail('PARENT_NOT_FOUND',`移動先の親がありません: ${parentId}`);
+      const group=parent?String(parent.row[cfg.groupField]??''):String(placement.group_id??'');
+      if(!safeId(group))fail('GROUP_REQUIRED','移動先のgroup_idが必要です');
+      if(placement.group_id!=null&&String(placement.group_id)!==group)
+        fail('GROUP_MISMATCH','移動先Pageと親のPageが異なります');
+      const groups=getGroupIds(document,cfg);
+      if(groups&&!groups.has(group))fail('GROUP_NOT_FOUND','移動先Pageが存在しません');
+      if(parent&&cfg.parentKindField&&!cfg.parentKinds?.includes(parent.row[cfg.parentKindField]))
+        fail('PARENT_KIND_INVALID','移動先はカテゴリーフォルダーが必要です');
+      const position=placement.position??'end';
+      if(!['end','before','after'].includes(position))
+        fail('UNSUPPORTED_PLACEMENT','Moveのpositionはend/before/afterです');
+      let beforeIndex=null;
+      const peers=model.nodes.filter(n=>n!==sourceNode && n.parent===parent &&
+        (!cfg.groupField || String(n.row[cfg.groupField]??'')===group))
+        .sort((a,b)=>(Number(a.row[cfg.orderField])||0)-(Number(b.row[cfg.orderField])||0)||a.index-b.index);
+      if(position!=='end'){
+        if(!safeId(placement.anchor_id))fail('ANCHOR_REQUIRED','移動先の基準アイテムIDが必要です');
+        const at=peers.findIndex(n=>String(n.row[cfg.idField])===placement.anchor_id);
+        if(at<0){
+          // Dropping immediately on oneself is a harmless no-op, not an implicit move.
+          if(placement.anchor_id===source.id)continue;
+          fail('ANCHOR_NOT_SIBLING','基準アイテムは移動先の同階層である必要があります');
+        }
+        beforeIndex=position==='before'?peers[at].index:(peers[at+1]?.index??null);
+      }
+      // Let the existing canonical TreeModel handle cycles, Page propagation,
+      // stable peer ordering, and position normalization. No file IO here.
+      const beforeRows=clone(updated);
+      try{StudioTreeModel.place(updated,cfg,sourceNode.index,parent?.index??null,group,beforeIndex);}
+      catch(e){fail('MOVE_INVALID',e.message);}
+      validateTree(updated,cfg);
+      if(!isDeepStrictEqual(beforeRows,updated))
+        planned.push({kind:'move',section_id:section.id,key,cfg:clone(cfg),
+          source_id:source.id,group, parent_id:parentId,
+          position,anchor_id:placement.anchor_id??null,
+          before_rows:beforeRows});
+      continue;
+    }
     if(op.operation==='delete'){
       if(!Array.isArray(op.targets)||!op.targets.length||!op.targets.every(object))
         fail('INVALID_TARGETS','delete.targets[] は1件以上の対象指定が必要です');
@@ -127,7 +250,7 @@ function planChangeSet(document, request, view, createId){
         seen.add(String(row[cfg.idField]));
         nextOrder+=10;
         row[cfg.orderField]=nextOrder;
-        planned.push({kind:'add',key,index:updated.length,row});
+        planned.push({kind:'add',section_id:section.id,key,index:updated.length,row});
         updated.push(row);
       }
       validateTree(updated,cfg);
@@ -140,7 +263,7 @@ function planChangeSet(document, request, view, createId){
           if(seen.has(String(row[section.keyField])))fail('DUPLICATE_ID',`ID重複: ${row[section.keyField]}`);
           seen.add(String(row[section.keyField]));
         }
-        planned.push({kind:'add',key,index:updated.length,row});updated.push(row);
+        planned.push({kind:'add',section_id:section.id,key,index:updated.length,row});updated.push(row);
       }
     }
   }
@@ -164,6 +287,28 @@ function executePlan(before,planned){
       after[item.key]=original.filter(row=>!ids.has(String(row[item.idField]??'')));
       if(original.length-after[item.key].length!==ids.size)
         fail('APPLY_MISMATCH','削除対象の件数が計画と一致しません');
+    }else if(item.kind==='move'){
+      const rows=after[item.key];
+      if(!Array.isArray(rows)||!isDeepStrictEqual(rows,item.before_rows))
+        fail('APPLY_MISMATCH','移動対象の基準JSONが計画と異なります');
+      const cfg=item.cfg,model=StudioTreeModel.build(rows,cfg);
+      const source=model.ids.get(item.source_id),parent=item.parent_id?model.ids.get(item.parent_id):null;
+      if(!source || (item.parent_id&&!parent))fail('APPLY_MISMATCH','移動元または親が見つかりません');
+      const peers=model.nodes.filter(n=>n!==source&&n.parent===parent &&
+        (!cfg.groupField||String(n.row[cfg.groupField]??'')===item.group))
+        .sort((a,b)=>(Number(a.row[cfg.orderField])||0)-(Number(b.row[cfg.orderField])||0)||a.index-b.index);
+      let beforeIndex=null;
+      if(item.position!=='end'){
+        const at=peers.findIndex(n=>String(n.row[cfg.idField])===item.anchor_id);
+        if(at<0)fail('APPLY_MISMATCH','基準アイテムが見つかりません');
+        beforeIndex=item.position==='before'?peers[at].index:(peers[at+1]?.index??null);
+      }
+      try{StudioTreeModel.place(rows,cfg,source.index,parent?.index??null,item.group,beforeIndex);}
+      catch(e){fail('APPLY_MISMATCH',e.message);}
+    }else if(item.kind==='update'){
+      if(!Array.isArray(after[item.key]) || !isDeepStrictEqual(after[item.key][item.index],item.before))
+        fail('APPLY_MISMATCH','変更対象が計画時のレコードと一致しません');
+      after[item.key][item.index]=clone(item.row);
     }else{
       if(!Array.isArray(after[item.key]) || after[item.key].length!==item.index)
         fail('APPLY_MISMATCH','適用時の行位置が計画と一致しません');
@@ -181,5 +326,7 @@ export function evaluateChangeSet(document,request,view,options={}) {
   const actualDiff=compareDiff(document,after);
   const { unexpected_diff: unexpectedDiff }=assessExpectedActual(expectedDiff,actualDiff);
   if(unexpectedDiff.length)fail('UNEXPECTED_DIFF','Expected DiffとActual Diffが一致しません');
-  return {after,expected_diff:expectedDiff,actual_diff:actualDiff,unexpected_diff:[],summary:{added:plan.planned.filter(p=>p.kind==='add').length,deleted:plan.planned.filter(p=>p.kind==='delete').reduce((n,p)=>n+p.ids.length,0),changed_existing:0}};
+  const validation_rows=plan.planned.filter(p=>p.kind==='add'||p.kind==='update')
+    .map(p=>({section_id:p.section_id,row:clone(p.row)}));
+  return {after,expected_diff:expectedDiff,actual_diff:actualDiff,unexpected_diff:[],validation_rows,summary:{added:plan.planned.filter(p=>p.kind==='add').length,deleted:plan.planned.filter(p=>p.kind==='delete').reduce((n,p)=>n+p.ids.length,0),changed_existing:plan.planned.filter(p=>p.kind==='update').length,moved:plan.planned.filter(p=>p.kind==='move').length}};
 }

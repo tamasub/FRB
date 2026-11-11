@@ -13,12 +13,13 @@ class LauncherStudioContextTests(unittest.TestCase):
 
     def test_empty_creates_category_in_current_page(self):
         self.assertIn('launch_configuration_studio(new_category=True)', SOURCE)
-        self.assertIn("'--launch-new-category=' + str(self.page_id)", SOURCE)
+        self.assertIn("'--launch-new-category=' + target_page_id", SOURCE)
+        self.assertIn("('category', 'カテゴリーフォルダーを作成...')", SOURCE)
 
     def test_page_properties_targets_the_page_group_not_an_item(self):
-        self.assertIn("'--launch-page-id=' + str(self.page_id)", SOURCE)
+        self.assertIn("'--launch-page-id=' + target_page_id", SOURCE)
         self.assertIn('launch_configuration_studio(page_properties=True)', SOURCE)
-        self.assertIn("menu.addAction('プロパティ',", SOURCE)
+        self.assertIn("menu.addAction('詳細編集...',", SOURCE)
 
     def test_item_properties_by_stable_item_id(self):
         self.assertIn("'--launch-item-id=' + str(item_id)", SOURCE)

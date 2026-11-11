@@ -139,8 +139,8 @@ def test_authored_folder_retains_studio_properties_without_search(tmp_path):
               'launch_browse_target':str(folder)}
     show, host=make_launcher('',[authored])
     assert show(host, (4,5), authored)
-    assert menu_labels(host)==['プロパティ']
-    callback(host,'プロパティ')(True)
+    assert menu_labels(host)==['詳細編集...']
+    callback(host,'詳細編集...')(True)
     host.launch_configuration_studio.assert_called_once_with(item_id='studio_folder')
 
 
@@ -152,7 +152,7 @@ def test_authored_command_or_missing_folder_cannot_become_filesystem_menu(tmp_pa
     show, host=make_launcher('results',[command,missing])
     for row in (command,missing):
         assert show(host, (4,5), row)
-        assert menu_labels(host)==['プロパティ']
+        assert menu_labels(host)==['詳細編集...']
         assert resolve_search_context_target(row,[command,missing]) == ('studio',None)
 
 

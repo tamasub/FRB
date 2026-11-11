@@ -166,5 +166,7 @@ def test_view_wiring_uses_virtual_headers_and_unmodified_files_headers():
     assert 'self._set_middle_columns_for_source(virtual is not None)' in source
     assert 'virtual_description(row)' in source
     assert 'virtual_item_kind(row)' in source
-    assert 'virtual_sort_mode_for_header(logical_column, self._middle_sort_mode)' in source
+    # Move owns the JSON order: virtual header sorting is intentionally disabled.
+    assert 'virtual_sort_mode_for_header(logical_column, self._middle_sort_mode)' not in source
+    assert 'self.middle.tree.header().setSortIndicatorShown(False)' in source
     assert "tree.setHeaderLabels(['名前', '更新日', 'サイズ', '種類', ''])" in source

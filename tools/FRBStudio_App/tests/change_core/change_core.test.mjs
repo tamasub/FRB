@@ -29,7 +29,7 @@ test('不正な親・グループ・ID重複・未対応操作を保存前に拒
   [r=>{r.operations[0].placement.parent_id='missing';},'PARENT_NOT_FOUND'],
   [r=>{r.operations[0].placement.group_id='wrong';},'GROUP_MISMATCH'],
   [r=>{r.operations[0].records[0].item_id='folders';},'DUPLICATE_ID'],
-  [r=>{r.operations[0].operation='update';},'UNSUPPORTED_OPERATION'],
+  [r=>{r.operations[0].operation='unknown';},'UNSUPPORTED_OPERATION'],
   [r=>{r.operations[0].placement.position='before';},'UNSUPPORTED_PLACEMENT']
  ]){const r=request([record('A')]);change(r);assert.throws(()=>evaluateChangeSet(document(),r,view),e=>e.code===code,code);}
 });

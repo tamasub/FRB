@@ -7,8 +7,8 @@ filesystem operations remain owned by Launch.  Children load lazily.
 import json
 import os
 
-from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal, QModelIndex
-from PySide6.QtGui import (QBrush, QColor, QCursor, QIcon, QPainter, QPen,
+from PySide6.QtCore import Qt, QPoint, QRectF, QSize, QTimer, Signal, QModelIndex, QMimeData, QEvent
+from PySide6.QtGui import (QDrag, QBrush, QColor, QCursor, QIcon, QPainter, QPen,
                            QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
                                QLabel, QLineEdit, QMenu, QPushButton, QSizeGrip, QStyle,
@@ -25,8 +25,9 @@ from file_transfer_visual import transfer_state
 from pathlib import Path
 from system_drives import drive_rows
 from launch_virtual_tree import (virtual_exp_roots, virtual_item_identity,
-                                 virtual_exp_folders)
+                                 virtual_exp_folders, virtual_studio_target)
 from launch_menu_registration import mime_sources
+from launch_json_move import MOVE_MIME, encode_source, exp_folder_placement
 from registered_root_studio import verified_registered_root
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -60,7 +61,37 @@ class FilesExpWheelTree(QTreeView):
         panel = self.parentWidget()
         return panel.registration_target_at(pos, mime) if panel is not None else False
 
+    def startDrag(self, supported_actions):
+        # Exp can drag authored JSON categories; physical folders stay immobile.
+        panel = self.parentWidget()
+        index = self.currentIndex()
+        item = panel.model.itemFromIndex(index) if index.isValid() else None
+        data = item.data(_DATA_ROLE) if item is not None else None
+        node = data.get('virtual') if isinstance(data, dict) else None
+        source = (panel._launcher.launch_json_move_source(node)
+                  if panel is not None and panel._launcher is not None else None)
+        if source is None:
+            return
+        mime = QMimeData()
+        mime.setData(MOVE_MIME, encode_source(*source))
+        drag = QDrag(self)
+        drag.setMimeData(mime)
+        drag.exec(Qt.DropAction.MoveAction, Qt.DropAction.MoveAction)
+
+    def _launch_move_target(self, event):
+        panel = self.parentWidget()
+        return (panel.launch_move_target_at(event.position().toPoint(),
+                                            event.mimeData(), event.source())
+                if panel is not None else None)
+
     def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            if self._launch_move_target(event) is not None:
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         if self._registration_target(event.position().toPoint(), event.mimeData()) is not False:
             event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
@@ -68,6 +99,13 @@ class FilesExpWheelTree(QTreeView):
             event.ignore()
 
     def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            if self._launch_move_target(event) is not None:
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         if self._registration_target(event.position().toPoint(), event.mimeData()) is not False:
             event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
@@ -75,6 +113,18 @@ class FilesExpWheelTree(QTreeView):
             event.ignore()
 
     def dropEvent(self, event):
+        if event.mimeData().hasFormat(MOVE_MIME):
+            placement = self._launch_move_target(event)
+            panel = self.parentWidget()
+            launcher = getattr(panel, '_launcher', None)
+            if (placement is not None and launcher is not None and
+                    launcher.launch_json_move_drop(event.mimeData(), placement,
+                                                   sender=event.source())):
+                event.setDropAction(Qt.DropAction.MoveAction)
+                event.accept()
+            else:
+                event.ignore()
+            return
         target = self._registration_target(event.position().toPoint(), event.mimeData())
         if target is False:
             event.ignore()
@@ -462,9 +512,11 @@ class RemoteFilesExplorer(QWidget):
         self.tree.setItemsExpandable(True)
         self.tree.setExpandsOnDoubleClick(True)
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tree.setDragEnabled(False)
+        # Only authored virtual categories are draggable; physical nodes and
+        # their descendants retain ItemIsDragEnabled=False.
+        self.tree.setDragEnabled(True)
         self.tree.setAcceptDrops(True)
-        self.tree.setDragDropMode(QAbstractItemView.DragDropMode.DropOnly)
+        self.tree.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self._show_folder_context)
         self.tree.clicked.connect(self._activate_index)
@@ -487,6 +539,20 @@ class RemoteFilesExplorer(QWidget):
         self.model.itemChanged.connect(self._finish_folder_rename)
         self.tree.itemDelegate().closeEditor.connect(self._close_folder_rename_editor)
         layout.addWidget(self.tree, 1)
+        # A hint only in the unused Files Exp root space.  It must NEVER
+        # consume drag events, mouse clicks or the blank-area right-click.
+        self.root_drop_hint = QLabel('～ フォルダー Drop エリア ～', self.tree.viewport())
+        self.root_drop_hint.setObjectName('filesExpRootDropHint')
+        self.root_drop_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.root_drop_hint.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.root_drop_hint.hide()
+        self.tree.viewport().installEventFilter(self)
+        self.tree.verticalScrollBar().valueChanged.connect(
+            lambda *_: self._position_root_drop_hint())
+        self.tree.expanded.connect(lambda *_: QTimer.singleShot(0, self._position_root_drop_hint))
+        self.tree.collapsed.connect(lambda *_: QTimer.singleShot(0, self._position_root_drop_hint))
+        self.model.rowsInserted.connect(lambda *_: QTimer.singleShot(0, self._position_root_drop_hint))
+        self.model.rowsRemoved.connect(lambda *_: QTimer.singleShot(0, self._position_root_drop_hint))
 
         # Guidance belongs below the tree; keep the resize handle reachable.
         footer = QFrame(self)
@@ -570,7 +636,9 @@ class RemoteFilesExplorer(QWidget):
                 self._virtual_folder_icon)
         item = QStandardItem(icon, node['title'])
         item.setEditable(False)
-        item.setDragEnabled(False)
+        item.setDragEnabled(bool(node.get('item_id') and
+                                 not node.get('runtime_catalog')))
+        # Drop validation lives in launch_move_target_at, never on model flags.
         item.setDropEnabled(False)
         item.setData({'virtual': node, 'pc': False, 'path': None}, _DATA_ROLE)
         item.setData(icon, _NORMAL_ICON_ROLE)
@@ -783,6 +851,7 @@ class RemoteFilesExplorer(QWidget):
                 self.tree.horizontalScrollBar().minimum())
         finally:
             self._restoring_tree = previous_restoring
+        QTimer.singleShot(0, self._position_root_drop_hint)
         return len(roots)
 
     def refresh_directory_branch(self, directory):
@@ -1442,6 +1511,24 @@ class RemoteFilesExplorer(QWidget):
             return False
         return walk(self.model.invisibleRootItem())
 
+    def launch_move_target_at(self, local_pos, mime, sender):
+        """Only a verified authored category/Page; reject ALL physical rows."""
+        launcher = self._launcher
+        if (launcher is None or not mime.hasFormat(MOVE_MIME) or
+                not launcher.launch_json_move_sender_valid(sender)):
+            return None
+        index = self.tree.indexAt(local_pos)
+        if not index.isValid():
+            return None  # Exp blank space is the Files anchor, not a Move target.
+        item = self.model.itemFromIndex(index)
+        data = item.data(_DATA_ROLE) if item is not None else None
+        node = data.get('virtual') if isinstance(data, dict) else None
+        if (not isinstance(node, dict) or
+                not virtual_studio_target(node, launcher.pages,
+                                          launcher.authored_items)):
+            return None
+        return exp_folder_placement(node)
+
     def registration_target_at(self, local_pos, mime):
         """Return JSON identity, None for blank root, False for forbidden."""
         if not mime_sources(mime):
@@ -1766,8 +1853,41 @@ class RemoteFilesExplorer(QWidget):
             self._header_move_origin = self.pos()
             self._position_save_timer.start()
 
+    def eventFilter(self, obj, event):
+        if (obj is self.tree.viewport() and
+                event.type() in (QEvent.Type.Resize, QEvent.Type.Show)):
+            QTimer.singleShot(0, self._position_root_drop_hint)
+        return super().eventFilter(obj, event)
+
+    def _position_root_drop_hint(self):
+        """Show the root-only folder Drop label in *unused* Exp space."""
+        label = getattr(self, 'root_drop_hint', None)
+        if label is None:
+            return
+        viewport = self.tree.viewport()
+        width, height = viewport.width(), viewport.height()
+        if width < 120 or height < 70:
+            label.hide()
+            return
+        # Find the bottommost *visible* row without walking the entire tree.
+        # A full viewport must not overlay any actual folder or drop target.
+        blank_top = 6
+        for y in range(height - 8, -1, -12):
+            index = self.tree.indexAt(QPoint(min(20, width-1), y))
+            if index.isValid():
+                blank_top = max(blank_top, self.tree.visualRect(index).bottom() + 14)
+                break
+        available = height - blank_top
+        if available < 45:
+            label.hide()
+            return
+        label.setGeometry(0, blank_top + (available - 24) // 2, width, 24)
+        label.show()
+        label.raise_()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        QTimer.singleShot(0, self._position_root_drop_hint)
         if self.isVisible() and not getattr(self, '_embedded', False):
             if (self._grid_height_mode and not self._automatic_placement
                     and event.oldSize().height() != event.size().height()):
@@ -1863,6 +1983,9 @@ class RemoteFilesExplorer(QWidget):
             QFrame#filesExpFooter {{background:{colors['panel']};border:0;}}
             QLabel#filesExpHint {{background:transparent;color:{colors['muted_text']};
                 font-size:10px;border:0;}}
+            QLabel#filesExpRootDropHint {{background:transparent;
+                color:{'#a1ada5' if theme_family(theme) == 'light' else '#89978f'};
+                font-size:11px;border:0;}}
             QTreeView#filesExpTree {{background:{colors['panel']};color:{colors['text']};
                 border:0;outline:0;}}
             QTreeView#filesExpTree[operatingActive="true"] {{background:{operating_bg};}}

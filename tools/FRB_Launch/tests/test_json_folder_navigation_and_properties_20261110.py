@@ -89,7 +89,7 @@ def test_virtual_properties_launches_studio_for_selected_exp_page_not_tab():
     context = method_source('app.py', 'Launcher', 'show_virtual_launch_context')
     studio = method_source('app.py', 'Launcher', 'launch_configuration_studio')
     assert 'virtual_studio_target(identity, self.pages, self.authored_items)' in context
-    assert 'プロパティ' in context
+    assert '詳細編集...' in context
     assert 'launch_configuration_studio(page_properties=True, page_id=pid)' in context
     assert 'launch_configuration_studio(item_id=iid)' in context
     assert 'target_page_id = str(page_id if page_id is not None else self.page_id)' in studio

@@ -362,22 +362,43 @@ def _invoke_delete_cli(root, trusted_config, request, mode, timeout):
     return reply
 
 
-def prepare_delete(config_path, studio_root, page_id, item_id, *, protected=(), timeout=40):
-    """Preflight cascade deletion; NO writes. Confirmation consumes its returned plan.
+def prepare_delete_many(config_path, studio_root, targets, *, protected=(), timeout=40):
+    """One all-or-nothing Studio CLI Delete for several authored JSON targets.
 
-    A stale plan is deliberately rejected at COMMIT by the Studio Core SHA gate.
+    Overlapping parent/child selections are counted only once. Physical
+    filesystem descendants are never inspected, counted, or deleted.
     """
     filename = Path(config_path).resolve()
     root = Path(studio_root).resolve()
-    # Never trust an item identity taken from a UI projection alone.
-    page_id, item_id = str(page_id or ''), str(item_id or '')
-    if not item_id or (page_id, item_id) in protected:
+    identities = [(str(pg or ''), str(iid or '')) for pg, iid in targets]
+    if not identities or len(identities) > 100 or len(set(identities)) != len(identities):
+        raise RegistrationError('登録解除対象が不正です。')
+    guarded = set(protected)
+    if any(not iid or (pg, iid) in guarded for pg, iid in identities):
         raise RegistrationError('Files Expの内部管理ルートは登録解除できません。')
     raw = filename.read_bytes()
     document = json.loads(raw.decode('utf-8-sig'))
-    original, children = _delete_subtree(document, page_id, item_id)
-    folders = sum(r.get('item_kind') in ('category', 'directory') for r in children)
-    leaves = len(children) - folders
+    rows = document.get('items')
+    if not isinstance(rows, list):
+        raise RegistrationError('設定JSONのitems配列が見つかりません。')
+    roots = []
+    descendants = {}
+    to_remove = {}
+    for page_id, item_id in identities:
+        original, children = _delete_subtree(document, page_id, item_id)
+        roots.append(original)
+        to_remove[(page_id, item_id)] = original
+        for row in children:
+            key = (row.get('page_id'), row.get('item_id'))
+            descendants[key] = row
+            to_remove[key] = row
+    if any(key in guarded for key in to_remove):
+        raise RegistrationError('削除対象の配下にFiles Exp内部管理ルートがあります。')
+    child_only = {key: row for key, row in descendants.items() if key not in set(identities)}
+    folders = sum(row.get('item_kind') in ('category', 'directory')
+                  for row in child_only.values())
+    leaves = len(child_only) - folders
+    expected = len(to_remove)
     request = {
         'schema_version': 'studio_changeset_v0_1',
         'request_id': 'launch-delete-' + uuid.uuid4().hex,
@@ -385,23 +406,30 @@ def prepare_delete(config_path, studio_root, page_id, item_id, *, protected=(), 
         'base_sha256': hashlib.sha256(raw).hexdigest(),
         'view_def': VIEW_DEF, 'view_id': VIEW_ID,
         'operations': [{'operation': 'delete', 'section_id': SECTION_ID,
-                        'targets': [{'id': item_id, 'group_id': page_id}],
+                        'targets': [{'id': iid, 'group_id': pg} for pg, iid in identities],
                         'cascade': True}]
     }
     config = _delete_trusted_config(filename)
     preview = _invoke_delete_cli(root, config, request, 'dry_run', timeout)
-    expected = len(children) + 1
     if preview.get('summary', {}).get('deleted') != expected:
-        raise RegistrationError('Studio CLIの削除件数とLaunchの子孫件数が一致しません。')
+        raise RegistrationError('Studio CLIの削除件数とLaunchの登録件数が一致しません。')
     if preview.get('saved') or preview.get('base_sha256') != request['base_sha256']:
         raise RegistrationError('Studio CLI dry_runで保存またはSHA不一致を検出しました。')
+    first = roots[0]
     return {'filename': filename, 'root': root, 'config': config,
-            'request': request, 'preview': preview, 'title': str(original.get('title') or item_id),
-            'item_kind': str(original.get('item_kind') or ''),
-            'page_id': page_id, 'item_id': item_id,
-            'folders': folders, 'leaves': leaves, 'descendants': len(children),
-            'deleted': expected, 'timeout': timeout}
+            'request': request, 'preview': preview,
+            'title': str(first.get('title') or identities[0][1]),
+            'titles': [str(r.get('title') or r.get('item_id')) for r in roots],
+            'item_kind': str(first.get('item_kind') or ''),
+            'page_id': identities[0][0], 'item_id': identities[0][1],
+            'selected_count': len(identities), 'folders': folders, 'leaves': leaves,
+            'descendants': len(child_only), 'deleted': expected, 'timeout': timeout}
 
+
+def prepare_delete(config_path, studio_root, page_id, item_id, *, protected=(), timeout=40):
+    """Backward-compatible one-item entrypoint, using the same atomic batch."""
+    return prepare_delete_many(config_path, studio_root, [(page_id, item_id)],
+                               protected=protected, timeout=timeout)
 
 def commit_delete(plan):
     """Commit EXACTLY the preflighted SHA and target, after user confirmation."""
@@ -411,4 +439,142 @@ def commit_delete(plan):
         raise RegistrationError('登録解除件数が事前確認と異なります。')
     if not reply.get('saved'):
         raise RegistrationError('Studio CLIが保存完了を報告しませんでした。')
+    return reply
+
+
+# studio_work_0269 / generic Update bridge for simple Launch field edits.
+def read_item_for_edit(config_path, page_id, item_id):
+    """Load the authoritative persisted record and base SHA before UI editing."""
+    filename = Path(config_path).resolve()
+    raw = filename.read_bytes()
+    document = json.loads(raw.decode('utf-8-sig'))
+    matches = [row for row in document.get('items', []) if isinstance(row, dict)
+               and row.get('page_id') == page_id and row.get('item_id') == item_id]
+    if len(matches) != 1:
+        raise RegistrationError('編集対象が見つからないか、一意に決まりません。')
+    return dict(matches[0]), hashlib.sha256(raw).hexdigest()
+
+
+def prepare_update(config_path, studio_root, page_id, item_id, changes, *,
+                   base_sha256, protected=(), timeout=40):
+    """Preview general Update with a frozen pre-dialog SHA. No direct writes."""
+    filename = Path(config_path).resolve()
+    root = Path(studio_root).resolve()
+    if (page_id, item_id) in protected:
+        raise RegistrationError('Files Expの内部管理ルートは編集できません。')
+    raw = filename.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != base_sha256:
+        raise RegistrationError('CONFLICT: 編集中に設定JSONが変更されました。')
+    document = json.loads(raw.decode('utf-8-sig'))
+    originals = [row for row in document.get('items', []) if isinstance(row, dict)
+                 and row.get('page_id') == page_id and row.get('item_id') == item_id]
+    if len(originals) != 1:
+        raise RegistrationError('編集対象が見つからないか、一意に決まりません。')
+    if not isinstance(changes, list) or not changes:
+        raise RegistrationError('変更項目がありません。')
+    request = {
+        'schema_version': 'studio_changeset_v0_1',
+        'request_id': 'launch-update-' + uuid.uuid4().hex,
+        'mode': 'dry_run', 'document_ref': DOCUMENT_REF,
+        'base_sha256': base_sha256, 'view_def': VIEW_DEF, 'view_id': VIEW_ID,
+        'operations': [{'operation': 'update', 'section_id': SECTION_ID,
+                        'targets': [{'id': item_id, 'group_id': page_id,
+                                     'changes': changes}]}]
+    }
+    config = _delete_trusted_config(filename)
+    preview = _invoke_delete_cli(root, config, request, 'dry_run', timeout)
+    if (preview.get('saved') or preview.get('base_sha256') != base_sha256
+            or preview.get('summary', {}).get('changed_existing') != 1):
+        raise RegistrationError('Studio CLIのUpdate事前検証に失敗しました。')
+    return {'root': root, 'config': config, 'request': request,
+            'preview': preview, 'timeout': timeout, 'item_id': item_id}
+
+
+def commit_update(plan):
+    """Commit exactly the previewed Update; races are blocked by Studio SHA."""
+    reply = _invoke_delete_cli(plan['root'], plan['config'], plan['request'],
+                               'commit', plan['timeout'])
+    if reply.get('summary', {}).get('changed_existing') != 1 or not reply.get('saved'):
+        raise RegistrationError('Studio CLIのUpdate保存結果が不正です。')
+    return reply
+
+
+# studio_work_0269 / Move: authoritative parent/order, not filesystem paths.
+def prepare_move(config_path, studio_root, page_id, item_id, placement, *,
+                 protected=(), timeout=40):
+    """Preview one reparent/reorder operation through Studio's shared TreeModel.
+
+    placement: {parent_id, group_id, position: end/before/after, anchor_id?}.
+    Never does a filesystem move, rename, or traversal.
+    """
+    filename, root = Path(config_path).resolve(), Path(studio_root).resolve()
+    source = (str(page_id or ''), str(item_id or ''))
+    guarded = set(protected)
+    if not source[1] or source in guarded or not isinstance(placement, dict):
+        raise RegistrationError('移動対象が不正、または内部管理ルートです。')
+    raw = filename.read_bytes()
+    document = json.loads(raw.decode('utf-8-sig'))
+    rows = document.get('items') or []
+    found = [r for r in rows if isinstance(r, dict)
+             and (r.get('page_id'), r.get('item_id')) == source]
+    if len(found) != 1 or not found[0].get('enabled', True):
+        raise RegistrationError('移動元が設定JSONに見つかりません。')
+    parent_id = str(placement.get('parent_id') or '')
+    destination_page = str(placement.get('group_id') or '')
+    position = str(placement.get('position') or 'end')
+    anchor_id = str(placement.get('anchor_id') or '')
+    if not destination_page or position not in ('end', 'before', 'after'):
+        raise RegistrationError('移動先が不正です。')
+    if not any(p.get('page_id') == destination_page and p.get('enabled', True)
+               for p in document.get('pages', [])):
+        raise RegistrationError('移動先Pageが存在しません。')
+    if parent_id:
+        eligible_parent(document, destination_page, parent_id)
+    siblings = sorted((r for r in rows if isinstance(r, dict) and
+                       r.get('page_id') == destination_page and
+                       (r.get('parent_item_id') or '') == parent_id),
+                      key=lambda r: (float(r.get('sort_order') or 0), rows.index(r)))
+    if position != 'end' and not any(r.get('item_id') == anchor_id for r in siblings):
+        raise RegistrationError('移動先の基準アイテムが見つかりません。')
+    # The caller may drop onto the current position; do not cause needless
+    # renumbering or write the same document again.
+    current = found[0]
+    if ((current.get('page_id'), current.get('parent_item_id') or '') ==
+            (destination_page, parent_id)):
+        ordered = [str(r.get('item_id')) for r in siblings]
+        before = ordered[:]
+        before.remove(item_id)
+        if position == 'end':
+            before.append(item_id)
+        else:
+            before.insert(before.index(anchor_id) + (position == 'after'), item_id)
+        if before == ordered:
+            return None
+    request = {
+        'schema_version': 'studio_changeset_v0_1',
+        'request_id': 'launch-move-' + uuid.uuid4().hex,
+        'mode': 'dry_run', 'document_ref': DOCUMENT_REF,
+        'base_sha256': hashlib.sha256(raw).hexdigest(),
+        'view_def': VIEW_DEF, 'view_id': VIEW_ID,
+        'operations': [{'operation': 'move', 'section_id': SECTION_ID,
+                        'targets': [{'id': item_id, 'group_id': page_id}],
+                        'placement': {'group_id': destination_page,
+                                      'parent_id': parent_id, 'position': position,
+                                      **({'anchor_id': anchor_id} if position != 'end' else {})}}]
+    }
+    config = _delete_trusted_config(filename)
+    preview = _invoke_delete_cli(root, config, request, 'dry_run', timeout)
+    if (preview.get('saved') or preview.get('base_sha256') != request['base_sha256']
+            or preview.get('summary', {}).get('moved') != 1):
+        raise RegistrationError('Studio CLIのMove事前検証に失敗しました。')
+    return {'root': root, 'config': config, 'request': request,
+            'preview': preview, 'timeout': timeout, 'item_id': item_id}
+
+
+def commit_move(plan):
+    """No confirmation dialog; SHA protects against a concurrent Studio edit."""
+    reply = _invoke_delete_cli(plan['root'], plan['config'], plan['request'],
+                               'commit', plan['timeout'])
+    if reply.get('summary', {}).get('moved') != 1 or not reply.get('saved'):
+        raise RegistrationError('Studio CLIのMove保存結果が不正です。')
     return reply

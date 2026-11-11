@@ -14,7 +14,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl, QItemSelectionModel
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QComboBox, QPlainTextEdit, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
@@ -28,7 +28,7 @@ from guriguri_shuriken_auto import WheelShurikenGate, AUTO_SHURIKEN_ENABLED
 from file_drag import ExternalFileDragTree, begin_file_copy_drag
 from file_drag_paths import file_path_for_drag
 from file_icon_policy import icon_lookup
-from launch_icon_palette import studio_icon_emoji, folder_icon_color
+from launch_icon_palette import studio_icon_emoji, folder_icon_color, STUDIO_EMOJI_ICONS, FOLDER_ICON_COLORS
 from core import load, Expander, searchable_rows, column_filter_match, join_selection_values
 from search_matching import matches_search_text, matches_choice_search
 from ime_input import initialize_halfwidth_english
@@ -75,10 +75,12 @@ from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard
 from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node, virtual_studio_target
 from registered_folder_route import embedded_folder_target
 from launch_menu_registration import (RegistrationError, category_record, commit_add,
-    prepare_delete, commit_delete,
+    prepare_delete, prepare_delete_many, commit_delete, read_item_for_edit, prepare_update, commit_update,
+    prepare_move, commit_move,
     eligible_parent, files_exp_root_target, mime_sources, normalize_sources, records_for_sources,
     studio_core_root)
 from launch_virtual_tree import virtual_item_identity
+from launch_json_move import MOVE_MIME, decode_source
 from context_menu_icons import context_action_icon
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
@@ -5886,8 +5888,7 @@ class Launcher(QWidget):
             return
         self._add_registration_menu_actions(
             menu, page_id, parent_id, allow_file=False)
-        self._wire_hybrid_context_menu(menu)
-        menu.exec(point)
+        self._show_launch_json_context_popup(menu, point)
 
     def handle_launch_drop(self, identity, mime):
         """Accept external files/folders/HTTP URLs only for a known JSON folder.
@@ -5923,26 +5924,183 @@ class Launcher(QWidget):
             self.error('ドラッグ＆ドロップ登録失敗: ' + str(exc))
             return False
 
+    def launch_json_move_source(self, node):
+        """Resolve drag origin by authored JSON ID; never by filesystem path."""
+        if (not isinstance(node, dict) or node.get('runtime_catalog') or
+                node.get('source') != 'launch_json' or
+                node.get('kind') == 'page'):
+            return None
+        target = virtual_studio_target(node, self.pages, self.authored_items)
+        if not target or target.get('kind') != 'item':
+            return None
+        options = self.expanded_options or {}
+        guarded = (str(options.get('page_id') or 'system'),
+                   str(options.get('files_item_id') or 'folders'))
+        identity = (target['page_id'], target['item_id'])
+        return identity if identity != guarded else None
+
+    def launch_json_move_sender_valid(self, widget):
+        """Reject a crafted external MIME: only our List or Files Exp can move."""
+        view = getattr(self, 'expanded_view', None)
+        panels = (getattr(view, 'embedded_files_exp', None),
+                  getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None))
+        return bool(widget is not None and (
+            widget is getattr(getattr(view, 'middle', None), 'tree', None)
+            or any(widget is getattr(panel, 'tree', None) for panel in panels
+                   if panel is not None)))
+
+    def launch_json_move_drop(self, mime, placement, *, sender=None):
+        """No confirmation, never filesystem move; Studio is the sole writer."""
+        if (not self.launch_json_move_sender_valid(sender) or
+                not mime.hasFormat(MOVE_MIME)):
+            return False
+        source = decode_source(mime.data(MOVE_MIME))
+        if not source or not isinstance(placement, dict):
+            return False
+        # Dragging onto oneself is a harmless gesture, not a cycle error or
+        # an unnecessary rewrite of the user's configuration.
+        if ((placement.get('position') in ('before', 'after') and
+             placement.get('anchor_id') == source[1]) or
+            (placement.get('position') == 'end' and
+             placement.get('parent_id') == source[1])):
+            return True
+        node = {'source': 'launch_json', 'page_id': source[0],
+                'item_id': source[1],
+                'node_id': f'item:{source[0]}:{source[1]}'}
+        if self.launch_json_move_source(node) != source:
+            return False
+        options = self.expanded_options or {}
+        protected = ((str(options.get('page_id') or 'system'),
+                      str(options.get('files_item_id') or 'folders')),)
+        try:
+            root = studio_core_root(LAUNCH_HOME, self.expander().values.get('studio_root', ''))
+            plan = prepare_move(CONFIG, root, source[0], source[1], placement,
+                                protected=protected)
+            if plan is None:
+                return True
+            commit_move(plan)
+            self.reload(force=True)
+            self.footer.setText('表示順・移動先を保存しました')
+            return True
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー移動失敗: ' + str(exc))
+            return False
+
+    def launch_simple_edit_action(self, page_id, item_id):
+        """Edit only icon/title/description; all mutation belongs to Studio Core."""
+        options = self.expanded_options or {}
+        protected = ((str(options.get('page_id') or 'system'),
+                      str(options.get('files_item_id') or 'folders')),)
+        try:
+            if (page_id, item_id) in protected:
+                raise RegistrationError('Files Expの内部管理ルートは簡易編集できません。')
+            row, base_sha = read_item_for_edit(CONFIG, page_id, item_id)
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー簡易編集失敗: ' + str(exc))
+            return False
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Launchメニューの簡易編集')
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel('アイコン・タイトル・説明だけを編集します。パスは変更しません。', dialog))
+        layout.addWidget(QLabel('アイコン', dialog))
+        icon_box = QComboBox(dialog)
+        current_icon = str(row.get('icon_key') or '')
+        # Display the same vocabulary and QIcons used by the main Launch tree.
+        choices = list(dict.fromkeys([current_icon, *FOLDER_ICON_COLORS, *STUDIO_EMOJI_ICONS]))
+        for key in choices:
+            if not key:
+                icon_box.addItem('未設定（現在のまま）', '')
+                continue
+            icon_box.addItem(icon(key), f'{studio_icon_emoji(key) or ""} {key}'.strip(), key)
+        icon_box.setCurrentIndex(max(0, icon_box.findData(current_icon)))
+        layout.addWidget(icon_box)
+        layout.addWidget(QLabel('タイトル', dialog))
+        title_editor = QLineEdit(str(row.get('title') or ''), dialog)
+        layout.addWidget(title_editor)
+        layout.addWidget(QLabel('説明', dialog))
+        description_editor = QPlainTextEdit(dialog)
+        description_editor.setPlainText(str(row.get('description') or ''))
+        # Unlike the disabled/read-only appearance inherited from the global
+        # widget palette, this is an editable field.  Keep it visibly white.
+        description_editor.setStyleSheet(
+            'QPlainTextEdit { background-color: #ffffff; color: #25362d; '
+            'border: 1px solid #b9cbc1; border-radius: 5px; padding: 4px; }'
+            'QPlainTextEdit:focus { border-color: #48a27b; }')
+        description_editor.setFixedHeight(90)
+        layout.addWidget(description_editor)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText('保存')
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText('キャンセル')
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        dialog.setMinimumWidth(410)
+        if getattr(self, '_remote_text_dialog', None) is not None:
+            return False
+        adapter = RemoteTextDialog(self, dialog, title_editor, buttons)
+        self._remote_text_dialog = adapter
+        self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
+        try:
+            accepted = adapter.ask()
+        finally:
+            self._remote_text_dialog = None
+            self._filesystem_dialog_depth = max(0, getattr(self, '_filesystem_dialog_depth', 0)-1)
+        if not accepted:
+            return False
+        new_title = title_editor.text().strip()
+        if not new_title:
+            self.error('タイトルを入力してください。')
+            return False
+        changed = {'icon_key': icon_box.currentData(), 'title': new_title,
+                   'description': description_editor.toPlainText()}
+        changes = [{'path': name, 'value': value} for name, value in changed.items()
+                   if row.get(name, '') != value]
+        if not changes:
+            return True
+        try:
+            root = studio_core_root(LAUNCH_HOME, self.expander().values.get('studio_root', ''))
+            plan = prepare_update(CONFIG, root, page_id, item_id, changes,
+                                  base_sha256=base_sha, protected=protected)
+            commit_update(plan)
+            self.reload(force=True)
+            self.info_notice('Launchメニューを簡易編集しました。')
+            return True
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー簡易編集失敗: ' + str(exc))
+            return False
+
     def launch_unregister_action(self, page_id, item_id):
-        """Only confirmed, authored JSON subtrees may be removed by Studio CLI."""
+        return self.launch_unregister_many_action([(page_id, item_id)])
+
+    def launch_unregister_many_action(self, identities):
+        """One confirmation for the selected, canonical JSON items only."""
         try:
             root = studio_core_root(LAUNCH_HOME, self.expander().values.get('studio_root', ''))
             options = self.expanded_options or {}
             protected = ((str(options.get('page_id') or 'system'),
                           str(options.get('files_item_id') or 'folders')),)
-            plan = prepare_delete(CONFIG, root, page_id, item_id, protected=protected)
+            plan = prepare_delete_many(CONFIG, root, identities, protected=protected)
         except (RegistrationError, OSError, ValueError) as exc:
             self.error('Launchメニュー登録解除失敗: ' + str(exc))
             return False
-        dialog = QMessageBox(self)
-        dialog.setWindowTitle('Launchメニューの登録解除')
-        dialog.setIcon(QMessageBox.Warning if plan['descendants'] else QMessageBox.Question)
-        dialog.setTextFormat(Qt.RichText)
         from html import escape as escape_html
         label = escape_html(plan['title'])
         kind = ('カテゴリーフォルダー' if plan['item_kind'] == 'category'
                 else '登録フォルダー' if plan['item_kind'] == 'directory'
                 else 'メニューアイテム')
+        if plan['selected_count'] > 1:
+            shown = ''.join(f'<li>{escape_html(t)}</li>' for t in plan['titles'][:8])
+            if plan['selected_count'] > 8:
+                shown += f'<li>ほか{plan["selected_count"]-8}件</li>'
+            intro = (f'<p>以下の{plan["selected_count"]}件のメニュー登録を'
+                     'まとめて解除しますか？</p><ul>' + shown + '</ul>')
+        else:
+            intro = (f'<p>以下のメニューアイテムを登録解除しますか？</p>'
+                     f'<p><b>{label}</b><br>'
+                     f'<small>種類：{escape_html(kind)} / Page：'
+                     f'{escape_html(plan["page_id"])}</small></p>')
         warning = ''
         if plan['descendants']:
             warning = (
@@ -5951,17 +6109,13 @@ class Launcher(QWidget):
                 f'フォルダー：{plan["folders"]}件　'
                 f'末端メニューアイテム：{plan["leaves"]}件'
                 '</b></font></p>')
-        dialog.setText(
-            '<p>以下のメニューアイテムを登録解除しますか？</p>'
-            f'<p><b>{label}</b><br>'
-            f'<small>種類：{escape_html(kind)} / Page：{escape_html(plan["page_id"])}</small></p>'
-            + warning +
-            '<p>Windows上の実ファイル・フォルダーは削除されません。</p>')
-        cancel = dialog.addButton('キャンセル', QMessageBox.RejectRole)
-        remove = dialog.addButton('登録解除', QMessageBox.DestructiveRole)
-        dialog.setDefaultButton(cancel)
-        dialog.exec()
-        if dialog.clickedButton() is not remove:
+        message = (intro + warning +
+                   f'<p>解除対象：合計{plan["deleted"]}件（重複なし）</p>' +
+                   '<p>Windows上の実ファイル・フォルダーは削除されません。</p>')
+        answer = self.ask_remote_confirmation(
+            'Launchメニューの登録解除', message, yes_text='登録解除',
+            no_text='キャンセル', rich_text=True, warning=bool(plan['descendants']))
+        if answer != QMessageBox.StandardButton.Yes:
             return False
         try:
             result = commit_delete(plan)
@@ -5971,6 +6125,27 @@ class Launcher(QWidget):
         except (RegistrationError, OSError, ValueError) as exc:
             self.error('Launchメニュー登録解除失敗: ' + str(exc))
             return False
+
+    def _selected_launch_json_items(self, clicked):
+        """Never turn filesystem rows or projected bookmarks into Delete targets."""
+        identity = virtual_item_identity(clicked) if clicked else None
+        if not identity or not identity.get('item_id'):
+            return []
+        view = getattr(self, 'expanded_view', None)
+        if view is None or getattr(view, '_virtual_directory_node', None) is None:
+            return [(identity['page_id'], identity['item_id'])]
+        selected = []
+        for item in view.middle.tree.selectedItems():
+            row = view.row_data(item) or {}
+            node = row.get('_launch_virtual_node')
+            target = virtual_studio_target(node, self.pages, self.authored_items)
+            if not target or target.get('kind') != 'item':
+                return [(identity['page_id'], identity['item_id'])]
+            pair = (target['page_id'], target['item_id'])
+            if pair not in selected:
+                selected.append(pair)
+        current = (identity['page_id'], identity['item_id'])
+        return selected if current in selected and len(selected) > 1 else [current]
 
     def show_virtual_launch_context(self, identity, point):
         """Offer Studio Properties for authored virtual Page/item identities.
@@ -5987,6 +6162,7 @@ class Launcher(QWidget):
         menu = QMenu(self)
         self._wire_hybrid_context_menu(menu)
         menu.addSection('Launch JSON（Studio管理）' if target else 'Launch JSON（参照専用）')
+        selected_unregister = self._selected_launch_json_items(identity) if target and target['kind'] == 'item' else []
         if target is not None:
             target_row = next((r for r in self.authored_items
                                if r.get('item_id') == target.get('item_id')
@@ -5998,10 +6174,12 @@ class Launcher(QWidget):
                     menu, target['page_id'], target.get('item_id', ''),
                     allow_file=target['kind'] != 'page')
                 menu.addSeparator()
-            if target['kind'] == 'item':
+            if target['kind'] == 'item' and len(selected_unregister) <= 1:
                 simple = menu.addAction('簡易編集...')
-                simple.setEnabled(False)  # Update is not yet supported by Studio Core.
-            properties_action = menu.addAction('プロパティ')
+                simple.triggered.connect(
+                    lambda checked=False, pg=target['page_id'], iid=target['item_id']:
+                    QTimer.singleShot(0, lambda: self.launch_simple_edit_action(pg, iid)))
+            properties_action = menu.addAction('詳細編集...')
             properties_action.setIcon(context_action_icon('properties'))
             if target['kind'] == 'page':
                 properties_action.triggered.connect(
@@ -6026,18 +6204,44 @@ class Launcher(QWidget):
             if (target['page_id'], target['item_id']) != (
                     str((self.expanded_options or {}).get('page_id') or 'system'),
                     str((self.expanded_options or {}).get('files_item_id') or 'folders')):
-                unreg = menu.addAction('登録解除...')
+                unreg = menu.addAction(
+                    f'登録解除（{len(selected_unregister)}件）...'
+                    if len(selected_unregister) > 1 else '登録解除...')
                 unreg.triggered.connect(
-                    lambda checked=False, pg=target['page_id'], iid=target['item_id']:
-                    QTimer.singleShot(0, lambda: self.launch_unregister_action(pg, iid)))
-        if getattr(self, '_remote_pad_context_active', False):
-            # Non-blocking popup: Remote owns selection/focus independently.
+                    lambda checked=False, targets=tuple(selected_unregister):
+                    QTimer.singleShot(0, lambda: self.launch_unregister_many_action(targets)))
+        self._show_launch_json_context_popup(
+            menu, point, remote_pad=getattr(self, '_remote_pad_context_active', False))
+
+    def _show_launch_json_context_popup(self, menu, point, *, remote_pad=False):
+        """Display authored JSON menus with the same non-modal lifecycle as Files.
+
+        Hybrid ぐりぐり menus are Qt.Tool windows, not Qt.Popup windows.
+        With QMenu.exec() the native popup-dismiss contract is unreliable:
+        a chosen action can leave an orphaned Tool menu on screen.
+        Keep one tracked popup, explicitly close it after a leaf action,
+        and destroy the completed menu only after it has hidden.
+        """
+        previous = getattr(self, '_launch_context_menu', None)
+        if previous is not None and previous is not menu:
+            try:
+                previous.close()
+            except RuntimeError:  # Qt already destroyed the older menu.
+                pass
+        if remote_pad:
             self._prepend_remote_pad_navigation(menu)
-            self._launch_context_menu = menu
-            menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
-            menu.popup(point)
-        else:
-            menu.exec(point)
+        self._wire_hybrid_context_menu(menu)
+        self._launch_context_menu = menu
+        menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
+        menu.triggered.connect(
+            lambda action, m=menu: m.close()
+            if action is not None and action.menu() is None else None)
+        # The wheel controller closes first and schedules QAction.trigger()
+        # on the next event tick. Deleting the menu immediately on hide would
+        # also destroy that pending QAction. Defer disposal beyond the tick.
+        menu.aboutToHide.connect(
+            lambda m=menu: QTimer.singleShot(250, m.deleteLater))
+        menu.popup(point)
 
     def remote_exp_right_to_list(self):
         """Exp → List: explicitly commit Exp and hand off the controller.
@@ -7755,7 +7959,8 @@ class Launcher(QWidget):
         """Nonblocking completion / important notice in the timed footer."""
         self.footer.setText('ℹ️ ' + str(message).replace('\n', ' / '))
 
-    def ask_remote_confirmation(self, title, message, *, informative=''):
+    def ask_remote_confirmation(self, title, message, *, informative='',
+                                yes_text=None, no_text=None, rich_text=False, warning=False):
         """Safety-first Yes/No used by all Launch-owned simple confirmations.
 
         The question stays mouse/keyboard accessible, while Remote wheel and
@@ -7768,7 +7973,9 @@ class Launcher(QWidget):
         menu_wheel = getattr(self, '_remote_context_wheel', None)
         if menu_wheel is not None:
             menu_wheel.stop()
-        confirmation = RemoteConfirmation(self, title, message, informative)
+        confirmation = RemoteConfirmation(
+            self, title, message, informative, yes_text=yes_text,
+            no_text=no_text, rich_text=rich_text, warning=warning)
         self._remote_confirmation = confirmation
         self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
         try:
@@ -11768,7 +11975,14 @@ class Launcher(QWidget):
                     launch_sub, registration_row['page_id'],
                     registration_row.get('parent_item_id') or '', allow_file=False)
                 future_edit = launch_sub.addAction('簡易編集...')
-                future_edit.setEnabled(False)
+                future_edit.triggered.connect(
+                    lambda checked=False, pg=registration_row['page_id'], iid=studio_properties_item_id:
+                    QTimer.singleShot(0, lambda: self.launch_simple_edit_action(pg, iid)))
+                detail = launch_sub.addAction('詳細編集...')
+                detail.setIcon(context_action_icon('properties'))
+                detail.triggered.connect(
+                    lambda checked=False, iid=studio_properties_item_id:
+                    QTimer.singleShot(0, lambda: self.launch_configuration_studio(item_id=iid)))
                 unregister = launch_sub.addAction('登録解除...')
                 unregister.triggered.connect(
                     lambda checked=False, pg=registration_row['page_id'], iid=studio_properties_item_id:
@@ -11887,7 +12101,7 @@ class Launcher(QWidget):
             menu = QMenu(context_parent if context_parent is not None else self)
             created = menu.addAction('新規作成（カテゴリー）',
                                      lambda: self.launch_configuration_studio(new_category=True))
-            props = menu.addAction('プロパティ',
+            props = menu.addAction('詳細編集...',
                                    lambda: self.launch_configuration_studio(page_properties=True))
             if created is not None:
                 created.setIcon(context_action_icon('new_category'))
@@ -11895,7 +12109,7 @@ class Launcher(QWidget):
                 props.setIcon(context_action_icon('properties'))
         elif origin == 'studio':
             menu = QMenu(context_parent if context_parent is not None else self)
-            props = menu.addAction('プロパティ',
+            props = menu.addAction('詳細編集...',
                                    lambda checked=False, item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
             if props is not None:
                 props.setIcon(context_action_icon('properties'))

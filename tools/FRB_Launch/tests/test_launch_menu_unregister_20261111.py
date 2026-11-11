@@ -49,7 +49,7 @@ def test_gui_has_enabled_delete_for_items_and_files_registered_root():
     code = (ROOT/'src/app.py').read_text(encoding='utf-8')
     ast.parse(code)
     assert 'def launch_unregister_action(self, page_id, item_id)' in code
-    assert 'prepare_delete(CONFIG, root, page_id, item_id, protected=protected)' in code
+    assert 'prepare_delete_many(CONFIG, root, identities, protected=protected)' in code
     assert 'commit_delete(plan)' in code
     assert 'color=\"#c62828\"' in code
     assert 'フォルダー：' in code and '末端メニューアイテム：' in code
