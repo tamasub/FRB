@@ -52,7 +52,8 @@ from workspace_tab_geometry import workspace_tab_line_segments
 from history_wheel_navigation import history_target_index, warp_to_history_row
 from bookmark_menu import expanded_bookmark_rows
 from launch_virtual_tree import (virtual_list_rows, virtual_lookup_node,
-                                 virtual_exp_presentation)
+                                 virtual_exp_presentation, virtual_item_identity)
+from launch_menu_registration import mime_sources
 from launch_appearance import (theme_palette, theme_family, scrollbar_for_theme,
                                history_popup_qss, bookmark_section_colors)
 
@@ -624,6 +625,36 @@ class _SeparatedFileTree(ExternalFileDragTree):
         # blank click intentionally leaves the middle pane with no selection.
         self.deliberate_blank_selection = False
         self.blank_clicked = None
+
+    def _launch_drop_target(self, event):
+        callback = getattr(self, 'launch_registration_resolver', None)
+        return callback(event.position().toPoint(), event.mimeData()) if callable(callback) else False
+
+    def dragEnterEvent(self, event):
+        if self._launch_drop_target(event) is not False:
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        if self._launch_drop_target(event) is not False:
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        target = self._launch_drop_target(event)
+        if target is False:
+            event.ignore()
+            return
+        callback = getattr(self, 'launch_registration_handler', None)
+        if callable(callback) and callback(target, event.mimeData()):
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
 
     def wheelEvent(self, event):
         # List-only experiment: the same current-row navigation as the Remote
@@ -1470,6 +1501,10 @@ class ExpandedLauncherView(QWidget):
         QApplication.instance().installEventFilter(self)
         self.left = ExpandedPanel('Files', 'folder')
         self.middle = ExpandedPanel('フォルダー', 'folder')
+        self.middle.tree.setAcceptDrops(True)
+        self.middle.tree.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+        self.middle.tree.launch_registration_resolver = self._middle_launch_drop_target
+        self.middle.tree.launch_registration_handler = launcher.handle_launch_drop
         # Local, immediate filter; separate from global search and its file index.
         # Preserve the 3-column navigation and right-side chevrons unchanged.
         self._middle_query_directory = None
@@ -1725,6 +1760,10 @@ class ExpandedLauncherView(QWidget):
             launcher.navigate_virtual_launch_folder)
         self.embedded_files_exp.virtual_context_requested.connect(
             launcher.show_virtual_launch_context)
+        self.embedded_files_exp.root_context_requested.connect(
+            launcher.show_launch_root_registration_menu)
+        self.embedded_files_exp.registration_drop_requested.connect(
+            launcher.handle_launch_drop)
         self.embedded_files_exp.hide()
         self._embedded_files_exp_roots_ready = False
         self.files_splitter.setChildrenCollapsible(False)
@@ -2329,8 +2368,10 @@ class ExpandedLauncherView(QWidget):
                 # their old second-layer button strip is no longer displayed.
                 button.hide()
                 self.root_buttons.append(button)
-            self.left.label.setText(left['title'])
-            self.shared_title.setText(left['title'])
+            # The green Files header is a UI label, not the editable title of
+            # the System/Files JSON category. Studio renames must not leak here.
+            self.left.label.setText('Files')
+            self.shared_title.setText('Files')
             self.right.label.setText(right['title'])
             files_rows = self.browser_rows(left)
             self.left.fill(files_rows, self.launcher.row_icon)
@@ -5611,9 +5652,33 @@ class ExpandedLauncherView(QWidget):
         """Use Launcher's existing menu content/actions; no new command logic."""
         self.launcher.open_expanded_cascade(row, widget, item)
 
+    def _middle_launch_drop_target(self, point, mime):
+        """Only a visible authored category or blank space of that category."""
+        if not mime_sources(mime) or self._workspace_mode != 'files':
+            return False
+        current = getattr(self, '_virtual_directory_node', None)
+        if not isinstance(current, dict):
+            return False
+        item = self.middle.tree.itemAt(point)
+        virtual = (self.row_data(item) or {}).get('_launch_virtual_node') if item else current
+        if not isinstance(virtual, dict) or virtual.get('runtime_catalog'):
+            return False
+        if virtual.get('kind') == 'page' and not virtual.get('item_id'):
+            entries = mime_sources(mime)
+            if not all(Path(e.get('value', '')).is_dir() for e in entries):
+                return False
+        elif (virtual.get('row') or {}).get('item_kind') != 'category':
+            return False
+        return virtual_item_identity(virtual)
+
     def context_menu(self, pane, point, *, global_pos=None):
         item = pane.tree.itemAt(point)
         if not item:
+            if pane is self.middle and self._virtual_directory_node is not None:
+                self.launcher.show_virtual_launch_context(
+                    virtual_item_identity(self._virtual_directory_node),
+                    global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point))
+                return
             # With no header Paste button, an empty folder must still be
             # pasteable via right-click on its empty middle pane.
             if pane is self.middle and self.current_directory():

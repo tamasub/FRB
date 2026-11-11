@@ -63,8 +63,13 @@ def test_files_preview_does_not_write_or_navigate():
     ast.parse(src)
     for forbidden in ('go_to_directory(', 'set_current_directory(',
                       'os.remove(', 'os.rename(', 'subprocess.', 'shutil.',
-                      'self.tree.setDragDropMode('):
+                      'DragDropMode.InternalMove'):
         assert forbidden not in src
+    # Intentional 0269 change: external COPY Drop is allowed for authored JSON
+    # categories, but internal reorder/move and any filesystem writes are not.
+    assert 'DragDropMode.DropOnly' in src
+    assert 'event.setDropAction(Qt.DropAction.CopyAction)' in src
+    assert 'registration_target_at' in src
     assert 'launcher._remote_files_first_column_rows()' in (
         ROOT / 'src' / 'launch_remote.py').read_text('utf-8')
     assert 'launcher.expander().expand' in (

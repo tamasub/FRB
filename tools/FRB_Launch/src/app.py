@@ -74,6 +74,11 @@ from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
 from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node, virtual_studio_target
 from registered_folder_route import embedded_folder_target
+from launch_menu_registration import (RegistrationError, category_record, commit_add,
+    prepare_delete, commit_delete,
+    eligible_parent, files_exp_root_target, mime_sources, normalize_sources, records_for_sources,
+    studio_core_root)
+from launch_virtual_tree import virtual_item_identity
 from context_menu_icons import context_action_icon
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
@@ -4436,6 +4441,8 @@ class Launcher(QWidget):
             self.remote_window.virtual_item_activated.connect(self.activate_virtual_launch_item)
             self.remote_window.virtual_folder_selected.connect(self.navigate_virtual_launch_folder)
             self.remote_window.virtual_context_requested.connect(self.show_virtual_launch_context)
+            self.remote_window.files_exp_root_context.connect(self.show_launch_root_registration_menu)
+            self.remote_window.files_exp_registration_drop.connect(self.handle_launch_drop)
         return self.remote_window
 
     def _sync_mouse_pointer_rod_menu(self):
@@ -5787,6 +5794,184 @@ class Launcher(QWidget):
         self.activate(authoritative)
         return True
 
+    # studio_work_0269 / Launch Add-only integration.
+    # Keep all UI-specific actions here; the Studio Core knows only Add ChangeSets.
+    def _registration_page(self):
+        available = [p for p in self.pages if p.get('enabled', True)]
+        if not available:
+            return None
+        if len(available) == 1:
+            return str(available[0]['page_id'])
+        labels = [f"{p.get('title', p['page_id'])} [{p['page_id']}]" for p in available]
+        default = next((i for i, p in enumerate(available)
+                        if p['page_id'] == self.page_id), 0)
+        title, ok = QInputDialog.getItem(
+            self, 'Launch登録先', '登録先のPage:', labels, default, False)
+        return str(available[labels.index(title)]['page_id']) if ok else None
+
+    def _registration_sources(self, kind):
+        if kind == 'category':
+            text, ok = QInputDialog.getText(
+                self, 'カテゴリーフォルダーを作成', 'カテゴリー名:')
+            return [category_record(text)] if ok else None
+        if kind == 'directory':
+            selected = QFileDialog.getExistingDirectory(
+                self, '既存フォルダーを登録')
+            if not selected:
+                return None
+            entries = [{'value': selected}]
+        elif kind == 'file':
+            selected, _ = QFileDialog.getOpenFileName(
+                self, '既存ファイルを登録')
+            if not selected:
+                return None
+            entries = [{'value': selected}]
+        else:
+            raise RegistrationError('未対応の新規登録操作です。')
+        sources = normalize_sources(entries)
+        if len(sources) != 1 or sources[0]['kind'] != kind:
+            raise RegistrationError('選択した対象の種類が一致しません。')
+        return records_for_sources(sources)
+
+    def _registration_commit(self, page_id, parent_id, records):
+        # Re-resolve against the current JSON snapshot, not displayed runtime rows.
+        try:
+            root = studio_core_root(
+                LAUNCH_HOME, self.expander().values.get('studio_root', ''))
+            result = commit_add(CONFIG, root, page_id, parent_id, records)
+            self.reload(force=True)
+            self.info_notice(f"Launchメニューに{result['summary']['added']}件登録しました。")
+            return True
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー登録失敗: ' + str(exc))
+            return False
+
+    def launch_register_action(self, kind, page_id=None, parent_id=''):
+        try:
+            chosen_page = str(page_id) if page_id else self._registration_page()
+            if not chosen_page:
+                return False
+            records = self._registration_sources(kind)
+            if records is None:
+                return False
+            return self._registration_commit(chosen_page, str(parent_id or ''), records)
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー登録失敗: ' + str(exc))
+            return False
+
+    def _add_registration_menu_actions(self, menu, page_id=None, parent_id='', *, allow_file=True):
+        commands = [('category', 'カテゴリーフォルダーを作成...'),
+                    ('directory', '既存フォルダーを登録...')]
+        if allow_file:
+            commands.append(('file', '既存ファイルを登録...'))
+        for kind, title in commands:
+            action = menu.addAction(title)
+            action.triggered.connect(
+                lambda checked=False, k=kind, pg=page_id, par=parent_id:
+                QTimer.singleShot(0, lambda: self.launch_register_action(k, pg, par)))
+
+    def _files_exp_root_registration_target(self):
+        """Use the actual Files Exp JSON anchor, independent of current Page."""
+        return files_exp_root_target(
+            {'pages': self.pages, 'items': self.authored_items},
+            self.expanded_options)
+
+    def show_launch_root_registration_menu(self, point):
+        """Files Exp's empty ROOT is not a physical folder or a virtual leaf."""
+        menu = QMenu(self)
+        try:
+            page_id, parent_id = self._files_exp_root_registration_target()
+        except RegistrationError as exc:
+            self.error('Launchメニュー登録失敗: ' + str(exc))
+            return
+        self._add_registration_menu_actions(
+            menu, page_id, parent_id, allow_file=False)
+        self._wire_hybrid_context_menu(menu)
+        menu.exec(point)
+
+    def handle_launch_drop(self, identity, mime):
+        """Accept external files/folders/HTTP URLs only for a known JSON folder.
+
+        A blank Files Exp root accepts directories only, under the actual
+        System/Files anchor (never the System Page itself).
+        List's blank/tonton area resolves to the *current* category instead.
+        """
+        entries = mime_sources(mime)
+        if not entries:
+            return False
+        try:
+            sources = normalize_sources(entries)
+            if identity is None:  # Exp root blank
+                if any(s['kind'] != 'directory' for s in sources):
+                    raise RegistrationError('ルートには既存フォルダーだけを登録できます。')
+                page_id, parent_id = self._files_exp_root_registration_target()
+            else:
+                target = virtual_studio_target(identity, self.pages, self.authored_items)
+                if not target:
+                    raise RegistrationError('動的項目または登録されていない項目には追加できません。')
+                page_id = target['page_id']
+                parent_id = target.get('item_id', '')
+                if target['kind'] == 'item':
+                    eligible_parent({'pages': self.pages, 'items': self.authored_items},
+                                    page_id, parent_id)
+                elif any(s['kind'] != 'directory' for s in sources):
+                    raise RegistrationError('Pageの直下にはフォルダーだけを登録できます。')
+            if not page_id:
+                return False
+            return self._registration_commit(page_id, parent_id, records_for_sources(sources))
+        except (RegistrationError, ValueError, OSError) as exc:
+            self.error('ドラッグ＆ドロップ登録失敗: ' + str(exc))
+            return False
+
+    def launch_unregister_action(self, page_id, item_id):
+        """Only confirmed, authored JSON subtrees may be removed by Studio CLI."""
+        try:
+            root = studio_core_root(LAUNCH_HOME, self.expander().values.get('studio_root', ''))
+            options = self.expanded_options or {}
+            protected = ((str(options.get('page_id') or 'system'),
+                          str(options.get('files_item_id') or 'folders')),)
+            plan = prepare_delete(CONFIG, root, page_id, item_id, protected=protected)
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー登録解除失敗: ' + str(exc))
+            return False
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle('Launchメニューの登録解除')
+        dialog.setIcon(QMessageBox.Warning if plan['descendants'] else QMessageBox.Question)
+        dialog.setTextFormat(Qt.RichText)
+        from html import escape as escape_html
+        label = escape_html(plan['title'])
+        kind = ('カテゴリーフォルダー' if plan['item_kind'] == 'category'
+                else '登録フォルダー' if plan['item_kind'] == 'directory'
+                else 'メニューアイテム')
+        warning = ''
+        if plan['descendants']:
+            warning = (
+                '<p><font color="#c62828"><b>'
+                '⚠ 配下にも設定JSONの登録があります。すべてまとめて解除します。<br>'
+                f'フォルダー：{plan["folders"]}件　'
+                f'末端メニューアイテム：{plan["leaves"]}件'
+                '</b></font></p>')
+        dialog.setText(
+            '<p>以下のメニューアイテムを登録解除しますか？</p>'
+            f'<p><b>{label}</b><br>'
+            f'<small>種類：{escape_html(kind)} / Page：{escape_html(plan["page_id"])}</small></p>'
+            + warning +
+            '<p>Windows上の実ファイル・フォルダーは削除されません。</p>')
+        cancel = dialog.addButton('キャンセル', QMessageBox.RejectRole)
+        remove = dialog.addButton('登録解除', QMessageBox.DestructiveRole)
+        dialog.setDefaultButton(cancel)
+        dialog.exec()
+        if dialog.clickedButton() is not remove:
+            return False
+        try:
+            result = commit_delete(plan)
+            self.reload(force=True)
+            self.info_notice(f"Launchメニューの登録を{result['summary']['deleted']}件解除しました。")
+            return True
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Launchメニュー登録解除失敗: ' + str(exc))
+            return False
+
     def show_virtual_launch_context(self, identity, point):
         """Offer Studio Properties for authored virtual Page/item identities.
 
@@ -5803,6 +5988,19 @@ class Launcher(QWidget):
         self._wire_hybrid_context_menu(menu)
         menu.addSection('Launch JSON（Studio管理）' if target else 'Launch JSON（参照専用）')
         if target is not None:
+            target_row = next((r for r in self.authored_items
+                               if r.get('item_id') == target.get('item_id')
+                               and r.get('page_id') == target.get('page_id')), None)
+            is_category = target['kind'] == 'page' or (
+                target_row is not None and target_row.get('item_kind') == 'category')
+            if is_category:
+                self._add_registration_menu_actions(
+                    menu, target['page_id'], target.get('item_id', ''),
+                    allow_file=target['kind'] != 'page')
+                menu.addSeparator()
+            if target['kind'] == 'item':
+                simple = menu.addAction('簡易編集...')
+                simple.setEnabled(False)  # Update is not yet supported by Studio Core.
             properties_action = menu.addAction('プロパティ')
             properties_action.setIcon(context_action_icon('properties'))
             if target['kind'] == 'page':
@@ -5823,6 +6021,15 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(json.dumps(
                     virtual_item_identity(identity), ensure_ascii=False))
         reference.triggered.connect(copy_identity)
+        if target is not None and target['kind'] == 'item':
+            menu.addSeparator()
+            if (target['page_id'], target['item_id']) != (
+                    str((self.expanded_options or {}).get('page_id') or 'system'),
+                    str((self.expanded_options or {}).get('files_item_id') or 'folders')):
+                unreg = menu.addAction('登録解除...')
+                unreg.triggered.connect(
+                    lambda checked=False, pg=target['page_id'], iid=target['item_id']:
+                    QTimer.singleShot(0, lambda: self.launch_unregister_action(pg, iid)))
         if getattr(self, '_remote_pad_context_active', False):
             # Non-blocking popup: Remote owns selection/focus independently.
             self._prepend_remote_pad_navigation(menu)
@@ -11546,6 +11753,26 @@ class Launcher(QWidget):
                     # New-file submenu actions must not dismiss the inline
                     # filename editor, including in the ordinary blank menu.
                     menu.new_submenu_action = new_submenu.menuAction()
+        if studio_properties_item_id and remote_folder_list:
+            # The authored Files root itself only. Its filesystem children
+            # use the ordinary filesystem menu with NO Launch submenu.
+            registration_row = next((r for r in self.authored_items
+                if r.get('item_id') == studio_properties_item_id
+                and r.get('item_kind') == 'directory'), None)
+            if registration_row:
+                menu.addSeparator()
+                launch_sub = menu.addMenu('Launch Menu')
+                # Files roots are directory leaves; Add creates a sibling in
+                # their authored category, never a child beneath directory.
+                self._add_registration_menu_actions(
+                    launch_sub, registration_row['page_id'],
+                    registration_row.get('parent_item_id') or '', allow_file=False)
+                future_edit = launch_sub.addAction('簡易編集...')
+                future_edit.setEnabled(False)
+                unregister = launch_sub.addAction('登録解除...')
+                unregister.triggered.connect(
+                    lambda checked=False, pg=registration_row['page_id'], iid=studio_properties_item_id:
+                    QTimer.singleShot(0, lambda: self.launch_unregister_action(pg, iid)))
         # Ignore repeated or trailing dividers when a subset is disabled.
         actions = menu.actions()
         for current, later in zip(actions, actions[1:]):

@@ -469,6 +469,8 @@ class LaunchRemote(QWidget):
     virtual_item_activated = Signal(object)
     virtual_folder_selected = Signal(object)
     virtual_context_requested = Signal(object, QPoint)
+    files_exp_root_context = Signal(QPoint)
+    files_exp_registration_drop = Signal(object, object)
     geometry_changed = Signal()
     remote_hidden = Signal()
 
@@ -913,6 +915,8 @@ class LaunchRemote(QWidget):
             self.files_exp_panel.virtual_folder_selected.connect(self.virtual_folder_selected.emit)
             if hasattr(self.files_exp_panel, 'virtual_context_requested'):
                 self.files_exp_panel.virtual_context_requested.connect(self.virtual_context_requested.emit)
+            self.files_exp_panel.root_context_requested.connect(self.files_exp_root_context.emit)
+            self.files_exp_panel.registration_drop_requested.connect(self.files_exp_registration_drop.emit)
         panel = self.files_exp_panel
         if panel.isVisible():
             panel.hide()

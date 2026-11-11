@@ -29,7 +29,7 @@ test('不正な親・グループ・ID重複・未対応操作を保存前に拒
   [r=>{r.operations[0].placement.parent_id='missing';},'PARENT_NOT_FOUND'],
   [r=>{r.operations[0].placement.group_id='wrong';},'GROUP_MISMATCH'],
   [r=>{r.operations[0].records[0].item_id='folders';},'DUPLICATE_ID'],
-  [r=>{r.operations[0].operation='delete';},'UNSUPPORTED_OPERATION'],
+  [r=>{r.operations[0].operation='update';},'UNSUPPORTED_OPERATION'],
   [r=>{r.operations[0].placement.position='before';},'UNSUPPORTED_PLACEMENT']
  ]){const r=request([record('A')]);change(r);assert.throws(()=>evaluateChangeSet(document(),r,view),e=>e.code===code,code);}
 });
@@ -203,4 +203,69 @@ test('ブラウザ・ポータブル双方が共通Gateを読込／保存前',as
  assert.ok(portable.includes("'wwwroot/js/services/changeset/change_gate.js'"));
  const fieldSource=await fs.readFile(path.join(root,'tools/change_core/field_validation.mjs'),'utf8');
  assert.ok(fieldSource.includes('assessFieldValidation(result)'));
+});
+
+// studio_work_0269 Step 6 - Delete / cascade support.
+const deleteRequest=(id,group='work',cascade=true,mode='dry_run')=>({
+  ...request([record('unused')],mode),
+  operations:[{operation:'delete',section_id:'items',targets:[{id,group_id:group}],cascade}]
+});
+const treeDocument=()=>({title:'tree',pages:[{page_id:'work',title:'work'},{page_id:'other',title:'other'}],
+  items:[
+    {item_id:'folders',parent_item_id:'',page_id:'work',sort_order:10,title:'Files',item_kind:'category'},
+    {item_id:'cat',parent_item_id:'folders',page_id:'work',sort_order:10,title:'カテゴリ',item_kind:'category'},
+    {item_id:'sub',parent_item_id:'cat',page_id:'work',sort_order:10,title:'下位',item_kind:'category'},
+    {item_id:'leaf',parent_item_id:'sub',page_id:'work',sort_order:10,title:'日本語',item_kind:'command'},
+    {item_id:'dir',parent_item_id:'cat',page_id:'work',sort_order:20,title:'実フォルダー',item_kind:'directory'},
+    {item_id:'other',parent_item_id:'folders',page_id:'work',sort_order:20,title:'生存',item_kind:'command'},
+    {item_id:'other-group',parent_item_id:'',page_id:'other',sort_order:10,title:'別Page',item_kind:'category'}
+  ],unrelated:{note:'変更禁止'}});
+test('Delete cascade: descendants only, sibling and unrelated fields unchanged',()=>{
+ const before=treeDocument();const copy=structuredClone(before);
+ const ret=evaluateChangeSet(before,deleteRequest('cat'),view);
+ assert.equal(ret.summary.deleted,4);assert.equal(ret.summary.added,0);
+ assert.deepEqual(ret.after.items.map(r=>r.item_id),['folders','other','other-group']);
+ assert.deepEqual(ret.after.unrelated,before.unrelated);
+ assert.deepEqual(before,copy);
+ assert.deepEqual(ret.expected_diff,ret.actual_diff);
+ assert.deepEqual(ret.unexpected_diff,[]);
+});
+test('Delete one leaf; only the specified record disappears',()=>{
+ const ret=evaluateChangeSet(treeDocument(),deleteRequest('leaf'),view);
+ assert.equal(ret.summary.deleted,1);
+ assert.ok(ret.after.items.some(r=>r.item_id==='sub'));
+ assert.ok(!ret.after.items.some(r=>r.item_id==='leaf'));
+});
+test('Delete rejects ambiguous, missing, wrong-group, and non-cascade parent targets',()=>{
+ for(const [mutation,code] of [
+  [r=>{r.operations[0].cascade=false;},'CHILDREN_EXIST'],
+  [r=>{r.operations[0].targets[0].id='missing';},'TARGET_NOT_FOUND'],
+  [r=>{r.operations[0].targets[0].group_id='other';},'GROUP_MISMATCH'],
+  [r=>{r.operations[0].targets[0].group_id='';},'GROUP_REQUIRED'],
+  [r=>{r.operations[0].targets.push(r.operations[0].targets[0]);},'DUPLICATE_TARGET']
+ ]){const r=deleteRequest('cat');mutation(r);assert.throws(()=>evaluateChangeSet(treeDocument(),r,view),e=>e.code===code,code);}
+});
+test('Delete CLI: dry_run unchanged, cascade commit, stale SHA rejects repeat',async t=>{
+ const {doc,config}=await sandbox(t);
+ const before=treeDocument();await fs.writeFile(doc,JSON.stringify(before,null,2),'utf8');
+ const snapshot=await readSnapshot(doc);
+ const r=deleteRequest('cat');r.base_sha256=snapshot.sha256;
+ const preview=cli(config,r);assert.equal(preview.code,0);
+ assert.equal(preview.result.status,'PREVIEW');assert.equal(preview.result.summary.deleted,4);
+ assert.equal((await readSnapshot(doc)).sha256,snapshot.sha256);
+ r.mode='commit';const committed=cli(config,r);assert.equal(committed.code,0);
+ assert.equal(committed.result.status,'COMMITTED');assert.equal(committed.result.saved,true);
+ assert.equal((await readSnapshot(doc)).document.items.length,3);
+ assert.deepEqual(committed.result.expected_diff,preview.result.expected_diff);
+ assert.equal(cli(config,r).result.status,'CONFLICT');
+});
+test('Delete multiple target roots in same operation is atomic',()=>{
+ const r=deleteRequest('cat');r.operations[0].targets.push({id:'other',group_id:'work'});
+ const ret=evaluateChangeSet(treeDocument(),r,view);
+ assert.equal(ret.summary.deleted,5);
+ assert.deepEqual(ret.after.items.map(x=>x.item_id),['folders','other-group']);
+});
+test('Delete Actual/Expected mismatch is rejected',()=>{
+ const r=deleteRequest('cat');
+ assert.throws(()=>evaluateChangeSet(treeDocument(),r,view,{actualExecutor:before=>before}),e=>e.code==='UNEXPECTED_DIFF');
 });

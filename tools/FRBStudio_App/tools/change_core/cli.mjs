@@ -10,7 +10,7 @@ import {buildFieldValidator} from './field_validation.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const isObject=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 async function stdinText(){let str='';for await(const chunk of process.stdin){str+=chunk;if(str.length>8*1024*1024)throw new ChangeSetError('REQUEST_TOO_LARGE','Request exceeds 8MiB');}return str;}
-function errorResult(request,code,message){return {schema_version:'studio_changeset_result_v0_1',request_id:request?.request_id??null,status:['CONFLICT','LOCKED'].includes(code)?'CONFLICT':(['ERROR','EACCES','EPERM','ENOENT','EISDIR','INVALID_JSON'].includes(code)?'ERROR':'REJECTED'),saved:false,summary:{added:0,changed_existing:0},expected_diff:[],actual_diff:[],unexpected_diff:[],errors:[{code,message}]};}
+function errorResult(request,code,message){return {schema_version:'studio_changeset_result_v0_1',request_id:request?.request_id??null,status:['CONFLICT','LOCKED'].includes(code)?'CONFLICT':(['ERROR','EACCES','EPERM','ENOENT','EISDIR','INVALID_JSON'].includes(code)?'ERROR':'REJECTED'),saved:false,summary:{added:0,deleted:0,changed_existing:0},expected_diff:[],actual_diff:[],unexpected_diff:[],errors:[{code,message}]};}
 async function run(){
   const request=JSON.parse(await stdinText());
   try{
@@ -40,7 +40,7 @@ async function run(){
     for(const diff of evaluation.expected_diff){
       const sectionKey=diff.path.split('/')[1];
       const section=view.sections.find(s=>s.type==='grid'&&s.dataPath===`$.${sectionKey}`);
-      if(section)field.validate(diff.value,section);
+      if(section && diff.op==='add')field.validate(diff.value,section);
     }
     const result={schema_version:'studio_changeset_result_v0_1',request_id:request.request_id??null,status:'PREVIEW',saved:false,base_sha256:snapshot.sha256,new_sha256:null,validation_mode:field.mode,summary:evaluation.summary,expected_diff:evaluation.expected_diff,actual_diff:evaluation.actual_diff,unexpected_diff:evaluation.unexpected_diff,errors:[]};
     if(request.mode==='commit'){

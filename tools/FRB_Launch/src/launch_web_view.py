@@ -7,7 +7,8 @@ import os
 from pathlib import Path, PureWindowsPath
 
 from PySide6.QtCore import (QUrl, Qt, Signal, QStandardPaths, QSize, QPoint, QTimer, QFileInfo,
-                            QPropertyAnimation, QEasingCurve, QThread, QEvent)
+                            QPropertyAnimation, QEasingCurve, QThread, QEvent, QMimeData)
+from PySide6.QtGui import QDrag
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QVBoxLayout, QLineEdit,
                                QToolButton, QTabWidget, QTabBar, QMenu, QWidget, QLabel,
                                QScrollArea, QGraphicsOpacityEffect, QMessageBox, QFileIconProvider,
@@ -442,6 +443,52 @@ class _ZipExtractionWorker(QThread):
             self.failed.emit(str(error))
 
 
+class _WebUrlDragButton(QToolButton):
+    """Explicit drag handle for the current Launch Browser URL.
+
+    A QLineEdit supports text selection but not discoverable one-step URL
+    dragging. The handle exports exactly HTTP(S) text/uri-list + moz-url.
+    """
+
+    def __init__(self, parent, url_and_title):
+        super().__init__(parent)
+        self._url_and_title = url_and_title
+        self._pressed_at = None
+        self.setToolTip('現在のURLをドラッグしてLaunchメニューに登録')
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        self.setFixedSize(23, 25)
+        self.setText('🔗')
+
+    def mousePressEvent(self, event):
+        self._pressed_at = (event.position().toPoint()
+                            if event.button() == Qt.MouseButton.LeftButton else None)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        initial = self._pressed_at
+        if (initial is None or
+                not (event.buttons() & Qt.MouseButton.LeftButton) or
+                (event.position().toPoint() - initial).manhattanLength() <
+                QApplication.startDragDistance()):
+            super().mouseMoveEvent(event)
+            return
+        self._pressed_at = None
+        url, title = self._url_and_title()
+        if not url or not url.startswith(('https://', 'http://')):
+            return
+        payload = QMimeData()
+        payload.setUrls([QUrl(url)])
+        payload.setText(url)
+        payload.setData('text/x-moz-url', f'{url}\n{title or url}'.encode('utf-16-le'))
+        drag = QDrag(self)
+        drag.setMimeData(payload)
+        drag.exec(Qt.DropAction.CopyAction, Qt.DropAction.CopyAction)
+
+    def mouseReleaseEvent(self, event):
+        self._pressed_at = None
+        super().mouseReleaseEvent(event)
+
+
 class LaunchWebView(QFrame):
     """A disposable View over a persistent Files model, not a second app."""
     surface_selected = Signal(str)
@@ -503,6 +550,8 @@ class LaunchWebView(QFrame):
         self.address.setPlaceholderText('https://...')
         self.address.returnPressed.connect(self.open_address)
         address_row.addWidget(self.address, 1)
+        self.url_drag = _WebUrlDragButton(self.address_shell, self._current_drag_url)
+        address_row.insertWidget(0, self.url_drag)
         self.favorite_save = QToolButton(self.address_shell)
         self.favorite_save.setObjectName('launchWebFavoriteSave')
         self.favorite_save.setFixedSize(25, 25)
@@ -1087,6 +1136,12 @@ class LaunchWebView(QFrame):
         self.reload.setEnabled(view is not None)
         self.external.setEnabled(bool(view and view.url().isValid()))
 
+    def _current_drag_url(self):
+        view = self.current_view() if hasattr(self, 'tabs') else None
+        url = self.current_url_for_favorite()
+        title = view.title() if view is not None else ''
+        return url, title
+
     def current_url_for_favorite(self):
         """Use the current Web page, not an unsubmitted edit in the address bar."""
         view = self.current_view() if hasattr(self, 'tabs') else None
@@ -1098,6 +1153,7 @@ class LaunchWebView(QFrame):
         self.favorite_save.setText('🩶' if saved else '💛')
         self.favorite_save.setToolTip('お気に入り登録済み' if saved else '今のURLをお気に入りに登録')
         self.favorite_save.setEnabled(bool(url))
+        self.url_drag.setEnabled(bool(url))
         self.favorite_dropdown.setEnabled(bool(self.url_favorites.urls))
         self.favorite_dropdown.setToolTip(
             f'URLのお気に入り一覧（{len(self.url_favorites.urls)}件）')

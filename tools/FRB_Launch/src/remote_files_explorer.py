@@ -26,6 +26,7 @@ from pathlib import Path
 from system_drives import drive_rows
 from launch_virtual_tree import (virtual_exp_roots, virtual_item_identity,
                                  virtual_exp_folders)
+from launch_menu_registration import mime_sources
 from registered_root_studio import verified_registered_root
 
 _DATA_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -54,6 +55,37 @@ class FilesExpWheelTree(QTreeView):
         # An operating row always owns BOTH its green fill and green outline.
         # The same QModelIndex is an outline-only memory when List is active.
         self.current_outline_color = QColor('#8fc7ab')
+
+    def _registration_target(self, pos, mime):
+        panel = self.parentWidget()
+        return panel.registration_target_at(pos, mime) if panel is not None else False
+
+    def dragEnterEvent(self, event):
+        if self._registration_target(event.position().toPoint(), event.mimeData()) is not False:
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if self._registration_target(event.position().toPoint(), event.mimeData()) is not False:
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        target = self._registration_target(event.position().toPoint(), event.mimeData())
+        if target is False:
+            event.ignore()
+            return
+        panel = self.parentWidget()
+        # The signal is synchronous; the drop can be rejected on CLI failure.
+        if panel is not None and panel.perform_registration_drop(target, event.mimeData()):
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
 
     def drawRow(self, painter, option, index):
         super().drawRow(painter, option, index)
@@ -271,6 +303,8 @@ class RemoteFilesExplorer(QWidget):
     virtual_item_activated = Signal(object)
     virtual_folder_selected = Signal(object)
     virtual_context_requested = Signal(object, QPoint)
+    root_context_requested = Signal(QPoint)
+    registration_drop_requested = Signal(object, object)
 
     def __init__(self, remote, theme, *, launcher=None, embedded=False):
         # The remote owns this independent, resizable frameless tool. Its
@@ -429,7 +463,8 @@ class RemoteFilesExplorer(QWidget):
         self.tree.setExpandsOnDoubleClick(True)
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.setDragEnabled(False)
-        self.tree.setAcceptDrops(False)
+        self.tree.setAcceptDrops(True)
+        self.tree.setDragDropMode(QAbstractItemView.DragDropMode.DropOnly)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self._show_folder_context)
         self.tree.clicked.connect(self._activate_index)
@@ -1407,6 +1442,37 @@ class RemoteFilesExplorer(QWidget):
             return False
         return walk(self.model.invisibleRootItem())
 
+    def registration_target_at(self, local_pos, mime):
+        """Return JSON identity, None for blank root, False for forbidden."""
+        if not mime_sources(mime):
+            return False
+        index = self.tree.indexAt(local_pos)
+        if not index.isValid():
+            # Exp blank root: only physical directories, no files or URLs.
+            entries = mime_sources(mime)
+            return None if entries and all(
+                not str(e.get('value', '')).lower().startswith(('http://', 'https://'))
+                and Path(e['value']).is_dir() for e in entries) else False
+        item = self.model.itemFromIndex(index)
+        data = item.data(_DATA_ROLE) if item is not None else None
+        virtual = data.get('virtual') if isinstance(data, dict) else None
+        if not isinstance(virtual, dict):
+            return False  # includes physical Files roots and descendants
+        row = virtual.get('row') or {}
+        if virtual.get('kind') == 'page' and not virtual.get('item_id'):
+            entries = mime_sources(mime)
+            if not all(Path(e.get('value', '')).is_dir() for e in entries):
+                return False
+        elif row.get('item_kind') != 'category':
+            return False
+        if virtual.get('runtime_catalog'):
+            return False
+        return virtual_item_identity(virtual)
+
+    def perform_registration_drop(self, identity, mime):
+        launcher = self._launcher
+        return bool(launcher and launcher.handle_launch_drop(identity, mime))
+
     def _show_folder_context(self, local_pos):
         # QAbstractScrollArea forwards positions in viewport coordinates.
         index = self.tree.indexAt(local_pos)
@@ -1421,6 +1487,11 @@ class RemoteFilesExplorer(QWidget):
             return
         path = self._index_path(index)
         if path is None:
+            # Blank Exp background is the JSON root, NOT the selected
+            # physical folder and NOT the current List directory.
+            if not index.isValid():
+                self.root_context_requested.emit(
+                    self.tree.viewport().mapToGlobal(local_pos))
             return
         self._selection_timer.stop()
         self.tree.setCurrentIndex(index)
