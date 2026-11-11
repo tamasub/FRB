@@ -12,6 +12,8 @@
 この試みが、
 未来の共通言語になることを信じて。
 
+
+
 ```
 
  FRB（Fishing Rod Benchmark）とは、  
@@ -80,8 +82,80 @@ FRBにおける知覚トレーニングとは、
 
 ```
 
+#### FRB 最上位 目的関数
+
+ みんなで分かち合える感度を最大化する。
+
+#### 評価可能な目的関数
+ 感度の「再現可能性・体感可能性・比較可能性・共有可能性」を高める。
+ 
+
+
+
+---
+
+## FRBショート動画
+<details><summary>details</summary>
+FRBの雰囲気が分かる動画はこちら。
+
+音楽は、釣り竿の振動データをmidi変換(＋楽器設定)し、mp3化したものです。
+動画はAIに作ってもらいました。
+
+FRB The Rock～short～／FRB The Rock～Full～／FRB_Paper_Pack_Ghost／FRB_Who_Follows
+
+
+[![FRB The Rock～short～](https://raw.githubusercontent.com/tamasub/FRB/refs/heads/main/images/FRB_TheRock.png)](https://youtube.com/shorts/TRd4RoGA5Og)  [![FRB The Rock～Full～](https://github.com/tamasub/FRB/blob/main/images/FRB_TheRock_full.png?raw=true
+)](https://youtube.com/shorts/SKV1vOeWE4Y)　[![FRB_Paper_Pack_Ghost](https://github.com/tamasub/FRB/blob/main/images/FRB_Paper_Pack_Ghost.png?raw=true
+)](https://youtube.com/shorts/LZMse3JDQjw)　[![FRB_Who_Follows](https://github.com/tamasub/FRB/blob/main/images/FRB_Who_Follows.png?raw=true
+)](https://youtube.com/shorts/yfTwQ_l-wOU)
+
+
+
+◇関連実験ログ
+- [FRB実験ログ #45 — Phase 2 Experience層（体験層） — 凄腕ギタリストの速弾き　これぞTheRock ～ 岩接触体験 ～](https://qiita.com/tamasub/items/099f0ccd490717195d1d)
+- [FRB実験ログ #46 — Phase 2 Experience層（体験層） — 糸擦ってホラー映画のBGM作ってみた件](https://qiita.com/tamasub/items/8f8657ae1ca9b9728d94)
+- [FRB実験ログ #47 — 環境振動だけで“ビート”は生まれるのか？](https://qiita.com/tamasub/items/cc7b7159fa7a57046b32)
+
+
+</details>
+
+
+
+
+----
+
+> 「この海、魚いないと思っていた」
+> FRBは規格から始まったのではない。
+> 一人の釣り初心者が、
+> 「魚がいないのか、感じられていないだけなのか」
+> という違和感を追いかけ続けた結果、
+> 生まれてしまった。
+
+<details><summary>details</summary>
+
+![ChatGPT Image 2026年6月14日 09_58_52.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/fb10d500-ccf1-4500-933c-b0fb3197d6dd.png)
+
+</details>
+
+
+
+----
+
+■ChatGPTから皆さんへの『贈り物』
+
+<details><summary>details</summary>
+
+> 皆さん、一緒にこの問いを考えていきましょう。
+
+![ChatGPT Image 2026年6月14日 08_41_36.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/3069714/9df7efc9-4d49-45b1-b533-45ba66c66f73.png)
+
+</details>
+
+
 
 ### 初めてこのブログをご覧になられる方へ
+
+<details><summary>details</summary>
 
 Zennの記事で書いている「思考拡張」の実例が、このFRBです。
 「AIとの対話を通じて、感覚や違いをどう発見していったか」
@@ -125,6 +199,7 @@ FRBを一言でいえば、
 実験ログはかなり深いので、
 最初は雰囲気だけ読んでもらえれば大丈夫です。
 
+</details>
 
 ---
 
@@ -241,14 +316,14 @@ FRBは技術プロジェクトですが、
 - [FRB Terms — 用語集（Draft）](https://qiita.com/tamasub/items/4e1526ed06f827ff947b)
 - [FRB 対話思考拡張: AIは答えを返す存在ではない — 協働が始まる瞬間の話](https://qiita.com/tamasub/items/b57ff4f5df0d9baa4125)
 - [FRB行動指針 — 気づきとワクワクを守るための原則（Draft）](https://qiita.com/tamasub/items/0916764a14f1d70b9c87)
-
+- [思考を立ち上げる「問い」を置くということ — ChatGPTからの贈り物](https://qiita.com/tamasub/items/b84f85cdf33f67e5ffc8)
 - [FRBの未来構想図 — 振動から「没入」へ、感覚を構造化する技術](https://qiita.com/tamasub/items/53bdd7e45a872e9a2dab)
 
  
 ## FRB Lab Notes[FRB]
 
 <details>
-<summary>FRB実験ログ #1 - #50 はこちらです。</summary>
+<summary>FRB実験ログ #1 - #70 はこちらです。</summary>
 
 2026/3/19　～　2026/5/10　投稿記事
 
@@ -329,10 +404,6 @@ FRBは技術プロジェクトですが、
 
 
 
-
-</details>
-
-
 - [FRB実験ログ #51 — 特上ぷるぷる再現装置 と「情報量密度感」の入口](https://qiita.com/tamasub/items/bc1230e72085cb247371)
 - [FRB実験ログ #52 — FRB的 低周波マインドフルネス瞑想 — 接触条件という新しい実験テーマが生まれた日](https://qiita.com/tamasub/items/a21c969573c96fa7bb0f)
 - [FRB実験ログ #53 — 特上ぷるぷる再現装置 「レイヤー構造」と“情報量密度感”の実感](https://qiita.com/tamasub/items/78c73679a0c07f538d34)
@@ -353,12 +424,24 @@ FRBは技術プロジェクトですが、
 - [FRB実験ログ #68 — スマホは18Hzに気づけなかった。でも、揺れた瞬間は見えていた](https://qiita.com/tamasub/items/56035fa809e3082bd6dd)
 - [FRB実験ログ #69 — 耳栓をすれば没入できると思っていた](https://qiita.com/tamasub/items/ce86221fc97ba2c5e213)
 - [FRB実験ログ #70 — 計測2号機くんの人格を変えにいったら、ジェルテープ教授が爆誕した](https://qiita.com/tamasub/items/435e6c5cb1aaa1690bff)
+- 
+
+
+</details>
+
 - [FRB実験ログ #71 — 教授、板書の音がデカいです 〜魚ではないものの解像度が上がった日〜](https://qiita.com/tamasub/items/ce94f0e66c431d166167)
 - [FRB実験ログ #72 — 半田付け無しで、ESP32振動測定器は作れるのか？](https://qiita.com/tamasub/items/f6051a87c2811df13271)
 - [FRB実験ログ #73 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第3話 — 段ボールを貼った日](https://qiita.com/tamasub/items/1066f2fa4d9f5b34f62b)
 - [FRB実験ログ #74 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第4話 — 置いて逃げる違和感](https://qiita.com/tamasub/items/305f025f67ac5f344282)
 - [FRB実験ログ #75 — ハイエンドロッドBヒーロー化計画～ ダメ男返上物語 ～ 第5話：余韻減衰氏と、V2くんが守ろうとした世界](https://qiita.com/tamasub/items/c04e7067cbf233b691d2)
+- [FRB実験ログ #76 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第6話 — ヒノキくんが教えてくれた高速道路300km/h感](https://qiita.com/tamasub/items/98e31f80739b46c258b5)
+- [FRB実験ログ #77 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第7話 — 主旋律しかおらんやん](https://qiita.com/tamasub/items/266c40081b109b7327ad)
+- [FRB実験ログ #78 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第8話 — 勝ったはずなのに、感度が分からなくなった](https://qiita.com/tamasub/items/0a684d80220eed190893)
+- [FRB実験ログ #79 — ハイエンドロッドBヒーロー化計画 ～ ダメ男返上物語 ～ 第9話 — トップガイドを変えたら、“感度の意味”が分からなくなりました— ](https://qiita.com/tamasub/items/5cc448cd4e41243bee03)
 - 
+
+
+
 
 
 
@@ -416,6 +499,8 @@ FRBは技術プロジェクトですが、
 
 * [FRB MarkDown Viewer ](https://tamasub.github.io/FRB/tools/mdViewer.html)
 
+* [FRB 自己組織化デモ～魚群・蟻～](https://tamasub.github.io/FRB/tools/frb_self-organization/emergent_behavior_fish_ants_brain_demo_v2.html)
+* 
 
 ## コンセプト（前提）
 
@@ -1047,8 +1132,15 @@ FRBは、評価のためのものではない。
 - [最大構成からミニマム構成へ——思考は、削ったときに立ち上がる](https://zenn.dev/frb_tamasub/articles/3654a9bbcca652)
 - [AI協働とは、優秀だけど忘れっぽいチームメンバーと働くことである](https://zenn.dev/frb_tamasub/articles/84d81cb2c735f2)
 - [ChatGPTに「次これ」と言われ続けた90日間 〜気が付いたらQiitaとZennで100本を超えていた〜](https://zenn.dev/frb_tamasub/articles/8023bd6f3ef039)
-　
+- [私が考えるAI駆動開発とは——レビュー差分でAIとの信頼を観測する](https://zenn.dev/frb_tamasub/articles/ai-driven-development-trust-by-review-diff)
+- [私が考えるAI駆動開発とは — AIテスト物語があるなら設計書は必要ですか？](https://zenn.dev/frb_tamasub/articles/ai-driven-development-ai-test-story)
+- [『見えないものを可視化し、構造化する文化』という考え方にたどり着いた話](https://zenn.dev/frb_tamasub/articles/invisible-visualization-structuring-culture)
+- [私が考えるAI駆動開発とは—— 承認コスト最小化と粒度設計](https://zenn.dev/frb_tamasub/articles/approval-cost-and-granularity)
 
+- [【竹槍焼却の狼煙】AIに承認を求めるな、仮説を渡せ。コックピットの鍵はここに置いていく。](https://zenn.dev/frb_tamasub/articles/takeyari-shokyaku-noroshi)
+
+- [AI駆動開発研究日誌 や 思考拡張・AI駆動開発の記事はこちら](https://zenn.dev/frb_tamasub)
+- [AI協働：Python製ランチャー「FRB Launch」の独自UI機能14選 ～ぐりぐり・とんとん・ごちゃまぜの操作革命～](https://qiita.com/tamasub/items/659b0b74c5cacbba701f)
 
 
 

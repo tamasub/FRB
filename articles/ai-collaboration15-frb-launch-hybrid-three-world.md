@@ -370,7 +370,8 @@ GitHub上にも配布媒体を登録する予定で、Vectorなどへの登録�
 
 ### 関連記事・ソース
 
-- [前回・第5回：「ワープ差し棒」誕生！〜ぐりぐりを進化させたら、ぐりぐりしなくなった話〜](https://zenn.dev/frb_tamasub/articles/ai-collaboration14-frb-launch-warp)
+
+- [第5回：「ワープ差し棒」誕生！〜ぐりぐりを進化させたら、ぐりぐりしなくなった話〜](https://zenn.dev/frb_tamasub/articles/ai-collaboration14-frb-launch-warp)
 - [第3回：エクスプローラーに魂を吹き込む手裏剣の話](https://zenn.dev/frb_tamasub/articles/ai-collaboration12-shuriken-press-conference)
 - [第1回：世界標準規格の野望・第2弾 — みんなも、ぐりぐりしてみませんか？](https://zenn.dev/frb_tamasub/articles/ai-collaboration10-frb-launch-guriguri)
 

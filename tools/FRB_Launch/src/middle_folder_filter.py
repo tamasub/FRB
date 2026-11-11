@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from search_matching import matches_search_text
+from middle_column_presentation import virtual_description, virtual_item_kind
 
 SORT_LABELS = {
     'name': '名前順',
@@ -17,6 +18,10 @@ SORT_LABELS = {
     'date_asc': '更新日昇順',
     'size_desc': 'サイズ大きい順',
     'size_asc': 'サイズ小さい順',
+    'description_asc': '説明昇順',
+    'description_desc': '説明降順',
+    'item_kind_asc': '項目の種類昇順',
+    'item_kind_desc': '項目の種類降順',
 }
 
 
@@ -129,6 +134,12 @@ def filter_sort_folder_rows(rows, query='', mode='name'):
         result.sort(key=lambda row: row[field] is None)
     elif mode.startswith('type'):
         result.sort(key=lambda row: row['_middle_type'].casefold(),
+                    reverse=mode.endswith('desc'))
+    elif mode.startswith('description'):
+        result.sort(key=lambda row: virtual_description(row).casefold(),
+                    reverse=mode.endswith('desc'))
+    elif mode.startswith('item_kind'):
+        result.sort(key=lambda row: virtual_item_kind(row).casefold(),
                     reverse=mode.endswith('desc'))
     result.sort(key=lambda row: row.get('item_kind') not in ('category', 'directory'))
     return result

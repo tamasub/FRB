@@ -28,8 +28,9 @@ from context_menu_resolver import resolve_context_target
 from context_menu_actions import rename_file_or_folder
 from pathlib import Path
 import os
-from middle_folder_filter import (SORT_LABELS, filter_sort_folder_rows,
-                                  sort_mode_for_header)
+from middle_folder_filter import SORT_LABELS, filter_sort_folder_rows, sort_mode_for_header
+from middle_column_presentation import (FILES_HEADERS, LAUNCH_HEADERS,
+    virtual_description, virtual_item_kind, virtual_sort_mode_for_header)
 from folder_sort_preferences import (DEFAULT_SORT, load_directory_sort,
                                      save_directory_sort)
 from windows_shellnew import discover_shellnew, suggest_name, create_new_item
@@ -1138,12 +1139,23 @@ class ExpandedPanel(QFrame):
                 # Windows registered descriptions for the file extension, with
                 # cheap caching. Actual file properties stay independently
                 # available in all sort modes.
-                type_text = self.file_type_label(row)
-                item = QTreeWidgetItem([row.get('title', ''),
-                                        row.get('_middle_date', ''),
-                                        row.get('_middle_size', ''), type_text, ''])
-                item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                item.setTextAlignment(2, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                if getattr(self, 'virtual_details_columns', False):
+                    # JSON Menu: source description and *original* item_kind.
+                    # No fake filesystem update time/size/type is displayed.
+                    item = QTreeWidgetItem([row.get('title', ''),
+                                            virtual_description(row),
+                                            virtual_item_kind(row), '', ''])
+                    item.setToolTip(1, virtual_description(row))
+                    item.setToolTip(2, virtual_item_kind(row))
+                    item.setTextAlignment(1, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                    item.setTextAlignment(2, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+                else:
+                    type_text = self.file_type_label(row)
+                    item = QTreeWidgetItem([row.get('title', ''),
+                                            row.get('_middle_date', ''),
+                                            row.get('_middle_size', ''), type_text, ''])
+                    item.setTextAlignment(1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                    item.setTextAlignment(2, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 for col in (1, 2, 3):
                     item.setForeground(col, QBrush(QColor(
                         '#81928a' if self._theme == 'light' else '#a1afa8')))
@@ -1465,6 +1477,9 @@ class ExpandedLauncherView(QWidget):
         # are shown in the same List widget, never passed to OS path actions.
         self._virtual_directory_node = None
         self._virtual_sort_custom = False
+        self.middle.virtual_details_columns = False
+        self._middle_header_virtual = False
+        self._physical_middle_header_state = None
         # Each visited filesystem directory owns an optional sort override.
         # The old global setting is intentionally ignored: uncustomized
         # directories always start with the Explorer-style standard sort.
@@ -2356,14 +2371,48 @@ class ExpandedLauncherView(QWidget):
             self._refreshing = False
 
     def _save_middle_header_state(self, *_):
-        if self._middle_header_restoring:
+        if self._middle_header_restoring or self._middle_header_virtual:
             return
         self.launcher.settings.setValue('expanded_middle_header_state_v50',
                                         self.middle.tree.header().saveState())
 
+    def _set_middle_columns_for_source(self, virtual):
+        """Swap List headers/visible columns without touching saved Files layout.
+
+        The physical header state, including user order/widths, is restored on
+        return. A virtual-only resize must never overwrite the Files setting.
+        """
+        virtual = bool(virtual)
+        self.middle.virtual_details_columns = virtual
+        if virtual == self._middle_header_virtual:
+            return
+        tree = self.middle.tree
+        header = tree.header()
+        self._middle_header_restoring = True
+        try:
+            if virtual:
+                self._physical_middle_header_state = header.saveState()
+                tree.setHeaderLabels(list(LAUNCH_HEADERS))
+                tree.setColumnHidden(3, True)
+                # JSON explanations need space; keep a separate kind column.
+                tree.setColumnWidth(1, 350)
+                tree.setColumnWidth(2, 145)
+            else:
+                tree.setColumnHidden(3, False)
+                tree.setHeaderLabels(list(FILES_HEADERS))
+                saved = self._physical_middle_header_state
+                if saved is not None:
+                    header.restoreState(saved)
+                header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+                self._physical_middle_header_state = None
+            self._middle_header_virtual = virtual
+        finally:
+            self._middle_header_restoring = False
+
     def _update_middle_header_sort(self):
         mode = self._middle_sort_mode
-        column = (1 if mode.startswith('date') else 2 if mode.startswith('size')
+        column = (1 if mode.startswith(('date', 'description'))
+                  else 2 if mode.startswith(('size', 'item_kind'))
                   else 3 if mode.startswith('type') else 0)
         # Qt's native sort indicator artwork points opposite to the Explorer
         # convention on this view/style. The rows themselves are sorted by
@@ -2374,7 +2423,10 @@ class ExpandedLauncherView(QWidget):
         self.middle.tree.header().setSortIndicator(column, direction)
 
     def _middle_header_clicked(self, logical_column):
-        mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
+        if getattr(self, '_virtual_directory_node', None) is not None:
+            mode = virtual_sort_mode_for_header(logical_column, self._middle_sort_mode)
+        else:
+            mode = sort_mode_for_header(logical_column, self._middle_sort_mode)
         if mode is not None:
             if getattr(self, '_virtual_directory_node', None) is not None:
                 self._virtual_sort_custom = True
@@ -2557,6 +2609,7 @@ class ExpandedLauncherView(QWidget):
 
     def _fill_middle_from_current(self):
         virtual = getattr(self, '_virtual_directory_node', None)
+        self._set_middle_columns_for_source(virtual is not None)
         if virtual is not None:
             rows = virtual_list_rows(virtual)
             # The first view keeps the user's Studio/Launch JSON menu order.
@@ -2627,6 +2680,7 @@ class ExpandedLauncherView(QWidget):
         self._middle_back_hold.reset()
         self._middle_back_warp_pending = None
         virtual = getattr(self, '_virtual_directory_node', None)
+        self._set_middle_columns_for_source(virtual is not None)
         if virtual is not None:
             # This is a *display* breadcrumb, not an editable OS pathname.
             self.middle.tree.header().setSortIndicatorShown(

@@ -1273,13 +1273,28 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'F12') { e.preventDefault(); applyDetail(e); }
 });
 
+// EditorのF7/F8と前へ/次へはData配列順ではなく、現在画面に描画された
+// Gridの行順を正とする。列ソート・検索・Document Card・Treeの階層/折畳みに
+// すべて同じ契約を適用し、仮想グループ行（負のsourceIndex）は移動対象にしない。
+function detailNavigationSourceIndexes() {
+  const host = $('dataGrid');
+  if (host && typeof host.querySelectorAll === 'function') {
+    return [...host.querySelectorAll('tbody > tr[data-source-index], .document-grid-card[data-source-index]')]
+      .map(node => Number(node.dataset.sourceIndex))
+      .filter(index => Number.isInteger(index) && index >= 0 && index < currentRows.length);
+  }
+  // Gridがまだ描画されていない呼び出しだけ、従来の表示行配列へフォールバック。
+  return Array.isArray(filteredRows) ? filteredRows.map(x => x.index) : [];
+}
+
 function currentFilteredPosition() {
   if (selectedIndex < 0) return -1;
-  return filteredRows.findIndex(x => x.index === selectedIndex);
+  return detailNavigationSourceIndexes().indexOf(selectedIndex);
 }
 
 function updateDetailNavButtons() {
-  const pos = currentFilteredPosition();
+  const positions = detailNavigationSourceIndexes();
+  const pos = positions.indexOf(selectedIndex);
   const prevBtn = $('prevDetailBtn');
   const nextBtn = $('nextDetailBtn');
   if (detailMode === 'new') {
@@ -1288,7 +1303,7 @@ function updateDetailNavButtons() {
     return;
   }
   if (prevBtn) prevBtn.disabled = pos <= 0;
-  if (nextBtn) nextBtn.disabled = pos < 0 || pos >= filteredRows.length - 1;
+  if (nextBtn) nextBtn.disabled = pos < 0 || pos >= positions.length - 1;
 }
 
 function applyDetailInputsToRow(row, options={}) {
@@ -1341,10 +1356,11 @@ function applyDetailInputsToSelectedRow() {
 }
 function moveDetail(delta) {
   if (detailMode === 'new') return;
-  const pos = currentFilteredPosition();
+  const positions = detailNavigationSourceIndexes();
+  const pos = positions.indexOf(selectedIndex);
   const nextPos = pos + delta;
   if (pos < 0) return;
-  if (nextPos < 0 || nextPos >= filteredRows.length) {
+  if (nextPos < 0 || nextPos >= positions.length) {
     // In a related Grid, even F7/F8 at the first/last row commits the draft.
     // Keep the normal Studio's navigation behavior unchanged.
     if (typeof relatedGridChildIsDirty === 'function' && relatedGridChildRuntime &&
@@ -1362,7 +1378,7 @@ function moveDetail(delta) {
   } else {
     applyDetailInputsToSelectedRow();
   }
-  selectedIndex = filteredRows[nextPos].index;
+  selectedIndex = positions[nextPos];
   renderGrid();
   openDetail(selectedIndex, true);
 }
