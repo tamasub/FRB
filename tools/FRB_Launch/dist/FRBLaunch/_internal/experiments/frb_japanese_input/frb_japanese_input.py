@@ -9,8 +9,8 @@ from __future__ import annotations
 import sys
 from dataclasses import replace
 
-from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon
+from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel,
     QLineEdit, QMenu, QPushButton, QVBoxLayout, QWidget, QSizePolicy,
@@ -62,6 +62,11 @@ def style_for_size(font_size: int, theme: str = "dark") -> str:
     QPushButton#microButton {{ color: #e3eee8; background: #303a40;
         border: 1px solid #47585b; border-radius: 5px; font-size: 10px; padding: 0 2px; }}
     QPushButton#microButton:hover {{ background: #4c6860; }}
+    /* Delete uses a custom-drawn icon, not a platform-dependent glyph. */
+    QPushButton#kanaDeleteButton {{ background: #303a40;
+        border: 1px solid #47585b; border-radius: 5px;
+        padding: 0; }}
+    QPushButton#kanaDeleteButton:hover {{ background: #4c6860; }}
     QPushButton#enterButton {{ color: white; background: #2a816b;
         border: 1px solid #62b49a; border-radius: 5px; font-size: 10px; padding: 0; }}
     QPushButton#imeButton {{ color: #d7eddf; background: #303a40;
@@ -146,6 +151,49 @@ def keyboard_title_icon(light: bool) -> QIcon:
                 continue
             painter.drawRoundedRect(x, y, 7, 6, 1, 1)
     painter.drawRoundedRect(23, 39, 17, 5, 1, 1)
+    painter.end()
+    return QIcon(image)
+
+
+def backspace_button_icon(light: bool) -> QIcon:
+    """Draw the requested left-pointing delete tag with an X, independent of fonts.
+
+    The 4x antialiased raster renders clearly even inside the compact 27x18
+    toolbar button. The icon does not rely on Windows font glyph coverage.
+    """
+    scale = 4
+    icon_width, icon_height = 22, 16
+    image = QPixmap(icon_width * scale, icon_height * scale)
+    image.setDevicePixelRatio(scale)
+    image.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    # Draw in 24x18 reference coordinates; scale to the 22x16 button icon.
+    painter.scale(icon_width / 24.0, icon_height / 18.0)
+
+    outline = QPainterPath()
+    outline.moveTo(1.5, 8.2)
+    outline.lineTo(8.0, 2.5)
+    outline.cubicTo(8.8, 1.5, 9.7, 1.1, 10.9, 1.1)
+    outline.lineTo(20.6, 1.1)
+    outline.cubicTo(22.3, 1.1, 23.2, 2.2, 23.2, 4.0)
+    outline.lineTo(23.2, 14.0)
+    outline.cubicTo(23.2, 15.8, 22.3, 16.9, 20.6, 16.9)
+    outline.lineTo(10.9, 16.9)
+    outline.cubicTo(9.7, 16.9, 8.8, 16.5, 8.0, 15.5)
+    outline.lineTo(1.5, 9.8)
+    outline.cubicTo(1.0, 9.3, 1.0, 8.7, 1.5, 8.2)
+    outline.closeSubpath()
+    painter.setPen(Qt.PenStyle.NoPen)
+    # On the light theme match the supplied charcoal silhouette / white X.
+    # On the dark theme use a contrasting fill so the small shape stays legible.
+    painter.setBrush(QColor('#454545' if light else '#9bb9aa'))
+    painter.drawPath(outline)
+
+    painter.setPen(QPen(QColor('#ffffff' if light else '#263b31'), 3.4,
+                        Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+    painter.drawLine(QPointF(12.4, 6.1), QPointF(18.4, 12.1))
+    painter.drawLine(QPointF(18.4, 6.1), QPointF(12.4, 12.1))
     painter.end()
     return QIcon(image)
 
@@ -478,10 +526,20 @@ class MiniJapaneseInputWindow(QWidget):
         head.addWidget(self.close_button)
         root.addWidget(title_frame)
 
-        # Size and IME controls move below the title, without consuming the
-        # limited horizontal space needed by the new header title.
+        # Editing actions move above the keys, so Windows IME candidates
+        # opening over the bottom editor cannot hide Delete / Clear.
+        # Widths also fit the 174px minimum size preset.
         top = QHBoxLayout()
         top.setSpacing(3)
+        self.del_button = self._micro("", self._backspace, 27, 'kanaDeleteButton')
+        self.del_button.setIconSize(QSize(22, 16))
+        self.del_button.setToolTip("末尾の文字を削除")
+        self.clear_button = self._micro("全消", self._clear, 30)
+        for button in (self.del_button, self.clear_button):
+            button.setFixedHeight(18)
+        top.addWidget(self.del_button)
+        top.addWidget(self.clear_button)
+        # Keep the existing theme, IME and size controls right-aligned.
         top.addStretch(1)
         self.theme_button = self._micro('☀', self._toggle_theme, 20)
         self.theme_button.setFixedHeight(18)
@@ -530,22 +588,17 @@ class MiniJapaneseInputWindow(QWidget):
 
         actions = QHBoxLayout()
         actions.setSpacing(3)
-        self.del_button = self._micro("⌫", self._backspace, 25)
-        self.del_button.setToolTip("末尾の文字を削除")
-        self.clear_button = self._micro("全消", self._clear, 32)
         self.enter_button = self._micro("確定↵", self._commit, 53, object_name="enterButton")
         self.enter_button.setToolTip("未確定文字列を確定（Enterキーでも可）")
         self.copy_button = self._micro("コピー", self._copy, 32, object_name="copyButton")
         self.send_button = self._micro("送信", self._request_send, 38, object_name="enterButton")
         self.enter_button.setFixedWidth(43)
-        actions.addWidget(self.del_button)
-        actions.addWidget(self.clear_button)
         actions.addWidget(self.enter_button)
         actions.addWidget(self.copy_button)
         actions.addWidget(self.send_button)
         actions.addStretch(1)
         root.addLayout(actions)
-        for button in (self.del_button, self.clear_button, self.enter_button, self.copy_button, self.send_button):
+        for button in (self.enter_button, self.copy_button, self.send_button):
             button.setFixedHeight(22)
 
         footer = QHBoxLayout()
@@ -659,6 +712,25 @@ class MiniJapaneseInputWindow(QWidget):
         self._ensure_editor_focus()
         request_ime_mode(mode, self.ime_sender, self._editor_is_focused)
 
+    def restore_ime_on_show(self):
+        """A fresh kana opening explicitly requests Japanese IME each time.
+
+        The launcher search intentionally uses half-width English. Reopening
+        this separate Tool must not inherit that mode. Do not reissue IME
+        commands during active composition or when our window lacks focus.
+        """
+        if (not self.isVisible() or not self._native_mode or
+                self.input_mode != 'kana' or self.output.is_composing or
+                self.model.has_preedit):
+            return
+        try:
+            if not self.output.hasFocus():
+                self._ensure_editor_focus()
+            if self._editor_is_focused():
+                self._set_windows_ime_mode('kana')
+        except Exception as exc:
+            self.status.setText(f'日本語IME切替を確認してください ({exc})')
+
     def _select_input_mode(self, mode: str):
         if mode not in MODES or self._mode_changing:
             return
@@ -706,6 +778,7 @@ class MiniJapaneseInputWindow(QWidget):
         self._panel_fill = QColor('#fcfffd' if light else '#222e2c')
         self._panel_outline = QColor('#ccd3d7')
         self.header_keyboard_icon.setPixmap(keyboard_title_icon(light).pixmap(20, 20))
+        self.del_button.setIcon(backspace_button_icon(light))
         self.setStyleSheet(style_for_size(SIZE_PRESETS[self.preset_index].font_size,
                                           self.display_theme))
         self.guide.update()

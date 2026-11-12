@@ -1654,11 +1654,20 @@ class RemoteFilesExplorer(QWidget):
             return
         path = self._index_path(index)
         if path is None:
-            # Blank Exp background is the JSON root, NOT the selected
-            # physical folder and NOT the current List directory.
+            point = self.tree.viewport().mapToGlobal(local_pos)
             if not index.isValid():
-                self.root_context_requested.emit(
-                    self.tree.viewport().mapToGlobal(local_pos))
+                # Blank Exp background is the JSON root, NOT the selected
+                # physical folder and NOT the current List directory.
+                self.root_context_requested.emit(point)
+            elif self._is_pc_index(index):
+                # PC has no physical folder verbs, but ALL Exp contexts have
+                # the same column switch; never invent a filesystem path.
+                launcher = self._launcher
+                if launcher is not None:
+                    menu = QMenu(self)
+                    launcher._wire_hybrid_context_menu(menu, column='exp')
+                    menu.aboutToHide.connect(menu.deleteLater)
+                    menu.popup(point)
             return
         self._selection_timer.stop()
         self.tree.setCurrentIndex(index)
@@ -1906,14 +1915,20 @@ class RemoteFilesExplorer(QWidget):
 
     def _show_layout_menu(self, position):
         launcher = self._launcher
-        if self._embedded or not getattr(launcher, 'files_root_hidden_mode', False):
-            return
         menu = QMenu(self)
-        reset = menu.addAction('Launchのグリッド位置・高さに再整列')
-        reset.setEnabled(self._manual_position or self._manual_height)
-        chosen = menu.exec(position)
-        if chosen is reset:
-            self.reset_grid_layout()
+        # Re-layout is for the floating experimental header only. In embedded
+        # mode this right-click still has the universal Exp -> List action.
+        if not self._embedded and getattr(launcher, 'files_root_hidden_mode', False):
+            reset = menu.addAction('Launchのグリッド位置・高さに再整列')
+            reset.setEnabled(self._manual_position or self._manual_height)
+            reset.triggered.connect(lambda checked=False: self.reset_grid_layout())
+        # Even the detached Exp header uses the SAME navigation and wheel
+        # adapter as Exp's rows and root background. Never use QMenu.exec()
+        # with a non-grabbing hybrid Tool menu.
+        if launcher is not None:
+            launcher._wire_hybrid_context_menu(menu, column='exp')
+        menu.aboutToHide.connect(menu.deleteLater)
+        menu.popup(position)
 
     def _save_size(self):
         if (self._settings is not None and not self._restoring_size

@@ -99,7 +99,7 @@ def test_dialog_guard_blocks_background_widgets_but_allows_remote_and_question()
     question, remote, launch = object(), object(), object()
     guard = mod.ConfirmationInputGuard(question, remote)
     def event(t): return NS(type=lambda:t, accept=Mock())
-    for target in (remote, question):
+    for target in (question,):
         widget = widgets.QWidget()
         widget._window = target
         e = event(mod.ConfirmationInputGuard.BLOCKED[0])
@@ -147,8 +147,8 @@ def test_done_dialogs_are_footer_info_but_diagnostics_remain_available():
     assert "self.info_notice('Gitコミット完了：' + committed)" in APP
     assert 'self.info_notice(\'索引データをクリアしました' in APP
     assert 'ℹ️ ' in APP
-    assert "QMessageBox.information(self, 'ファイル索引の状態'" in APP
-    assert "QMessageBox.information(self, 'FRB Launch ブックマーク取得診断'" in APP
+    assert "self.show_launch_notice(QMessageBox.Icon.Information, 'ファイル索引の状態'" in APP
+    assert "self.show_launch_notice(QMessageBox.Icon.Information, 'FRB Launch ブックマーク取得診断'" in APP
 
 
 def test_all_launch_yes_no_prompts_use_common_remote_guard():

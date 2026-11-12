@@ -21,7 +21,7 @@ def _method(class_name, name, source, scope):
 
 def test_context_separator_runs_past_icon_without_touching_outer_edge():
     assert 'QMenu::separator { height:1px; background:#e1e5e2; margin:5px 3px; }' in APPEARANCE
-    assert 'QMenu::icon { margin-left:4px; margin-right:1px; }' in APPEARANCE
+    assert 'QMenu::icon { width:24px; height:24px; margin-left:5px; margin-right:5px; }' in APPEARANCE
 
 
 def test_page_header_whitespace_routes_to_first_tab_only():

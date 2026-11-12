@@ -43,7 +43,7 @@ def test_keyboard_has_the_remote_style_title_close_icon_and_drag():
 def test_title_and_component_use_one_name():
     assert "self.window.setWindowTitle('FRB かなフリック')" in source('src/remote_kana_integration.py')
     assert "'FRB かなフリックをRemoteの下へ表示／非表示'" in source('src/launch_remote.py')
-    assert "QMessageBox.warning(self, 'FRB かなフリック', str(exc))" in source('src/app.py')
+    assert "self.show_launch_notice(QMessageBox.Icon.Warning, 'FRB かなフリック', str(exc))" in source('src/app.py')
 
 
 def test_color_stylesheet_fstring_resolves_for_both_themes():

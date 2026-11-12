@@ -122,7 +122,9 @@ def test_both_back_areas_offer_new_and_blank_area_preserves_paste():
     assert 'self.show_lane_new_menu(event.globalPos())' in SOURCE
     fragment = SOURCE.split('    def context_menu(', 1)[1]
     assert 'if pane is self.middle and self.current_directory():' in fragment
-    assert 'self.launcher.show_expanded_background_paste_menu(' in fragment
+    assert 'self.show_list_background_context(position)' in fragment
+    shared = SOURCE.split('    def show_list_background_context(', 1)[1].split('    def show_lane_new_menu(', 1)[0]
+    assert 'self.launcher.show_expanded_background_paste_menu(' in shared
     new_menu = SOURCE.split('    def add_lane_new_submenu(', 1)[1].split(
         '    def show_lane_new_menu(', 1)[0]
     assert "menu.addMenu('新規作成')" in new_menu

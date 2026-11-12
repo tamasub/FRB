@@ -14,7 +14,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl, QItemSelectionModel
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QComboBox, QPlainTextEdit, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QInputDialog, QStyle, QSizePolicy, QToolButton, QProgressBar)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QComboBox, QPlainTextEdit, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QStyle, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
@@ -83,6 +83,8 @@ from launch_menu_registration import (RegistrationError, category_record, commit
 from launch_virtual_tree import virtual_item_identity
 from launch_json_move import MOVE_MIME, decode_source
 from context_menu_icons import context_action_icon
+from context_menu_presentation import style_context_menu
+from files_column_context import install_column_navigation
 from zip_extract_action import (is_extractable_zip, default_extract_destination,
                                 invoke_windows_extract_all, safe_extract_zip)
 from cloud_link_shell import request_native_copy_link, select_in_explorer
@@ -3185,7 +3187,7 @@ class Launcher(QWidget):
         self.save_history_button.clicked.connect(lambda checked=False: self.remember_search())
         self.layout_search_inner_controls()
         self.theme_menu = QMenu(self)
-        self._wire_hybrid_context_menu(self.theme_menu)
+        self._wire_hybrid_context_menu(self.theme_menu, context=False)
         heading = self.theme_menu.addAction('外観テーマ')
         heading.setEnabled(False)
         self.theme_action_group = QActionGroup(self)
@@ -3738,17 +3740,42 @@ class Launcher(QWidget):
         self.theme_menu.popup(position)
 
     def show_version_information(self, checked=False):
-        """Display the one-source app version using the existing ぐりぐり selector.
+        """Close the hybrid Settings menu *before* opening About.
 
-        This is information only: the confirmation adapter owns both the
-        native buttons and the Remote wheel/centre-click. It never changes
-        Launch settings or the user's menu JSON.
+        The Settings QMenu is a non-grabbing Qt.Tool window (for ぐりぐり).
+        Unlike a native Qt.Popup it can remain visible when its QAction is
+        triggered. Opening RemoteConfirmation synchronously from that signal
+        starts a nested event loop while the menu is still on top: the dialog
+        can be hidden and its global input guard blocks other actions, even
+        the tray's Exit command. Yield to the event loop after closing it.
         """
-        result = self.ask_remote_confirmation(
-            'バージョン情報', APP_ABOUT_TEXT,
-            yes_text='バージョンをコピー', no_text='閉じる', information=True)
-        if result == QMessageBox.StandardButton.Yes:
-            QApplication.clipboard().setText(APP_VERSION)
+        if getattr(self, '_version_information_pending', False):
+            return
+        self._version_information_pending = True
+        try:
+            self.theme_menu.close()
+            # Qt.Tool menus do not always auto-hide on QAction activation.
+            # Ensure the parent menu and any expanded child are no longer
+            # visible before the confirmation's input guard is installed.
+            for child in self.theme_menu.findChildren(QMenu):
+                if child.isVisible():
+                    child.close()
+            self.theme_menu.hide()
+            QTimer.singleShot(0, self._show_version_information_after_menu_close)
+        except Exception:
+            self._version_information_pending = False
+            raise
+
+    def _show_version_information_after_menu_close(self):
+        """Show About with the existing Remote ぐりぐり button selector."""
+        try:
+            result = self.ask_remote_confirmation(
+                'バージョン情報', APP_ABOUT_TEXT,
+                yes_text='バージョンをコピー', no_text='閉じる', information=True)
+            if result == QMessageBox.StandardButton.Yes:
+                QApplication.clipboard().setText(APP_VERSION)
+        finally:
+            self._version_information_pending = False
 
     def _apply_window_mode(self, initial=False):
         """Normal window for keep-visible; legacy Tool for auto-dismiss.
@@ -4435,7 +4462,7 @@ class Launcher(QWidget):
             if remote is not None:
                 remote.set_area('FRB かなフリック起動失敗')
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, 'FRB かなフリック', str(exc))
+            self.show_launch_notice(QMessageBox.Icon.Warning, 'FRB かなフリック', str(exc))
 
     def ensure_remote_window(self):
         """The sole Remote instance serves desktop, overlay and history modes."""
@@ -5479,78 +5506,35 @@ class Launcher(QWidget):
         if menu.isVisible():
             self._enable_remote_context_wheel_for_menu(menu)
 
-    def _invoke_remote_pad_navigation(self, menu, command):
-        """Close QMenu/grab before dispatching an existing Remote command."""
+    def _dispatch_files_column_context_navigation(self, menu, target):
+        """Close the originating popup before switching ONLY the active column."""
         wheel = getattr(self, '_remote_context_wheel', None)
         if wheel is not None and wheel.root is menu:
             wheel.stop()
         menu.close()
-        QTimer.singleShot(0, lambda c=command: self.remote_command(c))
+        # No LEFT/RIGHT dispatch here: those are *hierarchy* commands and can
+        # traverse physical folders.  Column switching owns no history entry.
+        QTimer.singleShot(0, lambda: self.remote_focus_area(target))
 
-    def _prepend_remote_pad_navigation(self, menu, *, force=False):
-        """Only the wheel-pad popup gets navigation and history actions."""
-        if not force and not getattr(self, '_remote_pad_context_active', False):
-            return False
-        if getattr(menu, '_remote_pad_navigation_added', False):
-            return False
-        original = menu.actions()
-        first = original[0] if original else None
-        view = getattr(self, 'expanded_view', None)
-        # Only when the active Remote controller is Files column 2. This is
-        # a DIRECT operating-target switch: the ordinary LEFT command may
-        # navigate the folder hierarchy instead of returning to Files Exp.
-        list_target = bool(
-            view is not None and view.isVisible()
-            and getattr(view, '_workspace_mode', None) == 'files'
-            and getattr(self, '_files_operating_target', None) == 'directory'
-            and getattr(self, '_remote_area', None) == 'directory')
-        commands = [('戻る', 'LEFT'), ('進む', 'RIGHT')]
-        if list_target:
-            commands.insert(0, ('Exp列に戻る', 'REMOTE_TARGET_EXP'))
-        inserted = []
-        for label, command in commands:
-            action = QAction(label, menu)
-            action.setToolTip(
-                '操作対象をFiles Exp列に切り替える' if command == 'REMOTE_TARGET_EXP'
-                else 'Remoteの' + ('←' if command == 'LEFT' else '→') + 'と同じ操作')
-            action.triggered.connect(
-                lambda checked=False, m=menu, c=command:
-                self._invoke_remote_pad_navigation(m, c))
-            if first is None:
-                menu.addAction(action)
-            else:
-                menu.insertAction(first, action)
-            inserted.append(action)
-        if list_target:
-            menu.insertSeparator(inserted[1])  # Direct Exp switch vs ← / →.
+    def _install_files_column_navigation(self, menu, column):
+        """One menu presentation/dispatch path shared by all Exp/List sources."""
+        return install_column_navigation(
+            menu, column, QAction, context_action_icon,
+            self._dispatch_files_column_context_navigation)
 
-        # Delegate to the SAME commands as Remote's dedicated history buttons.
-        # The menu must be dismissed before either history popup is shown;
-        # _invoke_remote_pad_navigation performs that hand-off asynchronously.
-        history_actions = []
-        for label, command in (('検索履歴', 'SEARCH_HISTORY'),
-                               ('フォルダー履歴', 'FOLDER_HISTORY')):
-            action = QAction(label, menu)
-            action.setToolTip('Remoteの「' + label + '」ボタンと同じ操作')
-            action.triggered.connect(
-                lambda checked=False, m=menu, c=command:
-                self._invoke_remote_pad_navigation(m, c))
-            if first is None:
-                menu.addAction(action)
-            else:
-                menu.insertAction(first, action)
-            history_actions.append(action)
-        menu.insertSeparator(history_actions[0])  # ← / → | 履歴.
-        if first is not None:
-            menu.insertSeparator(first)  # 履歴 | 元のコンテキスト操作.
-        menu._remote_pad_navigation_added = True
-        # Initial cursor is an explicit default, never inherited from Qt's
-        # hover-selected filesystem action underneath the mouse pointer.
-        if list_target or (getattr(menu, 'remote_context_root', False)
-                           and getattr(menu, 'remote_target_directory', None)):
-            menu._remote_pad_initial_action = inserted[0]
-        self._remote_pad_context_menu = menu
-        return True
+    def _prepend_remote_pad_navigation(self, menu, *, force=False,
+                                       list_context=False, navigation_only=False):
+        """Compatibility entry: Remote menus use the SAME column navigation.
+
+        The former remote-only Back/Forward/history menu has been retired.
+        Exp/List context actions are added whether Remote is visible or not.
+        """
+        area = getattr(self, '_remote_area', None)
+        column = ('list' if list_context or area == 'directory' else
+                  'exp' if area == 'files_exp' else None)
+        if column is None:
+            return False
+        return self._install_files_column_navigation(menu, column)
 
     def _show_remote_target_context_menu(self):
         """Open the selected object's existing menu beside the wheel pad."""
@@ -5631,7 +5615,8 @@ class Launcher(QWidget):
         return self._enable_remote_context_wheel_for_menu(
             getattr(self, '_launch_context_menu', None))
 
-    def _wire_hybrid_context_menu(self, menu):
+    def _wire_hybrid_context_menu(self, menu, *, column=None, context=True,
+                                  extra_qss=''):
         """Any pointer-opened Qt menu shares the real ぐりぐり QAction cursor.
 
         This does not append actions or change native mouse click behavior.
@@ -5639,7 +5624,16 @@ class Launcher(QWidget):
         so the cursor can stay at the actual right-click location.
         A zero-tick delay lets the native popup become visible first.
         """
-        if menu is None or getattr(menu, '_frb_hybrid_wired', False):
+        if menu is None:
+            return
+        if column is not None:
+            self._install_files_column_navigation(menu, column)
+        # Single mandatory presentation boundary, independent of where the
+        # menu was created or whether the Remote is visible. Settings keeps
+        # its existing theme-specific presentation via context=False.
+        if context:
+            style_context_menu(menu, self.color_theme, extra_qss=extra_qss)
+        if getattr(menu, '_frb_hybrid_wired', False):
             return
         menu._frb_hybrid_wired = True
         # Qt.Popup grabs all mouse input, including wheel events physically
@@ -5824,14 +5818,12 @@ class Launcher(QWidget):
         labels = [f"{p.get('title', p['page_id'])} [{p['page_id']}]" for p in available]
         default = next((i for i, p in enumerate(available)
                         if p['page_id'] == self.page_id), 0)
-        title, ok = QInputDialog.getItem(
-            self, 'Launch登録先', '登録先のPage:', labels, default, False)
+        title, ok = self.ask_launch_choice('Launch登録先', '登録先のPage:', labels, default)
         return str(available[labels.index(title)]['page_id']) if ok else None
 
     def _registration_sources(self, kind):
         if kind == 'category':
-            text, ok = QInputDialog.getText(
-                self, 'カテゴリーフォルダーを作成', 'カテゴリー名:')
+            text, ok = self.ask_launch_text('カテゴリーフォルダーを作成', 'カテゴリー名:')
             return [category_record(text)] if ok else None
         if kind == 'directory':
             selected = QFileDialog.getExistingDirectory(
@@ -5878,13 +5870,19 @@ class Launcher(QWidget):
             self.error('Launchメニュー登録失敗: ' + str(exc))
             return False
 
-    def _add_registration_menu_actions(self, menu, page_id=None, parent_id='', *, allow_file=True):
-        commands = [('category', 'カテゴリーフォルダーを作成...'),
-                    ('directory', '既存フォルダーを登録...')]
+    def _add_registration_menu_actions(self, menu, page_id=None, parent_id='', *,
+                                       allow_file=True, allow_category=True):
+        commands = ([('category', 'カテゴリーフォルダーを作成...')]
+                    if allow_category else [])
+        commands.append(('directory', '既存フォルダーを登録...'))
         if allow_file:
             commands.append(('file', '既存ファイルを登録...'))
         for kind, title in commands:
             action = menu.addAction(title)
+            action.setIcon(context_action_icon(
+                'new_category' if kind == 'category' else
+                'open_explorer' if kind == 'directory' else 'new_file'))
+            action.setIconVisibleInMenu(True)
             action.triggered.connect(
                 lambda checked=False, k=kind, pg=page_id, par=parent_id:
                 QTimer.singleShot(0, lambda: self.launch_register_action(k, pg, par)))
@@ -5895,6 +5893,18 @@ class Launcher(QWidget):
             {'pages': self.pages, 'items': self.authored_items},
             self.expanded_options)
 
+    def show_files_column_navigation_menu(self, column, point):
+        """Guaranteed navigation-only fallback for an empty Exp/List surface.
+
+        The owning column, never the selected item/Remote visibility, chooses
+        the navigation action. No filesystem or JSON mutation is possible.
+        """
+        if column not in ('exp', 'list'):
+            return False
+        menu = QMenu(self)
+        self._show_launch_json_context_popup(menu, point, column=column)
+        return True
+
     def show_launch_root_registration_menu(self, point):
         """Files Exp's empty ROOT is not a physical folder or a virtual leaf."""
         menu = QMenu(self)
@@ -5904,8 +5914,8 @@ class Launcher(QWidget):
             self.error('Launchメニュー登録失敗: ' + str(exc))
             return
         self._add_registration_menu_actions(
-            menu, page_id, parent_id, allow_file=False)
-        self._show_launch_json_context_popup(menu, point)
+            menu, page_id, parent_id, allow_file=False, allow_category=False)
+        self._show_launch_json_context_popup(menu, point, column='exp')
 
     def handle_launch_drop(self, identity, mime):
         """Accept external files/folders/HTTP URLs only for a known JSON folder.
@@ -6033,16 +6043,18 @@ class Launcher(QWidget):
         layout.addWidget(icon_box)
         layout.addWidget(QLabel('タイトル', dialog))
         title_editor = QLineEdit(str(row.get('title') or ''), dialog)
+        # One border/radius/padding contract for both editable text fields.
+        # The icon ComboBox keeps its own native popup and wheel behavior.
+        text_field_style = (
+            'QLineEdit, QPlainTextEdit { background-color: #ffffff; color: #25362d; '
+            'border: 1px solid #b9cbc1; border-radius: 5px; padding: 4px; }'
+            'QLineEdit:focus, QPlainTextEdit:focus { border-color: #48a27b; }')
+        title_editor.setStyleSheet(text_field_style)
         layout.addWidget(title_editor)
         layout.addWidget(QLabel('説明', dialog))
         description_editor = QPlainTextEdit(dialog)
         description_editor.setPlainText(str(row.get('description') or ''))
-        # Unlike the disabled/read-only appearance inherited from the global
-        # widget palette, this is an editable field.  Keep it visibly white.
-        description_editor.setStyleSheet(
-            'QPlainTextEdit { background-color: #ffffff; color: #25362d; '
-            'border: 1px solid #b9cbc1; border-radius: 5px; padding: 4px; }'
-            'QPlainTextEdit:focus { border-color: #48a27b; }')
+        description_editor.setStyleSheet(text_field_style)
         description_editor.setFixedHeight(90)
         layout.addWidget(description_editor)
         buttons = QDialogButtonBox(
@@ -6054,16 +6066,7 @@ class Launcher(QWidget):
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
         dialog.setMinimumWidth(410)
-        if getattr(self, '_remote_text_dialog', None) is not None:
-            return False
-        adapter = RemoteTextDialog(self, dialog, title_editor, buttons)
-        self._remote_text_dialog = adapter
-        self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
-        try:
-            accepted = adapter.ask()
-        finally:
-            self._remote_text_dialog = None
-            self._filesystem_dialog_depth = max(0, getattr(self, '_filesystem_dialog_depth', 0)-1)
+        accepted = self.run_launch_button_dialog(dialog, buttons, title_editor)
         if not accepted:
             return False
         new_title = title_editor.text().strip()
@@ -6164,7 +6167,7 @@ class Launcher(QWidget):
         current = (identity['page_id'], identity['item_id'])
         return selected if current in selected and len(selected) > 1 else [current]
 
-    def show_virtual_launch_context(self, identity, point):
+    def show_virtual_launch_context(self, identity, point, *, list_context=False):
         """Offer Studio Properties for authored virtual Page/item identities.
 
         These nodes are JSON projections, NOT real filesystem folders. Only
@@ -6177,7 +6180,6 @@ class Launcher(QWidget):
         item_id = str(identity.get('item_id') or '')
         target = virtual_studio_target(identity, self.pages, self.authored_items)
         menu = QMenu(self)
-        self._wire_hybrid_context_menu(menu)
         menu.addSection('Launch JSON（Studio管理）' if target else 'Launch JSON（参照専用）')
         selected_unregister = self._selected_launch_json_items(identity) if target and target['kind'] == 'item' else []
         if target is not None:
@@ -6193,6 +6195,7 @@ class Launcher(QWidget):
                 menu.addSeparator()
             if target['kind'] == 'item' and len(selected_unregister) <= 1:
                 simple = menu.addAction('簡易編集...')
+                simple.setIcon(context_action_icon('rename'))
                 simple.triggered.connect(
                     lambda checked=False, pg=target['page_id'], iid=target['item_id']:
                     QTimer.singleShot(0, lambda: self.launch_simple_edit_action(pg, iid)))
@@ -6209,6 +6212,7 @@ class Launcher(QWidget):
                     QTimer.singleShot(0, lambda: self.launch_configuration_studio(
                         item_id=iid)))
         reference = menu.addAction('JSON参照IDをコピー')
+        reference.setIcon(context_action_icon('copy'))
         reference.setEnabled(bool(item_id))
         def copy_identity(checked=False):
             if item_id:
@@ -6224,13 +6228,14 @@ class Launcher(QWidget):
                 unreg = menu.addAction(
                     f'登録解除（{len(selected_unregister)}件）...'
                     if len(selected_unregister) > 1 else '登録解除...')
+                unreg.setIcon(context_action_icon('delete'))
                 unreg.triggered.connect(
                     lambda checked=False, targets=tuple(selected_unregister):
                     QTimer.singleShot(0, lambda: self.launch_unregister_many_action(targets)))
         self._show_launch_json_context_popup(
-            menu, point, remote_pad=getattr(self, '_remote_pad_context_active', False))
+            menu, point, column='list' if list_context else 'exp')
 
-    def _show_launch_json_context_popup(self, menu, point, *, remote_pad=False):
+    def _show_launch_json_context_popup(self, menu, point, *, column):
         """Display authored JSON menus with the same non-modal lifecycle as Files.
 
         Hybrid ぐりぐり menus are Qt.Tool windows, not Qt.Popup windows.
@@ -6245,9 +6250,7 @@ class Launcher(QWidget):
                 previous.close()
             except RuntimeError:  # Qt already destroyed the older menu.
                 pass
-        if remote_pad:
-            self._prepend_remote_pad_navigation(menu)
-        self._wire_hybrid_context_menu(menu)
+        self._wire_hybrid_context_menu(menu, column=column)
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         menu.triggered.connect(
@@ -7591,7 +7594,7 @@ class Launcher(QWidget):
         # must not destroy the working auto-import state.
         profiles, errors = browser_bookmarks.read(self.bookmark_browser, manual_file=path)
         if errors or not profiles or not any(p['roots'] for p in profiles):
-            QMessageBox.warning(self, 'ブックマーク読込エラー',
+            self.show_launch_notice(QMessageBox.Icon.Warning, 'ブックマーク読込エラー',
                                 '指定ファイルを読み込めません。ブラウザの Bookmarks JSON またはエクスポートHTMLを指定してください。\n'
                                 + '\n'.join(errors or [path]))
             return
@@ -7636,7 +7639,7 @@ class Launcher(QWidget):
                           '別プロフィールや別ブラウザに保存されている可能性があります。']
         except Exception as ex:
             lines = [f'取得診断中にエラー: {ex}']
-        QMessageBox.information(self, 'FRB Launch ブックマーク取得診断', '\n'.join(lines))
+        self.show_launch_notice(QMessageBox.Icon.Information, 'FRB Launch ブックマーク取得診断', '\n'.join(lines))
 
     def select_bookmark_browser(self, browser):
         if browser not in browser_bookmarks.BROWSERS:return
@@ -7822,12 +7825,12 @@ class Launcher(QWidget):
                    f"最大探索深さ: {self.file_index_settings.get('max_depth')}\n" + message)
         if mode == 'off':
             message += '\n※旧DBが残っていても検索には使用されません。'
-        QMessageBox.information(self, 'ファイル索引の状態', message)
+        self.show_launch_notice(QMessageBox.Icon.Information, 'ファイル索引の状態', message)
 
     def clear_file_index(self):
         """Clear indexed rows safely, preserving the SQLite file and source data."""
         if self.file_index_busy:
-            QMessageBox.warning(self, 'ファイル索引', '索引を更新中です。終了後に再実行してください。')
+            self.show_launch_notice(QMessageBox.Icon.Warning, 'ファイル索引', '索引を更新中です。終了後に再実行してください。')
             return
         answer = self.ask_remote_confirmation(
             'ファイル索引SQLite DBをクリア',
@@ -7975,6 +7978,78 @@ class Launcher(QWidget):
     def info_notice(self, message):
         """Nonblocking completion / important notice in the timed footer."""
         self.footer.setText('ℹ️ ' + str(message).replace('\n', ' / '))
+
+    # Launch-owned button dialogs share ONE input guard, regardless of Remote
+    # visibility or whether the originating action came from Exp or List.
+    def run_launch_button_dialog(self, dialog, buttons=None, editor=None):
+        # Every newly-created Launch QDialog with a button box uses this one
+        # entrance. No feature-specific Remote code or visibility tests.
+        if buttons is None:
+            buttons = dialog.findChild(QDialogButtonBox)
+        if buttons is None:
+            raise ValueError('Launch dialog has no QDialogButtonBox')
+        if (getattr(self, '_remote_text_dialog', None) is not None or
+                getattr(self, '_remote_confirmation', None) is not None):
+            raise RuntimeError('別のLaunchダイアログが操作中です')
+        adapter = RemoteTextDialog(self, dialog, editor, buttons)
+        self._remote_text_dialog = adapter
+        self._filesystem_dialog_depth = getattr(self, '_filesystem_dialog_depth', 0) + 1
+        try:
+            return adapter.ask()
+        finally:
+            self._remote_text_dialog = None
+            self._filesystem_dialog_depth = max(
+                0, getattr(self, '_filesystem_dialog_depth', 0) - 1)
+
+    def ask_launch_text(self, title, label, *, text=''):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(str(title))
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(str(label), dialog))
+        editor = QLineEdit(str(text), dialog)
+        editor.setMinimumWidth(360)
+        editor.selectAll()
+        layout.addWidget(editor)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        state = {'text': str(text)}
+        dialog.finished.connect(lambda _result: state.update(text=editor.text()))
+        accepted = self.run_launch_button_dialog(dialog, editor=editor)
+        return state['text'], accepted
+
+    def ask_launch_choice(self, title, label, choices, current=0):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(str(title))
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(str(label), dialog))
+        chooser = QComboBox(dialog)
+        chooser.addItems(list(choices))
+        if chooser.count():
+            chooser.setCurrentIndex(max(0, min(int(current), chooser.count() - 1)))
+        layout.addWidget(chooser)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        state = {'selection': chooser.currentText()}
+        dialog.finished.connect(lambda _result: state.update(selection=chooser.currentText()))
+        accepted = self.run_launch_button_dialog(dialog, editor=chooser)
+        return state['selection'], accepted
+
+    def show_launch_notice(self, icon_type, title, message):
+        """Single-button QMessageBox also uses common Launch click/wheel gate."""
+        dialog = QMessageBox(self)
+        dialog.setIcon(icon_type)
+        dialog.setWindowTitle(str(title))
+        dialog.setText(str(message))
+        dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.run_launch_button_dialog(dialog)
 
     def ask_remote_confirmation(self, title, message, *, informative='',
                                 yes_text=None, no_text=None, rich_text=False,
@@ -9556,7 +9631,7 @@ class Launcher(QWidget):
     def _warn_ambiguous_paste_target(self, message):
         """Tell the user why Paste was blocked; do not touch clipboard/files."""
         self.error(str(message))
-        QMessageBox.warning(self, '貼り付け先を1つ選択してください', str(message))
+        self.show_launch_notice(QMessageBox.Icon.Warning, '貼り付け先を1つ選択してください', str(message))
 
     @contextmanager
     def filesystem_progress(self, verb, total):
@@ -10351,13 +10426,13 @@ class Launcher(QWidget):
         return [row for row in visible if not row.isHidden()]
 
     def add_history_category(self, checked=False):
-        name, accepted = QInputDialog.getText(self, '検索履歴カテゴリー', 'カテゴリー名を入力:')
+        name, accepted = self.ask_launch_text('検索履歴カテゴリー', 'カテゴリー名を入力:')
         if not accepted:
             return
         try:
             identifier = self.search_categories.create(name)
             if identifier is None:
-                QMessageBox.information(self, 'カテゴリー', '名前が空、重複、または長すぎます。')
+                self.show_launch_notice(QMessageBox.Icon.Information, 'カテゴリー', '名前が空、重複、または長すぎます。')
                 return
             self.show_history_popup()
             folder = self.history_category_row(identifier)
@@ -10366,7 +10441,7 @@ class Launcher(QWidget):
                 self.history_choices.scrollToItem(folder)
         except OSError:
             DIAG.exception('SEARCH_HISTORY create category failed')
-            QMessageBox.warning(self, 'カテゴリー', 'カテゴリーを保存できませんでした。')
+            self.show_launch_notice(QMessageBox.Icon.Warning, 'カテゴリー', 'カテゴリーを保存できませんでした。')
 
     def history_category_row(self, category_id):
         for i in range(self.history_choices.topLevelItemCount()):
@@ -10441,9 +10516,9 @@ class Launcher(QWidget):
         chosen = menu.exec(pos)
         try:
             if chosen == rename_action:
-                name, accepted = QInputDialog.getText(self, 'カテゴリー名変更', '新しい名前:', text=group['name'])
+                name, accepted = self.ask_launch_text('カテゴリー名変更', '新しい名前:', text=group['name'])
                 if accepted and name.strip() and not self.search_categories.rename(identifier, name):
-                    QMessageBox.information(self, 'カテゴリー', '同じ名前のカテゴリーがあるか、変更できない名前です。')
+                    self.show_launch_notice(QMessageBox.Icon.Information, 'カテゴリー', '同じ名前のカテゴリーがあるか、変更できない名前です。')
                 elif accepted:
                     self.populate_history_popup()
             elif chosen == delete_action:
@@ -11742,8 +11817,7 @@ class Launcher(QWidget):
             if panel.isVisible() and panel.can_rename_folder(directory):
                 return panel.begin_folder_rename(directory)
         path = Path(directory)
-        name, accepted = QInputDialog.getText(
-            self, '名前の変更', '新しい名前:', text=path.name)
+        name, accepted = self.ask_launch_text('名前の変更', '新しい名前:', text=path.name)
         if not accepted or name == path.name:
             return False
         try:
@@ -11774,8 +11848,7 @@ class Launcher(QWidget):
         if not (path.is_dir() if kind == 'folder' else path.is_file()):
             self.error('名前を変更できませんでした: 対象が見つかりません')
             return False
-        name, accepted = QInputDialog.getText(
-            self, '名前の変更', '新しい名前:', text=path.name)
+        name, accepted = self.ask_launch_text('名前の変更', '新しい名前:', text=path.name)
         if not accepted or name == path.name:
             return False
         if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
@@ -11905,6 +11978,9 @@ class Launcher(QWidget):
             menu.aboutToHide.connect(lambda m=menu: self._remote_folder_opener_hidden(m))
             menu.addSeparator()
 
+        # Pointer-opened Files List menus keep their navigation even if the
+        # floating Remote is hidden. Files Exp's physical folder menu does not.
+
         # Context definitions determine order, labels and grouping.  The
         # special New submenu follows Paste, and Filesリスト stays above them.
         # There must never be an alternate Remote-only copy/delete implementation.
@@ -11988,12 +12064,14 @@ class Launcher(QWidget):
             if registration_row:
                 menu.addSeparator()
                 launch_sub = menu.addMenu('Launch Menu')
+                launch_sub.setIcon(context_action_icon('new_category'))
                 # Files roots are directory leaves; Add creates a sibling in
                 # their authored category, never a child beneath directory.
                 self._add_registration_menu_actions(
                     launch_sub, registration_row['page_id'],
                     registration_row.get('parent_item_id') or '', allow_file=False)
                 future_edit = launch_sub.addAction('簡易編集...')
+                future_edit.setIcon(context_action_icon('rename'))
                 future_edit.triggered.connect(
                     lambda checked=False, pg=registration_row['page_id'], iid=studio_properties_item_id:
                     QTimer.singleShot(0, lambda: self.launch_simple_edit_action(pg, iid)))
@@ -12003,6 +12081,7 @@ class Launcher(QWidget):
                     lambda checked=False, iid=studio_properties_item_id:
                     QTimer.singleShot(0, lambda: self.launch_configuration_studio(item_id=iid)))
                 unregister = launch_sub.addAction('登録解除...')
+                unregister.setIcon(context_action_icon('delete'))
                 unregister.triggered.connect(
                     lambda checked=False, pg=registration_row['page_id'], iid=studio_properties_item_id:
                     QTimer.singleShot(0, lambda: self.launch_unregister_action(pg, iid)))
@@ -12013,19 +12092,17 @@ class Launcher(QWidget):
                 current.setVisible(False)
         if actions and actions[-1].isSeparator():
             actions[-1].setVisible(False)
-        menu.setStyleSheet((LIGHT_MENU_QSS if self.color_theme == 'light' else '')
-                           + context_menu_spacing_qss(self.color_theme)
-                           + (remote_new_arrow_qss(self.color_theme)
-                              if remote_folder_list else ''))
         self._launch_context_menu = menu
         menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         # QMenu keeps hover-preview branches open deliberately. Leaf actions
         # are complete commands and must dismiss all related popup windows.
         menu.triggered.connect(lambda action, m=menu:
             self._on_file_context_action_triggered(m, action))
-        if getattr(self, '_remote_pad_context_active', False):
-            self._prepend_remote_pad_navigation(menu)
-        self._wire_hybrid_context_menu(menu)
+        self._wire_hybrid_context_menu(
+            menu, column='exp' if remote_folder_list and explicit_target is not None
+            else 'list',
+            extra_qss=remote_new_arrow_qss(self.color_theme)
+                      if remote_folder_list else '')
         menu.popup(global_pos)
         return True
 
@@ -12097,7 +12174,8 @@ class Launcher(QWidget):
             self.error('プログラムから開けませんでした: ' + str(exc))
 
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None,
-                                 selected_paths=None, force_search_context=False):
+                                 selected_paths=None, force_search_context=False,
+                                 list_context=False):
         """Choose context actions by authoritative source, not displayed item ID."""
         if not self.data:
             return False
@@ -12168,13 +12246,8 @@ class Launcher(QWidget):
                 # A mixed file/folder selection uses the same compact width.
                 menu.setMinimumWidth(218)
                 menu.setMaximumWidth(225)
-                if getattr(self, 'color_theme', 'dark') == 'light':
-                    menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
-                elif hasattr(menu, 'setStyleSheet'):
-                    menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
-                if getattr(self, '_remote_pad_context_active', False):
-                    self._prepend_remote_pad_navigation(menu)
-                self._wire_hybrid_context_menu(menu)
+                self._wire_hybrid_context_menu(
+                    menu, column='list' if list_context else None)
                 menu.popup(global_pos)
                 return True
             try:
@@ -12278,13 +12351,8 @@ class Launcher(QWidget):
         # closed/deleted. Hover polling must not ask a deleted QMenu if visible.
         if hasattr(menu, 'aboutToHide'):
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
-        if getattr(self, 'color_theme', 'dark') == 'light':
-            menu.setStyleSheet(LIGHT_MENU_QSS + context_menu_spacing_qss(self.color_theme))
-        elif origin in ('file', 'folder') and hasattr(menu, 'setStyleSheet'):
-            menu.setStyleSheet(context_menu_spacing_qss(self.color_theme))
-        if getattr(self, '_remote_pad_context_active', False):
-            self._prepend_remote_pad_navigation(menu)
-        self._wire_hybrid_context_menu(menu)
+        self._wire_hybrid_context_menu(
+            menu, column='list' if list_context else None)
         menu.popup(global_pos)
         return True
 
@@ -12522,7 +12590,7 @@ class Launcher(QWidget):
                 destination.setText(str(Path(chosen) / Path(path).stem))
         browse.clicked.connect(choose_folder)
         dialog.setMinimumWidth(500)
-        if dialog.exec() != QDialog.DialogCode.Accepted:
+        if not self.run_launch_button_dialog(dialog, actions, destination):
             return
         dest_text = destination.text().strip()
         if not dest_text:
@@ -12778,7 +12846,7 @@ class Launcher(QWidget):
             elif action_id == 'git_commit_from_zip':
                 self.git_commit_using_filename(path)
             elif action_id == 'rename':
-                name, accepted = QInputDialog.getText(self, '名前の変更', '新しい名前:', text=path.name)
+                name, accepted = self.ask_launch_text('名前の変更', '新しい名前:', text=path.name)
                 if not accepted or name == path.name:
                     return
                 if kind == 'file' and Path(name).suffix.casefold() != path.suffix.casefold():
@@ -12843,16 +12911,7 @@ class Launcher(QWidget):
             form.addWidget(actions)
             dialog.setMinimumWidth(480)
             dialog.resize(500, dialog.sizeHint().height())
-            remote = getattr(self, 'remote_window', None)
-            if remote is not None and remote.isVisible():
-                adapter = RemoteTextDialog(self, dialog, message_editor, actions)
-                self._remote_text_dialog = adapter
-                try:
-                    accepted = adapter.ask()
-                finally:
-                    self._remote_text_dialog = None
-            else:
-                accepted = dialog.exec() == QDialog.DialogCode.Accepted
+            accepted = self.run_launch_button_dialog(dialog, actions, message_editor)
             message = message_editor.text()
             if not accepted:
                 return

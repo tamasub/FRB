@@ -1,4 +1,4 @@
-"""Real method contract: explicit List/ぐりぐり clicks commit confirmation.
+"""Real method contract: explicit ぐりぐり selection + ANY Launch click commits.
 
 The original List wheel forwarding worked, but QApplication's confirmation
 filter swallowed both mouse clicks and never delivered CLICK. Tests use the
@@ -19,7 +19,9 @@ def setup_question():
     pad = widgets.QWidget()
     pad._window = remote
     remote.pad = pad
-    list_window = object()
+    launcher = widgets.QWidget()
+    launcher._window = launcher
+    list_window = launcher
     tree = widgets.QWidget()
     tree._window = list_window
     viewport = widgets.QWidget()
@@ -30,7 +32,9 @@ def setup_question():
     yes, no = question_ctrl.YES, question_ctrl.NO
     buttons = {name: NS(click=Mock(), setFocus=Mock(), update=Mock(), setStyleSheet=Mock())
                for name in (yes, no)}
-    question_ctrl.launcher = NS(remote_window=remote, expanded_view=view)
+    question_ctrl.launcher = launcher
+    launcher.remote_window = remote
+    launcher.expanded_view = view
     question_ctrl.dialog = NS(button=lambda selected:buttons[selected], setDefaultButton=Mock())
     question_ctrl.selected = no
     question_ctrl._explicit_choice = False
@@ -107,14 +111,44 @@ def test_click_drag_outside_dblclick_right_click_are_all_non_confirming():
     buttons[owner.NO].click.assert_not_called()
 
 
-def test_no_list_click_routing_in_browser_or_on_unrelated_launcher_widget():
+def test_any_launch_surface_is_valid_after_selection_but_external_window_is_not():
     mod,guard,owner,buttons,pad,viewport,view,remote=setup_question()
     owner.remote_command('DOWN')
-    unrelated=type(viewport)()
-    unrelated._window=object()
-    send_click(mod,guard,unrelated)
+    # A browser/list/Exp widget in Launch is still owned by Launch.
     view._workspace_mode='browser'
     send_click(mod,guard,viewport)
+    buttons[owner.YES].click.assert_called_once_with()
+    external=type(viewport)()
+    external._window=object()
+    send_click(mod,guard,external)
+    buttons[owner.YES].click.assert_called_once_with()
+
+
+def test_exp_header_and_list_areas_share_the_same_click_semantics():
+    mod,guard,owner,buttons,pad,viewport,view,remote=setup_question()
+    owner.remote_command('DOWN')
+    exp = type(viewport)()
+    exp._window=owner.launcher
+    header = type(viewport)()
+    header._window=owner.launcher
+    send_click(mod,guard,exp)
+    send_click(mod,guard,header)
+    assert buttons[owner.YES].click.call_count==2
+
+
+def test_direct_cancel_button_wins_over_wheel_selected_ok():
+    mod,guard,owner,buttons,pad,viewport,view,remote=setup_question()
+    owner.remote_command('DOWN')
+    actual_cancel=type(viewport)()
+    actual_cancel._window=guard.question
+    actual_cancel.inherits=lambda name:name=='QAbstractButton'
+    press=event(mod.QEvent.Type.MouseButtonPress)
+    release=event(mod.QEvent.Type.MouseButtonRelease)
+    assert guard.eventFilter(actual_cancel, press) is False
+    assert guard.eventFilter(actual_cancel, release) is False
+    # Qt sends the native button.clicked -- the guard must not synthesize OK.
+    buttons[owner.NO].click()
+    buttons[owner.NO].click.assert_called_once_with()
     buttons[owner.YES].click.assert_not_called()
 
 

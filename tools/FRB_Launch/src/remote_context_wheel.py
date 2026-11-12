@@ -272,9 +272,11 @@ class RemoteContextWheel(QObject):
     def _wheel_target(self, global_pos):
         """Capture only wheel gestures belonging to an open hybrid menu."""
         remote = getattr(self.launcher, 'remote_window', None)
-        if remote is None or not remote.isVisible() or not self.root.isVisible():
+        if not self.root.isVisible():
             return None
-        if self._hit(global_pos) is not None:
+        # The menu itself is a complete ぐりぐりクリックRunner target.
+        # A floating Remote is optional, not a prerequisite for wheel+click.
+        if remote is not None and remote.isVisible() and self._hit(global_pos) is not None:
             return 'pad'
         if self._menu_under_pointer(global_pos):
             return 'menu'

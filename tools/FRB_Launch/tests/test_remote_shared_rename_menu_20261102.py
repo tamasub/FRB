@@ -84,12 +84,13 @@ def test_rename_file_in_remote_cascade_updates_disk_and_view(tmp_path):
               refresh_middle=refresh)
     fn = method(APP, 'Launcher', 'rename_remote_cascade_entry', {
         'Path': Path, 'rename_file_or_folder': rename_file_or_folder,
-        'QInputDialog': NS(getText=lambda *a, **k: ('changed.md', True)),
+        
         'QTimer': NS(singleShot=lambda *a: None)})
     self = NS(close_remote_folder_menu=close, expanded_view=view,
               remote_window=None, footer=NS(setText=footer),
               file_index_settings={'enabled': False}, file_index_busy=False,
-              error=Mock(), can_rename_remote_folder=lambda p: True)
+              error=Mock(), can_rename_remote_folder=lambda p: True,
+              ask_launch_text=lambda *a, **k: ('changed.md', True))
     assert fn(self, str(source), 'file')
     assert not source.exists() and (tmp_path / 'changed.md').read_text() == 'hi'
     refresh.assert_called_once()
@@ -104,13 +105,14 @@ def test_rename_folder_in_remote_cascade_updates_breadcrumb_and_tree(tmp_path):
     navigate = Mock()
     fn = method(APP, 'Launcher', 'rename_remote_cascade_entry', {
         'Path': Path, 'rename_file_or_folder': rename_file_or_folder,
-        'QInputDialog': NS(getText=lambda *a, **k: ('new', True)),
+        
         'QTimer': NS(singleShot=lambda *a: None)})
     self = NS(close_remote_folder_menu=Mock(),
               remote_window=NS(files_exp_panel=NS(reflect_external_folder_rename=reflect)),
               can_rename_remote_folder=lambda p: True,
               on_files_exp_folder_renamed=navigate,
-              file_index_settings={'enabled': False}, file_index_busy=False, error=Mock())
+              file_index_settings={'enabled': False}, file_index_busy=False, error=Mock(),
+              ask_launch_text=lambda *a, **k: ('new', True))
     assert fn(self, str(folder), 'folder')
     assert (tmp_path / 'new').is_dir() and not folder.exists()
     reflect.assert_called_once_with(folder, str(tmp_path / 'new'))
@@ -123,9 +125,10 @@ def test_cascade_rename_collision_keeps_original_and_reports_error(tmp_path):
     a.mkdir(); b.mkdir()
     fn = method(APP, 'Launcher', 'rename_remote_cascade_entry', {
         'Path': Path, 'rename_file_or_folder': rename_file_or_folder,
-        'QInputDialog': NS(getText=lambda *a, **k: ('b', True)),
+        
         'QTimer': NS(singleShot=lambda *a: None)})
-    self = NS(can_rename_remote_folder=lambda p: True, error=Mock())
+    self = NS(can_rename_remote_folder=lambda p: True, error=Mock(),
+              ask_launch_text=lambda *a, **k: ('b', True))
     assert not fn(self, str(a), 'folder')
     assert a.is_dir() and b.is_dir()
     self.error.assert_called_once()
@@ -139,9 +142,11 @@ def test_rename_blank_menu_prefers_inline_if_selected_and_visible(tmp_path):
                begin_folder_rename=begin)
     fn = method(APP, 'Launcher', 'rename_remote_folder', {
         'Path': Path, 'rename_file_or_folder': rename_file_or_folder,
-        'QInputDialog': NS(getText=lambda *a, **k: (_ for _ in ()).throw(AssertionError('dialog should not show')))})
+        })
     holder = NS(remote_window=NS(files_exp_panel=panel),
-                can_rename_remote_folder=lambda p: True)
+                can_rename_remote_folder=lambda p: True,
+                ask_launch_text=lambda *a, **k: (_ for _ in ()).throw(
+                    AssertionError('dialog should not show')))
     assert fn(holder, str(folder))
     begin.assert_called_once_with(str(folder))
 
@@ -152,9 +157,10 @@ def test_rename_current_remote_folder_dialog_when_no_exp_selection(tmp_path):
     nav = Mock()
     fn = method(APP, 'Launcher', 'rename_remote_folder', {
         'Path': Path, 'rename_file_or_folder': rename_file_or_folder,
-        'QInputDialog': NS(getText=lambda *a, **k: ('renamed', True))})
+        })
     holder = NS(remote_window=None, can_rename_remote_folder=lambda p: True,
-                on_files_exp_folder_renamed=nav, error=Mock())
+                on_files_exp_folder_renamed=nav, error=Mock(),
+                ask_launch_text=lambda *a, **k: ('renamed', True))
     assert fn(holder, str(folder))
     assert (tmp_path / 'renamed').is_dir()
     nav.assert_called_once_with(str(folder), str(tmp_path / 'renamed'))

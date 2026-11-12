@@ -1,6 +1,20 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+rem Shared Launch dialog contract is mandatory before touching the running app.
+if exist .venv\Scripts\python.exe (
+  .venv\Scripts\python.exe scripts\check_dialog_contract.py
+) else (
+  py -3 scripts\check_dialog_contract.py
+)
+if errorlevel 1 goto fail
+rem Shared Exp/List context menu icon/spacing contract is mandatory, too.
+if exist .venv\Scripts\python.exe (
+  .venv\Scripts\python.exe scripts\check_context_menu_contract.py
+) else (
+  py -3 scripts\check_context_menu_contract.py
+)
+if errorlevel 1 goto fail
 echo [BUILD] Stopping FRBLaunch.exe if running...
 taskkill /F /IM FRBLaunch.exe >nul 2>&1
 rem Wait for process exit instead of trusting taskkill and a fixed two-second delay.

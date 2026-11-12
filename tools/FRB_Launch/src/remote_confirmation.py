@@ -9,14 +9,15 @@ from time import monotonic
 
 from PySide6.QtCore import QObject, QEvent, QEventLoop, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
+from dialog_button_selection import DialogButtonSelection
 
 
 class ConfirmationInputGuard(QObject):
     """Give active confirmation exclusive input, including real mouse clicks.
 
-    A confirmation can cover both the Files List item and the Remote pad.
-    The dialog surface itself must accept wheel selection and the following
-    deliberate left click. The same gate also handles the List and Remote pad.
+    A confirmation owns wheel/click on every Launch surface and the Remote.
+    A deliberate selection may be activated with a left click ANYWHERE on
+    Launch. Real buttons on the dialog override the wheel selection.
     No right-click, opening-menu release, drag, or unselected List click can
     confirm a potentially destructive operation.
     """
@@ -37,20 +38,26 @@ class ConfirmationInputGuard(QObject):
         self._opened_at = monotonic()
         self._click_press = None
 
-    def _files_list_object(self, obj):
-        """Only the actual Files List viewport/tree, not every Launch widget."""
+    def _launch_surface(self, window):
+        """Launch-owned surfaces share one click contract, not just Files List.
+
+        Only widgets owned by the Launcher (including its detached Remote)
+        qualify. A click in another application's window must never approve.
+        """
         receiver = self.wheel_receiver
         launcher = getattr(receiver, 'launcher', None)
-        view = getattr(launcher, 'expanded_view', None)
-        if getattr(view, '_workspace_mode', None) != 'files':
+        if launcher is None:
             return False
-        tree = getattr(getattr(view, 'middle', None), 'tree', None)
-        if tree is None:
-            return False
-        return obj is tree or obj is tree.viewport()
+        current = window
+        while current is not None:
+            if current is launcher:
+                return True
+            parent = getattr(current, 'parentWidget', None)
+            current = parent() if callable(parent) else None
+        return False
 
     def _list_click_armed(self):
-        """Background-surface clicks require an explicit selection first."""
+        """Any Launch-surface click requires deliberate wheel/button selection."""
         receiver = self.wheel_receiver
         return bool(getattr(receiver, 'remote_has_selected', False)
                     or getattr(receiver, '_explicit_choice', False))
@@ -106,6 +113,27 @@ class ConfirmationInputGuard(QObject):
             current = parent() if callable(parent) else None
         return False
 
+    def _native_wheel_control(self, obj):
+        """Keep scrollable editors and hybrid combos native; line edits select buttons.
+
+        Wheel over a QLineEdit (Git message, rename, etc.) is a ぐりぐり
+        button selection, not a no-op native wheel. Text input clicks stay native.
+        """
+        current = obj
+        while current is not None:
+            try:
+                if any(current.inherits(name) for name in (
+                        'QComboBox', 'QPlainTextEdit', 'QTextEdit',
+                        'QAbstractSlider')):
+                    return True
+            except (AttributeError, RuntimeError, TypeError):
+                pass
+            if current is self.question:
+                break
+            parent = getattr(current, 'parentWidget', None)
+            current = parent() if callable(parent) else None
+        return False
+
     def _click_event(self, source, obj, event):
         """Consume a complete, fresh, left-button click exactly once."""
         kind = event.type()
@@ -126,9 +154,9 @@ class ConfirmationInputGuard(QObject):
             # *child* is not part of the user's click intent. For a dialog,
             # both events have already been verified as belonging to this one
             # question window by eventFilter(). Keep the strict same-widget
-            # rule for the Remote pad and the Files List.
+            # rule for the Remote pad.
             same_target = (pending is not None and
-                           (pending[1] is obj if source != 'dialog' else True))
+                           (pending[1] is obj if source not in ('dialog', 'launch') else True))
             if (pending is not None and pending[0] == source and same_target
                     and self._left_button(event)
                     and monotonic() - pending[3] <= self.CLICK_MAX_HOLD_SECONDS
@@ -172,7 +200,7 @@ class ConfirmationInputGuard(QObject):
             # often covers both the original Files List and the Remote pad.
             # Events received *on the question itself* must therefore be a
             # first-class input route, not handed to a passive QMessageBox.
-            if kind == QEvent.Type.Wheel and self._native_dialog_control(obj):
+            if kind == QEvent.Type.Wheel and self._native_wheel_control(obj):
                 return False  # Icon combobox/description editor keep native wheel.
             if kind == QEvent.Type.Wheel and self.wheel_receiver is not None:
                 self._click_press = None  # Wheel-during-press cannot arm a click.
@@ -194,19 +222,33 @@ class ConfirmationInputGuard(QObject):
                 # checked before an explicit choice can be confirmed.
                 return self._click_event('dialog', obj, event)
             return False
-        if self.remote is not None and window is self.remote:
-            return False  # Preserve normal Remote wheel and other controls.
-        list_target = self._files_list_object(obj)
-        if kind == QEvent.Type.Wheel and self.wheel_receiver is not None:
-            # Wheel over the original List changes only the confirmation.
-            self.wheel_receiver.background_wheel(event)
-        elif list_target and kind in (QEvent.Type.MouseButtonPress,
-                                     QEvent.Type.MouseButtonRelease,
-                                     QEvent.Type.MouseButtonDblClick):
-            return self._click_event('list', obj, event)
-        elif kind in (QEvent.Type.MouseButtonPress,
-                     QEvent.Type.MouseButtonRelease,
-                     QEvent.Type.MouseButtonDblClick):
+        # A nested OS/Qt file picker launched from an editable dialog needs
+        # its native mouse/keyboard handling, not the parent dialog selector.
+        # It is a separate child dialog, never the Launch background itself.
+        try:
+            if (window is not self.question and window.inherits('QFileDialog')):
+                self._click_press = None
+                return False
+        except (AttributeError, RuntimeError, TypeError):
+            pass
+        if self._launch_surface(window):
+            if kind == QEvent.Type.Wheel and self.wheel_receiver is not None:
+                # The same selected button follows the wheel everywhere on
+                # Launch, including Exp, List, headers and the detached Remote.
+                self._click_press = None
+                self.wheel_receiver.background_wheel(event)
+                event.accept()
+                return True
+            if kind in (QEvent.Type.MouseButtonPress,
+                        QEvent.Type.MouseButtonRelease,
+                        QEvent.Type.MouseButtonDblClick):
+                # A real click on the question's OK/Cancel is handled above
+                # and always wins. All other Launch clicks confirm only after
+                # an explicit selection and must not act on underlying rows.
+                return self._click_event('launch', obj, event)
+        if kind in (QEvent.Type.MouseButtonPress,
+                    QEvent.Type.MouseButtonRelease,
+                    QEvent.Type.MouseButtonDblClick):
             self._click_press = None
         event.accept()
         return True
@@ -266,39 +308,20 @@ class RemoteConfirmation:
         for _ in range(min(abs(steps), 5)):
             self.remote_command('UP' if steps > 0 else 'DOWN')
 
-    # Do not rely on the Windows "hide focus indicators until keyboard input"
-    # setting. The Remote is a separate non-activating Tool window: Qt may
-    # update focusWidget() correctly without painting a native focus rectangle.
-    # Draw the active button's focus border *on the actual QMessageBox button*.
-    # The other button retains its normal platform appearance.
-    FOCUS_BUTTON_STYLE = (
-        'QPushButton {'
-        ' border: 2px solid #27865D;'
-        ' border-radius: 5px;'
-        ' padding: 5px 14px;'
-        ' background-color: #EAF7EF;'
-        ' color: #17472F;'
-        ' font-weight: 600;'
-        '}'
-        'QPushButton:pressed { background-color: #D1EAD9; }'
-    )
+    FOCUS_BUTTON_STYLE = DialogButtonSelection.FOCUS_BUTTON_STYLE
 
     def choose(self, answer):
-        """Move both Qt keyboard focus and a visible border on the dialog itself."""
+        """Use the SAME button selector as text/choice/notice dialogs."""
         if answer not in (self.YES, self.NO):
             return
-        self.selected = answer
-        for candidate in (self.NO, self.YES):
-            button = self.dialog.button(candidate)
-            if button is None:
-                continue
-            button.setStyleSheet(self.FOCUS_BUTTON_STYLE if candidate == answer else '')
-            if candidate == answer:
-                self.dialog.setDefaultButton(button)
-                button.setFocus(Qt.FocusReason.TabFocusReason)
-                button.update()
-        # A translucent Remote needs a clear, local indication that its wheel
-        # currently controls an answer rather than the Files list.
+        selector = getattr(self, '_button_selection', None)
+        if selector is None:
+            selector = DialogButtonSelection(self.dialog, {
+                self.YES: self.dialog.button(self.YES),
+                self.NO: self.dialog.button(self.NO)}, self.selected)
+            self._button_selection = selector
+        selector.choose(answer, focus_reason=Qt.FocusReason.TabFocusReason)
+        self.selected = selector.selected
         remote = getattr(self.launcher, 'remote_window', None)
         label = getattr(remote, 'area_label', None)
         if label is not None and remote.isVisible():
@@ -317,14 +340,18 @@ class RemoteConfirmation:
         elif command in ('CLICK', 'ENTER'):
             # Use the real QMessageBox button. Its clicked() path owns the
             # result, exactly like the user pressing it with the mouse.
-            button = self.dialog.button(self.selected)
-            if button is not None:
-                button.click()
+            selector = getattr(self, '_button_selection', None)
+            if selector is None:
+                self.choose(self.selected)
+                selector = self._button_selection
+            selector.click()
         elif command == 'CLOSE':
             # Closing the Remote while a question is active is always No.
-            button = self.dialog.button(self.NO)
-            if button is not None:
-                button.click()
+            selector = getattr(self, '_button_selection', None)
+            if selector is None:
+                self.choose(self.selected)
+                selector = self._button_selection
+            selector.click(self.NO)
         # Never let any Remote action reach the background while confirmation
         # is visible, even if it is not one of the navigation commands.
         return True

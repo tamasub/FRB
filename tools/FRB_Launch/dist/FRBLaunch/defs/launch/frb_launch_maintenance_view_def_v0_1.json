@@ -187,7 +187,7 @@
             },
             {
               "field": "shuriken_enabled",
-              "caption": "手裏剣メニュー登録",
+              "caption": "手裏剣・一の手に表示",
               "type": "boolean",
               "grid": {
                 "visible": false
@@ -197,7 +197,8 @@
               },
               "search": {
                 "visible": false
-              }
+              },
+              "defaultValue": false
             },
             {
               "field": "shuriken_button_index",
@@ -207,40 +208,15 @@
                 "visible": false
               },
               "edit": {
-                "visible": true
+                "visible": false
               },
               "search": {
                 "visible": false
               }
             },
             {
-              "field": "shuriken_direction",
-              "caption": "手裏剣プレビュー方向",
-              "type": "select",
-              "grid": {
-                "visible": false
-              },
-              "edit": {
-                "visible": true
-              },
-              "search": {
-                "visible": false
-              },
-              "options": [
-                "center",
-                "up",
-                "up_right",
-                "right",
-                "down_right",
-                "down",
-                "down_left",
-                "left",
-                "up_left"
-              ]
-            },
-            {
               "field": "shuriken_order",
-              "caption": "手裏剣方向内の表示順",
+              "caption": "一の手：表示優先順（先頭4件・件数に応じて時計回り）",
               "type": "number",
               "grid": {
                 "visible": false
@@ -250,11 +226,16 @@
               },
               "search": {
                 "visible": false
+              },
+              "defaultValue": 100,
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
               }
             },
             {
               "field": "shuriken_only",
-              "caption": "手裏剣専用・通常メニュー非表示",
+              "caption": "一の手専用（通常メニュー非表示）",
               "type": "boolean",
               "grid": {
                 "visible": false
@@ -264,11 +245,16 @@
               },
               "search": {
                 "visible": false
+              },
+              "defaultValue": false,
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
               }
             },
             {
               "field": "shuriken_context_action_id",
-              "caption": "手裏剣コンテキスト操作ID",
+              "caption": "一の手：専用操作ID（特殊用途）",
               "type": "text",
               "grid": {
                 "visible": false
@@ -278,6 +264,10 @@
               },
               "search": {
                 "visible": false
+              },
+              "visibleWhen": {
+                "field": "shuriken_enabled",
+                "equals": true
               }
             },
             {
@@ -527,6 +517,38 @@
               "search": {
                 "visible": true
               }
+            },
+            {
+              "field": "icon_key",
+              "caption": "Pageアイコン",
+              "type": "select",
+              "grid": {
+                "visible": true
+              },
+              "edit": {
+                "visible": true
+              },
+              "search": {
+                "visible": false
+              },
+              "options": [
+                "なし",
+                "💼",
+                "🎣",
+                "🪟",
+                "📁",
+                "⭐",
+                "🚀",
+                "🧰",
+                "🖥️",
+                "🌐",
+                "📝",
+                "📌",
+                "🎯",
+                "⚙️",
+                "📚",
+                "✨"
+              ]
             },
             {
               "field": "sort_order",

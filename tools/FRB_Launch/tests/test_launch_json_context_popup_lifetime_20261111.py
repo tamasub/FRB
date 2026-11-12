@@ -88,11 +88,11 @@ def make_launcher():
     launcher._forget_launch_context_menu = lambda menu: (
         setattr(launcher, '_launch_context_menu', None)
         if launcher._launch_context_menu is menu else None)
-    launcher._wire_hybrid_context_menu = launcher.wired.append
+    launcher._wire_hybrid_context_menu = lambda menu, *, column: launcher.wired.append((menu, column))
     launcher._prepend_remote_pad_navigation = launcher.remote_added.append
-    launcher._show_launch_json_context_popup = lambda menu, point, remote_pad=False: (
+    launcher._show_launch_json_context_popup = lambda menu, point, column='exp': (
         _method('_show_launch_json_context_popup')(
-            launcher, menu, point, remote_pad=remote_pad))
+            launcher, menu, point, column=column))
     return launcher
 
 
@@ -102,7 +102,7 @@ def test_native_action_closes_and_releases_json_context_menu():
     launcher._show_launch_json_context_popup(menu, 'point')
     assert menu.popup_calls == ['point']
     assert launcher._launch_context_menu is menu
-    assert launcher.wired == [menu]
+    assert launcher.wired == [(menu, 'exp')]
     assert not menu.deleted
     menu.triggered.emit(FakeAction())
     assert not menu.visible
@@ -115,8 +115,8 @@ def test_native_action_closes_and_releases_json_context_menu():
 def test_submenu_preview_does_not_close_parent_but_leaf_does():
     launcher = make_launcher()
     menu = FakeMenu()
-    launcher._show_launch_json_context_popup(menu, 'position', remote_pad=True)
-    assert launcher.remote_added == [menu]
+    launcher._show_launch_json_context_popup(menu, 'position', column='list')
+    assert launcher.wired == [(menu, 'list')]
     menu.triggered.emit(FakeAction(submenu=object()))
     assert menu.visible
     menu.triggered.emit(FakeAction())

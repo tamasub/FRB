@@ -25,6 +25,7 @@ imports:
  &#8226;   <a href="#_collections_abc">_collections_abc</a>
  &#8226;   <a href="#_weakrefset">_weakrefset</a>
  &#8226;   <a href="#abc">abc</a>
+ &#8226;   <a href="#app_version">app_version</a>
  &#8226;   <a href="#apps_scan_support">apps_scan_support</a>
  &#8226;   <a href="#bookmark_cursor_follow">bookmark_cursor_follow</a>
  &#8226;   <a href="#bookmark_menu">bookmark_menu</a>
@@ -200,6 +201,9 @@ imports:
  &#8226;   <a href="#keyword">keyword</a>
  &#8226;   <a href="#launch_appearance">launch_appearance</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
+ &#8226;   <a href="#launch_icon_palette">launch_icon_palette</a>
+ &#8226;   <a href="#launch_json_move">launch_json_move</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#launch_remote">launch_remote</a>
  &#8226;   <a href="#launch_virtual_tree">launch_virtual_tree</a>
  &#8226;   <a href="#linecache">linecache</a>
@@ -218,11 +222,14 @@ imports:
  &#8226;   <a href="#operator">operator</a>
  &#8226;   <a href="#ordering">ordering</a>
  &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#page_presentation">page_presentation</a>
  &#8226;   <a href="#page_tab_focus">page_tab_focus</a>
  &#8226;   <a href="#page_tab_theme">page_tab_theme</a>
  &#8226;   <a href="#passive_header_drag">passive_header_drag</a>
  &#8226;   <a href="#paste_destination">paste_destination</a>
  &#8226;   <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#pointer_warp_notice">pointer_warp_notice</a>
+ &#8226;   <a href="#pointer_warp_policy">pointer_warp_policy</a>
  &#8226;   <a href="#popup_sizing">popup_sizing</a>
  &#8226;   <a href="#posixpath">posixpath</a>
  &#8226;   <a href="#process_runner">process_runner</a>
@@ -235,6 +242,9 @@ imports:
  &#8226;   <a href="#re._compiler">re._compiler</a>
  &#8226;   <a href="#re._constants">re._constants</a>
  &#8226;   <a href="#re._parser">re._parser</a>
+ &#8226;   <a href="#registered_folder_route">registered_folder_route</a>
+ &#8226;   <a href="#registered_root_studio">registered_root_studio</a>
+ &#8226;   <a href="#registered_url_route">registered_url_route</a>
  &#8226;   <a href="#remote_confirmation">remote_confirmation</a>
  &#8226;   <a href="#remote_context_wheel">remote_context_wheel</a>
  &#8226;   <a href="#remote_files_exp_roots">remote_files_exp_roots</a>
@@ -255,6 +265,7 @@ imports:
  &#8226;   <a href="#session_search_history">session_search_history</a>
  &#8226;   <a href="#shuriken_model">shuriken_model</a>
  &#8226;   <a href="#shuriken_scroll_handoff">shuriken_scroll_handoff</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#sqlite3">sqlite3</a>
  &#8226;   <a href="#sre_compile">sre_compile</a>
  &#8226;   <a href="#sre_constants">sre_constants</a>
@@ -397,6 +408,7 @@ imported by:
  &#8226;   <a href="#PySide6.QtWebEngineWidgets">PySide6.QtWebEngineWidgets</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
  &#8226;   <a href="#_colorize">_colorize</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#importlib.resources.readers">importlib.resources.readers</a>
  &#8226;   <a href="#inspect">inspect</a>
@@ -507,6 +519,7 @@ imported by:
  &#8226;   <a href="#mouse_pointer_rod_direct">mouse_pointer_rod_direct</a>
  &#8226;   <a href="#page_tab_focus">page_tab_focus</a>
  &#8226;   <a href="#passive_header_drag">passive_header_drag</a>
+ &#8226;   <a href="#pointer_warp_notice">pointer_warp_notice</a>
  &#8226;   <a href="#remote_confirmation">remote_confirmation</a>
  &#8226;   <a href="#remote_context_wheel">remote_context_wheel</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
@@ -558,6 +571,7 @@ imported by:
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
  &#8226;   <a href="#mouse_pointer_rod">mouse_pointer_rod</a>
  &#8226;   <a href="#page_tab_focus">page_tab_focus</a>
+ &#8226;   <a href="#pointer_warp_notice">pointer_warp_notice</a>
  &#8226;   <a href="#remote_context_wheel">remote_context_wheel</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
  &#8226;   <a href="#remote_shuriken">remote_shuriken</a>
@@ -854,6 +868,7 @@ imported by:
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
  &#8226;   <a href="#mouse_pointer_rod">mouse_pointer_rod</a>
  &#8226;   <a href="#page_tab_focus">page_tab_focus</a>
+ &#8226;   <a href="#pointer_warp_notice">pointer_warp_notice</a>
  &#8226;   <a href="#remote_confirmation">remote_confirmation</a>
  &#8226;   <a href="#remote_context_wheel">remote_context_wheel</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
@@ -917,6 +932,8 @@ imported by:
  &#8226;   <a href="#importlib.metadata._meta">importlib.metadata._meta</a>
  &#8226;   <a href="#importlib.resources.readers">importlib.resources.readers</a>
  &#8226;   <a href="#jump_list">jump_list</a>
+ &#8226;   <a href="#launch_json_move">launch_json_move</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#mouse_pointer_rod_model">mouse_pointer_rod_model</a>
  &#8226;   <a href="#mouse_pointer_rod_smart_model">mouse_pointer_rod_smart_model</a>
  &#8226;   <a href="#remote_kana_integration">remote_kana_integration</a>
@@ -2143,6 +2160,17 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="app_version"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/app_version.py" type="text/plain"><tt>app_version</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="apps_scan_support"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/apps_scan_support.py" type="text/plain"><tt>apps_scan_support</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -2332,6 +2360,7 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imported by:
     <a href="#app.py">app.py</a>
+ &#8226;   <a href="#browser_bookmark_bar">browser_bookmark_bar</a>
  &#8226;   <a href="#expanded_view">expanded_view</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
 
@@ -2359,6 +2388,7 @@ imports:
     <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#bookmark_cursor_follow">bookmark_cursor_follow</a>
 
   </div>
   <div class="import">
@@ -2773,8 +2803,8 @@ imported by:
  &#8226;   <a href="#app.py">app.py</a>
  &#8226;   <a href="#ast">ast</a>
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
- &#8226;   <a href="#core">core</a>
  &#8226;   <a href="#difflib">difflib</a>
  &#8226;   <a href="#dis">dis</a>
  &#8226;   <a href="#email.feedparser">email.feedparser</a>
@@ -3144,6 +3174,30 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="configparser"></a>
+  <a target="code" href="///C:/Users/tsub-/AppData/Local/Programs/Python/Python314/Lib/configparser.py" type="text/plain"><tt>configparser</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#'collections.abc'">'collections.abc'</a>
+ &#8226;   <a href="#collections">collections</a>
+ &#8226;   <a href="#contextlib">contextlib</a>
+ &#8226;   <a href="#functools">functools</a>
+ &#8226;   <a href="#io">io</a>
+ &#8226;   <a href="#itertools">itertools</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#sys">sys</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#launch_menu_registration">launch_menu_registration</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="context_menu_actions"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/context_menu_actions.py" type="text/plain"><tt>context_menu_actions</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -3242,6 +3296,7 @@ imported by:
  &#8226;   <a href="#_ast_unparse">_ast_unparse</a>
  &#8226;   <a href="#_threading_local">_threading_local</a>
  &#8226;   <a href="#app.py">app.py</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#file_index">file_index</a>
  &#8226;   <a href="#glob">glob</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
@@ -3336,11 +3391,11 @@ imported by:
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/core.py" type="text/plain"><tt>core</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#collections">collections</a>
- &#8226;   <a href="#datetime">datetime</a>
+    <a href="#datetime">datetime</a>
  &#8226;   <a href="#json">json</a>
  &#8226;   <a href="#menu_hotkeys">menu_hotkeys</a>
  &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#page_presentation">page_presentation</a>
  &#8226;   <a href="#re">re</a>
  &#8226;   <a href="#search_matching">search_matching</a>
  &#8226;   <a href="#zoneinfo">zoneinfo</a>
@@ -3634,6 +3689,7 @@ imported by:
     <a href="#_colorize">_colorize</a>
  &#8226;   <a href="#clipboard_paste">clipboard_paste</a>
  &#8226;   <a href="#desktop_double_click">desktop_double_click</a>
+ &#8226;   <a href="#first_hand_confirmation">first_hand_confirmation</a>
  &#8226;   <a href="#menu_viewport">menu_viewport</a>
  &#8226;   <a href="#mouse_pointer_rod_smart_model">mouse_pointer_rod_smart_model</a>
  &#8226;   <a href="#pprint">pprint</a>
@@ -3668,6 +3724,7 @@ imported by:
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
  &#8226;   <a href="#middle_folder_filter">middle_folder_filter</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
  &#8226;   <a href="#xmlrpc.client">xmlrpc.client</a>
@@ -6941,18 +6998,23 @@ imports:
  &#8226;   <a href="#folder_sort_preferences">folder_sort_preferences</a>
  &#8226;   <a href="#history_wheel_navigation">history_wheel_navigation</a>
  &#8226;   <a href="#launch_appearance">launch_appearance</a>
+ &#8226;   <a href="#launch_json_move">launch_json_move</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#launch_virtual_tree">launch_virtual_tree</a>
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
  &#8226;   <a href="#list_wheel_parity">list_wheel_parity</a>
+ &#8226;   <a href="#middle_column_presentation">middle_column_presentation</a>
  &#8226;   <a href="#middle_folder_filter">middle_folder_filter</a>
  &#8226;   <a href="#middle_selection_guard">middle_selection_guard</a>
  &#8226;   <a href="#navigation_wrap">navigation_wrap</a>
  &#8226;   <a href="#ntpath">ntpath</a>
  &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#page_presentation">page_presentation</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#popup_sizing">popup_sizing</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
  &#8226;   <a href="#reorderable_tree">reorderable_tree</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#system_drives">system_drives</a>
  &#8226;   <a href="#virtual_clipboard_paste">virtual_clipboard_paste</a>
  &#8226;   <a href="#webview_routes">webview_routes</a>
@@ -7148,6 +7210,59 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="first_hand_confirmation"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/first_hand_confirmation.py" type="text/plain"><tt>first_hand_confirmation</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#dataclasses">dataclasses</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#remote_shuriken">remote_shuriken</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="first_hand_trace"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/first_hand_trace.py" type="text/plain"><tt>first_hand_trace</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#json">json</a>
+ &#8226;   <a href="#logging">logging</a>
+ &#8226;   <a href="#logging.handlers">logging.handlers</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#time">time</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#remote_shuriken">remote_shuriken</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="first_hand_variable"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/first_hand_variable.py" type="text/plain"><tt>first_hand_variable</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#math">math</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#shuriken_model">shuriken_model</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="fnmatch"></a>
   <a target="code" href="///C:/Users/tsub-/AppData/Local/Programs/Python/Python314/Lib/fnmatch.py" type="text/plain"><tt>fnmatch</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -7313,6 +7428,7 @@ imported by:
     <a href="#_py_warnings">_py_warnings</a>
  &#8226;   <a href="#app.py">app.py</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
  &#8226;   <a href="#email._encoded_words">email._encoded_words</a>
  &#8226;   <a href="#email.charset">email.charset</a>
@@ -7473,6 +7589,7 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#collections">collections</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#time">time</a>
 
   </div>
@@ -7536,6 +7653,7 @@ imported by:
  &#8226;   <a href="#hmac">hmac</a>
  &#8226;   <a href="#installed_apps">installed_apps</a>
  &#8226;   <a href="#jump_list">jump_list</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#random">random</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
  &#8226;   <a href="#uuid">uuid</a>
@@ -8413,6 +8531,7 @@ imported by:
  &#8226;   <a href="#bz2">bz2</a>
  &#8226;   <a href="#compression._common._streams">compression._common._streams</a>
  &#8226;   <a href="#compression.zstd._zstdfile">compression.zstd._zstdfile</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#csv">csv</a>
  &#8226;   <a href="#dis">dis</a>
  &#8226;   <a href="#email.feedparser">email.feedparser</a>
@@ -8490,6 +8609,7 @@ imported by:
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
  &#8226;   <a href="#concurrent.futures.thread">concurrent.futures.thread</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#ctypes.macholib.dyld">ctypes.macholib.dyld</a>
  &#8226;   <a href="#dataclasses">dataclasses</a>
  &#8226;   <a href="#fnmatch">fnmatch</a>
@@ -8552,6 +8672,7 @@ imported by:
  &#8226;   <a href="#core">core</a>
  &#8226;   <a href="#file_index">file_index</a>
  &#8226;   <a href="#files_list_search_history">files_list_search_history</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#folder_favorites">folder_favorites</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#installed_apps">installed_apps</a>
@@ -8559,6 +8680,8 @@ imported by:
  &#8226;   <a href="#json.encoder">json.encoder</a>
  &#8226;   <a href="#json.scanner">json.scanner</a>
  &#8226;   <a href="#jump_list">jump_list</a>
+ &#8226;   <a href="#launch_json_move">launch_json_move</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#log_retention">log_retention</a>
  &#8226;   <a href="#multiprocessing.resource_tracker">multiprocessing.resource_tracker</a>
  &#8226;   <a href="#ordering">ordering</a>
@@ -8566,6 +8689,7 @@ imported by:
  &#8226;   <a href="#runtime_paths">runtime_paths</a>
  &#8226;   <a href="#search_history">search_history</a>
  &#8226;   <a href="#search_history_categories">search_history_categories</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#webview_settings">webview_settings</a>
 
   </div>
@@ -8733,6 +8857,65 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="launch_icon_palette"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/launch_icon_palette.py" type="text/plain"><tt>launch_icon_palette</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="launch_json_move"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/launch_json_move.py" type="text/plain"><tt>launch_json_move</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#json">json</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+ &#8226;   <a href="#expanded_view">expanded_view</a>
+ &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="launch_menu_registration"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/launch_menu_registration.py" type="text/plain"><tt>launch_menu_registration</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#configparser">configparser</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#ntpath">ntpath</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#shutil">shutil</a>
+ &#8226;   <a href="#subprocess">subprocess</a>
+ &#8226;   <a href="#tempfile">tempfile</a>
+ &#8226;   <a href="#urllib.parse">urllib.parse</a>
+ &#8226;   <a href="#uuid">uuid</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+ &#8226;   <a href="#expanded_view">expanded_view</a>
+ &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="launch_remote"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/launch_remote.py" type="text/plain"><tt>launch_remote</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -8764,6 +8947,11 @@ imported by:
   <a name="launch_virtual_tree"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/launch_virtual_tree.py" type="text/plain"><tt>launch_virtual_tree</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#page_presentation">page_presentation</a>
+
+  </div>
+  <div class="import">
 imported by:
     <a href="#app.py">app.py</a>
  &#8226;   <a href="#expanded_view">expanded_view</a>
@@ -8795,6 +8983,7 @@ imports:
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#popup_sizing">popup_sizing</a>
  &#8226;   <a href="#reorderable_tree">reorderable_tree</a>
+ &#8226;   <a href="#web_console_policy">web_console_policy</a>
  &#8226;   <a href="#webview_routes">webview_routes</a>
  &#8226;   <a href="#wheel_adaptive">wheel_adaptive</a>
 
@@ -8914,11 +9103,13 @@ imports:
 imported by:
     <a href="#app.py">app.py</a>
  &#8226;   <a href="#concurrent.futures._base">concurrent.futures._base</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#hashlib">hashlib</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
  &#8226;   <a href="#logging.handlers">logging.handlers</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
 
   </div>
 
@@ -8954,7 +9145,9 @@ imports:
   <div class="import">
 imported by:
     <a href="#app.py">app.py</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
 
   </div>
 
@@ -9014,6 +9207,7 @@ imported by:
     <a href="#_pydatetime">_pydatetime</a>
  &#8226;   <a href="#_pydecimal">_pydecimal</a>
  &#8226;   <a href="#app.py">app.py</a>
+ &#8226;   <a href="#first_hand_variable">first_hand_variable</a>
  &#8226;   <a href="#fractions">fractions</a>
  &#8226;   <a href="#mouse_pointer_rod_model">mouse_pointer_rod_model</a>
  &#8226;   <a href="#mouse_pointer_rod_smart_model">mouse_pointer_rod_smart_model</a>
@@ -9081,11 +9275,24 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="middle_column_presentation"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/middle_column_presentation.py" type="text/plain"><tt>middle_column_presentation</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#expanded_view">expanded_view</a>
+ &#8226;   <a href="#middle_folder_filter">middle_folder_filter</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="middle_folder_filter"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/middle_folder_filter.py" type="text/plain"><tt>middle_folder_filter</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#datetime">datetime</a>
+ &#8226;   <a href="#middle_column_presentation">middle_column_presentation</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#search_matching">search_matching</a>
 
@@ -10148,10 +10355,12 @@ imported by:
  &#8226;   <a href="#file_index">file_index</a>
  &#8226;   <a href="#folder_favorites">folder_favorites</a>
  &#8226;   <a href="#folder_sort_preferences">folder_sort_preferences</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#os.path">os.path</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#process_runner">process_runner</a>
+ &#8226;   <a href="#registered_root_studio">registered_root_studio</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
  &#8226;   <a href="#system_drives">system_drives</a>
 
@@ -10293,6 +10502,7 @@ imported by:
  &#8226;   <a href="#compression.zstd._zstdfile">compression.zstd._zstdfile</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
  &#8226;   <a href="#concurrent.futures.thread">concurrent.futures.thread</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#context_menu_actions">context_menu_actions</a>
  &#8226;   <a href="#contextlib">contextlib</a>
  &#8226;   <a href="#core">core</a>
@@ -10307,6 +10517,7 @@ imported by:
  &#8226;   <a href="#file_transfer_visual">file_transfer_visual</a>
  &#8226;   <a href="#files_list_search_history">files_list_search_history</a>
  &#8226;   <a href="#filesystem_visibility">filesystem_visibility</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#fnmatch">fnmatch</a>
  &#8226;   <a href="#folder_favorites">folder_favorites</a>
  &#8226;   <a href="#functools">functools</a>
@@ -10325,6 +10536,7 @@ imported by:
  &#8226;   <a href="#installed_apps">installed_apps</a>
  &#8226;   <a href="#jump_list">jump_list</a>
  &#8226;   <a href="#launch_downloads">launch_downloads</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
  &#8226;   <a href="#linecache">linecache</a>
  &#8226;   <a href="#locale">locale</a>
@@ -10373,6 +10585,7 @@ imported by:
  &#8226;   <a href="#search_history">search_history</a>
  &#8226;   <a href="#search_history_categories">search_history_categories</a>
  &#8226;   <a href="#shiboken6">shiboken6</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#shutil">shutil</a>
  &#8226;   <a href="#socket">socket</a>
  &#8226;   <a href="#ssl">ssl</a>
@@ -10415,6 +10628,20 @@ imported by:
  &#8226;   <a href="#py_compile">py_compile</a>
  &#8226;   <a href="#sysconfig">sysconfig</a>
  &#8226;   <a href="#tracemalloc">tracemalloc</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="page_presentation"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/page_presentation.py" type="text/plain"><tt>page_presentation</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+ &#8226;   <a href="#core">core</a>
+ &#8226;   <a href="#expanded_view">expanded_view</a>
+ &#8226;   <a href="#launch_virtual_tree">launch_virtual_tree</a>
 
   </div>
 
@@ -10528,6 +10755,7 @@ imported by:
  &#8226;   <a href="#file_index">file_index</a>
  &#8226;   <a href="#file_transfer_visual">file_transfer_visual</a>
  &#8226;   <a href="#files_list_search_history">files_list_search_history</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#folder_favorites">folder_favorites</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#importlib.resources._common">importlib.resources._common</a>
@@ -10537,6 +10765,7 @@ imported by:
  &#8226;   <a href="#jump_list">jump_list</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
  &#8226;   <a href="#launch_downloads">launch_downloads</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
  &#8226;   <a href="#log_retention">log_retention</a>
  &#8226;   <a href="#middle_folder_filter">middle_folder_filter</a>
@@ -10544,6 +10773,7 @@ imported by:
  &#8226;   <a href="#paste_destination">paste_destination</a>
  &#8226;   <a href="#pathlib._os">pathlib._os</a>
  &#8226;   <a href="#process_runner">process_runner</a>
+ &#8226;   <a href="#registered_folder_route">registered_folder_route</a>
  &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
  &#8226;   <a href="#remote_kana_integration">remote_kana_integration</a>
  &#8226;   <a href="#remote_shuriken">remote_shuriken</a>
@@ -10551,6 +10781,7 @@ imported by:
  &#8226;   <a href="#search_history">search_history</a>
  &#8226;   <a href="#search_history_categories">search_history_categories</a>
  &#8226;   <a href="#shuriken_assets">shuriken_assets</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#virtual_clipboard_paste">virtual_clipboard_paste</a>
  &#8226;   <a href="#webview_settings">webview_settings</a>
  &#8226;   <a href="#windows_open_with">windows_open_with</a>
@@ -10673,6 +10904,35 @@ imports:
   <div class="import">
 imported by:
     <a href="#uuid">uuid</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="pointer_warp_notice"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/pointer_warp_notice.py" type="text/plain"><tt>pointer_warp_notice</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="pointer_warp_policy"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/pointer_warp_policy.py" type="text/plain"><tt>pointer_warp_policy</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
 
   </div>
 
@@ -10950,6 +11210,7 @@ imported by:
  &#8226;   <a href="#app.py">app.py</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#ast">ast</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#core">core</a>
  &#8226;   <a href="#csv">csv</a>
  &#8226;   <a href="#ctypes._aix">ctypes._aix</a>
@@ -11127,12 +11388,62 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="registered_folder_route"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/registered_folder_route.py" type="text/plain"><tt>registered_folder_route</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#pathlib">pathlib</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="registered_root_studio"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/registered_root_studio.py" type="text/plain"><tt>registered_root_studio</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#ntpath">ntpath</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+ &#8226;   <a href="#remote_files_explorer">remote_files_explorer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="registered_url_route"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/registered_url_route.py" type="text/plain"><tt>registered_url_route</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#webview_routes">webview_routes</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="remote_confirmation"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/remote_confirmation.py" type="text/plain"><tt>remote_confirmation</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -11197,11 +11508,14 @@ imports:
  &#8226;   <a href="#file_transfer_visual">file_transfer_visual</a>
  &#8226;   <a href="#json">json</a>
  &#8226;   <a href="#launch_appearance">launch_appearance</a>
+ &#8226;   <a href="#launch_json_move">launch_json_move</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#launch_virtual_tree">launch_virtual_tree</a>
  &#8226;   <a href="#ntpath">ntpath</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#passive_header_drag">passive_header_drag</a>
  &#8226;   <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#registered_root_studio">registered_root_studio</a>
  &#8226;   <a href="#remote_files_exp_roots">remote_files_exp_roots</a>
  &#8226;   <a href="#system_drives">system_drives</a>
  &#8226;   <a href="#wheel_adaptive">wheel_adaptive</a>
@@ -11305,11 +11619,14 @@ imports:
     <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#first_hand_confirmation">first_hand_confirmation</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#launch_appearance">launch_appearance</a>
  &#8226;   <a href="#math">math</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#shuriken_assets">shuriken_assets</a>
  &#8226;   <a href="#shuriken_model">shuriken_model</a>
+ &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -11331,6 +11648,7 @@ imports:
  &#8226;   <a href="#guriguri_shuriken_auto">guriguri_shuriken_auto</a>
  &#8226;   <a href="#shuriken_assets">shuriken_assets</a>
  &#8226;   <a href="#shuriken_scroll_model">shuriken_scroll_model</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#time">time</a>
 
   </div>
@@ -11750,6 +12068,7 @@ imported by:
 imports:
     <a href="#collections">collections</a>
  &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#first_hand_variable">first_hand_variable</a>
  &#8226;   <a href="#math">math</a>
 
   </div>
@@ -11792,6 +12111,31 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="shuriken_trace"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/shuriken_trace.py" type="text/plain"><tt>shuriken_trace</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#datetime">datetime</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#logging">logging</a>
+ &#8226;   <a href="#logging.handlers">logging.handlers</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#time">time</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.py">app.py</a>
+ &#8226;   <a href="#expanded_view">expanded_view</a>
+ &#8226;   <a href="#guriguri_shuriken_auto">guriguri_shuriken_auto</a>
+ &#8226;   <a href="#remote_shuriken_scroll">remote_shuriken_scroll</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="shutil"></a>
   <a target="code" href="///C:/Users/tsub-/AppData/Local/Programs/Python/Python314/Lib/shutil.py" type="text/plain"><tt>shutil</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -11823,6 +12167,7 @@ imported by:
  &#8226;   <a href="#clipboard_paste">clipboard_paste</a>
  &#8226;   <a href="#ctypes.util">ctypes.util</a>
  &#8226;   <a href="#launch_downloads">launch_downloads</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#tarfile">tarfile</a>
@@ -12265,6 +12610,7 @@ imported by:
  &#8226;   <a href="#context_menu_actions">context_menu_actions</a>
  &#8226;   <a href="#ctypes._aix">ctypes._aix</a>
  &#8226;   <a href="#ctypes.util">ctypes.util</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#multiprocessing.popen_spawn_win32">multiprocessing.popen_spawn_win32</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
  &#8226;   <a href="#os">os</a>
@@ -12305,6 +12651,7 @@ imported by:
  &#8226;   <a href="#compression._common._streams">compression._common._streams</a>
  &#8226;   <a href="#concurrent.futures.interpreter">concurrent.futures.interpreter</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
+ &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
  &#8226;   <a href="#ctypes">ctypes</a>
  &#8226;   <a href="#ctypes._aix">ctypes._aix</a>
@@ -12525,6 +12872,7 @@ imported by:
  &#8226;   <a href="#folder_favorites">folder_favorites</a>
  &#8226;   <a href="#importlib.resources._common">importlib.resources._common</a>
  &#8226;   <a href="#launch_downloads">launch_downloads</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#multiprocessing.heap">multiprocessing.heap</a>
  &#8226;   <a href="#multiprocessing.synchronize">multiprocessing.synchronize</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
@@ -12632,6 +12980,7 @@ imported by:
  &#8226;   <a href="#email._parseaddr">email._parseaddr</a>
  &#8226;   <a href="#email.generator">email.generator</a>
  &#8226;   <a href="#email.utils">email.utils</a>
+ &#8226;   <a href="#first_hand_trace">first_hand_trace</a>
  &#8226;   <a href="#gc">gc</a>
  &#8226;   <a href="#guriguri_shuriken_auto">guriguri_shuriken_auto</a>
  &#8226;   <a href="#gzip">gzip</a>
@@ -12648,7 +12997,10 @@ imported by:
  &#8226;   <a href="#multiprocessing.synchronize">multiprocessing.synchronize</a>
  &#8226;   <a href="#queue">queue</a>
  &#8226;   <a href="#random">random</a>
+ &#8226;   <a href="#remote_confirmation">remote_confirmation</a>
+ &#8226;   <a href="#remote_shuriken">remote_shuriken</a>
  &#8226;   <a href="#remote_shuriken_scroll">remote_shuriken_scroll</a>
+ &#8226;   <a href="#shuriken_trace">shuriken_trace</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
  &#8226;   <a href="#ssl">ssl</a>
  &#8226;   <a href="#subprocess">subprocess</a>
@@ -13370,6 +13722,7 @@ imported by:
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#jump_list">jump_list</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#logging.handlers">logging.handlers</a>
  &#8226;   <a href="#mimetypes">mimetypes</a>
  &#8226;   <a href="#pathlib">pathlib</a>
@@ -13472,6 +13825,7 @@ imported by:
  &#8226;   <a href="#browser_bookmarks">browser_bookmarks</a>
  &#8226;   <a href="#jump_list">jump_list</a>
  &#8226;   <a href="#launch_diagnostics">launch_diagnostics</a>
+ &#8226;   <a href="#launch_menu_registration">launch_menu_registration</a>
  &#8226;   <a href="#search_history_categories">search_history_categories</a>
  &#8226;   <a href="#virtual_clipboard_paste">virtual_clipboard_paste</a>
 
@@ -13638,6 +13992,17 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="web_console_policy"></a>
+  <a target="code" href="///F:/FRB/tools/FRB_Launch/src/web_console_policy.py" type="text/plain"><tt>web_console_policy</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imported by:
+    <a href="#launch_web_view">launch_web_view</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="webview_routes"></a>
   <a target="code" href="///F:/FRB/tools/FRB_Launch/src/webview_routes.py" type="text/plain"><tt>webview_routes</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -13650,6 +14015,7 @@ imported by:
     <a href="#app.py">app.py</a>
  &#8226;   <a href="#expanded_view">expanded_view</a>
  &#8226;   <a href="#launch_web_view">launch_web_view</a>
+ &#8226;   <a href="#registered_url_route">registered_url_route</a>
 
   </div>
 

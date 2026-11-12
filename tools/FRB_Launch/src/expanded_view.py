@@ -1582,6 +1582,13 @@ class ExpandedLauncherView(QWidget):
         files_list_title_layout.setContentsMargins(8, 0, 5, 0)
         self.files_list_title_label = QLabel('Files List', self.files_list_title_box)
         self.files_list_title_label.setObjectName('filesListTitle')
+        # Title/right-click and blank-area/right-click share ONE List entry.
+        # Do not route these events to the filesystem when a JSON Page is open.
+        for header in (self.files_list_title_box, self.files_list_title_label):
+            header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            header.customContextMenuRequested.connect(
+                lambda point, widget=header: self.show_list_background_context(
+                    widget.mapToGlobal(point)))
         files_list_title_layout.addWidget(self.files_list_title_label)
         middle_search_layout.addWidget(self.files_list_title_box, 0)
         # This is a *local Files List* keyword history, not Launcher-global
@@ -3606,7 +3613,7 @@ class ExpandedLauncherView(QWidget):
         area Paste context menu, so their creation options stay identical.
         """
         from context_menu_icons import context_action_icon
-        from launch_appearance import context_menu_spacing_qss, LIGHT_MENU_QSS
+        from context_menu_presentation import style_context_menu
         submenu = menu.addMenu('新規作成')
         submenu.setToolTipsVisible(True)
         submenu.setObjectName('expandedNewFileSubmenu')
@@ -3639,9 +3646,30 @@ class ExpandedLauncherView(QWidget):
                 action.setIcon(self.launcher.file_icons.icon(QFileInfo('sample' + extension)))
                 action.setToolTip(f'Windows登録: ShellNew ({creation_kind})。この形式の作成は未対応です')
                 action.setEnabled(False)
-        palette = (LIGHT_MENU_QSS if self.launcher.color_theme == 'light' else '') + context_menu_spacing_qss(self.launcher.color_theme)
-        submenu.setStyleSheet(palette)
+        style_context_menu(submenu, self.launcher.color_theme)
         return submenu
+
+    def show_list_background_context(self, global_pos):
+        """One right-click entry for List blank, tonton lane and title.
+
+        JSON Page/category: operate on current authored node, never treat it
+        as a real filesystem path. Physical directory: preserve its original
+        Paste/New actions. Neither context available: navigation stays usable.
+        """
+        if self._workspace_mode != 'files':
+            return False
+        current = getattr(self, '_virtual_directory_node', None)
+        if isinstance(current, dict):
+            from launch_virtual_tree import virtual_item_identity
+            identity = virtual_item_identity(current)
+            if identity is not None:
+                self.launcher.show_virtual_launch_context(
+                    identity, global_pos, list_context=True)
+                return True
+        if self.current_directory():
+            return bool(self.launcher.show_expanded_background_paste_menu(global_pos))
+        return bool(self.launcher.show_files_column_navigation_menu(
+            'list', global_pos))
 
     def show_lane_new_menu(self, global_pos):
         """The right lane and lower blank area MUST offer the same menu.
@@ -3649,7 +3677,7 @@ class ExpandedLauncherView(QWidget):
         Launcher owns the common Paste + New + folder-actions menu, so neither
         location can accidentally omit Paste or diverge in icons/separators.
         """
-        return self.launcher.show_expanded_background_paste_menu(global_pos)
+        return self.show_list_background_context(global_pos)
 
     def show_lane_context_menu(self, global_pos):
         """Compatibility alias for the same shared context menu."""
@@ -5767,21 +5795,19 @@ class ExpandedLauncherView(QWidget):
     def context_menu(self, pane, point, *, global_pos=None):
         item = pane.tree.itemAt(point)
         if not item:
-            if pane is self.middle and self._virtual_directory_node is not None:
-                self.launcher.show_virtual_launch_context(
-                    virtual_item_identity(self._virtual_directory_node),
-                    global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point))
-                return
-            # With no header Paste button, an empty folder must still be
-            # pasteable via right-click on its empty middle pane.
+            position = (global_pos if global_pos is not None else
+                        pane.tree.viewport().mapToGlobal(point))
             if pane is self.middle and self.current_directory():
-                # Explicitly right-clicking blank space means paste HERE,
-                # not into a previously selected child folder.
-                pane.tree.clearSelection()
-                # The lower blank area is both Back (double click) and
-                # Paste + New (right click). Keep the existing Paste contract.
-                self.launcher.show_expanded_background_paste_menu(
-                    (global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point)))
+                # A real folder's blank-space Paste must not target a selected
+                # child. Authored Pages are identified separately below.
+                if self._virtual_directory_node is None:
+                    pane.tree.clearSelection()
+            if pane is self.middle:
+                # Blank List / authored Page / physical folder: same entry.
+                self.show_list_background_context(position)
+            elif pane is self.left:
+                # Legacy Exp (embedded Exp is handled by its own QTreeView).
+                self.launcher.show_files_column_navigation_menu('exp', position)
             return
         row = self.row_data(item)
         if row is None:  # Non-actionable bookmark section heading.
@@ -5789,7 +5815,8 @@ class ExpandedLauncherView(QWidget):
         if pane is self.middle and row.get('_launch_virtual_node') is not None:
             self.launcher.show_virtual_launch_context(
                 row['_launch_virtual_node'],
-                global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point))
+                global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point),
+                list_context=True)
             return
         if pane is self.middle:
             tree = pane.tree
@@ -5803,7 +5830,8 @@ class ExpandedLauncherView(QWidget):
             targets = context_paths(row, selected_rows, self.launcher.authored_items)
             shown = self.launcher.show_launch_context_menu(
                 (global_pos if global_pos is not None else tree.viewport().mapToGlobal(point)), row,
-                context_parent=self.launcher, selected_paths=targets)
+                context_parent=self.launcher, selected_paths=targets,
+                list_context=True)
             if shown and len(targets) == 1:
                 menu = getattr(self.launcher, '_launch_context_menu', None)
                 if menu is not None:

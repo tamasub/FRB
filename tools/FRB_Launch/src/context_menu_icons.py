@@ -96,6 +96,23 @@ def context_action_icon(action_id):
         painter.drawEllipse(QRectF(5, 15, 6, 6))
         painter.drawEllipse(QRectF(14, 9, 6, 6))
         line(8, 9, 8, 15); line(10.5, 7, 15.5, 11.5)
+    elif action_id in ('back', 'forward', 'back_to_exp'):
+        if action_id == 'forward':
+            line(8, 6, 14, 12); line(14, 12, 8, 18)
+        else:
+            line(16, 6, 10, 12); line(10, 12, 16, 18)
+            if action_id == 'back_to_exp':
+                line(6, 5, 6, 19)
+    elif action_id == 'search_history':
+        painter.drawEllipse(QRectF(4, 4, 12, 12)); line(14, 14, 20, 20)
+        line(7, 10, 13, 10)
+    elif action_id == 'folder_history':
+        painter.drawRoundedRect(QRectF(3, 8, 18, 11), 2, 2)
+        line(5, 6, 10, 6); line(10, 6, 12, 8)
+        line(9, 14, 15, 14)
+    elif action_id == 'new_file':
+        painter.drawRoundedRect(QRectF(5, 3, 14, 18), 2, 2)
+        line(12, 9, 12, 16); line(8.5, 12.5, 15.5, 12.5)
     elif action_id == 'properties':
         painter.drawRoundedRect(QRectF(5, 3, 14, 18), 2, 2)
         line(9, 8, 15, 8); line(9, 12, 15, 12); line(9, 16, 13, 16)

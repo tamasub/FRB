@@ -227,7 +227,7 @@ def scrollbar_for_theme(theme, background):
 
 # Context menu row icons should sit near their labels, with just a small left inset.
 CONTEXT_MENU_SPACING_QSS = """
-QMenu::item { padding:7px 9px 7px 5px; }
-QMenu::icon { margin-left:4px; margin-right:1px; }
+QMenu::item { padding:7px 9px; }
+QMenu::icon { width:24px; height:24px; margin-left:5px; margin-right:5px; }
 QMenu::separator { height:1px; background:#e1e5e2; margin:5px 3px; }
 """

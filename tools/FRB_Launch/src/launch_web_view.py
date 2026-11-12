@@ -689,6 +689,15 @@ class LaunchWebView(QFrame):
             self._download_file_icon_cache[suffix] = icon
         return icon
 
+    def _launch_notice(self, title, message):
+        """WebView notifications belong to Launch's shared button selector.
+
+        The browser panel is embedded inside Launcher. Routing through the
+        owner prevents future one-off QMessageBox implementations.
+        """
+        launcher = self.window()
+        launcher.show_launch_notice(QMessageBox.Icon.Warning, title, message)
+
     def default_download_folder(self):
         configured = self.web_settings.get('download_directory', '').strip()
         if configured:
@@ -710,7 +719,7 @@ class LaunchWebView(QFrame):
             request.setDownloadFileName(target.name)
         except (OSError, ValueError) as error:
             request.cancel()
-            QMessageBox.warning(self, 'ダウンロードできません',
+            self._launch_notice( 'ダウンロードできません',
                                 f'保存先を確認してください。\n{error}')
             return
         self._downloads_folder = str(target.parent)
@@ -830,13 +839,13 @@ class LaunchWebView(QFrame):
         if folder.is_dir():
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
         else:
-            QMessageBox.warning(self, 'フォルダーがありません', str(folder))
+            self._launch_notice( 'フォルダーがありません', str(folder))
 
     def extract_download_zip(self, path):
         """Unzip only on explicit click, in a worker so WebView stays responsive."""
         path = Path(path)
         if path.suffix.lower() != '.zip' or not path.is_file():
-            QMessageBox.warning(self, 'ZIPがありません', str(path))
+            self._launch_notice( 'ZIPがありません', str(path))
             return
         worker = _ZipExtractionWorker(str(path), self)
         self._extract_workers.add(worker)
@@ -846,7 +855,7 @@ class LaunchWebView(QFrame):
         worker.start()
 
     def _on_zip_failed(self, text):
-        QMessageBox.warning(self, 'ZIPを展開できません', text)
+        self._launch_notice( 'ZIPを展開できません', text)
 
     def _finish_extract_worker(self):
         worker = self.sender()
@@ -1165,7 +1174,7 @@ class LaunchWebView(QFrame):
         try:
             self.url_favorites.add(url)
         except OSError:
-            QMessageBox.warning(self, 'お気に入り', 'URLのお気に入りを保存できませんでした')
+            self._launch_notice( 'お気に入り', 'URLのお気に入りを保存できませんでした')
             return
         self.update_url_favorite_button()
         if self.favorite_popup.isVisible():
@@ -1228,7 +1237,7 @@ class LaunchWebView(QFrame):
             try:
                 self.url_favorites.remove(url)
             except OSError:
-                QMessageBox.warning(self, 'お気に入り', 'URLのお気に入りを削除できませんでした')
+                self._launch_notice( 'お気に入り', 'URLのお気に入りを削除できませんでした')
                 return
             self.populate_url_favorites()
             self.update_url_favorite_button()
@@ -1243,7 +1252,7 @@ class LaunchWebView(QFrame):
             if not self.url_favorites.reorder(urls):
                 self.populate_url_favorites()
         except OSError:
-            QMessageBox.warning(self, 'お気に入り', 'URLお気に入りの並び替えを保存できませんでした')
+            self._launch_notice( 'お気に入り', 'URLお気に入りの並び替えを保存できませんでした')
             self.populate_url_favorites()
 
     def eventFilter(self, obj, event):
