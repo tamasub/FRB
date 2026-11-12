@@ -208,7 +208,7 @@ def light_scrollbar_qss(background='#ffffff'):
     QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover { background:#76a593; }
     QScrollBar::handle:vertical:pressed, QScrollBar::handle:horizontal:pressed { background:#548a72; }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }
-    QScrollBafile:///F:/FRB/tools/FRB_Launch/src/app.pyr::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }
+    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }
     QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical,
     QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal { width:0; height:0; background:transparent; }
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
@@ -229,6 +229,22 @@ def scrollbar_for_theme(theme, background):
 # Native QMenu draws the foreground. Never suppress its QAction text/icons,
 # and never introduce Exp/List-specific offsets or icon raster resizing.
 CONTEXT_MENU_SPACING_QSS = """
-QMenu::item { padding: 7px 9px; }
+QMenu { padding:5px 5px 5px 9px; }
+QMenu::item { padding:7px 9px; }
 QMenu::separator { height:1px; background:#e1e5e2; margin:5px 3px; }
+"""
+
+
+# The two simple-edit controls must have ONE border/radius contract.  Qt's
+# QPlainTextEdit is an abstract scroll area, so target it explicitly rather
+# than relying on inherited QLineEdit application styles.
+SIMPLE_EDIT_FIELD_QSS = """
+QLineEdit#launchSimpleTitle, QPlainTextEdit#launchSimpleDescription {
+    background-color:#ffffff; color:#25362d;
+    border:1px solid #b9cbc1; border-radius:7px;
+    padding:5px 10px;
+}
+QLineEdit#launchSimpleTitle:focus, QPlainTextEdit#launchSimpleDescription:focus {
+    border-color:#48a27b;
+}
 """

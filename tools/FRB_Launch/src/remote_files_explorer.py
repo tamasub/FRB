@@ -153,16 +153,19 @@ class FilesExpWheelTree(QTreeView):
         super().drawRow(painter, option, index)
         if not option.rect.isValid():
             return
-        # Visual boundary above virtual PC; no model row, no hit-test change.
+        # A dedicated *non-interactive* separator owns the air on both sides
+        # of the line. The PC row stays normal height, with no trailing gap.
         panel = self.parentWidget()
         item = panel.model.itemFromIndex(index) if panel is not None else None
         data = item.data(_DATA_ROLE) if item is not None else None
-        if (not index.parent().isValid() and isinstance(data, dict) and data.get('pc')):
+        if (not index.parent().isValid() and isinstance(data, dict)
+                and data.get('separator_before_pc')):
             painter.save()
             painter.setPen(QPen(QColor('#b8c7bd'), 1))
-            y = option.rect.top() + 1
+            y = option.rect.top() + 8
             painter.drawLine(option.rect.left() + 8, y, option.rect.right() - 8, y)
             painter.restore()
+            return  # separator has no selection outline or actions
         if index != self.currentIndex():
             return
         painter.save()
@@ -171,6 +174,31 @@ class FilesExpWheelTree(QTreeView):
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRoundedRect(QRectF(option.rect.adjusted(5, 3, -5, -3)), 6.5, 6.5)
         painter.restore()
+
+    @staticmethod
+    def _is_operable_index(index):
+        """Decorative section break must never become a wheel/Remote target."""
+        return (index.isValid()
+                and bool(index.flags() & Qt.ItemFlag.ItemIsEnabled)
+                and not (index.data(_DATA_ROLE) or {}).get('separator_before_pc'))
+
+    def _neighbor_operable(self, index, direction):
+        """Keep Remote and wheel traversal on real rows across the divider."""
+        neighbor = (self.indexBelow(index) if direction > 0
+                    else self.indexAbove(index))
+        while neighbor.isValid() and not self._is_operable_index(neighbor):
+            neighbor = (self.indexBelow(neighbor) if direction > 0
+                        else self.indexAbove(neighbor))
+        return neighbor
+
+    def _first_operable_root(self):
+        model = self.model()
+        if model is not None:
+            for row in range(model.rowCount()):
+                index = model.index(row, 0)
+                if self._is_operable_index(index):
+                    return index
+        return QModelIndex()
 
     def _claim_operating_target(self):
         """Only a *real user gesture* in Exp claims the operating column."""
@@ -235,16 +263,15 @@ class FilesExpWheelTree(QTreeView):
         # even if pointer warping is disabled (remote-desktop friendliness).
         hovered = self.indexAt(local)
         current = self.currentIndex()
-        target = (current if self._edge_follow_active and current.isValid()
-                  else hovered if hovered.isValid() else current)
-        if not target.isValid():
-            target = self.model().index(0, 0) if self.model() is not None else target
-        if not target.isValid():
+        target = (current if self._edge_follow_active and self._is_operable_index(current)
+                  else hovered if self._is_operable_index(hovered) else current)
+        if not self._is_operable_index(target):
+            target = self._first_operable_root()
+        if not self._is_operable_index(target):
             return
         new_index = target
         for _ in range(min(abs(movement), 5)):
-            neighbor = (self.indexBelow(new_index) if movement > 0
-                        else self.indexAbove(new_index))
+            neighbor = self._neighbor_operable(new_index, movement)
             if not neighbor.isValid():
                 break
             new_index = neighbor
@@ -321,7 +348,7 @@ class FilesExpWheelTree(QTreeView):
         local = viewport.mapFromGlobal(pointer)
         if viewport.rect().contains(local):
             item = self.indexAt(local)
-            if item.isValid() and item != self.currentIndex():
+            if self._is_operable_index(item) and item != self.currentIndex():
                 self.setCurrentIndex(item)
 
     def _follow_wheel_pointer(self):
@@ -531,7 +558,9 @@ class RemoteFilesExplorer(QWidget):
         # Narrower than the Qt default, but leave room for arrows and icons.
         self.tree.setIndentation(18)
         self.tree.setAnimated(True)
-        self.tree.setUniformRowHeights(True)
+        # The PC separator uses an intentionally taller row than regular folders.
+        # UniformRowHeights would silently IGNORE its QSizeHint.
+        self.tree.setUniformRowHeights(False)
         self.tree.setRootIsDecorated(True)
         self.tree.setItemsExpandable(True)
         self.tree.setExpandsOnDoubleClick(True)
@@ -672,9 +701,17 @@ class RemoteFilesExplorer(QWidget):
         item.setData(icon, _NORMAL_ICON_ROLE)
         item.setData(False, _LOADED_ROLE)
         identity = virtual_item_identity(node)
-        item.setToolTip('Launch JSON（仮想メニュー）/ ' + node['title'] + '\n' +
+        linked = node.get('kind') == 'linked_directory'
+        path = (node.get('row') or {}).get('launch_browse_target', '')
+        if linked and self._launcher is not None:
+            path = self._launcher.expander().expand(path)
+        item.setData({'virtual': node, 'pc': False, 'path': None,
+                      'linked_path': path if linked else None}, _DATA_ROLE)
+        item.setToolTip(('実パス: ' + str(path) + '\n' if linked else
+                         'Launch JSON（仮想メニュー）/ ' + node['title'] + '\n') +
                         '参照: ' + str(identity['node_id']))
-        if virtual_exp_folders(node):
+        if virtual_exp_folders(node) or (linked and os.path.isdir(path)
+                                          and bool(subdirectories(path))):
             item.appendRow(QStandardItem(''))
         parent.appendRow(item)
         return item
@@ -733,6 +770,97 @@ class RemoteFilesExplorer(QWidget):
             return True
         finally:
             self._syncing_directory = old_sync
+
+    def remote_select_mounted_directory(self, node, entry_path, target_path):
+        """Keep an authored JSON alias as the ONLY ancestor of its OS contents.
+
+        Never synchronize a mounted path through PC -> C: -> Users: this
+        would change the logical parent even when the physical path is valid.
+        """
+        import ntpath
+        from directory_entry_origin import within_entry
+        if not within_entry(target_path, entry_path):
+            return False
+        if not self.remote_select_virtual_node(node):
+            return False
+        relative = ntpath.relpath(target_path, entry_path)
+        if relative == '.':
+            return True
+        self._selection_timer.stop()
+        old_sync = self._syncing_directory
+        self._syncing_directory = True
+        try:
+            index = self.tree.currentIndex()
+            current_path = entry_path
+            for name in relative.split('\\'):
+                self._expand_index(index)
+                self.tree.expand(index)
+                parent = self.model.itemFromIndex(index)
+                current_path = ntpath.join(current_path, name)
+                expected = ntpath.normcase(ntpath.normpath(current_path))
+                found = next((child.index() for i in range(parent.rowCount())
+                              if (child := parent.child(i)) is not None
+                              and ntpath.normcase(ntpath.normpath(
+                                  str((child.data(_DATA_ROLE) or {}).get('path') or '')))
+                              == expected), None)
+                if found is None:
+                    return False
+                index = found
+            self.tree.setCurrentIndex(index)
+            self.tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
+            self._schedule_tree_state_save()
+            return True
+        finally:
+            self._syncing_directory = old_sync
+
+    def current_registered_root(self, directory=None):
+        """The *selected Exp branch* defines physical shortcuts' logical root.
+
+        Never infer this from the physical directory alone: another authored
+        shortcut may refer to the same folder, and a JSON mount elsewhere must
+        not become an accidental parent when changing operating roots.
+        """
+        from directory_entry_origin import within_entry
+        index = self.tree.currentIndex()
+        if not index.isValid():
+            return None
+        item = self.model.itemFromIndex(index)
+        if item is None:
+            return None
+        while item.parent() is not None and isinstance(
+                item.parent().data(_DATA_ROLE), dict):
+            item = item.parent()
+        data = item.data(_DATA_ROLE) or {}
+        if (data.get('pc') or data.get('direct_root') or data.get('virtual')
+                or not data.get('path')):
+            return None
+        root = str(data['path'])
+        if directory and not within_entry(directory, root):
+            return None
+        identity = data.get('studio_identity') or {}
+        return {'root_path': root,
+                'title': item.text(),
+                'root_id': str(identity.get('item_id') or root)}
+
+    def ensure_direct_root(self, path):
+        """Typed address creates one standalone logical filesystem root."""
+        import ntpath
+        root = ntpath.normcase(ntpath.normpath(str(path or '')))
+        if not root or not os.path.isdir(path):
+            return False
+        parent = self.model.invisibleRootItem()
+        for i in range(parent.rowCount() - 1, -1, -1):
+            item = parent.child(i)
+            data = item.data(_DATA_ROLE) if item is not None else None
+            if isinstance(data, dict) and data.get('direct_root'):
+                if ntpath.normcase(ntpath.normpath(data['path'])) == root:
+                    return True
+                parent.removeRow(i)
+        label = ntpath.basename(str(path).rstrip('\\')) or str(path)
+        item = self._append_folder(parent, label, path)
+        item.setData({**(item.data(_DATA_ROLE) or {}), 'direct_root': True}, _DATA_ROLE)
+        item.setToolTip('直接入力した起点（ここより上には戻りません）\n実パス: ' + str(path))
+        return True
 
     def _activate_virtual(self, index):
         item = self.model.itemFromIndex(index)
@@ -879,6 +1007,15 @@ class RemoteFilesExplorer(QWidget):
                 icon_key = source.get('icon_key', 'folder.yellow') if source else None
                 selected_icon = (launcher.row_icon({'icon_key': icon_key})
                                  if launcher is not None and icon_key else None)
+                if root['pc']:
+                    # The separator is a decorative model row, NOT a page,
+                    # folder or selectable navigation target. Unlike making
+                    # PC's row tall, this cannot put whitespace below PC.
+                    separator = QStandardItem('')
+                    separator.setFlags(Qt.ItemFlag.NoItemFlags)
+                    separator.setData({'separator_before_pc': True}, _DATA_ROLE)
+                    separator.setSizeHint(QSize(0, 19))
+                    parent.appendRow(separator)
                 self._append_folder(parent, root['label'], path, pc=root['pc'],
                                     authored_identity=identity,
                                     configured_icon=selected_icon,
@@ -1031,9 +1168,15 @@ class RemoteFilesExplorer(QWidget):
         branches; this method then selects the fresh first root.
         Suppress delayed selection callbacks so HOME cannot navigate twice.
         """
-        # The very first visible Exp root (including a virtual Launch page)
-        # is the new HOME destination. No hidden preference for PC.
+        # The first navigable Exp root is HOME; an optional decorative
+        # section break is not a real root, even if all Page rows are hidden.
         index = self.model.index(0, 0)
+        while index.isValid():
+            candidate = self.model.itemFromIndex(index)
+            metadata = candidate.data(_DATA_ROLE) if candidate is not None else None
+            if not (isinstance(metadata, dict) and metadata.get('separator_before_pc')):
+                break
+            index = self.model.index(index.row() + 1, 0)
         if not index.isValid():
             return None
         item = self.model.itemFromIndex(index)
@@ -1129,10 +1272,11 @@ class RemoteFilesExplorer(QWidget):
         index = tree.currentIndex()
         if not index.isValid():
             index = self.model.index(0, 0)
+            if not tree._is_operable_index(index):
+                index = tree._first_operable_root()
         else:
-            index = (tree.indexBelow(index) if direction > 0
-                     else tree.indexAbove(index))
-        if not index.isValid():
+            index = tree._neighbor_operable(index, direction)
+        if not tree._is_operable_index(index):
             return False
         tree.setCurrentIndex(index)  # currentChanged arms the delayed preview.
         tree.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible)
@@ -1288,7 +1432,8 @@ class RemoteFilesExplorer(QWidget):
             return
         self._activate_index(index)
 
-    def sync_current_directory(self, directory):
+    def sync_current_directory(self, directory, *, prefer_direct=False,
+                               preferred_root_id=None):
         """Reflect every Files breadcrumb transition in the visible tree.
 
         A programmatic selection must never emit folder_selected again; that
@@ -1303,7 +1448,9 @@ class RemoteFilesExplorer(QWidget):
         if self._index_path(self.tree.currentIndex()) is not None:
             existing = os.path.normcase(os.path.normpath(
                 self._index_path(self.tree.currentIndex())))
-            if existing == target:
+            if existing == target and (not preferred_root_id or
+                    (self.current_registered_root(directory) or {}).get('root_id')
+                    == str(preferred_root_id)):
                 return True
         self._selection_timer.stop()
         self.tree.clear_wheel_pending()
@@ -1326,7 +1473,12 @@ class RemoteFilesExplorer(QWidget):
             except ValueError:
                 continue
             if common == base_normal:
-                candidates.append((len(base_normal), index, base_normal))
+                identity = data.get('studio_identity') or {}
+                priority = (1000000 if prefer_direct and data.get('direct_root') else 0)
+                if (preferred_root_id and str(identity.get('item_id') or base)
+                        == str(preferred_root_id)):
+                    priority += 2000000
+                candidates.append((priority + len(base_normal), index, base_normal))
         candidate = max(candidates, key=lambda record: record[0]) if candidates else None
         self._syncing_directory = True
         try:
@@ -1628,7 +1780,8 @@ class RemoteFilesExplorer(QWidget):
         row = virtual.get('row') or {}
         if virtual.get('kind') == 'page' and not virtual.get('item_id'):
             entries = mime_sources(mime)
-            if not all(Path(e.get('value', '')).is_dir() for e in entries):
+            if not all(str(e.get('value', '')).lower().startswith(('http://', 'https://'))
+                       or Path(e.get('value', '')).is_dir() for e in entries):
                 return False
         elif row.get('item_kind') != 'category':
             return False
@@ -1655,9 +1808,10 @@ class RemoteFilesExplorer(QWidget):
         path = self._index_path(index)
         if path is None:
             point = self.tree.viewport().mapToGlobal(local_pos)
-            if not index.isValid():
-                # Blank Exp background is the JSON root, NOT the selected
-                # physical folder and NOT the current List directory.
+            if not index.isValid() or (isinstance(data, dict) and
+                                       data.get('separator_before_pc')):
+                # Decorative separator behaves like the Exp background for
+                # context actions; it never represents a filesystem folder.
                 self.root_context_requested.emit(point)
             elif self._is_pc_index(index):
                 # PC has no physical folder verbs, but ALL Exp contexts have
@@ -1692,7 +1846,13 @@ class RemoteFilesExplorer(QWidget):
         if virtual is not None:
             for child in virtual_exp_folders(virtual):
                 self._append_virtual(item, child)
-            item.removeRow(0)
+            if virtual.get('kind') == 'linked_directory':
+                path = data.get('linked_path')
+                if path and os.path.isdir(path):
+                    for label, child_path in subdirectories(path):
+                        self._append_folder(item, label, child_path)
+            if item.rowCount():
+                item.removeRow(0)  # Lazy placeholder; preserve generated children.
             return
         if data['pc']:
             children = [(row['title'], row['launch_browse_target'])
@@ -1730,6 +1890,15 @@ class RemoteFilesExplorer(QWidget):
         if info.get('virtual') is not None:
             node = info['virtual']
             return [root.text(), '<LAUNCH_JSON>', str(node['node_id'])]
+        # Mounted physical children need their own unique ancestry key even
+        # when the same real folder exists under several Launch JSON items.
+        cursor = item.parent()
+        while cursor is not None:
+            parent_data = cursor.data(_DATA_ROLE) or {}
+            if parent_data.get('virtual') is not None:
+                return [str(parent_data['virtual']['node_id']), '<LAUNCH_MOUNT>',
+                        os.path.normcase(os.path.normpath(str(info.get('path') or '')))]
+            cursor = cursor.parent()
         root_path = ('<PC>' if root_info.get('pc') else
                      os.path.normcase(os.path.normpath(str(root_info.get('path') or ''))))
         node_path = ('<PC>' if info.get('pc') else
@@ -1914,22 +2083,25 @@ class RemoteFilesExplorer(QWidget):
             remote.align_with_files_grid()
 
     def _show_layout_menu(self, position):
+        """The Files Exp *header*, never a Page, owns global Page creation."""
         launcher = self._launcher
         menu = (launcher._create_files_context_menu(self)
                 if launcher is not None else QMenu(self))
-        # Re-layout is for the floating experimental header only. In embedded
-        # mode this right-click still has the universal Exp -> List action.
+        if launcher is not None:
+            launcher._add_page_creation_menu_action(menu)
+        # Re-layout remains a floating-header-only feature.
         if not self._embedded and getattr(launcher, 'files_root_hidden_mode', False):
+            menu.addSeparator()
             reset = menu.addAction('Launchのグリッド位置・高さに再整列')
             reset.setEnabled(self._manual_position or self._manual_height)
             reset.triggered.connect(lambda checked=False: self.reset_grid_layout())
-        # Even the detached Exp header uses the SAME navigation and wheel
-        # adapter as Exp's rows and root background. Never use QMenu.exec()
-        # with a non-grabbing hybrid Tool menu.
+        # Use the same popup lifecycle, navigation and ぐりぐり wheel adapter
+        # as the Exp rows. Both header and title right-click reach here.
         if launcher is not None:
-            launcher._wire_hybrid_context_menu(menu, column='exp')
-        menu.aboutToHide.connect(menu.deleteLater)
-        menu.popup(position)
+            launcher._show_launch_json_context_popup(menu, position, column='exp')
+        else:
+            menu.aboutToHide.connect(menu.deleteLater)
+            menu.popup(position)
 
     def _save_size(self):
         if (self._settings is not None and not self._restoring_size

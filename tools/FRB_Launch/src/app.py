@@ -44,6 +44,7 @@ from view_navigation_history import ViewNavigationHistory
 from browser_nav_icons import browser_navigation_icon
 from webview_routes import bookmark_web_url
 from registered_url_route import registered_embedded_url
+from launch_url_dialog import LaunchURLRegistrationDialog
 from webview_settings import read_webview_settings
 from search_history import SearchHistory, normalize_keyword
 from session_search_history import SessionSearchHistory, SESSION_HISTORY
@@ -65,16 +66,18 @@ from page_tab_theme import PAGE_TABS_QSS
 from launch_appearance import (normalize_theme, theme_palette, theme_family, available_themes,
     context_menu_spacing_qss, history_popup_qss, LIGHT_MAIN_QSS, LIGHT_TABS_QSS,
     LIGHT_HISTORY_QSS, LIGHT_MENU_QSS, LIGHT_CASCADE_TREE_QSS,
-    LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss, CONTEXT_MENU_SPACING_QSS)
+    LIGHT_COLUMN_FILTER_QSS, FRAME_COLORS, light_scrollbar_qss, CONTEXT_MENU_SPACING_QSS, SIMPLE_EDIT_FIELD_QSS)
 from page_tab_focus import FocusPageTabBar
 from page_presentation import page_display_title
 from combo_chevron_icon import combo_chevron_icon
+from hybrid_combo_box import FRBHybridComboBox
 from menu_display import cascade_label
 from cascade_properties import authored_cascade_row
 from clipboard_paste import clipboard_sources, is_cut_clipboard, make_paste_plan, paste_items, paste_conflicts
 from virtual_clipboard_paste import is_virtual_file_clipboard, virtual_clipboard_names, preflight_virtual_destination, paste_virtual_shell_items
 from launch_virtual_tree import virtual_execution_row, virtual_bookmark_execution_row, virtual_lookup_node, virtual_studio_target
 from registered_folder_route import embedded_folder_target
+from launch_page_registration import commit_page_operation, page_operation_plan
 from launch_menu_registration import (RegistrationError, category_record, commit_add,
     prepare_delete, prepare_delete_many, commit_delete, read_item_for_edit, prepare_update, commit_update,
     prepare_move, commit_move,
@@ -4031,7 +4034,12 @@ class Launcher(QWidget):
             return False
         if view._workspace_mode != 'files':
             view.show_files_view()
-        return bool(view.go_to_directory(directory, preserve_remote_popup=True))
+        panel = self._current_remote_files_exp()
+        registered_root = (panel.current_registered_root(directory)
+                           if panel is not None else None)
+        return bool(view.go_to_directory(
+            directory, preserve_remote_popup=True,
+            registered_root=registered_root))
 
     def show_files_exp_folder_menu(self, directory, position):
         """The existing Remote blank-strip menu, bound to the chosen folder.
@@ -4290,12 +4298,28 @@ class Launcher(QWidget):
             and ntpath.normcase(ntpath.normpath(previous))
             != ntpath.normcase(ntpath.normpath(current)))
         panel = getattr(getattr(self, 'remote_window', None), 'files_exp_panel', None)
-        if panel is not None and panel.isVisible():
-            panel.sync_current_directory(directory)
+        view = getattr(self, 'expanded_view', None)
+        origin = getattr(view, '_filesystem_entry_origin', None)
+        direct_root = getattr(view, '_direct_entry_root', None)
+        registered_root = getattr(view, '_registered_root_origin', None)
+        def align(exp_panel):
+            if exp_panel is None or not exp_panel.isVisible():
+                return
+            if origin and directory:
+                exp_panel.remote_select_mounted_directory(
+                    origin['node'], origin['entry_path'], directory)
+            elif direct_root and directory:
+                exp_panel.ensure_direct_root(direct_root)
+                exp_panel.sync_current_directory(directory, prefer_direct=True)
+            elif registered_root and directory:
+                exp_panel.sync_current_directory(
+                    directory, preferred_root_id=registered_root['root_id'])
+            else:
+                exp_panel.sync_current_directory(directory)
+        align(panel)
         embedded = getattr(getattr(self, 'expanded_view', None),
                            'embedded_files_exp', None)
-        if embedded is not None and embedded.isVisible():
-            embedded.sync_current_directory(directory)
+        align(embedded)
         if ascending_one_level:
             for exp_panel in (panel, embedded):
                 if exp_panel is not None and exp_panel.isVisible():
@@ -5953,6 +5977,42 @@ class Launcher(QWidget):
             self.error('Launchメニュー登録失敗: ' + str(exc))
             return False
 
+    def launch_url_add_action(self, page_id=None, parent_id=''):
+        """URL form for authored Page/category targets in either Files column."""
+        chosen_page = str(page_id) if page_id else self._registration_page()
+        if not chosen_page:
+            return False
+        try:
+            eligible_parent({'pages': self.pages, 'items': self.authored_items},
+                            chosen_page, str(parent_id or ''))
+        except RegistrationError as exc:
+            self.error('URL登録失敗: ' + str(exc))
+            return False
+
+        def current_browser_url():
+            view = getattr(self, 'expanded_view', None)
+            browser = getattr(view, 'web_view', None)
+            if browser is None or not hasattr(browser, 'current_url_for_favorite'):
+                return ''
+            return browser.current_url_for_favorite()
+
+        dialog = LaunchURLRegistrationDialog(
+            self, current_browser_url=current_browser_url,
+            field_qss=SIMPLE_EDIT_FIELD_QSS)
+        # The common dialog runner calls deleteLater() on close. Capture the
+        # validated record *before* that lifecycle boundary (same pattern as
+        # ask_launch_text), not from a possibly deleted QWidget afterwards.
+        state = {'record': None}
+        dialog.accepted.connect(
+            lambda: state.update(record=dialog.registration_record))
+        if not self.run_launch_button_dialog(dialog, dialog.buttons, dialog.url_input):
+            return False
+        record = state['record']
+        if record is None:
+            return False
+        return self._registration_commit(chosen_page, str(parent_id or ''),
+                                         [record])
+
     def _add_registration_menu_actions(self, menu, page_id=None, parent_id='', *,
                                        allow_file=True, allow_category=True):
         commands = ([('category', 'カテゴリーフォルダーを作成...')]
@@ -5960,15 +6020,22 @@ class Launcher(QWidget):
         commands.append(('directory', '既存フォルダーを登録...'))
         if allow_file:
             commands.append(('file', '既存ファイルを登録...'))
+            commands.append(('url', 'URLを追加...'))
         for kind, title in commands:
             action = menu.addAction(title)
             action.setIcon(context_action_icon(
                 'new_category' if kind == 'category' else
-                'open_explorer' if kind == 'directory' else 'new_file'))
+                'open_explorer' if kind == 'directory' else
+                'new_file' if kind == 'file' else 'copy_cloud_link'))
             action.setIconVisibleInMenu(True)
-            action.triggered.connect(
-                lambda checked=False, k=kind, pg=page_id, par=parent_id:
-                QTimer.singleShot(0, lambda: self.launch_register_action(k, pg, par)))
+            if kind == 'url':
+                action.triggered.connect(
+                    lambda checked=False, pg=page_id, par=parent_id:
+                    QTimer.singleShot(0, lambda: self.launch_url_add_action(pg, par)))
+            else:
+                action.triggered.connect(
+                    lambda checked=False, k=kind, pg=page_id, par=parent_id:
+                    QTimer.singleShot(0, lambda: self.launch_register_action(k, pg, par)))
 
     def _files_exp_root_registration_target(self):
         """Use the actual Files Exp JSON anchor, independent of current Page."""
@@ -5987,6 +6054,93 @@ class Launcher(QWidget):
         menu = self._create_files_context_menu(self)
         self._show_launch_json_context_popup(menu, point, column=column)
         return True
+
+
+    def _commit_page_action(self, action, **kwargs):
+        """One approved Studio Page changeset, shared by root and Page menus."""
+        try:
+            root = studio_core_root(LAUNCH_HOME, self.expander().values.get('studio_root', ''))
+            result = commit_page_operation(CONFIG, root, action, **kwargs)
+            if result is None:
+                return True
+            self.reload(force=True)
+            self.info_notice({'add': 'Pageを追加しました。',
+                              'update': 'Pageを簡易編集しました。',
+                              'delete': 'Pageの登録を解除しました。'}[action])
+            return True
+        except (RegistrationError, OSError, ValueError) as exc:
+            self.error('Page操作失敗: ' + str(exc))
+            return False
+
+    def launch_page_add_action(self):
+        name, ok = self.ask_launch_text('Pageを追加', 'Page名:')
+        return self._commit_page_action('add', title=name) if ok else False
+
+    def launch_page_simple_edit_action(self, page_id):
+        page = next((p for p in self.pages if p.get('page_id') == page_id), None)
+        if not page:
+            self.error('Page簡易編集失敗: Pageが見つかりません。')
+            return False
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Pageの簡易編集')
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel('Pageアイコン', dialog))
+        combo = FRBHybridComboBox(dialog, launcher=self)
+        from page_presentation import PAGE_ICONS
+        current = str(page.get('icon_key') or 'なし')
+        for key in dict.fromkeys((current, *PAGE_ICONS)):
+            combo.addItem(key, key)
+        combo.setCurrentIndex(max(0, combo.findData(current)))
+        layout.addWidget(combo)
+        layout.addWidget(QLabel('Page名', dialog))
+        title = QLineEdit(str(page.get('title') or ''), dialog)
+        title.setStyleSheet(SIMPLE_EDIT_FIELD_QSS)
+        layout.addWidget(title)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText('保存')
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText('キャンセル')
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        dialog.setMinimumWidth(380)
+        if not self.run_launch_button_dialog(dialog, buttons, title):
+            return False
+        return self._commit_page_action('update', page_id=page_id,
+                                        title=title.text(), icon_key=combo.currentData())
+
+    def launch_page_unregister_action(self, page_id):
+        try:
+            plan = page_operation_plan(CONFIG, 'delete', page_id=page_id)
+            if plan is None:
+                return True
+            page = next(p for p in self.pages if p.get('page_id') == page_id)
+        except (RegistrationError, OSError, ValueError, StopIteration) as exc:
+            self.error('Page登録解除失敗: ' + str(exc))
+            return False
+        from html import escape as escape_html
+        answer = self.ask_remote_confirmation(
+            'Pageの登録解除',
+            f'<p>Page「<b>{escape_html(str(page.get("title") or page_id))}</b>」を'
+            '設定JSONから登録解除しますか？</p>'
+            '<p>実ファイル・実フォルダーには影響しません。</p>',
+            yes_text='登録解除', no_text='キャンセル', rich_text=True)
+        if answer != QMessageBox.StandardButton.Yes:
+            return False
+        return self._commit_page_action('delete', page_id=page_id)
+
+    def _add_page_creation_menu_action(self, menu):
+        """Page creation belongs solely to the Files Exp title header.
+
+        Never attach this action to a Page row, category or blank root.
+        """
+        page_add = menu.addAction('Pageを追加...')
+        page_add.setIcon(context_action_icon('new_category'))
+        page_add.setIconVisibleInMenu(True)
+        page_add.triggered.connect(
+            lambda checked=False: QTimer.singleShot(0, self.launch_page_add_action))
+        return page_add
 
     def show_launch_root_registration_menu(self, point):
         """Files Exp's empty ROOT is not a physical folder or a virtual leaf."""
@@ -6113,7 +6267,9 @@ class Launcher(QWidget):
         layout = QVBoxLayout(dialog)
         layout.addWidget(QLabel('アイコン・タイトル・説明だけを編集します。パスは変更しません。', dialog))
         layout.addWidget(QLabel('アイコン', dialog))
-        icon_box = QComboBox(dialog)
+        # FRB WAN Hybrid belongs to the combo object itself; the dialog only
+        # provides the data, never a per-dialog wheel adapter.
+        icon_box = FRBHybridComboBox(dialog, launcher=self)
         current_icon = str(row.get('icon_key') or '')
         # Display the same vocabulary and QIcons used by the main Launch tree.
         choices = list(dict.fromkeys([current_icon, *FOLDER_ICON_COLORS, *STUDIO_EMOJI_ICONS]))
@@ -6126,18 +6282,16 @@ class Launcher(QWidget):
         layout.addWidget(icon_box)
         layout.addWidget(QLabel('タイトル', dialog))
         title_editor = QLineEdit(str(row.get('title') or ''), dialog)
-        # One border/radius/padding contract for both editable text fields.
-        # The icon ComboBox keeps its own native popup and wheel behavior.
-        text_field_style = (
-            'QLineEdit, QPlainTextEdit { background-color: #ffffff; color: #25362d; '
-            'border: 1px solid #b9cbc1; border-radius: 5px; padding: 4px; }'
-            'QLineEdit:focus, QPlainTextEdit:focus { border-color: #48a27b; }')
-        title_editor.setStyleSheet(text_field_style)
+        # Same QSS contract for the title (line edit) and the description
+        # (plain-text scroll area), independent of global widget defaults.
+        title_editor.setObjectName('launchSimpleTitle')
+        title_editor.setStyleSheet(SIMPLE_EDIT_FIELD_QSS)
         layout.addWidget(title_editor)
         layout.addWidget(QLabel('説明', dialog))
         description_editor = QPlainTextEdit(dialog)
+        description_editor.setObjectName('launchSimpleDescription')
         description_editor.setPlainText(str(row.get('description') or ''))
-        description_editor.setStyleSheet(text_field_style)
+        description_editor.setStyleSheet(SIMPLE_EDIT_FIELD_QSS)
         description_editor.setFixedHeight(90)
         layout.addWidget(description_editor)
         buttons = QDialogButtonBox(
@@ -6274,8 +6428,14 @@ class Launcher(QWidget):
             if is_category:
                 self._add_registration_menu_actions(
                     menu, target['page_id'], target.get('item_id', ''),
-                    allow_file=target['kind'] != 'page')
+                    allow_file=True)  # Page root files appear in List, never Exp.
                 menu.addSeparator()
+            if target['kind'] == 'page':
+                simple_page = menu.addAction('簡易編集...')
+                simple_page.setIcon(context_action_icon('rename'))
+                simple_page.triggered.connect(
+                    lambda checked=False, pg=target['page_id']:
+                    QTimer.singleShot(0, lambda: self.launch_page_simple_edit_action(pg)))
             if target['kind'] == 'item' and len(selected_unregister) <= 1:
                 simple = menu.addAction('簡易編集...')
                 simple.setIcon(context_action_icon('rename'))
@@ -6303,6 +6463,13 @@ class Launcher(QWidget):
                 QApplication.clipboard().setText(json.dumps(
                     virtual_item_identity(identity), ensure_ascii=False))
         reference.triggered.connect(copy_identity)
+        if target is not None and target['kind'] == 'page' and target['page_id'] != 'system':
+            menu.addSeparator()
+            page_unregister = menu.addAction('登録解除...')
+            page_unregister.setIcon(context_action_icon('delete'))
+            page_unregister.triggered.connect(
+                lambda checked=False, pg=target['page_id']:
+                QTimer.singleShot(0, lambda: self.launch_page_unregister_action(pg)))
         if target is not None and target['kind'] == 'item':
             menu.addSeparator()
             if (target['page_id'], target['item_id']) != (
@@ -6410,12 +6577,22 @@ class Launcher(QWidget):
         # folder must not trap the Remote in Files List.
         if first is not None and tree.currentItem() is not first:
             return False
-        virtual_folder = getattr(view, '_virtual_directory_node', None)
-        if virtual_folder is not None:
-            aligned = panel.remote_select_virtual_node(virtual_folder)
+        origin = getattr(view, '_filesystem_entry_origin', None)
+        directory = view.current_directory()
+        if origin is not None and directory:
+            aligned = panel.remote_select_mounted_directory(
+                origin['node'], origin['entry_path'], directory)
+        elif getattr(view, '_direct_entry_root', None) and directory:
+            panel.ensure_direct_root(view._direct_entry_root)
+            aligned = panel.sync_current_directory(directory, prefer_direct=True)
+        elif getattr(view, '_registered_root_origin', None) and directory:
+            aligned = panel.sync_current_directory(
+                directory, preferred_root_id=view._registered_root_origin['root_id'])
         else:
-            directory = view.current_directory()
-            if directory:
+            virtual_folder = getattr(view, '_virtual_directory_node', None)
+            if virtual_folder is not None:
+                aligned = panel.remote_select_virtual_node(virtual_folder)
+            elif directory:
                 aligned = panel.sync_current_directory(directory)
             else:
                 # パンくずが「PC」の場合は、枝を閉じずにPC行だけを選択する。
@@ -8117,7 +8294,7 @@ class Launcher(QWidget):
         dialog.setWindowTitle(str(title))
         layout = QVBoxLayout(dialog)
         layout.addWidget(QLabel(str(label), dialog))
-        chooser = QComboBox(dialog)
+        chooser = FRBHybridComboBox(dialog, launcher=self)
         chooser.addItems(list(choices))
         if chooser.count():
             chooser.setCurrentIndex(max(0, min(int(current), chooser.count() - 1)))

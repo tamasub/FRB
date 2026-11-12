@@ -33,7 +33,8 @@
       "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
       "sort_order": 40,
       "title": "💟 testwk",
-      "enabled": true
+      "enabled": true,
+      "icon_key": "なし"
     },
     {
       "page_id": "system",
@@ -2503,7 +2504,7 @@
       "parent_item_id": "",
       "item_id": "5c57e0a1-18c0-4e1c-b527-ff513f46670d",
       "title": "hatena ブログ",
-      "description": "tamasubのページ",
+      "description": "作者(tamasub)のページ",
       "item_kind": "command",
       "icon_key": "category.blue",
       "sort_order": 80,
@@ -2541,7 +2542,7 @@
       "parent_item_id": "",
       "item_id": "eeccaa38-c00c-4f7b-80ac-298eda6ed4dd",
       "title": "note ブログ",
-      "description": "tamasubのページ",
+      "description": "作者(tamasub)のページ",
       "item_kind": "command",
       "icon_key": "category.blue",
       "sort_order": 90,
@@ -2681,7 +2682,7 @@
       "parent_item_id": "",
       "item_id": "0fdd6bb8-bbdc-4166-983d-fed4eaddbcff",
       "title": "Qiita ブログ",
-      "description": "tamasubのページ",
+      "description": "作者(tamasub)のページ",
       "item_kind": "command",
       "icon_key": "category.blue",
       "sort_order": 10,
@@ -3592,6 +3593,240 @@
       "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
       "item_id": "dc49c10c-98a0-4c3d-b4bf-7014f5bde1a1",
       "sort_order": 10
+    },
+    {
+      "title": "サウンド レコーディング",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\サウンド レコーディング",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\サウンド レコーディング",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\サウンド レコーディング",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "cff9d04c-6bcf-454c-9096-5b705e0e1cda",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "a617f03f-7262-4274-9ff7-b25d2cce571b",
+      "sort_order": 140
+    },
+    {
+      "title": "ShareX",
+      "description": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\ShareX",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\ShareX",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "C:\\Users\\tsub-\\OneDrive\\ドキュメント\\ShareX",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "c505af88-cda6-4a06-8181-b65c5b3622ac",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "97e1c47c-1543-4a25-8bfd-cb619007fd5e",
+      "sort_order": 50
+    },
+    {
+      "title": "qiita.com/tamasub/items/4e1f729c1a30ada07730",
+      "description": "https://qiita.com/tamasub/items/4e1f729c1a30ada07730",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/4e1f729c1a30ada07730",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "9e9ad4f6-20ee-4935-bb81-0d6f00eb15dc",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "2f1698dc-ff10-4ea0-997f-044486f16018",
+      "sort_order": 20
+    },
+    {
+      "title": "qiita.com/tamasub/items/4e1f729c1a30ada07730",
+      "description": "https://qiita.com/tamasub/items/4e1f729c1a30ada07730",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/4e1f729c1a30ada07730",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "9e9ad4f6-20ee-4935-bb81-0d6f00eb15dc",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "ee56d41b-d063-4e68-a6e3-40f6500576e2",
+      "sort_order": 30
+    },
+    {
+      "title": "釣り竿の「感度」を数値化する話 - FRB（Fishing Rod Benchmark）宣言 #ベンチマーク - Qiita",
+      "description": "https://qiita.com/tamasub/items/2b6649748e1772b7eec1",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/2b6649748e1772b7eec1",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "e1df2be4-cc90-4297-98bb-6b5ab18c5d18",
+      "sort_order": 90
+    },
+    {
+      "title": "釣り竿の「感度」を数値化する話 - FRB #10 割りばしカーボングリップ - 制御 #ESP32 - Qiita",
+      "description": "https://qiita.com/tamasub/items/449d4276327282231a2c",
+      "item_kind": "command",
+      "icon_key": "globe",
+      "enabled": true,
+      "launch_browse_target": "",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "https://qiita.com/tamasub/items/449d4276327282231a2c",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "f582b998-0dee-4e21-bc9e-54e937850abb",
+      "item_id": "83a79e8a-abec-4257-8554-0607179146dd",
+      "sort_order": 80
+    },
+    {
+      "title": "FRB",
+      "description": "F:\\FRB",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "F:\\FRB",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "frb",
+      "item_id": "f1031a3a-153b-4f84-bd16-677d57cec94c",
+      "sort_order": 30
+    },
+    {
+      "title": "FRB_docsExcel",
+      "description": "F:\\FRB_docsExcel",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "F:\\FRB_docsExcel",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB_docsExcel",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "frb",
+      "item_id": "c37e9d3c-af55-403c-be49-764de82d7b2f",
+      "sort_order": 40
+    },
+    {
+      "title": "FRB_backups",
+      "description": "F:\\FRB_backups",
+      "item_kind": "directory",
+      "icon_key": "folder.yellow",
+      "enabled": true,
+      "launch_browse_target": "F:\\FRB_backups",
+      "launch_actions": [
+        {
+          "launch_action_type": "Open",
+          "launch_target": "F:\\FRB_backups",
+          "launch_program": "",
+          "launch_arguments": [],
+          "launch_working_directory": "",
+          "launch_wait_for_exit": false,
+          "launch_timeout_ms": 30000,
+          "launch_failure_policy": "stop",
+          "launch_result_name": "",
+          "launch_result_format": "none"
+        }
+      ],
+      "parent_item_id": "",
+      "page_id": "frb",
+      "item_id": "67d5cc85-6f79-42c8-bcc9-cd8ba16a02fc",
+      "sort_order": 50
     }
   ],
   "launch_variables": [

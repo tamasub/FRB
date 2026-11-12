@@ -886,10 +886,12 @@ class _BreadcrumbSurface(QFrame):
 
 class DirectoryAddressBar(QStackedWidget):
     """Explorer-like clickable ancestors ↔ selected editable absolute path."""
-    def __init__(self, navigate, parent=None):
+    def __init__(self, navigate, parent=None, navigate_logical=None):
         super().__init__(parent)
         self.setObjectName('directoryAddressBar')
         self.navigate = navigate
+        self.navigate_logical = navigate_logical
+        self._logical_mode = False
         self.current_path = ''
         self._segments = []
         self._scheduled = False
@@ -981,6 +983,7 @@ class DirectoryAddressBar(QStackedWidget):
         return QSize(75, 31)
 
     def set_directory(self, path, label=''):
+        self._logical_mode = False
         self.current_path = normalized_directory(path) or ''
         self._segments = breadcrumb_segments(self.current_path)
         self._fallback_label = label or 'フォルダーを選択'
@@ -989,6 +992,30 @@ class DirectoryAddressBar(QStackedWidget):
         self._build_crumbs()
         self._update_apply_visibility()
         self.setToolTip(self.current_path or self._fallback_label)
+
+    def set_logical_directory(self, segments, *, physical_path=None):
+        """A single breadcrumb surface for JSON, mounted, and direct roots.
+
+        Targets are ('virtual', page_id, item_id) or ('physical', path).
+        The real location is preserved in the tooltip and edit field.
+        """
+        self._logical_mode = True
+        self.current_path = normalized_directory(physical_path) or ''
+        self._segments = list(segments)
+        self._fallback_label = 'フォルダーを選択'
+        if self.currentWidget() is self.editor:
+            self.show_breadcrumbs()
+        self._build_crumbs()
+        self._update_apply_visibility()
+        self.setToolTip(('実パス: ' + self.current_path) if self.current_path
+                        else 'Launch: ' + ' › '.join(label for label, _ in segments))
+
+    def _go_to_crumb(self, target):
+        if isinstance(target, tuple) and len(target) > 0:
+            if self.navigate_logical is not None:
+                return self.navigate_logical(target)
+            return False
+        return self.navigate(target)
 
     def begin_edit(self):
         self.editor.setText(self.current_path)
@@ -1038,8 +1065,9 @@ class DirectoryAddressBar(QStackedWidget):
         menu = QMenu(button)
         for label, directory in entries:
             action = menu.addAction(label)
-            action.setToolTip(directory)
-            action.triggered.connect(lambda checked=False, p=directory: self.navigate(p))
+            action.setToolTip(str(directory[1]) if isinstance(directory, tuple)
+                              and len(directory) > 1 else str(directory))
+            action.triggered.connect(lambda checked=False, p=directory: self._go_to_crumb(p))
         menu.exec(button.mapToGlobal(QPoint(0, button.height())))
 
     def _build_crumbs(self):
@@ -1083,14 +1111,21 @@ class DirectoryAddressBar(QStackedWidget):
                 segment.setObjectName('addressCrumb')
                 segment.setText(label)
                 segment.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                segment.setToolTip(path)
-                if path == self.current_path:
+                segment.setToolTip(
+                    ('実パス: ' + str(path[1]) if path[0] == 'physical' else
+                     'Launch JSON: ' + label +
+                     ('\n実パス: ' + self.current_path
+                      if self.current_path and (label, path) == self._segments[-1] else ''))
+                    if isinstance(path, tuple) else str(path))
+                current_real = (self._logical_mode and bool(self.current_path)
+                                and (label, path) == self._segments[-1])
+                if (not self._logical_mode and path == self.current_path) or current_real:
                     # Current folder is already open: clicking it edits the path.
                     # This guarantees an editable hit target even when no blank
                     # header space survives in a narrow middle panel.
                     segment.clicked.connect(self.begin_edit)
                 else:
-                    segment.clicked.connect(lambda checked=False, p=path: self.navigate(p))
+                    segment.clicked.connect(lambda checked=False, p=path: self._go_to_crumb(p))
             self.crumb_layout.addWidget(segment)
         self.crumb_layout.addStretch()
 
@@ -1486,7 +1521,9 @@ class ExpandedLauncherView(QWidget):
         # Files header magnifier removed by request; do not remove the search
         # engine, the Files List filter, or the history keyboard routes.
         self.files_history_button.hide()
-        self.address_bar = DirectoryAddressBar(self.go_to_directory, self.shared_header)
+        self.address_bar = DirectoryAddressBar(
+            lambda path: self.go_to_directory(path, direct_anchor=True),
+            self.shared_header, navigate_logical=self.navigate_logical_crumb)
         shared_layout.addWidget(self.address_bar, 1)
         # Move the existing three-lines/density action to the breadcrumb's
         # right end. Its QAction/callback and row-density setting are unchanged.
@@ -1561,6 +1598,9 @@ class ExpandedLauncherView(QWidget):
         # Launch JSON projection is a *virtual* current directory. Its files
         # are shown in the same List widget, never passed to OS path actions.
         self._virtual_directory_node = None
+        self._filesystem_entry_origin = None
+        self._direct_entry_root = None
+        self._registered_root_origin = None
         self._virtual_sort_custom = False
         self.middle.virtual_details_columns = False
         self._middle_header_virtual = False
@@ -2774,6 +2814,90 @@ class ExpandedLauncherView(QWidget):
         if callable(update_count):
             update_count(tree.topLevelItemCount())
 
+    def _virtual_breadcrumb_segments(self, node):
+        """The visible Launch path is made of clickable JSON identities."""
+        labels = tuple(node.get('breadcrumbs') or (node['title'],))
+        lineage = tuple(node.get('lineage') or (node['node_id'],))
+        page_id = str(node['page_id'])
+        result = []
+        for title, node_id in zip(labels, lineage):
+            item_id = (node_id[len('item:' + page_id + ':'):]
+                       if node_id.startswith('item:' + page_id + ':') else '')
+            result.append((title, ('virtual', page_id, item_id)))
+        return result
+
+    def _registered_root_from_row(self, row):
+        """An authored Files shortcut is a *logical* root, not drive ancestry.
+
+        Unlike an OS path inferred from the selected file, its title belongs to
+        the user's Launch configuration. Identity and label must survive List
+        traversal, Back and Up even if the filesystem is nested many levels.
+        """
+        if not isinstance(row, dict) or row.get('item_kind') != 'directory':
+            return None
+        raw = row.get('launch_browse_target')
+        if not isinstance(raw, str) or not raw.strip():
+            return None
+        root = self.launcher.expander().expand(raw)
+        if not root:
+            return None
+        return {'root_path': root,
+                'title': str(row.get('title') or root),
+                'root_id': str(row.get('item_id') or root)}
+
+    def _physical_breadcrumb_segments(self, path):
+        """Physical descendants attach below their Launch mounting point."""
+        import ntpath
+        from directory_entry_origin import within_entry
+        origin = getattr(self, '_filesystem_entry_origin', None)
+        if origin and within_entry(path, origin['entry_path']):
+            result = self._virtual_breadcrumb_segments(origin['node'])
+            root = origin['entry_path']
+        else:
+            registered = getattr(self, '_registered_root_origin', None)
+            if registered and within_entry(path, registered['root_path']):
+                root = registered['root_path']
+                result = [(registered['title'], ('physical', root))]
+            else:
+                root = getattr(self, '_direct_entry_root', None)
+                if not root or not within_entry(path, root):
+                    return None
+                result = [(ntpath.basename(root.rstrip('\\')) or root,
+                           ('physical', root))]
+        relative = ntpath.relpath(path, root)
+        current = root
+        if relative != '.':
+            for name in relative.split('\\'):
+                current = ntpath.join(current, name)
+                result.append((name, ('physical', current)))
+        return result
+
+    def navigate_logical_crumb(self, target):
+        """One navigation contract for JSON crumbs and mounted descendants."""
+        if not isinstance(target, tuple) or not target:
+            return False
+        if target[0] == 'physical' and len(target) == 2:
+            return self.go_to_directory(target[1])
+        if target[0] == 'virtual' and len(target) == 3:
+            node = virtual_lookup_node(self.launcher.pages,
+                self.launcher.authored_items, target[1], target[2],
+                (self.launcher.data or {}).get('items', ()))
+            return self.show_virtual_launch_directory(node) if node else False
+        return False
+
+    def _record_directory_location(self):
+        if self._restoring_directory_history:
+            return
+        root = self.left.tree.currentItem()
+        row = self.row_data(root) if root is not None else None
+        self.directory_history.record(
+            self.current_directory(), self.path,
+            row.get('item_id') if row else None,
+            virtual_node=getattr(self, '_virtual_directory_node', None),
+            entry_origin=getattr(self, '_filesystem_entry_origin', None),
+            direct_root=getattr(self, '_direct_entry_root', None),
+            registered_root=getattr(self, '_registered_root_origin', None))
+
     def refresh_middle(self):
         self._middle_back_hold.reset()
         self._middle_back_warp_pending = None
@@ -2783,8 +2907,8 @@ class ExpandedLauncherView(QWidget):
             # This is a *display* breadcrumb, not an editable OS pathname.
             self.middle.tree.header().setSortIndicatorShown(False)
             self.middle.label.setText(virtual['title'])
-            self.address_bar.set_directory(None, ' › '.join(
-                virtual.get('breadcrumbs') or (virtual['title'],)))
+            self.address_bar.set_logical_directory(
+                self._virtual_breadcrumb_segments(virtual))
             self.middle.back.setEnabled(True)
             location = virtual['node_id']
             if location != self._middle_query_directory:
@@ -2799,6 +2923,7 @@ class ExpandedLauncherView(QWidget):
                 self._update_middle_header_sort()
             self._fill_middle_from_current()
             self.update_directory_favorite_button()
+            self._record_directory_location()
             self.launcher._nav_update_buttons()
             return
         header_getter = getattr(self.middle.tree, 'header', None)
@@ -2806,9 +2931,15 @@ class ExpandedLauncherView(QWidget):
             header_getter().setSortIndicatorShown(True)
         current = self.path[-1] if self.path else None
         self.middle.label.setText(current['title'] if current else 'フォルダーを選択')
-        self.address_bar.set_directory(
-            row_directory(current, self.launcher.expander().expand),
-            current['title'] if current else '')
+        physical = row_directory(current, self.launcher.expander().expand)
+        logical_crumbs = (self._physical_breadcrumb_segments(physical)
+                          if physical else None)
+        if logical_crumbs is not None:
+            self.address_bar.set_logical_directory(
+                logical_crumbs, physical_path=physical)
+        else:
+            self.address_bar.set_directory(physical,
+                current['title'] if current else '')
         self.middle.back.setEnabled(bool(self.path))
         # Search is scoped to ONE displayed directory. A folder transition
         # must not unexpectedly leave the new folder blank due to old filters.
@@ -2834,12 +2965,7 @@ class ExpandedLauncherView(QWidget):
         # Record only completed folder transitions, regardless of origin:
         # Files first column, folder contents, breadcrumbs, favorites, Up.
         # The history model deduplicates F5/re-render of the same destination.
-        if not self._restoring_directory_history:
-            root = self.left.tree.currentItem()
-            row = self.row_data(root) if root is not None else None
-            self.directory_history.record(
-                self.current_directory(), self.path,
-                row.get('item_id') if row else None)
+        self._record_directory_location()
         self.launcher._nav_update_buttons()
         changed = getattr(self.launcher, 'on_files_directory_changed', None)
         if callable(changed):
@@ -2851,6 +2977,10 @@ class ExpandedLauncherView(QWidget):
         self._restoring_directory_history = True
         try:
             self.path = list(entry['rows'])
+            self._virtual_directory_node = entry.get('virtual_node')
+            self._filesystem_entry_origin = entry.get('entry_origin')
+            self._direct_entry_root = entry.get('direct_root')
+            self._registered_root_origin = entry.get('registered_root')
             if entry['root_id'] is not None:
                 for index in range(self.left.tree.topLevelItemCount()):
                     candidate = self.left.tree.topLevelItem(index)
@@ -2859,6 +2989,13 @@ class ExpandedLauncherView(QWidget):
                         self.left.tree.setCurrentItem(candidate)
                         break
             self.refresh_middle()
+            current_virtual = self._virtual_directory_node
+            if current_virtual is not None:
+                for panel in (getattr(self, 'embedded_files_exp', None),
+                              getattr(getattr(self.launcher, 'remote_window', None),
+                                      'files_exp_panel', None)):
+                    if panel is not None and panel.isVisible():
+                        panel.remote_select_virtual_node(current_virtual)
             self.focus_panel(self.middle)
         finally:
             self._restoring_directory_history = False
@@ -3048,7 +3185,7 @@ class ExpandedLauncherView(QWidget):
                 self.hide_favorite_popup()
             return
         self.hide_favorite_popup()
-        if not self.go_to_directory(path):
+        if not self.go_to_directory(path, direct_anchor=True):
             self.launcher.error('フォルダーが見つかりません: ' + path)
 
     def directory_favorites_reordered(self, paths):
@@ -3069,6 +3206,12 @@ class ExpandedLauncherView(QWidget):
         if (not isinstance(node, dict) or node.get('source') != 'launch_json'
                 or node.get('kind') == 'file'):
             return False
+        if node.get('kind') == 'linked_directory':
+            raw = (node.get('row') or {}).get('launch_browse_target', '')
+            target = self.launcher.expander().expand(raw)
+            return self.go_to_directory(
+                target, source_virtual=node, preserve_remote_popup=(
+                    getattr(self.launcher, '_files_operating_target', '') == 'files_exp'))
         # The System Page is internal to Studio. Files Exp promotes its Browser
         # category to a Page-level 「ブックマーク」 root without changing JSON IDs.
         options = getattr(self.launcher, 'expanded_options', {}) or {}
@@ -3080,6 +3223,10 @@ class ExpandedLauncherView(QWidget):
                 self._virtual_directory_node.get('node_id') != node['node_id']):
             self._virtual_sort_custom = False
         self._virtual_directory_node = node
+        self._filesystem_entry_origin = None
+        self._direct_entry_root = None
+        self._registered_root_origin = None
+        self.path = []
         self.refresh_middle()
         # Keep the Exp row selected even when navigating a virtual subfolder
         # via the List (without stealing the user's logical List focus).
@@ -3089,6 +3236,25 @@ class ExpandedLauncherView(QWidget):
             if panel is not None and panel.isVisible():
                 panel.remote_select_virtual_node(node)
         return True
+
+    def restore_json_folder_origin(self):
+        """Left/Up at a physical entry boundary returns to its JSON folder.
+
+        There is no generic browser history here. A JSON folder is an origin
+        only if it was the active folder when this physical directory was
+        entered. Descending within that real directory retains the origin.
+        """
+        origin = getattr(self, '_filesystem_entry_origin', None)
+        if not origin or self._virtual_directory_node is not None:
+            return False
+        from directory_entry_origin import at_entry_boundary
+        if not at_entry_boundary(self.current_directory(), origin['entry_path']):
+            return False
+        parent = virtual_lookup_node(
+            self.launcher.pages, self.launcher.authored_items,
+            origin['node']['page_id'], origin['node'].get('parent_item_id') or '',
+            (self.launcher.data or {}).get('items', ()))
+        return self.show_virtual_launch_directory(parent) if parent else False
 
     def _clear_virtual_directory(self):
         self._virtual_directory_node = None
@@ -3378,7 +3544,9 @@ class ExpandedLauncherView(QWidget):
             if str(exc) != '拡張子の変更を取り消しました':
                 self.launcher.error('名前を変更できませんでした: ' + str(exc))
 
-    def go_to_directory(self, path, *, preserve_remote_popup=False):
+    def go_to_directory(self, path, *, preserve_remote_popup=False,
+                        source_virtual=None, direct_anchor=False,
+                        registered_root=None):
         """Breadcrumb/edit/favorite navigation stays inside FRB Launch.
 
         A folder *clicked inside an open Remote context submenu* must update
@@ -3389,6 +3557,33 @@ class ExpandedLauncherView(QWidget):
         target = normalized_directory(path)
         if not target or not os.path.isdir(target):
             return False
+        from directory_entry_origin import next_entry_origin
+        # Only an EXPLICIT linked JSON node is allowed to establish a mount.
+        # The currently displayed virtual folder is NOT the parent of an
+        # unrelated physical root clicked elsewhere in Files Exp.
+        from directory_entry_origin import within_entry
+        if source_virtual is not None and not direct_anchor:
+            self._filesystem_entry_origin = next_entry_origin(None, source_virtual, target)
+            self._direct_entry_root = None
+            self._registered_root_origin = None
+        elif direct_anchor:
+            self._filesystem_entry_origin = None
+            self._direct_entry_root = target
+            self._registered_root_origin = None
+        elif registered_root is not None and within_entry(
+                target, registered_root.get('root_path')):
+            self._filesystem_entry_origin = None
+            self._direct_entry_root = None
+            self._registered_root_origin = dict(registered_root)
+        else:
+            self._filesystem_entry_origin = next_entry_origin(
+                getattr(self, '_filesystem_entry_origin', None), None, target)
+            direct_root = getattr(self, '_direct_entry_root', None)
+            self._direct_entry_root = (direct_root if direct_root
+                and within_entry(target, direct_root) else None)
+            root = getattr(self, '_registered_root_origin', None)
+            self._registered_root_origin = (root if root
+                and within_entry(target, root['root_path']) else None)
         self._virtual_directory_node = None
         self.path = [directory_row(target)]
         self.refresh_middle()
@@ -5046,7 +5241,8 @@ class ExpandedLauncherView(QWidget):
             if first is not None and tree.currentItem() is not first:
                 tree.setCurrentItem(first)
                 return 'directory'
-            self.launcher.remote_list_left_to_exp()
+            if self.launcher.remote_list_left_to_exp():
+                return 'files_exp'
             return 'directory'
         middle_tree = self.middle.tree
         first_middle = next((middle_tree.topLevelItem(i)
@@ -5055,6 +5251,16 @@ class ExpandedLauncherView(QWidget):
         if first_middle is not None and middle_tree.currentItem() is not first_middle:
             middle_tree.setCurrentItem(first_middle)
             self.focus_panel(self.middle)
+            return 'directory'
+
+        # Left is an operating-column handoff, not a filesystem-parent climb.
+        # Mounted JSON/physical locations and typed roots are both anchored
+        # in Files Exp; leave their breadcrumb and List exactly where they are.
+        if (getattr(self, '_filesystem_entry_origin', None) is not None or
+                getattr(self, '_direct_entry_root', None) is not None or
+                getattr(self, '_registered_root_origin', None) is not None):
+            if self.launcher.remote_list_left_to_exp():
+                return 'files_exp'
             return 'directory'
 
         if getattr(self.launcher, 'files_root_hidden_mode', False):
@@ -5155,6 +5361,22 @@ class ExpandedLauncherView(QWidget):
         import ntpath
         import os
         current = self.current_directory()
+        if current and self.restore_json_folder_origin():
+            self.focus_panel(self.middle if (
+                keep_middle_focus or getattr(self.launcher, 'files_root_hidden_mode', False)
+            ) else self.left)
+            return
+        from directory_entry_origin import at_entry_boundary
+        registered = getattr(self, '_registered_root_origin', None)
+        if current and registered and at_entry_boundary(current, registered['root_path']):
+            # Registered Files shortcuts are logical roots: their OS parents
+            # (e.g. F:\\) are intentionally outside Launch's displayed tree.
+            self.launcher.remote_focus_area('files_exp')
+            return
+        if current and at_entry_boundary(current, getattr(self, '_direct_entry_root', None)):
+            # Typed path is the logical root; never climb into its OS ancestors.
+            self.launcher.remote_focus_area('files_exp')
+            return
         if current:
             normalized = ntpath.normpath(current)
             parent = ntpath.dirname(normalized)
@@ -5230,6 +5452,9 @@ class ExpandedLauncherView(QWidget):
         if not row:
             return
         self._virtual_directory_node = None
+        self._filesystem_entry_origin = None  # An unrelated Files root was selected.
+        self._direct_entry_root = None
+        self._registered_root_origin = self._registered_root_from_row(row)
         if row.get('item_kind') in ('category', 'directory'):
             self.path = [row]
             self.refresh_middle()

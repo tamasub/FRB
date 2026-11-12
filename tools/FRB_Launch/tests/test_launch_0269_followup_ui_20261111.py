@@ -69,12 +69,13 @@ def test_external_drop_on_json_folder_enters_that_folder_but_rejects_runtime():
 def test_icon_chooser_keeps_native_combobox_controls_and_popup_usable():
     assert "'QComboBox'" in GUARD
     assert "combo.view().isVisible()" in GUARD
-    assert 'if kind == QEvent.Type.Wheel and self._native_dialog_control(obj):' in GUARD
+    assert 'if kind == QEvent.Type.Wheel and self._native_wheel_control(obj):' in GUARD
     assert "'icon_key': icon_box.currentData()" in APP
 
 
 def test_simple_edit_description_is_white_and_path_still_not_editable():
-    assert 'QPlainTextEdit { background-color: #ffffff;' in APP
+    assert 'SIMPLE_EDIT_FIELD_QSS' in APP
+    assert 'QPlainTextEdit#launchSimpleDescription {' in (ROOT / 'src/launch_appearance.py').read_text('utf-8')
     assert 'パスは変更しません。' in APP
 
 

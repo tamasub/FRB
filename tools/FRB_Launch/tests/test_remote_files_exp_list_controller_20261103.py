@@ -61,6 +61,11 @@ def test_exp_wheel_moves_candidate_and_debounces_content_preview():
         def currentIndex(self): return self.index
         def indexBelow(self, index): return Index(index.i+1)
         def indexAbove(self, index): return Index(index.i-1)
+        # Production tree skips non-selectable separator rows. This legacy
+        # mock has only selectable rows, so the shared traversal is direct.
+        def _neighbor_operable(self, index, direction):
+            return self.indexBelow(index) if direction > 0 else self.indexAbove(index)
+        def _is_operable_index(self, index): return index.isValid()
         def setCurrentIndex(self, index): self.index=index; self.selected.append(index.i)
         def scrollTo(self,*args): pass
     tree=Tree()

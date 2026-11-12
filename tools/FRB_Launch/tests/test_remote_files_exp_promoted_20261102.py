@@ -79,8 +79,12 @@ def test_wheel_honors_pointer_follow_vdi_and_moves_visible_tree_rows():
     assert 'if before != after:' in block
     assert 'self._select_flow_row' in block
     assert 'can_follow_at_edge(' in block
-    assert 'self.indexBelow(new_index)' in block
-    assert 'self.indexAbove(new_index)' in block
+    # The wheel delegates navigation to one separator-aware traversal.
+    assert 'self._neighbor_operable(new_index, movement)' in block
+    traversal = ast.get_source_segment(EXPLORER, method(EXPLORER, 'FilesExpWheelTree', '_neighbor_operable'))
+    assert 'self.indexBelow(index)' in traversal
+    assert 'self.indexAbove(index)' in traversal
+    assert 'not self._is_operable_index(neighbor)' in traversal
     assert 'self.setCurrentIndex(new_index)' in block
     assert 'self.pointer_follow_enabled()' in block
     assert 'cursor_target(' in follower

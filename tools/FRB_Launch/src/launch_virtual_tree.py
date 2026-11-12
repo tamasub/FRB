@@ -85,10 +85,12 @@ def virtual_launch_pages(pages, authored_items, runtime_items=(), *, system_file
                 title = str(row.get('title') or item_id)
                 descendants = gather(item_id, ancestry | {item_id}, depth + 1,
                                      breadcrumbs + (title,), lineage + (f'item:{page_id}:{item_id}',))
+                is_linked_directory = row.get('item_kind') == 'directory' and bool(
+                    row.get('launch_browse_target'))
                 is_folder = bool(descendants) or row.get('item_kind') == 'category'
                 children.append({
                     'source': 'launch_json',
-                    'kind': 'folder' if is_folder else 'file',
+                    'kind': 'linked_directory' if is_linked_directory else 'folder' if is_folder else 'file',
                     'page_id': page_id,
                     'item_id': item_id,
                     'parent_item_id': parent_id,
@@ -230,7 +232,8 @@ def virtual_list_rows(node):
         row = dict(child.get('row') or {})
         row['title'] = child['title']
         row['_launch_virtual_node'] = child
-        row['item_kind'] = ('category' if child['kind'] != 'file'
+        row['item_kind'] = ('directory' if child['kind'] == 'linked_directory'
+                            else 'category' if child['kind'] != 'file'
                             else 'virtual_launch_file')
         row.pop('_browse_file', None)
         row.pop('_file', None)

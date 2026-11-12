@@ -37,7 +37,8 @@ def test_files_exp_root_only_allows_existing_folder_menu():
     category=Menu()
     add(NS(),category,'work','',allow_file=True)
     assert category.titles == ['カテゴリーフォルダーを作成...',
-                               '既存フォルダーを登録...','既存ファイルを登録...']
+                               '既存フォルダーを登録...','既存ファイルを登録...',
+                                   'URLを追加...']
     method=APP.split('    def show_launch_root_registration_menu(self, point):',1)[1].split('    def handle_launch_drop(',1)[0]
     assert 'allow_category=False' in method
 

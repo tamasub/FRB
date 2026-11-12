@@ -16,6 +16,8 @@ import shutil
 import subprocess
 import tempfile
 import uuid
+from html.parser import HTMLParser
+from html import unescape
 
 
 VIEW_DEF = 'launch/frb_launch_maintenance_view_def_v0_1.json'
@@ -166,6 +168,20 @@ def records_for_sources(sources):
     return records
 
 
+
+def url_registration_record(title, url):
+    """Validate the authored two-field URL form, preserving existing Open schema."""
+    label = str(title or '').strip()
+    if not label:
+        raise RegistrationError('タイトルを入力してください。')
+    if len(label) > 160:
+        raise RegistrationError('タイトルは160文字以内で入力してください。')
+    address = _valid_http(url)
+    if not address:
+        raise RegistrationError('http:// または https:// から始まる有効なURLを入力してください。')
+    return records_for_sources([{'kind': 'url', 'value': address, 'title': label}])[0]
+
+
 def category_record(title):
     text = str(title or '').strip()
     if not text:
@@ -203,6 +219,58 @@ def _drop_windows_paths(blob, encoding):
     except (UnicodeError, LookupError):
         return []
     return [p for p in paths if p and (ntpath.isabs(p) or os.path.isabs(p))]
+
+
+class _ChromeLinkParser(HTMLParser):
+    """Only extract a genuine HTTP(S) href from a Chromium HTML drag."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.href = ''
+        self.label = ''
+        self._anchor_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == 'a' and not self.href:
+            href = dict(attrs).get('href', '')
+            if _valid_http(href):
+                self.href = href
+                self._anchor_depth = 1
+
+    def handle_data(self, data):
+        if self._anchor_depth and len(self.label) < 160:
+            self.label += data
+
+    def handle_endtag(self, tag):
+        if tag.lower() == 'a':
+            self._anchor_depth = 0
+
+
+def chrome_html_link(blob):
+    """Fallback for Chrome drags that expose text/html but no URI list."""
+    try:
+        raw = bytes(blob).decode('utf-8-sig', errors='replace')
+        parser = _ChromeLinkParser()
+        parser.feed(raw)
+        return {'value': unescape(parser.href),
+                'title': parser.label.strip()[:160]} if parser.href else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _looks_like_address_caption(caption, address):
+    """Detect Chrome text/plain that is just the URL without its scheme.
+
+    Omnibox drags frequently provide "qiita.com/user/items/…" as plain text.
+    That is not a page title; prefer any actual HTML or moz-url title.
+    """
+    address = _valid_http(address)
+    if not address:
+        return False
+    candidate = str(caption or '').strip().rstrip('/').casefold()
+    full = address.rstrip('/').casefold()
+    no_scheme = full.split('://', 1)[-1]
+    return bool(candidate and candidate in (full, no_scheme, 'www.' + no_scheme))
 
 
 def mime_sources(mime):
@@ -284,13 +352,19 @@ def mime_sources(mime):
             except UnicodeError:
                 continue
             if lines and _valid_http(lines[0]):
-                entries.append({'value': lines[0], 'title': lines[1] if len(lines) > 1 else ''})
+                # A Chromium drag may supply the same URL through Qt urls()
+                # *before* the richer URL+title format. Preserve that title
+                # during the format merge below, never create a second item.
+                if not entries or any(e['value'] == lines[0] for e in entries):
+                    entries.append({'value': lines[0],
+                                    'title': lines[1].strip() if len(lines) > 1 else ''})
                 break
     if mime.hasText() and entries:
         caption = str(mime.text() or '').strip()
         if caption and len(caption) < 160 and not _valid_http(caption) and '\n' not in caption:
             for entry in entries:
-                if _valid_http(entry.get('value')) and not entry.get('title'):
+                if (_valid_http(entry.get('value')) and not entry.get('title')
+                        and not _looks_like_address_caption(caption, entry['value'])):
                     entry['title'] = caption
     if not entries and mime.hasText():
         lines = str(mime.text() or '').strip().splitlines()
@@ -301,15 +375,60 @@ def mime_sources(mime):
             if candidate:
                 entries.append({'value': candidate,
                                 'title': lines[1] if len(lines) > 1 and _valid_http(candidate) else ''})
-    # Dedupe data formats within one drag; normalize_sources separately checks
-    # distinct target values and never prohibits a duplicate registered path.
+    # Chrome's address-bar drag often has BOTH a URI list (address only) and
+    # HTML Format (address + actual page title). The original fallback only
+    # examined HTML when entries was empty, throwing away the useful title.
+    # Windows can expose CF_HTML under its native Qt MIME name as well.
+    for fmt in ('text/html', 'application/x-qt-windows-mime;value="HTML Format"'):
+        if not mime.hasFormat(fmt):
+            continue
+        html_link = chrome_html_link(mime.data(fmt))
+        if html_link is None:
+            continue
+        if not entries or any(e['value'] == html_link['value'] for e in entries):
+            entries.append(html_link)
+            # A single drag should not import unrelated <a> links in page HTML.
+            break
+
+    # Chrome also advertises the dragged bookmark as a virtual Windows .url
+    # file. Its FileGroupDescriptorW filename is often the page TITLE even
+    # when the visible text/plain contains only the address. Reuse the Shell
+    # descriptor reader, but only for one .url and an already validated URL.
+    if any(_valid_http(e['value']) for e in entries) and callable(getattr(mime, 'formats', None)):
+        formats = mime.formats()
+        if any('FileGroupDescriptor' in fmt for fmt in formats):
+            from virtual_clipboard_paste import virtual_clipboard_names
+            try:
+                names = virtual_clipboard_names(mime)
+            except (ValueError, UnicodeError):
+                names = None
+            if names and len(names) == 1 and names[0].lower().endswith('.url'):
+                link_title = names[0][:-4].strip()
+                if link_title and len(link_title) <= 160:
+                    for entry in entries:
+                        if _valid_http(entry['value']):
+                            entries.append({'value': entry['value'], 'title': link_title})
+                            break
+
+    # Merge alternate MIME representations OF THE SAME URL. The first source
+    # wins for ordering, but the first *nonempty title* wins for its display
+    # name. Previously URL-only Qt urls() shadowed Chrome's HTML/moz title.
     deduped = []
-    seen = set()
+    seen = {}
     for entry in entries:
         key = entry['value'].casefold()
-        if key not in seen:
-            deduped.append(entry)
-            seen.add(key)
+        prior = seen.get(key)
+        if prior is None:
+            prior = dict(entry)
+            deduped.append(prior)
+            seen[key] = prior
+        elif _valid_http(entry['value']):
+            title = str(entry.get('title') or '').strip()
+            if (title and not _valid_http(title)
+                    and not _looks_like_address_caption(title, entry['value'])
+                    and (not prior.get('title') or _looks_like_address_caption(
+                        prior['title'], prior['value']))):
+                prior['title'] = title
     return deduped
 
 
