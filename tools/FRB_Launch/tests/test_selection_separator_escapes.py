@@ -41,7 +41,7 @@ class SelectionSeparatorEscapesTests(unittest.TestCase):
                          'alice@example.com; %APPDATA%\\inside')
 
     def test_real_config_se_choice_separator(self):
-        data = load(ROOT / 'config' / 'frb_launch_sample_data_v0_1.json')
+        data = load(ROOT / 'config' / 'frb_launch_data.json')
         row = next(item for item in data['items'] if item['item_kind'] == 'selection'
                    and item.get('launch_selection_group_id') == 'se')
         choices = sorted((c for c in data['launch_choices']

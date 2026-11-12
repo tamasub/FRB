@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def sample():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8-sig'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf-8-sig'))
 
 
 def test_root_hotkeys_and_normal_open_are_independent():

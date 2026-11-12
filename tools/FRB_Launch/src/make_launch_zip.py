@@ -31,7 +31,7 @@ def make_zip(root):
                     dirs[:] = sorted(d for d in dirs if allowed(d))
                     for name in sorted(files):
                         path = Path(directory) / name
-                        if name=='.launch_home_ready':
+                        if name in {'.launch_home_ready', '.frb_launch_data_name_v1'}:
                             continue
                         if path.is_symlink() or path.suffix.lower() in {'.zip', '.pyc', '.pyo', '.log'}:
                             continue

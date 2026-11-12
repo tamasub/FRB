@@ -111,6 +111,7 @@ from launch_diagnostics import make_logger, wifi_transcript_arguments
 from log_retention import cleanup as cleanup_diagnostics
 from logging.handlers import RotatingFileHandler
 from runtime_paths import launch_home, bundled_studio_root
+from launch_config_path import ensure_launch_config
 from interaction_modes import read_dismiss_on_outside, read_folder_open_mode, is_double_click_folder
 from pointer_warp_policy import (read_pointer_warp_enabled, should_show_pointer_warp_notice,
                                  NOTICE_DISMISSED_KEY)
@@ -163,7 +164,7 @@ def apply_scrollbar_theme(view, background='#202b29'):
 
 ROOT = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parents[1]
 LAUNCH_HOME = launch_home(ROOT)
-CONFIG = LAUNCH_HOME / 'config' / 'frb_launch_sample_data_v0_1.json'
+CONFIG = ensure_launch_config(LAUNCH_HOME)
 STATE = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'FRBLaunch'
 STATE.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(handlers=[RotatingFileHandler(STATE / 'error.log', maxBytes=1024*1024,

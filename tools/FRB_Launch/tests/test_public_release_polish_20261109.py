@@ -19,7 +19,7 @@ from desktop_double_click import DesktopDoubleClick, Click
 
 
 def sample():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def test_page_rename_and_icon_selection_are_source_driven():

@@ -7,9 +7,12 @@ import json,shutil
 from pathlib import Path
 from datetime import datetime
 from uuid import uuid4
+from launch_config_path import (CONFIG_NAME, LEGACY_CONFIG_NAME, MIGRATION_MARKER,
+                                ensure_launch_config)
 
 READY='.launch_home_ready'
-CONFIG=Path('config/frb_launch_sample_data_v0_1.json')
+CONFIG=Path('config')/CONFIG_NAME
+OLD_CONFIG=Path('config')/LEGACY_CONFIG_NAME
 
 def repair_wifi(data):
     # launch_scripts becomes a runtime variable derived from the actual launch home.
@@ -33,7 +36,7 @@ def prepare(root):
     root=Path(root).resolve();legacy=root/'dist/FRBLaunch'
     ready=root/READY
     if ready.exists():
-        if not (root/CONFIG).exists():raise RuntimeError('Canonical config is missing; restore it from backups.')
+        ensure_launch_config(root)
         from browser_bookmarks import ensure_category_file
         ensure_category_file(root/CONFIG)
         return None
@@ -43,7 +46,9 @@ def prepare(root):
         for name in ('config','scripts'):
             if (base/name).is_dir():shutil.copytree(base/name,backup/tag/name)
     # The old EXE/Studio edited dist; preserve that active data during initial migration.
-    origin=legacy/CONFIG if (legacy/CONFIG).exists() else root/CONFIG
+    origin=next((candidate for candidate in (legacy/CONFIG, legacy/OLD_CONFIG,
+                   root/OLD_CONFIG, root/CONFIG) if candidate.is_file()), None)
+    if origin is None:raise RuntimeError('Launch設定が見つかりません: '+str(root/CONFIG))
     data=repair_wifi(json.loads(origin.read_text(encoding='utf-8-sig')))
     from core import validate
     validate(data)
@@ -56,6 +61,10 @@ def prepare(root):
     temp=dest.with_suffix('.migration.tmp');temp.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');temp.replace(dest)
     from browser_bookmarks import ensure_category_file
     ensure_category_file(dest)
+    old_root=root/OLD_CONFIG
+    if old_root.exists():old_root.unlink() # archived with the source config above
+    (root/'config'/MIGRATION_MARKER).write_text(
+        'Canonical FRB Launch config filename enabled.\n',encoding='utf-8')
     ready.write_text('Editable config/scripts are in this project root. Do not restore dist files.\n',encoding='utf-8')
     return backup
 

@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def data():
-    return json.loads((ROOT/'config'/'frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT/'config'/'frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def test_only_work_page_all_six_root_items_in_data_order():

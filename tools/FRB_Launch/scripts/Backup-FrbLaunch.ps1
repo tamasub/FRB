@@ -178,7 +178,7 @@ try {
         throw "Cannot find Launch directory: $root"
     }
     $configDir = Join-Path $root 'config'
-    $requiredJson = Join-Path $configDir 'frb_launch_sample_data_v0_1.json'
+    $requiredJson = Join-Path $configDir 'frb_launch_data.json'
     if (-not (Test-Path -LiteralPath $requiredJson -PathType Leaf)) {
         throw "Cannot find Launch settings JSON: $requiredJson"
     }

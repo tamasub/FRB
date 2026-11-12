@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core import load, searchable_rows
 
-DATA = load(Path(__file__).resolve().parents[1] / 'config/frb_launch_sample_data_v0_1.json')
+DATA = load(Path(__file__).resolve().parents[1] / 'config/frb_launch_data.json')
 
 
 class ChoiceSearchCoreTests(unittest.TestCase):

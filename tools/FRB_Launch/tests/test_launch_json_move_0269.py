@@ -98,7 +98,7 @@ def test_multi_delete_and_move_cli_on_temp_copy(tmp_path):
     studio = os.environ.get('FRB_STUDIO_TEST_ROOT')
     if not studio or not shutil.which('node'):
         pytest.skip('Studio source and Node required')
-    doc = json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    doc = json.loads((ROOT/'config/frb_launch_data.json').read_text('utf-8'))
     doc['items'].extend([
         {'item_id':'move_a','page_id':'work','parent_item_id':'',
          'item_kind':'category','title':'A','sort_order':990,'enabled':True},
@@ -146,7 +146,7 @@ def test_nested_selected_parent_and_child_delete_is_not_double_counted(tmp_path)
     studio = os.environ.get('FRB_STUDIO_TEST_ROOT')
     if not studio or not shutil.which('node'):
         pytest.skip('Studio source and Node required')
-    doc = json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    doc = json.loads((ROOT/'config/frb_launch_data.json').read_text('utf-8'))
     doc['items'] += [
         {'item_id':'test-parent','page_id':'work','parent_item_id':'',
          'item_kind':'category','title':'Parent','sort_order':990,'enabled':True},

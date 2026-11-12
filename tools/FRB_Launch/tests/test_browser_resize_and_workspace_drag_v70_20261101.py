@@ -32,7 +32,7 @@ def test_workspace_blank_band_is_real_mouse_widget_and_not_layout_spacer():
     assert 'self.root_layout.addWidget(self.workspace_drag_handle, 1)' in EXP
     assert 'self.root_layout.addStretch(1)' not in EXP
     assert 'QWidget#expandedWorkspaceDragHandle {{background:transparent;border:0;}}' in EXP
-    assert 'self.root_layout.addWidget(button)' in EXP  # Buttons remain independent.
+    assert 'self.root_layout.addWidget(button, alignment=' in EXP  # Tabs keep explicit alignment.
     assert 'self._passive_header_drag = PassiveHeaderDrag(self)' in MAIN
 
 

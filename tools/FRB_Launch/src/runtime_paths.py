@@ -1,6 +1,7 @@
 """Locate editable files independently of PyInstaller's build output."""
 import json
 from pathlib import Path
+from launch_config_path import CONFIG_NAME, LEGACY_CONFIG_NAME
 
 
 def launch_home(binary_root):
@@ -9,8 +10,9 @@ def launch_home(binary_root):
     if not marker.exists():return root
     relative=json.loads(marker.read_text(encoding='utf-8'))['launch_home']
     home=(root/relative).resolve()
-    if not (home/'config/frb_launch_sample_data_v0_1.json').is_file():
-        raise RuntimeError('Launch設定が見つかりません: '+str(home/'config/frb_launch_sample_data_v0_1.json'))
+    config_dir = home / 'config'
+    if not any((config_dir / name).is_file() for name in (CONFIG_NAME, LEGACY_CONFIG_NAME)):
+        raise RuntimeError('Launch設定が見つかりません: '+str(config_dir / CONFIG_NAME))
     return home
 
 

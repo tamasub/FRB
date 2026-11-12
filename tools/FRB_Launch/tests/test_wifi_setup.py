@@ -9,7 +9,7 @@ import app as module
 ROOT=Path(__file__).resolve().parents[1]
 class WifiSetupTests(unittest.TestCase):
     def test_fft_sequence_and_packaged_script(self):
-        d=repair_wifi(load(ROOT/'config/frb_launch_sample_data_v0_1.json'))
+        d=repair_wifi(load(ROOT/'config/frb_launch_data.json'))
         items={r['item_id']:r for r in d['items']}
         for id in ['fft','cam','wifi_home']:
             step=items[id]['launch_actions'][0]

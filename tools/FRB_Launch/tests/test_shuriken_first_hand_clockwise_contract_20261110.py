@@ -23,7 +23,7 @@ from shuriken_model import (
 
 
 def sample():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
 
 
 def items_of_count(count):

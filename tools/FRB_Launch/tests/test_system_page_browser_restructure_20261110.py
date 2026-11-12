@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_config():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def options():

@@ -1420,6 +1420,9 @@ class ExpandedLauncherView(QWidget):
         self._browser_empty_bookmark_button = None
         self.path = []
         self.directory_history = DirectoryNavigationHistory(limit=100)
+        # Startup chooses a single authored logical destination. Do not let
+        # the legacy physical "PC" preview become the initial history entry.
+        self._initial_files_location_committed = False
         self._restoring_directory_history = False
         self._refreshing = False
         # Column-2 fallback selection: remember per directory, not per tree
@@ -2474,12 +2477,34 @@ class ExpandedLauncherView(QWidget):
             self.left.fill(files_rows, self.launcher.row_icon)
             self.right.fill(expanded_bookmark_rows(right, self.launcher.children), self.launcher.row_icon)
             self.refresh_horizontal_bookmarks()
-            # Start with one real folder in the middle, never invented PC data.
-            if not self.path:
+            # The first Files destination is the same authored logical root
+            # that HOME selects in Files Exp (normally "My Work"). The legacy
+            # first Files row is PC, which must NOT become an unrelated initial
+            # List location or create a spurious PC -> My Work history step.
+            if (not self._initial_files_location_committed
+                    and not self.path and self._virtual_directory_node is None
+                    and getattr(self.launcher, 'files_exp_embedded_mode', False)):
+                pages = getattr(self.launcher, 'pages', ())
+                authored = getattr(self.launcher, 'authored_items', ())
+                runtime = (getattr(self.launcher, 'data', None) or {}).get('items', ())
+                first_page = next((p for p in pages if p.get('enabled', True)
+                                   and p.get('page_id') == 'work'), None)
+                if first_page is None:
+                    first_page = next((p for p in pages if p.get('enabled', True)
+                                       and p.get('page_id') != 'system'), None)
+                if first_page is not None:
+                    initial_virtual = virtual_lookup_node(
+                        pages, authored, first_page['page_id'], '', runtime)
+                    if initial_virtual is not None:
+                        self._virtual_directory_node = initial_virtual
+                        self._initial_files_location_committed = True
+            # Classic/legacy Files mode retains its existing initial folder.
+            if not self.path and self._virtual_directory_node is None:
                 initial = next((row for row in files_rows
                                 if row.get('item_kind') in ('category', 'directory')), None)
                 if initial:
                     self.path = [initial]
+                    self._initial_files_location_committed = True
                     for index in range(self.left.tree.topLevelItemCount()):
                         item = self.left.tree.topLevelItem(index)
                         if item.data(0, Qt.ItemDataRole.UserRole).get('item_id') == initial.get('item_id'):
@@ -2892,7 +2917,9 @@ class ExpandedLauncherView(QWidget):
         row = self.row_data(root) if root is not None else None
         self.directory_history.record(
             self.current_directory(), self.path,
-            row.get('item_id') if row else None,
+            # A JSON Page is not a child of the last selected legacy Files
+            # root. Do not remember an unrelated PC/My Work row as its parent.
+            row.get('item_id') if row and self._virtual_directory_node is None else None,
             virtual_node=getattr(self, '_virtual_directory_node', None),
             entry_origin=getattr(self, '_filesystem_entry_origin', None),
             direct_root=getattr(self, '_direct_entry_root', None),
@@ -2989,13 +3016,10 @@ class ExpandedLauncherView(QWidget):
                         self.left.tree.setCurrentItem(candidate)
                         break
             self.refresh_middle()
-            current_virtual = self._virtual_directory_node
-            if current_virtual is not None:
-                for panel in (getattr(self, 'embedded_files_exp', None),
-                              getattr(getattr(self.launcher, 'remote_window', None),
-                                      'files_exp_panel', None)):
-                    if panel is not None and panel.isVisible():
-                        panel.remote_select_virtual_node(current_virtual)
+            # Every history entry restores its own logical Exp identity.
+            # Merely restoring the old first-column row is insufficient:
+            # e.g. PC List + My Work Exp is an inconsistent pair.
+            self.align_files_exp_with_location()
             self.focus_panel(self.middle)
         finally:
             self._restoring_directory_history = False
@@ -5772,6 +5796,50 @@ class ExpandedLauncherView(QWidget):
             if callable(update_count):
                 update_count()
 
+    def align_files_exp_with_location(self, explicit_panel=None):
+        """Select the Exp node named by the *displayed* logical location.
+
+        Expose this to startup and history restoration. A selected Exp row is
+        never a second authority for Files List content. Physical aliases,
+        JSON mounts, directly typed roots and PC remain distinct locations.
+        Selection helpers suppress callbacks, so alignment never navigates.
+        """
+        if explicit_panel is not None:
+            panels = (explicit_panel,)
+        else:
+            panels = (getattr(self, 'embedded_files_exp', None),
+                      getattr(getattr(self.launcher, 'remote_window', None),
+                              'files_exp_panel', None))
+        virtual = getattr(self, '_virtual_directory_node', None)
+        origin = getattr(self, '_filesystem_entry_origin', None)
+        direct = getattr(self, '_direct_entry_root', None)
+        registered = getattr(self, '_registered_root_origin', None)
+        directory = self.current_directory()
+        current = self.path[-1] if self.path else None
+        for panel in panels:
+            if panel is None:
+                continue
+            # An explicit panel may be populated during construction, before
+            # QWidget.isVisible() becomes true. Invisible *other* panels are
+            # left alone until activated/reloaded.
+            if explicit_panel is None and not panel.isVisible():
+                continue
+            if virtual is not None:
+                panel.remote_select_virtual_node(virtual)
+            elif origin is not None and directory:
+                panel.remote_select_mounted_directory(
+                    origin['node'], origin['entry_path'], directory)
+            elif direct is not None and directory:
+                panel.ensure_direct_root(direct)
+                panel.sync_current_directory(directory, prefer_direct=True)
+            elif registered is not None and directory:
+                panel.sync_current_directory(
+                    directory, preferred_root_id=registered['root_id'])
+            elif current is not None and current.get('_system_drives_root'):
+                panel.remote_select_pc_root()
+            elif directory:
+                panel.sync_current_directory(directory)
+
     def reload_embedded_files_exp_roots(self, *, preserve_state=False):
         """Rebase the inline tree on authored roots, not the current folder.
 
@@ -5789,8 +5857,11 @@ class ExpandedLauncherView(QWidget):
             return False
         panel.set_roots(rows, self.launcher.expander().expand)
         self._embedded_files_exp_roots_ready = True
-        if not panel.restore_previous_tree_state():
-            panel.sync_current_directory(self.current_directory())
+        panel.restore_previous_tree_state()
+        # Expanded/collapsed branches may be restored, but the highlighted
+        # Exp node MUST correspond to the currently displayed List/breadcrumb.
+        # This also works before the window first becomes visible.
+        self.align_files_exp_with_location(panel)
         return True
 
     def apply_remote_15_lane_mode(self):

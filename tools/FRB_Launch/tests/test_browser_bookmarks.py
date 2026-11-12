@@ -9,7 +9,7 @@ import browser_bookmarks as bm
 from core import load, Expander, searchable_rows, validate
 import windows
 
-CONFIG = Path(__file__).resolve().parents[1] / 'config' / 'frb_launch_sample_data_v0_1.json'
+CONFIG = Path(__file__).resolve().parents[1] / 'config' / 'frb_launch_data.json'
 
 
 class BrowserBookmarksTests(unittest.TestCase):

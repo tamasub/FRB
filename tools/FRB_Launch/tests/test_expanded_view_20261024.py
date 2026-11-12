@@ -13,7 +13,7 @@ from expanded_view_model import (normalize_options, page_roots, expanded_targets
 
 
 def sample():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf8'))
 
 
 def test_sample_has_both_targets_on_system_page():

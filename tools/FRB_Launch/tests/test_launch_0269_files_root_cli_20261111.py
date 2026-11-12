@@ -16,7 +16,7 @@ def test_files_root_directory_reorder_via_studio_cli(tmp_path):
     studio = os.environ.get('FRB_STUDIO_TEST_ROOT')
     if not studio or not shutil.which('node'):
         pytest.skip('Studio Move CLI and Node are not available')
-    source = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    source = json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
     # These are genuine registered roots in System/Files; leave PC fixed.
     first = next(row for row in source['items'] if row.get('item_id') == 'frb_root_folder')
     second = next(row for row in source['items'] if row.get('item_id') == 'studio_dir')

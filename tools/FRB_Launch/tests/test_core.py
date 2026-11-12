@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from core import load, validate, Expander, searchable_rows, column_filter_match
-DATA=load(Path(__file__).resolve().parents[1]/'config/frb_launch_sample_data_v0_1.json')
+DATA=load(Path(__file__).resolve().parents[1]/'config/frb_launch_data.json')
 class CoreTests(unittest.TestCase):
  def test_calendar_and_formats(self):
   e=Expander(DATA,now=datetime(2026,1,1,3,4,5))

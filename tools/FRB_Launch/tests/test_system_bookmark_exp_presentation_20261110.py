@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def config():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def test_system_hidden_but_bookmarks_are_top_level_page_alias():

@@ -3,7 +3,7 @@ from pathlib import Path
 from core import load, join_selection_values, searchable_rows
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = load(ROOT / 'config/frb_launch_sample_data_v0_1.json')
+DATA = load(ROOT / 'config/frb_launch_data.json')
 
 
 def palette():

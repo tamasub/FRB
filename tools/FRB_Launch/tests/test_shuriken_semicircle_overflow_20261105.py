@@ -13,7 +13,7 @@ from shuriken_model import (ShurikenEntry, configured_entries, choose_entry,
 
 def sample():
     # Historical 3-action fixture, independent of the live cardinal 4-action JSON.
-    data = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    data = json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
     keep = {'zip_studio': 'up_left', 'launch_source_zip': 'up_right',
             'shuriken_git_commit_filename': 'down'}
     for row in data['items']:

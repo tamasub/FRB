@@ -10,7 +10,7 @@ from core import load, validate
 from ordering import save_order
 from prepare_launch_home import prepare, READY
 
-SAMPLE = Path(__file__).resolve().parents[1] / 'config' / 'frb_launch_sample_data_v0_1.json'
+SAMPLE = Path(__file__).resolve().parents[1] / 'config' / 'frb_launch_data.json'
 
 
 class BookmarkCategoryConfigTests(unittest.TestCase):

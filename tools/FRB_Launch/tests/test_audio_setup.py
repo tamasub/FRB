@@ -6,8 +6,8 @@ from launch_diagnostics import wifi_transcript_arguments
 ROOT=Path(__file__).resolve().parents[1]
 class AudioSetupTests(unittest.TestCase):
     def test_presets_can_start_before_device_ids_are_registered(self):
-        data=load(ROOT/'config/frb_launch_sample_data_v0_1.json');items={r['item_id']:r for r in data['items']}
-        ex=Expander(data,values={'launch_scripts':str(ROOT/'scripts'),'launch_data':str(ROOT/'config/frb_launch_sample_data_v0_1.json')})
+        data=load(ROOT/'config/frb_launch_data.json');items={r['item_id']:r for r in data['items']}
+        ex=Expander(data,values={'launch_scripts':str(ROOT/'scripts'),'launch_data':str(ROOT/'config/frb_launch_data.json')})
         for id,var in [('speaker','speaker_device_id'),('earphone','earphone_device_id')]:
             step=items[id]['launch_actions'][0]
             args=[ex.expand(a) for a in step['launch_arguments']]

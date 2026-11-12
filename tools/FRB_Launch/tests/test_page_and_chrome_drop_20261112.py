@@ -18,7 +18,7 @@ from launch_menu_registration import (RegistrationError, mime_sources,
 
 def original_doc(tmp_path):
     p=tmp_path/'launch.json'
-    p.write_bytes((ROOT/'config/frb_launch_sample_data_v0_1.json').read_bytes())
+    p.write_bytes((ROOT/'config/frb_launch_data.json').read_bytes())
     return p
 
 
@@ -48,7 +48,7 @@ def test_unregister_fails_closed_with_attached_items_or_system(tmp_path):
         with pytest.raises(RegistrationError):
             page_operation_plan(p,'delete',page_id=page_id)
     # No original JSON bytes were changed.
-    assert p.read_bytes()==(ROOT/'config/frb_launch_sample_data_v0_1.json').read_bytes()
+    assert p.read_bytes()==(ROOT/'config/frb_launch_data.json').read_bytes()
 
 
 def test_empty_page_delete_is_single_studio_section(tmp_path):

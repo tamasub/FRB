@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from browser_bookmarks import attach
 from core import load, searchable_rows
 
-CONFIG = Path(__file__).resolve().parents[1] / 'config/frb_launch_sample_data_v0_1.json'
+CONFIG = Path(__file__).resolve().parents[1] / 'config/frb_launch_data.json'
 
 
 class BrowserSearchScopeTests(unittest.TestCase):

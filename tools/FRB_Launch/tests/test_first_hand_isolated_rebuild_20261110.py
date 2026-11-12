@@ -16,7 +16,7 @@ from first_hand_variable import directions_for_count, choose_variable_entry
 
 
 def current_config():
-    return json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    return json.loads((ROOT/'config/frb_launch_data.json').read_text('utf-8'))
 
 
 def with_count(n):

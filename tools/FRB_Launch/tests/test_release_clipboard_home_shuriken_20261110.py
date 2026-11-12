@@ -102,7 +102,7 @@ def test_home_from_hidden_choice_restores_files_workspace():
 
 
 def test_shuriken_registration_without_advanced_fields_and_fifth_ignored():
-    root=json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf8'))
+    root=json.loads((ROOT/'config/frb_launch_data.json').read_text('utf8'))
     draft=copy.deepcopy(root)
     for row in draft['items']:
         row.pop('shuriken_enabled',None)

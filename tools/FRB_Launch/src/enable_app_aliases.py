@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 import os
 
 ROOT = Path(__file__).resolve().parents[1]
-path = ROOT / 'config' / 'frb_launch_sample_data_v0_1.json'
+path = ROOT / 'config' / 'frb_launch_data.json'
 source = path.read_text(encoding='utf-8-sig')
 data = json.loads(source)
 if not isinstance(data, dict): raise ValueError('Launch data must be a JSON object')

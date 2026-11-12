@@ -105,7 +105,7 @@ def test_folder_variants_are_still_blue_and_yellow_not_emoji_tiles():
 
 
 def test_affected_json_root_uses_the_same_archive_key():
-    data = json.loads((ROOT / 'config' / 'frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    data = json.loads((ROOT / 'config' / 'frb_launch_data.json').read_text('utf-8'))
     row = next(row for row in data['items'] if row['title'] == 'FRB Launch Logフォルダー')
     assert row['item_kind'] == 'directory'
     assert row['icon_key'] == 'archive'

@@ -126,6 +126,9 @@ OFFで起動すると、設定場所を案内するバルーン風通知が表�
 
 ## 設定について
 
+運用設定JSONは `config/frb_launch_data.json` です。データ形式のバージョンはJSON内の `launch_format_version` で管理します。旧名からの移行手順は `docs/FRBLaunch_0279_ConfigFilenameStable_20261112.md` を参照。
+
+
 **設定を編集するために、JSONを手書きする必要はありません。**
 
 初回配布では **FRB Studio** を、Launchの**設定エディター**として同梱する方針です。

@@ -16,7 +16,7 @@ from selection_scope import (filtered_selection_choices,
                              global_choice_ids_in_results,
                              leave_global_choice_selection)
 
-DATA = load(ROOT / 'config' / 'frb_launch_sample_data_v0_1.json')
+DATA = load(ROOT / 'config' / 'frb_launch_data.json')
 SE = [choice for choice in DATA['launch_choices']
       if choice['group_id'] == 'se' and choice.get('enabled', True)]
 OWNER = next(item for item in DATA['items'] if item.get('launch_selection_group_id') == 'se')

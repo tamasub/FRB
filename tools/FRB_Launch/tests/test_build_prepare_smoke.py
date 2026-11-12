@@ -15,16 +15,17 @@ class BuildPrepareSmokeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             (root / 'config').mkdir()
-            shutil.copy2(SOURCE / 'config/frb_launch_sample_data_v0_1.json',
-                         root / 'config/frb_launch_sample_data_v0_1.json')
+            shutil.copy2(SOURCE / 'config/frb_launch_data.json',
+                         root / 'config/frb_launch_data.json')
             (root / 'src').mkdir()
-            for name in ('prepare_launch_home.py', 'core.py', 'browser_bookmarks.py', 'search_matching.py'):
-                shutil.copy2(SOURCE / 'src' / name, root / 'src' / name)
+            # Recreate the actual src module environment, including transitive imports.
+            for src in (SOURCE / 'src').glob('*.py'):
+                shutil.copy2(src, root / 'src' / src.name)
             cmd = [sys.executable, str(root / 'src' / 'prepare_launch_home.py')]
             first = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
             self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
             self.assertTrue((root / '.launch_home_ready').is_file())
-            canonical = root / 'config/frb_launch_sample_data_v0_1.json'
+            canonical = root / 'config/frb_launch_data.json'
             before = canonical.read_bytes()
             second = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
             self.assertEqual(second.returncode, 0, second.stdout + second.stderr)

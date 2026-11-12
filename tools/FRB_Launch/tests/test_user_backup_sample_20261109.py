@@ -9,7 +9,7 @@ from pathlib import Path
 from core import Expander, validate
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / 'config' / 'frb_launch_sample_data_v0_1.json'
+CONFIG = ROOT / 'config' / 'frb_launch_data.json'
 PS = ROOT / 'scripts' / 'Backup-FrbLaunch.ps1'
 
 

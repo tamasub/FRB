@@ -114,7 +114,7 @@ def test_virtual_exec_resolves_fresh_runtime_app_not_stale_ui_snapshot():
 
 
 def test_real_launch_config_has_installed_app_folder():
-    config = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    config = json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
     assert any(row.get('launch_source') == 'installed_apps' and row.get('item_kind') == 'category'
                and row.get('page_id') == 'windows' and row.get('title') == 'アプリ'
                for row in config['items'])

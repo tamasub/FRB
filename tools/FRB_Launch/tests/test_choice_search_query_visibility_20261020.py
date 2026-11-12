@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / 'src'))
 from core import load, searchable_rows
 from search_matching import choice_search_content, matches_choice_search
 
-DATA = load(ROOT / 'config' / 'frb_launch_sample_data_v0_1.json')
+DATA = load(ROOT / 'config' / 'frb_launch_data.json')
 
 
 class ChoiceSearchVisibilityTests(unittest.TestCase):

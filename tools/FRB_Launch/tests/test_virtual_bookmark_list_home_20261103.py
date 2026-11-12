@@ -164,7 +164,7 @@ def test_external_mode_switches_to_browser_and_uses_existing_open_action():
 
 def test_current_launch_config_bookmark_location_is_not_hard_coded():
     import json
-    data = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    data = json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
     bookmark_roots = [r for r in data['items']
                       if r.get('launch_source') == 'browser_bookmarks'
                       and r.get('enabled', True)]

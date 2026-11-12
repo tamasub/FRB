@@ -34,7 +34,7 @@ def test_update_roundtrip_and_path_untouched(tmp_path):
     studio=os.environ.get('FRB_STUDIO_TEST_ROOT')
     if not studio or not shutil.which('node'):
         pytest.skip('Studio source / Node not supplied')
-    original=json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    original=json.loads((ROOT/'config/frb_launch_data.json').read_text(encoding='utf-8'))
     row=next(r for r in original['items'] if r.get('item_id')=='folders')
     cfg=tmp_path/'launch.json';cfg.write_text(json.dumps(original,ensure_ascii=False,indent=2),encoding='utf-8')
     item,base=read_item_for_edit(cfg,row['page_id'],'folders')
@@ -56,7 +56,7 @@ def test_dialog_stale_sha_rejects_and_preserves_external_edit(tmp_path):
     studio=os.environ.get('FRB_STUDIO_TEST_ROOT')
     if not studio or not shutil.which('node'):
         pytest.skip('Studio source / Node not supplied')
-    original=json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    original=json.loads((ROOT/'config/frb_launch_data.json').read_text(encoding='utf-8'))
     cfg=tmp_path/'launch.json';cfg.write_text(json.dumps(original,ensure_ascii=False),encoding='utf-8')
     row,base=read_item_for_edit(cfg,'system','folders')
     original['title']='external edit';cfg.write_text(json.dumps(original,ensure_ascii=False),encoding='utf-8')

@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CsvEmailChoiceTests(unittest.TestCase):
     def test_empty_candidate_group_during_csv_assignment_is_valid(self):
-        data = copy.deepcopy(load(ROOT / 'config/frb_launch_sample_data_v0_1.json'))
+        data = copy.deepcopy(load(ROOT / 'config/frb_launch_data.json'))
         for i, row in enumerate(data['launch_choices']):
             row['choice_id'] = f'import_mail_{i+1:06d}'
             row['group_id'] = ''
@@ -21,7 +21,7 @@ class CsvEmailChoiceTests(unittest.TestCase):
         self.assertIs(validate(data), data)
 
     def test_duplicate_ids_remain_rejected(self):
-        data = copy.deepcopy(load(ROOT / 'config/frb_launch_sample_data_v0_1.json'))
+        data = copy.deepcopy(load(ROOT / 'config/frb_launch_data.json'))
         data['launch_choices'][1]['choice_id'] = data['launch_choices'][0]['choice_id']
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             validate(data)

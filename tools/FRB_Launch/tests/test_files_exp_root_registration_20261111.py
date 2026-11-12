@@ -15,7 +15,7 @@ from launch_menu_registration import (
 
 
 def data():
-    return json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT / 'config/frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def test_root_target_is_files_category_not_system_page_and_title_is_unimportant():
@@ -75,7 +75,7 @@ def test_studio_cli_persists_directory_beneath_real_files_anchor(tmp_path, monke
     if not root or not shutil.which('node'):
         pytest.skip('Studio CLI / Node not supplied')
     config = tmp_path / 'launch.json'
-    config.write_bytes((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_bytes())
+    config.write_bytes((ROOT / 'config/frb_launch_data.json').read_bytes())
     folder = tmp_path / 'Dropped Root Folder'
     folder.mkdir()
     doc = data()

@@ -74,7 +74,7 @@ class RegisterTest(unittest.TestCase):
         with self.assertRaises(RegistrationError): category_record('   ')
 
     def test_parent_category_only(self):
-        doc = load(ROOT/'config/frb_launch_sample_data_v0_1.json')
+        doc = load(ROOT/'config/frb_launch_data.json')
         eligible_parent(doc,'work','')
         eligible_parent(doc,'system','folders')
         with self.assertRaises(RegistrationError): eligible_parent(doc,'system','studio_dir')
@@ -87,7 +87,7 @@ class RegisterTest(unittest.TestCase):
             self.skipTest('Studio source / Node not supplied for integration test')
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)/'launch.json'
-            shutil.copy2(ROOT/'config/frb_launch_sample_data_v0_1.json',data)
+            shutil.copy2(ROOT/'config/frb_launch_data.json',data)
             original = data.read_bytes()
             self.assertNotIn('試験カテゴリー'.encode('utf-8'),original)
             result = commit_add(data,studio,'work','',[category_record('試験カテゴリー')])
@@ -98,7 +98,7 @@ class RegisterTest(unittest.TestCase):
             ]))
             self.assertEqual(result['summary']['added'],2)
             modified = load(data)
-            self.assertEqual(len(modified['items']),len(load(ROOT/'config/frb_launch_sample_data_v0_1.json')['items'])+3)
+            self.assertEqual(len(modified['items']),len(load(ROOT/'config/frb_launch_data.json')['items'])+3)
             self.assertEqual(modified['items'][-1]['title'],'Zenn')
             with self.assertRaises(RegistrationError):
                 commit_add(data,studio,'system','studio_dir',[category_record('禁止')])

@@ -31,7 +31,7 @@ def source_class(module, name, names, ns):
 
 
 def sample():
-    data = json.loads((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf-8'))
+    data = json.loads((ROOT / 'config/frb_launch_data.json').read_text('utf-8'))
     roots = virtual_exp_roots(data['pages'], data['items'])
     def walk(node):
         yield node

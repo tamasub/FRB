@@ -21,7 +21,7 @@ from shuriken_model import (
 
 def live_entries():
     return configured_entries(json.loads(
-        (ROOT / 'config/frb_launch_sample_data_v0_1.json').read_text('utf8')), 1)
+        (ROOT / 'config/frb_launch_data.json').read_text('utf8')), 1)
 
 
 def legacy_four_entries():
@@ -57,7 +57,7 @@ def test_existing_four_cardinal_primitive_remains_usable():
 
 def test_three_actions_have_three_sectors_from_priority():
     import copy
-    data = json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text('utf8'))
+    data = json.loads((ROOT/'config/frb_launch_data.json').read_text('utf8'))
     # The authored live count changes; construct exactly three actions.
     enabled = [row for row in data['items'] if row.get('shuriken_enabled')]
     for row in data['items']:

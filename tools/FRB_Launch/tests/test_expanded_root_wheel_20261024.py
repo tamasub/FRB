@@ -16,7 +16,7 @@ from expanded_view_model import (normalize_options, expanded_targets, toolbar_ro
 
 
 def sample():
-    return json.loads((ROOT/'config/frb_launch_sample_data_v0_1.json').read_text(encoding='utf-8'))
+    return json.loads((ROOT/'config/frb_launch_data.json').read_text(encoding='utf-8'))
 
 
 def test_two_panel_buttons_hidden_without_removing_config_or_data():

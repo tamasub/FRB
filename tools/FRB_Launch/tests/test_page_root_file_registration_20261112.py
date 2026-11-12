@@ -55,7 +55,7 @@ def test_page_direct_file_commits_through_studio_and_is_list_only(tmp_path):
     if not studio or not shutil.which('node'):
         pytest.skip('Studio CLI not provided')
     config = tmp_path / 'launch.json'
-    config.write_bytes((ROOT / 'config/frb_launch_sample_data_v0_1.json').read_bytes())
+    config.write_bytes((ROOT / 'config/frb_launch_data.json').read_bytes())
     created_file = tmp_path / '画面設計.md'
     created_file.write_text('# test', encoding='utf-8')
     before = json.loads(config.read_text(encoding='utf-8'))

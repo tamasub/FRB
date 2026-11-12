@@ -11,7 +11,7 @@ from core import Expander, load, validate
 
 class DateTimeClipboardCommandTests(unittest.TestCase):
     def test_current_datetime_entry_and_output(self):
-        data = load(ROOT / 'config/frb_launch_sample_data_v0_1.json')
+        data = load(ROOT / 'config/frb_launch_data.json')
         row = next(r for r in data['items'] if r['item_id'] == 'today_datetime')
         self.assertEqual(row['parent_item_id'], 'dates')
         self.assertEqual(row['page_id'], 'work')
@@ -23,7 +23,7 @@ class DateTimeClipboardCommandTests(unittest.TestCase):
                          '20261110_072303')
 
     def test_no_duplicate_items_and_original_today_unchanged(self):
-        data = load(ROOT / 'config/frb_launch_sample_data_v0_1.json')
+        data = load(ROOT / 'config/frb_launch_data.json')
         self.assertEqual(len(data['items']), 80)
         self.assertEqual(len({i['item_id'] for i in data['items']}), 80)
         self.assertEqual(next(i for i in data['items'] if i['item_id'] == 'today')['launch_actions'][0]['launch_text'],

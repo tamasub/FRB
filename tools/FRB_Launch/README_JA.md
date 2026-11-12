@@ -58,3 +58,10 @@ Studioの「Page」編集画面で**タイトル／Pageアイコン**を変更�
 設定JSONのFiles行はシステム用のExp/List枠として扱い、`enabled=false` にしてもFiles画面は消えません。My Work配下への二重表示もしません。
 専用「手裏剣スクロール」ボタンは表示しませんが、**ぐりぐり高速回転から起動する自動手裏剣**は引き続き利用できます。
 詳しい互換・実機確認事項は `docs/FRBLaunch_PublicReleasePolish_20261109.md` を参照してください。
+
+## FRB Launch 0279 — 運用設定JSONの固定名
+
+運用設定は `config/frb_launch_data.json` に統一しました。形式バージョンはファイル内部の `launch_format_version` で管理します。
+旧 `frb_launch_sample_data_v0_1.json` を編集している環境では、初回起動・ビルド時にバックアップを作成して新名へ移行します。Launch/Studioを閉じてから適用してください。
+**既存環境には差分ZIPを適用し、完全版ZIPの初期JSONを上書きしないでください。**
+詳細：`docs/FRBLaunch_0279_ConfigFilenameStable_20261112.md`

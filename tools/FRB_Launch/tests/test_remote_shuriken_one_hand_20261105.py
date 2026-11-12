@@ -16,7 +16,7 @@ from launch_virtual_tree import virtual_launch_pages
 
 @pytest.fixture
 def data():
-    return load(ROOT / 'config/frb_launch_sample_data_v0_1.json')
+    return load(ROOT / 'config/frb_launch_data.json')
 
 
 def source(path):
