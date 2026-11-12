@@ -47,6 +47,10 @@ if not "%FRB_ENV_REFRESH%"=="1" (
   .venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
   if errorlevel 1 goto fail
 )
+rem Render the real Exp/List FRBContextMenu before making a distributable.
+rem A missing QAction foreground (0272 blank grey menu regression) fails closed.
+.venv\Scripts\python.exe scripts\smoke_context_menu_native_gui.py
+if errorlevel 1 goto fail
 .venv\Scripts\python.exe -m PyInstaller --noconfirm --clean --windowed --onedir --name FRBLaunch --collect-all tzdata --icon "assets\frb_launch.ico" --add-data "assets;assets" --add-data "experiments\frb_japanese_input;experiments/frb_japanese_input" src\app.py
 if errorlevel 1 goto fail
 xcopy /E /I /Y defs dist\FRBLaunch\defs

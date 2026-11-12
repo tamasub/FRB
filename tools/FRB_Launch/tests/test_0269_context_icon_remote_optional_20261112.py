@@ -44,7 +44,7 @@ def test_files_exp_root_only_allows_existing_folder_menu():
 
 def test_list_context_navigation_is_wired_to_pointer_menus():
     assert VIEW.count('list_context=True') >= 3
-    assert "column='list' if list_context else None" in APP
+    assert "column='list' if list_context else 'exp' if exp_context else None" in APP
     assert "column='exp' if remote_folder_list and explicit_target is not None" in APP
     assert "menu, point, column='list' if list_context else 'exp'" in APP
     assert "self._install_files_column_navigation(menu, column)" in APP
@@ -52,7 +52,7 @@ def test_list_context_navigation_is_wired_to_pointer_menus():
 
 
 def test_icon_margins_balanced_and_json_icons_present():
-    assert 'QMenu::icon { width:24px; height:24px; margin-left:5px; margin-right:5px; }' in STYLE
+    assert 'QMenu::icon {' not in STYLE.split('CONTEXT_MENU_SPACING_QSS = """', 1)[1].split('"""', 1)[0]
     assert 'QMenu::item { padding:7px 9px; }' in STYLE
     virtual = APP.split('    def show_virtual_launch_context(',1)[1].split('    def _show_launch_json_context_popup(',1)[0]
     for icon in ("context_action_icon('rename')","context_action_icon('copy')",

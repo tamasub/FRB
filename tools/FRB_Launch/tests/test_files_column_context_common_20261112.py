@@ -98,7 +98,7 @@ def test_all_launch_files_menu_entrypoints_use_same_wiring():
     assert "self._show_launch_json_context_popup(menu, point, column='exp')" in APP
     assert "menu, point, column='list' if list_context else 'exp'" in APP
     assert "menu, column='exp' if remote_folder_list and explicit_target is not None" in APP
-    assert APP.count("column='list' if list_context else None") >= 2
+    assert APP.count("column='list' if list_context else 'exp' if exp_context else None") >= 2
     assert "self._wire_hybrid_context_menu(menu, column=column)" in APP
     assert "self._install_files_column_navigation(menu, column)" in APP
     exp=(ROOT/'src/remote_files_explorer.py').read_text(encoding='utf-8')

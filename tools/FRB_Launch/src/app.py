@@ -14,7 +14,7 @@ import ctypes
 import math
 from PySide6.QtCore import Qt, QTimer, QThread, QSettings, QEvent, QEventLoop, QLockFile, QDir, QRectF, QRect, QPoint, QPointF, QSize, QObject, Signal, QMimeData, QUrl, QItemSelectionModel
 from PySide6.QtGui import QActionGroup, QIcon, QPixmap, QPainter, QColor, QBrush, QKeyEvent, QShortcut, QKeySequence, QCursor, QAction, QPainterPath, QRegion, QPen, QFont, QLinearGradient
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QComboBox, QPlainTextEdit, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QStyle, QSizePolicy, QToolButton, QProgressBar)
+from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QTabBar, QTreeWidget, QTreeWidgetItem, QMenu, QSystemTrayIcon, QFileIconProvider, QMessageBox, QFileDialog, QDialog, QLabel, QHBoxLayout, QDialogButtonBox, QComboBox, QPlainTextEdit, QCheckBox, QPushButton, QWidgetAction, QAbstractItemView, QHeaderView, QFrame, QStyle, QStyleOption, QSizePolicy, QToolButton, QProgressBar)
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtCore import QFileInfo
 from remote_confirmation import RemoteConfirmation
@@ -2153,9 +2153,13 @@ class RemoteFolderActionsMenu(CascadeMenu):
 
     def paintEvent(self, event):
         super().paintEvent(event)
+        painter = QPainter(self)
+        self._paint_action_chevrons(painter)
+        painter.end()
+
+    def _paint_action_chevrons(self, painter):
         actions = (getattr(self, 'folder_list_action', None),
                    getattr(self, 'new_submenu_action', None))
-        painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         for action in actions:
             if action is None or action not in self.actions():
@@ -2189,7 +2193,59 @@ class RemoteFolderActionsMenu(CascadeMenu):
             color = (self.palette().highlightedText().color()
                      if selected else self.palette().text().color())
             painter.fillPath(arrow, color)
-        painter.end()
+
+
+class FRBContextMenu(RemoteFolderActionsMenu):
+    """One Exp/List context-menu object with a built-in ぐりぐり Runner.
+
+    Callers only populate QAction items and call popup().  The menu owns the
+    Runner's entire visible lifetime; no caller or Remote-window visibility
+    test may decide whether wheel selection is available.  A launcher-level
+    pointer is kept ONLY for existing Remote command routing compatibility.
+    """
+
+    def __init__(self, parent=None, launcher=None):
+        super().__init__(parent=parent, launcher=launcher)
+        self.remote_context_root = True
+        self._frb_grigri_runner = None
+        # A context-menu object carries BOTH its Runner and presentation.
+        # No Exp/List caller is allowed to choose different layout QSS.
+        style_context_menu(self, self.launcher.color_theme)
+        self.aboutToShow.connect(self._schedule_grigri_runner)
+        self.aboutToHide.connect(self._stop_grigri_runner)
+
+    # Deliberately NO paintEvent override.
+    # QMenu must own the complete row: icon, text, selection, separators and
+    # submenu indicator.  The 0272 custom painter erased Qt's foreground
+    # before redrawing it; a failed/incomplete paint produced blank grey menus
+    # on Windows.  Native drawing (inherited from RemoteFolderActionsMenu)
+    # preserves all QAction text and icons while this class still owns Runner.
+
+    def _schedule_grigri_runner(self):
+        # aboutToShow happens before Qt marks QMenu visible. Install on the
+        # next event-loop turn; a popup dismissed immediately stays inactive.
+        QTimer.singleShot(0, self._activate_grigri_runner)
+
+    def _activate_grigri_runner(self):
+        if not self.isVisible():
+            return False
+        runner = self._frb_grigri_runner
+        if runner is not None and runner.active and runner.root is self:
+            return True  # Idempotent for overlapping menu-show/Remote events.
+        previous = getattr(self.launcher, '_remote_context_wheel', None)
+        if previous is not None:
+            previous.stop()
+        runner = RemoteContextWheel(self.launcher, self)
+        self._frb_grigri_runner = runner
+        # Compatibility route, NOT a second owner or a separate install step.
+        self.launcher._remote_context_wheel = runner
+        return True
+
+    def _stop_grigri_runner(self):
+        runner = self._frb_grigri_runner
+        self._frb_grigri_runner = None
+        if runner is not None:
+            runner.stop()
 
 
 class RemoteFolderCascade(CascadeMenu):
@@ -5498,9 +5554,10 @@ class Launcher(QWidget):
             self._remote_pad_context_active = False
         menu = self._remote_pad_context_menu
         if menu is None:
-            # No selected item: navigation and history remain accessible.
-            menu = QMenu(self)
+            # No selected item: still use the full FRB context-menu object.
+            menu = self._create_files_context_menu(self)
             self._prepend_remote_pad_navigation(menu, force=True)
+            self._wire_hybrid_context_menu(menu)
             pad = remote.pad
             menu.popup(pad.mapToGlobal(QPoint(pad.width() + 4, 0)))
         if menu.isVisible():
@@ -5606,17 +5663,35 @@ class Launcher(QWidget):
         rect = pane.tree.visualItemRect(item)
         if rect.isValid():
             view.context_menu(pane, rect.center(), global_pos=pos)
-            # This is deliberately opt-in: only a menu opened from the Remote
-            # while targeting Files List gets wheel/arrow/● navigation.
+            # Remote-originated and pointer-originated menus use the same
+            # wheel/click controller; opening origin does not gate it.
             if pane is view.middle:
                 self._enable_remote_context_wheel()
+
+    def _create_files_context_menu(self, parent=None):
+        """ONE constructor for every Files Exp/List context menu.
+
+        Before this factory, Exp created RemoteFolderActionsMenu(CascadeMenu)
+        but List created plain QMenu. Qt then computed different icon/text
+        lanes even when the stylesheets were identical. Use the very same
+        Python/Qt widget class (with its own built-in Runner) for BOTH; feature differences are populated
+        as actions/openers by the calling code, never by choosing a different
+        menu class. All context menus suppress the cascade's local search bar.
+
+        This factory does not attach Filesリスト: only the Exp caller requests
+        that preview, preserving List's normal command set and click behavior.
+        """
+        menu = FRBContextMenu(parent=parent or self, launcher=self)
+        menu.remote_context_root = True  # Context commands, not a search column.
+        menu._frb_files_context_menu = True
+        # FRBContextMenu self-installs both its Runner and its appearance.
+        return menu
 
     def _enable_remote_context_wheel(self):
         return self._enable_remote_context_wheel_for_menu(
             getattr(self, '_launch_context_menu', None))
 
-    def _wire_hybrid_context_menu(self, menu, *, column=None, context=True,
-                                  extra_qss=''):
+    def _wire_hybrid_context_menu(self, menu, *, column=None, context=True):
         """Any pointer-opened Qt menu shares the real ぐりぐり QAction cursor.
 
         This does not append actions or change native mouse click behavior.
@@ -5632,7 +5707,9 @@ class Launcher(QWidget):
         # menu was created or whether the Remote is visible. Settings keeps
         # its existing theme-specific presentation via context=False.
         if context:
-            style_context_menu(menu, self.color_theme, extra_qss=extra_qss)
+            # The same exact final style for Exp and List, regardless of
+            # individual actions (Filesリスト is an Exp-only action).
+            style_context_menu(menu, self.color_theme)
         if getattr(menu, '_frb_hybrid_wired', False):
             return
         menu._frb_hybrid_wired = True
@@ -5653,11 +5730,17 @@ class Launcher(QWidget):
             # Discover the QMenu children without rewriting their QAction logic.
             for child in menu.findChildren(QMenu):
                 child.setWindowFlags(flags)
-        menu.aboutToShow.connect(
-            lambda m=menu: QTimer.singleShot(
-                0, lambda target=m: self._enable_remote_context_wheel_for_menu(target)))
+        # FRBContextMenu owns the Runner as part of its own widget lifetime.
+        # This compatibility bridge is only for non-Files Qt menus (Settings,
+        # Browser, etc.) that have not adopted the FRBContextMenu class yet.
+        if not isinstance(menu, FRBContextMenu):
+            menu.aboutToShow.connect(
+                lambda m=menu: QTimer.singleShot(
+                    0, lambda target=m: self._enable_remote_context_wheel_for_menu(target)))
 
     def _enable_remote_context_wheel_for_menu(self, menu):
+        if isinstance(menu, FRBContextMenu):
+            return menu._activate_grigri_runner()
         if menu is None or not menu.isVisible():
             return False
         previous = getattr(self, '_remote_context_wheel', None)
@@ -5901,13 +5984,13 @@ class Launcher(QWidget):
         """
         if column not in ('exp', 'list'):
             return False
-        menu = QMenu(self)
+        menu = self._create_files_context_menu(self)
         self._show_launch_json_context_popup(menu, point, column=column)
         return True
 
     def show_launch_root_registration_menu(self, point):
         """Files Exp's empty ROOT is not a physical folder or a virtual leaf."""
-        menu = QMenu(self)
+        menu = self._create_files_context_menu(self)
         try:
             page_id, parent_id = self._files_exp_root_registration_target()
         except RegistrationError as exc:
@@ -6179,7 +6262,7 @@ class Launcher(QWidget):
             return
         item_id = str(identity.get('item_id') or '')
         target = virtual_studio_target(identity, self.pages, self.authored_items)
-        menu = QMenu(self)
+        menu = self._create_files_context_menu(self)
         menu.addSection('Launch JSON（Studio管理）' if target else 'Launch JSON（参照専用）')
         selected_unregister = self._selected_launch_json_items(identity) if target and target['kind'] == 'item' else []
         if target is not None:
@@ -7089,11 +7172,19 @@ class Launcher(QWidget):
             self.search.setFocus(Qt.FocusReason.ShortcutFocusReason)
 
     def style_cascade_menu(self, menu):
-        """Match both normal and long scrollable child menus to main palette."""
-        if theme_family(self.color_theme) != 'light':
+        """Style generic cascades; preserve the shared context contract.
+
+        CascadeMenu.popup() calls this again after _wire_hybrid_context_menu().
+        Never let that final pass erase a context popup's shared icon/row
+        geometry or its optional submenu-arrow styling.
+        """
+        if getattr(menu, '_frb_context_style', False):
+            style_context_menu(menu, self.color_theme)
+        elif theme_family(self.color_theme) != 'light':
             menu.setStyleSheet('')  # Drop any prior light QSS after switching dark.
             return
-        menu.setStyleSheet(LIGHT_MENU_QSS)
+        else:
+            menu.setStyleSheet(LIGHT_MENU_QSS)
         tree = getattr(menu, 'scroll_tree', None)
         if tree is not None:
             tree.setStyleSheet(LIGHT_CASCADE_TREE_QSS)
@@ -11947,7 +12038,7 @@ class Launcher(QWidget):
         if not Path(target_directory).is_dir():
             self.error('操作対象のフォルダーが見つかりません: ' + target_directory)
             return False
-        menu = RemoteFolderActionsMenu(parent=self, launcher=self) if remote_folder_list else QMenu(self)
+        menu = self._create_files_context_menu(self)
         # The ordinary Launch Files-background menu and Files Exp's Remote
         # menu share the same deliberate compact width.
         menu.setMinimumWidth(218)
@@ -12100,9 +12191,7 @@ class Launcher(QWidget):
             self._on_file_context_action_triggered(m, action))
         self._wire_hybrid_context_menu(
             menu, column='exp' if remote_folder_list and explicit_target is not None
-            else 'list',
-            extra_qss=remote_new_arrow_qss(self.color_theme)
-                      if remote_folder_list else '')
+            else 'list')
         menu.popup(global_pos)
         return True
 
@@ -12175,7 +12264,7 @@ class Launcher(QWidget):
 
     def show_launch_context_menu(self, global_pos, row=None, *, context_parent=None,
                                  selected_paths=None, force_search_context=False,
-                                 list_context=False):
+                                 list_context=False, exp_context=False):
         """Choose context actions by authoritative source, not displayed item ID."""
         if not self.data:
             return False
@@ -12195,7 +12284,8 @@ class Launcher(QWidget):
         if row is None:
             if self.stack or self.search.text().strip():
                 return False
-            menu = QMenu(context_parent if context_parent is not None else self)
+            menu = self._create_files_context_menu(
+                context_parent if context_parent is not None else self)
             created = menu.addAction('新規作成（カテゴリー）',
                                      lambda: self.launch_configuration_studio(new_category=True))
             props = menu.addAction('詳細編集...',
@@ -12205,7 +12295,8 @@ class Launcher(QWidget):
             if props is not None:
                 props.setIcon(context_action_icon('properties'))
         elif origin == 'studio':
-            menu = QMenu(context_parent if context_parent is not None else self)
+            menu = self._create_files_context_menu(
+                context_parent if context_parent is not None else self)
             props = menu.addAction('詳細編集...',
                                    lambda checked=False, item_id=row['item_id']: self.launch_configuration_studio(item_id=item_id))
             if props is not None:
@@ -12219,7 +12310,8 @@ class Launcher(QWidget):
                 except (OSError, ValueError, KeyError) as exc:
                     self.error('コンテキストメニュー定義が不正です: ' + str(exc))
                     return False
-                menu = QMenu(context_parent if context_parent is not None else self)
+                menu = self._create_files_context_menu(
+                    context_parent if context_parent is not None else self)
                 batch = tuple(selected_paths)
                 batch_allowed = {'copy', 'cut', 'paste', 'copy_full_path', 'copy_file_name', 'delete'}
                 for definition in visible_context_entries(entries, batch_allowed):
@@ -12247,7 +12339,7 @@ class Launcher(QWidget):
                 menu.setMinimumWidth(218)
                 menu.setMaximumWidth(225)
                 self._wire_hybrid_context_menu(
-                    menu, column='list' if list_context else None)
+                    menu, column='list' if list_context else 'exp' if exp_context else None)
                 menu.popup(global_pos)
                 return True
             try:
@@ -12255,7 +12347,8 @@ class Launcher(QWidget):
             except (OSError, ValueError, KeyError) as exc:
                 self.error('コンテキストメニュー定義が不正です: ' + str(exc))
                 return False
-            menu = QMenu(context_parent if context_parent is not None else self)
+            menu = self._create_files_context_menu(
+                context_parent if context_parent is not None else self)
             if origin == 'folder':
                 # Match the compact 218-225px Remote / Files Exp menu.
                 menu.setMinimumWidth(218)
@@ -12352,7 +12445,7 @@ class Launcher(QWidget):
         if hasattr(menu, 'aboutToHide'):
             menu.aboutToHide.connect(lambda m=menu: self._forget_launch_context_menu(m))
         self._wire_hybrid_context_menu(
-            menu, column='list' if list_context else None)
+            menu, column='list' if list_context else 'exp' if exp_context else None)
         menu.popup(global_pos)
         return True
 

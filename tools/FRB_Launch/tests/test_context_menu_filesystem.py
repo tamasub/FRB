@@ -241,12 +241,19 @@ class ActualLauncherRoutingTests(unittest.TestCase):
         ast.fix_missing_locations(code)
 
         class Menu:
-            def __init__(self, parent): self.parent = parent; self.actions = []; self.at = None
+            def __init__(self, parent):
+                self.parent = parent
+                self.actions = []
+                self.at = None
+                self.aboutToHide = Mock()
+                self.triggered = Mock()
             def addAction(self, title, callback):
                 self.actions.append((title, callback))
                 return Mock(setEnabled=Mock(), setIcon=Mock(), setIconVisibleInMenu=Mock())
             def addSeparator(self): self.actions.append(('separator', None))
             def isEmpty(self): return not self.actions
+            def setMinimumWidth(self, width): self.minimum_width = width
+            def setMaximumWidth(self, width): self.maximum_width = width
             def popup(self, at): self.at = at
         from context_menu_config import visible_context_entries
         scope = {'QMenu': Menu, 'resolve_context_target': resolve_context_target,
@@ -263,6 +270,13 @@ class ActualLauncherRoutingTests(unittest.TestCase):
             _context_paste_enabled=Mock(return_value=False), _paste_from_context_menu=Mock(),
             can_delete_remote_folder=Mock(return_value=True),
             add_open_with_submenu=lambda menu, title, path: menu.addAction(title.replace('…', ' ▶'), lambda: None))
+        # After the common-menu refactor the routing method asks Launcher for
+        # its FRBContextMenu factory instead of creating an unrelated QMenu.
+        # The test double must expose that same factory boundary.
+        holder._create_files_context_menu = lambda parent=None: Menu(parent or holder)
+        holder._wire_hybrid_context_menu = Mock()
+        holder._forget_launch_context_menu = Mock()
+        holder._on_file_context_action_triggered = Mock()
         return scope['show_launch_context_menu'], holder
 
     def test_physical_folder_menu_calls_correct_action_including_checked(self):

@@ -1664,7 +1664,7 @@ class RemoteFilesExplorer(QWidget):
                 # the same column switch; never invent a filesystem path.
                 launcher = self._launcher
                 if launcher is not None:
-                    menu = QMenu(self)
+                    menu = launcher._create_files_context_menu(self)
                     launcher._wire_hybrid_context_menu(menu, column='exp')
                     menu.aboutToHide.connect(menu.deleteLater)
                     menu.popup(point)
@@ -1915,7 +1915,8 @@ class RemoteFilesExplorer(QWidget):
 
     def _show_layout_menu(self, position):
         launcher = self._launcher
-        menu = QMenu(self)
+        menu = (launcher._create_files_context_menu(self)
+                if launcher is not None else QMenu(self))
         # Re-layout is for the floating experimental header only. In embedded
         # mode this right-click still has the universal Exp -> List action.
         if not self._embedded and getattr(launcher, 'files_root_hidden_mode', False):

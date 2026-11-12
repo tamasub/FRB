@@ -71,7 +71,11 @@ class RemoteContextWheel(QObject):
     """Short-lived adapter: Remote wheel/arrows/● -> existing QAction cursor."""
 
     def __init__(self, launcher, menu):
-        super().__init__(launcher)
+        # The menu is the QObject owner of its Runner.  Closing/deleting a
+        # popup must never leave a menu controller installed on the Launcher.
+        # Launcher._remote_context_wheel is only a compatibility route for the
+        # Remote pad's commands, not an ownership or enablement switch.
+        super().__init__(menu)
         self.launcher = launcher
         self.root = menu
         self.current = menu

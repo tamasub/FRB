@@ -208,7 +208,7 @@ def light_scrollbar_qss(background='#ffffff'):
     QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover { background:#76a593; }
     QScrollBar::handle:vertical:pressed, QScrollBar::handle:horizontal:pressed { background:#548a72; }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; border:0; background:transparent; }
-    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }
+    QScrollBafile:///F:/FRB/tools/FRB_Launch/src/app.pyr::add-line:horizontal, QScrollBar::sub-line:horizontal { width:0; border:0; background:transparent; }
     QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical,
     QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal { width:0; height:0; background:transparent; }
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
@@ -225,9 +225,10 @@ def scrollbar_for_theme(theme, background):
                  .replace('#548a72', '#abcbbd'))
 
 
-# Context menu row icons should sit near their labels, with just a small left inset.
+# Shared Files context-menu row spacing and separators only.
+# Native QMenu draws the foreground. Never suppress its QAction text/icons,
+# and never introduce Exp/List-specific offsets or icon raster resizing.
 CONTEXT_MENU_SPACING_QSS = """
-QMenu::item { padding:7px 9px; }
-QMenu::icon { width:24px; height:24px; margin-left:5px; margin-right:5px; }
+QMenu::item { padding: 7px 9px; }
 QMenu::separator { height:1px; background:#e1e5e2; margin:5px 3px; }
 """

@@ -1,37 +1,34 @@
-# FRB Launch：Exp / List 共通コンテキストメニュー表示契約
+# FRB Launch：Exp / List コンテキストメニュー共通描画契約（2026-11-12再改訂）
 
-## 背景・不具合
+## 実機で発見された回帰
 
-同じ実フォルダーを右クリックしても、入口によってアイコン位置・左右余白が異なっていた。
+修正前後のWindows比較画像（2026-11-12 12:38提供）で、**ExpとListのメニューに同じ余白規則が適用されていない**だけでなく、共通化後のアイコンが小さくなっていた。
 
-- Exp のフォルダー・リモコン経由では `RemoteFolderActionsMenu(CascadeMenu)` を使用。
-- List の背景・選択行では通常の `QMenu` を使用。
-- メニューごとに `LIGHT_MENU_QSS` と `context_menu_spacing_qss()` を個別結合し、一部は別の `QMenu` スタイルだけで表示。
-- Windows の `QFileIconProvider` と FRB 手描きアイコンでは、返すアイコンの元サイズや透明画素が違う。
-- 既存の `QMenu::icon { margin-left:5px; margin-right:5px; }` という文字列の存在だけをテストしていた。**実画面の左右余白・描画領域は保証されていなかった**。
+原因は `src/context_menu_presentation.py` の旧 `_normalize_action_icons`。元アイコンを18pxに縮小して24px透明キャンバスに配置したが、Qt の `QMenu` は更に `PM_SmallIconSize`（Windows標準では多くの場合16px）でQIconを取得して描くため、**不要な二段階縮小**が発生した。
 
-## 共通責務と実装
+また、前の `QMenu::icon { margin-left:5px; margin-right:5px; }` はCSSの見た目の文字列が揃っていても、アイコン描画位置をメニュー項目の左端から一定にする保証にはならなかった。
 
-1. **すべての Exp / List コンテキストメニューの表示経路は、`Launcher._wire_hybrid_context_menu` を通る。** 設定メニューのみ `context=False` とする。
-2. `_wire_hybrid_context_menu` から `context_menu_presentation.style_context_menu` を1回呼び、通常 `QMenu` と `RemoteFolderActionsMenu` に同じ行レイアウト・テーマを適用する。
-3. `QMenu::item` は `padding:7px 9px`、`QMenu::icon` は24px枠・左右各5pxの固定値。アイコン自体は、元の画像を18pxにした上で24pxの中央に描く。OSアイコンとFRBアイコンが同じ中心を利用する。
-4. アイコンの正規化は QAction の動的プロパティで1回だけ実施する。テーマ変更やサブメニュー表示で繰り返し縮小しない。
-5. 「新規作成」サブメニューは専用スタイルではなく同じ `style_context_menu` を呼ぶ。ツールメニュー固有の矢印画像は `extra_qss` で追加し、共通ジオメトリ定義を上書きしない。
-6. **新規メニューの実装者は**個別スタイルを書かず、`_wire_hybrid_context_menu` に接続する。メニューがどの操作対象のために出たか（Exp/List）は、ナビゲーション項目の追加にだけ使う。
+## 正式な共通責務
 
-## 再発防止・品質ゲート
+1. **アイコン画像は加工しない**。Windows OSアイコン、自作FRBアイコン、無効表示やテーマ別アイコンの `QAction.icon()` を共通描画処理が置換・縮小しない。
+2. **描画位置はQMenu項目の左端基準**。`QMenu::icon` の `subcontrol-origin: border; subcontrol-position: center left; position: relative; left:14px` を全Exp/Listの共通CSSに1か所だけ置く。`Qt.Popup` と `Qt.Tool`、通常 `QMenu` と `RemoteFolderActionsMenu` に別の左余白を指定しない。
+3. **Qtの元のメニュー小アイコン規格で描画**。アイコン画像と表示サイズを混同しない。Qt内部がデバイスDPIを考慮する。前回の「18px glyph + 24px canvas」は廃止。
+4. **メニューを開く共通入口を維持**。`Launcher._wire_hybrid_context_menu` → `style_context_menu`。サブメニューも同じ共通設定。メニューのアクション、フォルダー操作、ぐりぐりは変更しない。
+5. **新たな局所CSS・アイコンリサイズを禁止**。`scripts/check_context_menu_contract.py` が独自CSSや`context_menu_presentation.py`内の縮小描画を検出する。
 
-- `python scripts/check_context_menu_contract.py`：標準表示ゲート、現在のメニュー入口、アイコン規格、サブメニューの適用を静的検査。
-- `tests/test_shared_context_menu_presentation_20261112.py`：実際のスタイル共通性・異なる元アイコンのキャンバス位置・二重縮小防止・ゲート検査を検証。
-- `src/make_launch_zip.py` と `_build_windows.bat` の作成前検査へ追加。既存 `check_dialog_contract.py` とともに、不適合時はビルド/バックアップZIP生成を拒否する。
-- 今回の差分は共通ダイアログ（ぐりぐりボタンセレクター）の作業途中ソースに適用済み。そのため両共通化の変更を一つの差分に含めている。
+## テスト
 
-## Windows実機で必ず確認すること（未実施）
+- `tests/test_shared_context_menu_presentation_20261112.py`：ソースアイコン未変更、共通CSS、重複呼出でアイコンを加工しない、ビルド時ゲート。
+- `tests/test_0269_context_icon_remote_optional_20261112.py`：以前の誤った「24px透明キャンバス」を期待値から除去。
+- `tests/test_context_menu_icon_qt_geometry_20261112.py`：PySide6が使える環境では実際にQtでメニューを描画し、通常QMenu・Tool化QMenu・QMenu派生型のアイコン位置と描画幅をピクセル単位で比較。PySide6なし環境ではSKIPとなる。
+- `python scripts/check_context_menu_contract.py`：共通描画チェック。
 
-1. **同じ実フォルダー**を Exp と List の双方で右クリックし、アイコン中心・左右余白・文字開始位置を比較する。
-2. リモコン表示・非表示、Light・Dark、通常アイコン・Windows OS アイコン、新規作成/Launch Menu サブメニューで揃っていること。
-3. メニューのぐりぐり操作・選択・実行・閉じる操作が以前通りであること。
-4. Gitコミットメッセージを含む、新しい/既存のLaunchダイアログはリモコン非表示でもホイール選択＋Launchの余白クリックで選択ボタンを実行できること。**実Cancel/OKを直接クリックした場合は直接クリックが優先**されること。
-5. Windowsで `src/make_launch_zip.py` と `_build_windows.bat` を実行し、二つの共通契約ゲートが通過すること。
+**Linuxの検証環境にはPySide6がない**ため、今回も実機ピクセルテストは未実行。Windowsで確認しなければ「余白・サイズともに実機で修正完了」と断定してはいけない。
 
-Linux検証環境にPySide6がないため、Qt/Windowsの実画面上の余白をピクセル比較したとは扱わない。静的検査が成功しても、そのことと実画面の完全な保証は分けて報告する。
+## Windows受け入れ条件
+
+- 同じ実フォルダーをExp・Listの双方で右クリック。各行のアイコンが左端から等距離で、画像提供時の「修正前のList列」程度の大きさである。
+- 自作アイコン・OSフォルダーアイコン・通常/無効アイコン、Light/Dark、サブメニューで崩れない。
+- ぐりぐり選択・通常マウスクリック・サブメニュー開閉が元どおり動く。
+
+この回では右クリックアクション内容・列切り替え・ダイアログ入力の仕様には触らない。

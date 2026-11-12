@@ -5850,4 +5850,5 @@ class ExpandedLauncherView(QWidget):
         else:
             pane.tree.setCurrentItem(item)
             self.launcher.show_launch_context_menu(
-                (global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point)), row, context_parent=self.launcher)
+                (global_pos if global_pos is not None else pane.tree.viewport().mapToGlobal(point)), row,
+                context_parent=self.launcher, exp_context=True)
