@@ -1555,3 +1555,74 @@ D: ???: D:\FRB_backups (?ZIP?SHA256???)
 Windows PowerShell transcript end
 End time: 20261110003324
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20261112203914
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 21472
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+???D???????????? (D:\)?D:??????????????
+???????: F:\FRB_backups
+**********************
+Windows PowerShell transcript start
+Start time: 20261112204142
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 2440
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+?????: D:\FRB_backups (????)
+???????: F:\FRB_backups
+
+??       : F:\FRB
+????? : 23,065 / ???? 2,012.5 MB / ??????? 12 ?
+  ??: .git
+  ??: bin
+  ??: tools/FRB_Launch/app_zip
+  ??: tools/FRB_Launch_release_test_area/release
+  ??: tools/FRBStudio/bin
+  ??: tools/FRBStudio/obj
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/bin
+  ??: tools/FRBStudio_App/_archive_APP_Server/Program.cs/obj
+  ??: tools/FRBStudio_App/app_zip
+  ??: tools/FRBStudio_App/NativeShell/bin
+  ??: tools/FRBStudio_App/NativeShell/obj
+  ??: tools/FRBStudio_App/wwwroot/js/lib/mermaid
+F: ???ZIP?? OK: F:\FRB_backups\FRB_backup_20261112_204157_691.zip  (756.8 MB, 671.9 ?)
+
+??       : F:\FRB_docsExcel
+????? : 93 / ???? 122.7 MB / ??????? 0 ?
+F: ???ZIP?? OK: F:\FRB_backups\FRB_docsExcel_backup_20261112_205309_753.zip  (16.4 MB, 8.4 ?)
+D: ????SHA256?? OK: D:\FRB_backups\FRB_backup_20261112_204157_691.zip
+D: ????SHA256?? OK: D:\FRB_backups\FRB_docsExcel_backup_20261112_205309_753.zip
+
+========== ???????? ==========
+F: ZIP???????: 2 / 2 ?
+D: ???: D:\FRB_backups (?ZIP?SHA256???)
+?????
+**********************
+Windows PowerShell transcript end
+End time: 20261112205337
+**********************
