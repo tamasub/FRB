@@ -27,6 +27,12 @@ Release
 # Node.js
 node_modules
 
+# OLD_DISABLED
+FRBStudio_OLD_DISABLED
+FRBStudio_App_OLD_DISABLED
+FRB_Launch_OLD_DISABLED
+
+
 # Playwright / テストランタイム生成物
 playwright-report
 test-results
