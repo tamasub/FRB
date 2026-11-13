@@ -8,6 +8,10 @@ FRB Launch（Windows用ショートカットランチャー）は、FRB研究リ
 
 **[FRB Launch — GitHub](https://github.com/tamasub/FRB-Launch)**
 
+
+※新リポジトリは現在Privateのため、一般公開までは閲覧できません。
+
+
 FRB Launchは、キーボード操作を中心としたWindows用ランチャーです。
 
 アプリケーション起動、ファイル操作、テキスト送信などを、JSONで定義したメニューから実行できます。

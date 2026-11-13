@@ -7,7 +7,7 @@
 #   - # で始まる行、空行は無視する
 #   - "/" を含まないパターン → その名前のフォルダー/ファイルを、どの階層でも除外する
 #       (フォルダー名にマッチした場合、その中身ごと丸ごとスキップされる。走査自体しないので高速)
-#   - "/" を含むパターン → F:\FRB からの相対パス（"/" 区切り）に対してワイルドカードマッチ
+#   - "/" を含むパターン → 各バックアップ元フォルダーからの相対パス（"/" 区切り）に対してワイルドカードマッチ
 #       ( * は任意文字列、? は任意1文字。PowerShell -like と同じ規則 )
 
 # バージョン管理
@@ -44,10 +44,14 @@ tests/.runtime
 
 # サードパーティ製ライブラリ（再取得可能なので除外。約80MB）
 tools/FRBStudio_App/wwwroot/js/lib/mermaid
+# 独立したFRB_Studioではフォルダー直下からの相対パスになる
+wwwroot/js/lib/mermaid
 
 
 # tools/FRBStudio_App 配下の zip ファイル（サブフォルダー含めて全部）
 tools/FRBStudio_App/*.zip
 tools/FRB_Launch/app_zip
 tools/FRBStudio_App/app_zip
+# 独立したStudio・Launchでも生成済みアプリZIPはバックアップ対象から除く
+app_zip
 

@@ -1,18 +1,20 @@
 ﻿<#
 .SYNOPSIS
-    FRB と FRB_docsExcel を ZIP に保存し、外付け D ドライブへも二重保存する。
+    FRB / FRB_docsExcel / FRB Studio / FRB Launch を常にまとめて ZIP に保存し、外付け D ドライブへ二重保存する。
 .DESCRIPTION
     既定動作:
       F:\FRB           -> F:\FRB_backups\FRB_backup_yyyyMMdd_HHmmss_fff.zip
       F:\FRB_docsExcel -> F:\FRB_backups\FRB_docsExcel_backup_yyyyMMdd_HHmmss_fff.zip
+      F:\FRB_Apps\FRB_Studio -> F:\FRB_backups\FRB_Studio_backup_yyyyMMdd_HHmmss_fff.zip
+      F:\FRB_Apps\FRB_Launch -> F:\FRB_backups\FRB_Launch_backup_yyyyMMdd_HHmmss_fff.zip
     D: が利用できる場合は D:\FRB_backups\ に同じ ZIP をコピーし、SHA256 で照合する。
     D: が未接続ならエラーにせず、F: への保存結果と「D: 未接続」を表示する。
-    除外パターンは従来の exclude_patterns.txt を *変更せず* 両方に適用する。
+    除外パターンは exclude_patterns.txt を4対象すべてに適用する。
     ZIP の中のファイルパスは従来どおり、各フォルダー直下を起点にする。
 .PARAMETER SourcePath
-    旧スクリプトとの互換用。指定するとこの1フォルダーのみをバックアップ。
+    旧スクリプトとの互換用の上級者向け指定。通常運用では使わない。
 .PARAMETER SourcePaths
-    個別に複数のバックアップ対象を指定したい場合。SourcePath とは併用不可。
+    旧スクリプトとの互換用の上級者向け指定。通常運用では使わない。SourcePathと併用不可。
 .PARAMETER OutputDir
     ローカルのバックアップ保存先 (既定 F:\FRB_backups)。
 .PARAMETER MirrorDir
@@ -183,9 +185,12 @@ function New-ArchiveOnF {
     if (-not $zipPath) { throw "重複しない ZIP ファイル名を作れません: $folderName" }
     $partial = $zipPath + '.partial'
     $success = $false
+    $partialCreated = $false
     $watch = [System.Diagnostics.Stopwatch]::StartNew()
     try {
+        if (Test-Path -LiteralPath $partial) { throw "一時ファイルが既に存在します（上書き・削除しません）: $partial" }
         $stream = [System.IO.File]::Open($partial,[System.IO.FileMode]::CreateNew,[System.IO.FileAccess]::ReadWrite,[System.IO.FileShare]::None)
+        $partialCreated = $true
         $archive = $null
         try {
             $archive = New-Object System.IO.Compression.ZipArchive($stream,[System.IO.Compression.ZipArchiveMode]::Create)
@@ -206,7 +211,7 @@ function New-ArchiveOnF {
             $zipPath,($zipBytes/1MB),$watch.Elapsed.TotalSeconds) -ForegroundColor Green
         return $zipPath
     } finally {
-        if (-not $success -and (Test-Path -LiteralPath $partial)) {
+        if ($partialCreated -and -not $success -and (Test-Path -LiteralPath $partial)) {
             Remove-Item -LiteralPath $partial -Force -ErrorAction SilentlyContinue
         }
     }
@@ -215,9 +220,11 @@ function Copy-ToMirror {
     param([string]$ZipPath, [string]$TargetDirectory)
     $destination = Join-Path $TargetDirectory (Split-Path $ZipPath -Leaf)
     $temporary = $destination + '.partial'
+    $temporaryCreated = $false
     try {
         if (Test-Path -LiteralPath $destination) { throw "同名ファイルが D: にあります (上書きしません): $destination" }
         if (Test-Path -LiteralPath $temporary) { throw "D: に一時ファイルが残っています: $temporary" }
+        $temporaryCreated = $true  # Existing .partial was checked above.
         [System.IO.File]::Copy($ZipPath,$temporary,$false)
         $a = (Get-FileHash -LiteralPath $ZipPath -Algorithm SHA256).Hash
         $b = (Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash
@@ -229,7 +236,7 @@ function Copy-ToMirror {
         Write-Warning "D: への二重保存に失敗: $($_.Exception.Message)"
         return $false
     } finally {
-        if (Test-Path -LiteralPath $temporary) {
+        if ($temporaryCreated -and (Test-Path -LiteralPath $temporary)) {
             Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
         }
     }
@@ -250,7 +257,22 @@ try {
     if ($SourcePath -and $SourcePaths.Count -gt 0) { throw 'SourcePath と SourcePaths は併用できません' }
     $sourceList = if ($SourcePath) { @($SourcePath) } elseif ($SourcePaths.Count -gt 0) {
         @($SourcePaths)
-    } else { @('F:\FRB','F:\FRB_docsExcel') }
+    } else { @('F:\FRB','F:\FRB_docsExcel','F:\FRB_Apps\FRB_Studio','F:\FRB_Apps\FRB_Launch') }
+    # Default run is unconditional and all four sources are REQUIRED.
+    # Fail before creating any ZIP if any source is missing or duplicated.
+    $seenSources = @{}
+    foreach ($src in $sourceList) {
+        if (-not (Test-Path -LiteralPath $src -PathType Container)) {
+            throw "バックアップ元がありません。全件バックアップのため処理を中止します: $src"
+        }
+        $canonical = (Resolve-Path -LiteralPath $src).ProviderPath.TrimEnd('\')
+        if ($seenSources.ContainsKey($canonical)) {
+            throw "バックアップ元が重複しています: $canonical"
+        }
+        $seenSources[$canonical] = $true
+    }
+    Write-Host ("バックアップ対象: {0} フォルダー（選択操作なし）" -f $sourceList.Count) -ForegroundColor Cyan
+    $sourceList | ForEach-Object { Write-Host "  $_" }
     $patterns = Get-ExcludePatterns -Path $ExcludeFile -Extra $AdditionalExclude
     $logFull = [System.IO.Path]::GetFullPath($LogFile)
 
