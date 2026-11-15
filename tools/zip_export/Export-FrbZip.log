@@ -1700,3 +1700,97 @@ D: ???: D:\FRB_backups (?ZIP?SHA256???)
 Windows PowerShell transcript end
 End time: 20261113195320
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20261115002259
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 17264
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+????????: 4 ?????????????
+  F:\FRB
+  F:\FRB_docsExcel
+  F:\FRB_Apps\FRB_Studio
+  F:\FRB_Apps\FRB_Launch
+?????: D:\FRB_backups (????)
+???????: F:\FRB_backups
+
+??       : F:\FRB
+????? : 583 / ???? 46.3 MB / ??????? 6 ?
+  ??: .git
+  ??: bin
+  ??: tools/FRB_Launch_OLD_DISABLED
+  ??: tools/FRB_Launch_release_test_area/release
+  ??: tools/FRBStudio_App_OLD_DISABLED
+  ??: tools/FRBStudio_OLD_DISABLED
+F: ???ZIP?? OK: F:\FRB_backups\FRB_backup_20261115_002301_378.zip  (37.3 MB, 18.1 ?)
+
+??       : F:\FRB_docsExcel
+????? : 96 / ???? 122.7 MB / ??????? 0 ?
+F: ???ZIP?? OK: F:\FRB_backups\FRB_docsExcel_backup_20261115_002319_613.zip  (16.4 MB, 8.9 ?)
+
+??       : F:\FRB_Apps\FRB_Studio
+????? : 902 / ???? 89.5 MB / ??????? 7 ?
+  ??: .git
+  ??: _archive_APP_Server/Program.cs/bin
+  ??: _archive_APP_Server/Program.cs/obj
+  ??: app_zip
+  ??: NativeShell/bin
+  ??: NativeShell/obj
+  ??: wwwroot/js/lib/mermaid
+F: ???ZIP?? OK: F:\FRB_backups\FRB_Studio_backup_20261115_002329_455.zip  (13.0 MB, 33.2 ?)
+
+??       : F:\FRB_Apps\FRB_Launch
+????? : 21,740 / ???? 1,921.7 MB / ??????? 2 ?
+  ??: .git
+  ??: app_zip
+F: ???ZIP?? OK: F:\FRB_backups\FRB_Launch_backup_20261115_002417_264.zip  (746.6 MB, 643.9 ?)
+D: ????SHA256?? OK: D:\FRB_backups\FRB_backup_20261115_002301_378.zip
+D: ????SHA256?? OK: D:\FRB_backups\FRB_docsExcel_backup_20261115_002319_613.zip
+D: ????SHA256?? OK: D:\FRB_backups\FRB_Studio_backup_20261115_002329_455.zip
+D: ????SHA256?? OK: D:\FRB_backups\FRB_Launch_backup_20261115_002417_264.zip
+
+========== ???????? ==========
+F: ZIP???????: 4 / 4 ?
+D: ???: D:\FRB_backups (?ZIP?SHA256???)
+?????
+**********************
+Windows PowerShell transcript end
+End time: 20261115003523
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20261115145306
+Username: TAMASUB_MOUSE\tsub-
+RunAs User: TAMASUB_MOUSE\tsub-
+Configuration Name: 
+Machine: TAMASUB_MOUSE (Microsoft Windows NT 10.0.26200.0)
+Host Application: powershell -NoProfile -ExecutionPolicy Bypass -File F:\FRB\tools\zip_export\Export-FrbZip.ps1
+Process ID: 14036
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+????????: 4 ?????????????
+  F:\FRB
+  F:\FRB_docsExcel
+  F:\FRB_Apps\FRB_Studio
+  F:\FRB_Apps\FRB_Launch
+?????: D:\FRB_backups (????)
+???????: F:\FRB_backups
