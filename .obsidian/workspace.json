@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "13376435f6dea028",
+        "id": "5302a2aa300d453b",
         "type": "tabs",
         "children": [
           {
-            "id": "3b2393a47328a469",
+            "id": "bd31d3f846898de7",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -76,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 277.5
+    "width": 249.5
   },
   "right": {
     "id": "6e6a7add4646855a",
@@ -165,7 +165,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 224.5
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -178,16 +178,37 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "3b2393a47328a469",
+  "active": "bd31d3f846898de7",
   "lastOpenFiles": [
+    "FRB_Blog/FRB_Lab_Notes_Qiita.md",
+    "FRB_Blog/AI協働031_責務定義とテスト設計_20260818_204902.md",
+    "file:C:/Users/tsub-/Documents/新しいMarkdown文書.md",
+    "FRB_Blog/Ai_collaboration_All_merged.md",
+    "file:C:/Users/tsub-/Documents/新しいMarkdown文書 (4).md",
+    "FRB_Blog/FRB_Story_Timeline_Qiita.md",
+    "FRB_Blog/FRB_Launch_Qiita.md",
+    "FRB_Blog/AI協働037_オームの法則.md",
+    "FRB_Blog/AI協働038_FRBランチャー.md",
+    "FRB_Blog/ai-approval-driven-development-draft_backup.md",
+    "FRB_Blog/AI協働035_構造化された意図とApprovalEngineering_チャット要約_20260820.md",
+    "FRB_Blog/AI協働036_Expected_Diff_Method_v0_3.md",
+    "FRB_DATA.md",
+    "FRB_Blog/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_3.md",
+    "FRB_Blog/AI協働034_調査_日本企業AI利益事例20260819_212011.md",
+    "FRB_Blog/_testマークダウン_001.md",
+    "FRB_Blog/_ViewTimeLine.md",
+    "FRB_Blog/README.md",
+    "FRB_Blog/_マークダウンＲＶテストデータ.md",
+    "ChatGPT_answer.md",
+    "ChatGPT共有用文脈.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "mymemo.md",
     "tools/FRB_Launch/tests/test_launch_appearance.py",
     "tools/FRB_Launch/src/launch_appearance.py",
     "2026-10-18.md",
     "無題のファイル.canvas",
     "FRB_Blog/AI協働039_ActionForm構想.md",
-    "FRB_Blog/Ai_collaboration_All_merged.md",
-    "FRB_Blog/AI協働032_ループ_Claude Code責任者のBorisが「もうエージェント（AIの作業役）に指示は出してない」.md",
-    "ObsidianVault/wiki/index.md",
     "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_V2_1_20260906_153204.json",
     "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV10_20260906_151713.json",
     "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV09_20260605_215815.json",
@@ -196,27 +217,6 @@
     "FRB_FFT_App20260905_151429.zip",
     "FRB_FFT_App20260905_145354.zip",
     "FRB_FFT_App20260905_142731.zip",
-    "FRB_FFT_App20260905_140607.zip",
-    "tools/FRBStudio_App/data/ESP32_FFT_Monitor_Help.md",
-    "ObsidianVault/wiki/concepts/400KS人月仮説と承認単位のシフト.md",
-    "ObsidianVault/wiki/hot.md",
-    "ObsidianVault/wiki/overview.md",
-    "ObsidianVault/wiki/log.md",
-    "ObsidianVault/wiki/concepts/AI経営効果の開示到達度モデル.md",
-    "ObsidianVault/wiki/sources/AI協働034_日本企業AI利益事例.md",
-    "ObsidianVault/wiki/concepts/Expected_Diff方式と検証世界の設計原則.md",
-    "ObsidianVault/wiki/concepts/再構築可能性という品質指標.md",
-    "ObsidianVault/wiki/concepts/Approval_Engineeringと構造化された意図.md",
-    "ObsidianVault/wiki/concepts/Loop_Engineeringと正しさの外部化.md",
-    "ObsidianVault/wiki/sources/AI協働036_Expected_Diff方式.md",
-    "ObsidianVault/wiki/sources/AI協働035_構造化された意図とApprovalEngineering.md",
-    "ObsidianVault/wiki/sources/AI協働034_責務Behavior_Pilot_Phase2.md",
-    "ObsidianVault/wiki/sources/AI協働033_責務棚卸しPhase1.md",
-    "ObsidianVault/wiki/sources/AI協働032_ループEngineeringと正しさの外部化.md",
-    "ObsidianVault/wiki/concepts/責務定義駆動テスト設計.md",
-    "ObsidianVault/wiki/sources/AI協働031_責務定義とテスト設計.md",
-    "2026-08-15.md",
-    "無題のファイル 1.canvas",
-    "2026-08-05.md"
+    "無題のファイル 1.canvas"
   ]
 }
