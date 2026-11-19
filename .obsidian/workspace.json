@@ -1,20 +1,24 @@
 {
   "main": {
-    "id": "454a0f9b774e18eb",
+    "id": "f17791889c513950",
     "type": "split",
     "children": [
       {
-        "id": "5302a2aa300d453b",
+        "id": "8a99e8a858e248cf",
         "type": "tabs",
         "children": [
           {
-            "id": "bd31d3f846898de7",
+            "id": "2e014a6b76f63963",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "FRB_Blog/AI協働040_Launch_ぱんくず唯一神の投稿ネタ.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新規タブ"
+              "title": "AI協働040_Launch_ぱんくず唯一神の投稿ネタ"
             }
           }
         ]
@@ -23,15 +27,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "2677202193178083",
+    "id": "29f2b3a1cbd44876",
     "type": "split",
     "children": [
       {
-        "id": "a4474989d61acc31",
+        "id": "7ec50095617cffce",
         "type": "tabs",
         "children": [
           {
-            "id": "69f6ac229016834c",
+            "id": "ae8a233593413032",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -46,12 +50,12 @@
             }
           },
           {
-            "id": "26772714bb2e63cc",
+            "id": "5cb6c9209ab92ec9",
             "type": "leaf",
             "state": {
               "type": "search",
               "state": {
-                "query": "tag:ai-driven-development",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -63,11 +67,14 @@
             }
           },
           {
-            "id": "91048fdfb36a8391",
+            "id": "16c605cbe87faee9",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
-              "state": {},
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
               "icon": "lucide-bookmark",
               "title": "ブックマーク"
             }
@@ -76,18 +83,19 @@
       }
     ],
     "direction": "horizontal",
-    "width": 249.5
+    "width": 300,
+    "collapsed": true
   },
   "right": {
-    "id": "6e6a7add4646855a",
+    "id": "bcda47168513b4d6",
     "type": "split",
     "children": [
       {
-        "id": "d3808541b4d400ea",
+        "id": "29dabff9ff6463b5",
         "type": "tabs",
         "children": [
           {
-            "id": "ee1d89c775f44235",
+            "id": "bc91324c499352d8",
             "type": "leaf",
             "state": {
               "type": "backlink",
@@ -105,7 +113,7 @@
             }
           },
           {
-            "id": "048014a68408d53b",
+            "id": "e3e7288f1ac51282",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -118,7 +126,7 @@
             }
           },
           {
-            "id": "e26c6ffddf40f401",
+            "id": "65db7e76e164170b",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -133,7 +141,7 @@
             }
           },
           {
-            "id": "89c7f4e831d7a686",
+            "id": "734dcd8aabb04487",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -147,7 +155,7 @@
             }
           },
           {
-            "id": "7fc65aee1bc2a126",
+            "id": "912ccb811432ed18",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -160,12 +168,12 @@
               "title": "アウトライン"
             }
           }
-        ],
-        "currentTab": 4
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -178,45 +186,17 @@
       "bases:新規ベースを作成": false
     }
   },
-  "active": "bd31d3f846898de7",
+  "active": "2e014a6b76f63963",
   "lastOpenFiles": [
-    "FRB_Blog/FRB_Lab_Notes_Qiita.md",
-    "FRB_Blog/AI協働031_責務定義とテスト設計_20260818_204902.md",
-    "file:C:/Users/tsub-/Documents/新しいMarkdown文書.md",
-    "FRB_Blog/Ai_collaboration_All_merged.md",
-    "file:C:/Users/tsub-/Documents/新しいMarkdown文書 (4).md",
-    "FRB_Blog/FRB_Story_Timeline_Qiita.md",
-    "FRB_Blog/FRB_Launch_Qiita.md",
+    "FRB_Blog/_ViewTimeLine.md",
+    "FRB_Blog/AI協働036_Expected_Diff_Method_v0_3.md",
+    "FRB_Blog/ai-approval-driven-development-draft_backup.md",
+    "FRB_Blog/_testマークダウン_001.md",
+    "FRB_Blog/_マークダウンＲＶテストデータ.md",
+    "FRB_Blog/AI協働036_Expected_Diff_Method_v0_4.md",
     "FRB_Blog/AI協働037_オームの法則.md",
     "FRB_Blog/AI協働038_FRBランチャー.md",
-    "FRB_Blog/ai-approval-driven-development-draft_backup.md",
-    "FRB_Blog/AI協働035_構造化された意図とApprovalEngineering_チャット要約_20260820.md",
-    "FRB_Blog/AI協働036_Expected_Diff_Method_v0_3.md",
-    "FRB_DATA.md",
-    "FRB_Blog/AI協働033_FRB_Responsibility_Inventory_Phase1_v0_3.md",
-    "FRB_Blog/AI協働034_調査_日本企業AI利益事例20260819_212011.md",
-    "FRB_Blog/_testマークダウン_001.md",
-    "FRB_Blog/_ViewTimeLine.md",
-    "FRB_Blog/README.md",
-    "FRB_Blog/_マークダウンＲＶテストデータ.md",
-    "ChatGPT_answer.md",
-    "ChatGPT共有用文脈.md",
-    "AGENTS.md",
-    "CLAUDE.md",
-    "mymemo.md",
-    "tools/FRB_Launch/tests/test_launch_appearance.py",
-    "tools/FRB_Launch/src/launch_appearance.py",
-    "2026-10-18.md",
-    "無題のファイル.canvas",
-    "FRB_Blog/AI協働039_ActionForm構想.md",
-    "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_V2_1_20260906_153204.json",
-    "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV10_20260906_151713.json",
-    "tools/frb_purupuru_designer/frb_purupuru_特上ぷるぷるV09_20260605_215815.json",
-    "tools/frb_purupuru_designer/frb_purupuru_ステンレス擦り風味基準振動_20260515_223233.json",
-    "FRB_FFT_App20260905_151518.zip",
-    "FRB_FFT_App20260905_151429.zip",
-    "FRB_FFT_App20260905_145354.zip",
-    "FRB_FFT_App20260905_142731.zip",
-    "無題のファイル 1.canvas"
+    "file:C:/Users/tsub-/Downloads/FRBLaunch_Obsidian_WindowInspector_Handover_20261118.md",
+    "FRB_Blog/Ai_collaboration_All_merged.md"
   ]
 }
